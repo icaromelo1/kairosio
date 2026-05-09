@@ -1,0 +1,39 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: kairosio-postgres
+    environment:
+      POSTGRES_DB: kairosio
+      POSTGRES_USER: kairos
+      POSTGRES_PASSWORD: kairos
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  kairos-api:
+    build:
+      context: ../kairos-api
+      dockerfile: Dockerfile
+    container_name: kairosio-api
+    environment:
+      DATABASE_URL: postgres://kairos:kairos@postgres:5432/kairosio
+      JWT_SECRET: kairos-secret-change-in-prod
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - postgres
+
+  kairos-ui:
+    build:
+      context: ../kairos-ui
+      dockerfile: Dockerfile
+    container_name: kairosio-ui
+    ports:
+      - "9000:9000"
+    depends_on:
+      - kairos-api
+
+volumes:
+  postgres_data:
