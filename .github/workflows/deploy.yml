@@ -1,0 +1,79 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+jobs:
+  kairos-ui:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kairos-ui
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: kairos-ui/package-lock.json
+
+      - run: npm ci
+      - run: npx vite build --base=/kairos/
+
+      - name: Package build
+        run: tar -czf ../deploy-ui.tar.gz -C dist .
+
+      - name: Upload to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: deploy-ui.tar.gz
+          target: /home/ubuntu/
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            rm -rf ~/projects/kairos/site/*
+            tar -xzf ~/deploy-ui.tar.gz -C ~/projects/kairos/site/
+            rm ~/deploy-ui.tar.gz
+            docker exec kairos nginx -s reload
+
+  kairos-api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kairos-api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Package source
+        run: tar -czf ../deploy-api.tar.gz --exclude=node_modules --exclude=dist .
+
+      - name: Upload to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: deploy-api.tar.gz
+          target: /home/ubuntu/
+
+      - name: Deploy
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            rm -rf ~/projects/kairos-api/app/src
+            tar -xzf ~/deploy-api.tar.gz -C ~/projects/kairos-api/app/
+            rm ~/deploy-api.tar.gz
+            cd ~/projects/kairos-api && docker compose up -d --build
