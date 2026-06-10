@@ -19,6 +19,7 @@ jobs:
           cache: 'npm'
           cache-dependency-path: kairos-ui/package-lock.json
 
+
       - run: npm ci
       - run: npx vite build --base=/kairos/
 
