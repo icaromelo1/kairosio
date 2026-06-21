@@ -290,6 +290,15 @@ function selectMap(id: string) {
   switchMap(id)
 }
 
+// colisão entre personagens: bloqueia entrar no "espaço" de outro player
+function peerBlocks(x: number, y: number): boolean {
+  for (const peer of remotePlayers.values()) {
+    if (peer.map && peer.map !== currentId.value) continue
+    if (Math.hypot(peer.x - x, peer.y - y) < 0.8) return true
+  }
+  return false
+}
+
 function detectZone(map: MapDef) {
   let nearest: MapObject | null = null
   let best = 2.6
@@ -353,8 +362,10 @@ onMounted(async () => {
     }
     const moving = dx !== 0 || dy !== 0
     if (moving) {
-      if (!isSolid(map, Math.floor(pos.x + dx), Math.floor(pos.y))) pos.x += dx
-      if (!isSolid(map, Math.floor(pos.x), Math.floor(pos.y + dy))) pos.y += dy
+      const nx = pos.x + dx
+      const ny = pos.y + dy
+      if (!isSolid(map, Math.floor(nx), Math.floor(pos.y)) && !peerBlocks(nx, pos.y)) pos.x = nx
+      if (!isSolid(map, Math.floor(pos.x), Math.floor(ny)) && !peerBlocks(pos.x, ny)) pos.y = ny
       facing = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down')
     }
     const emoting = Date.now() < emoteUntil
