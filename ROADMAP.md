@@ -73,7 +73,6 @@ de verdade. Organizado em **etapas** com dependências. Ver visão em `KAIROS.md
 ## Etapa 6 — Estações funcionais *(ligar objetos a ferramentas)*
 
 - [ ] Lousa = whiteboard, Jukebox = música, Mesa = workspace/tarefas, Estante = notas.
-- [ ] **NPCs com LLM** (adiado conscientemente — uma estação que conversa).
 
 ## Etapa 7 — Voz/vídeo por proximidade (WebRTC) *(ápice do Gather)*
 
@@ -105,3 +104,13 @@ de verdade. Organizado em **etapas** com dependências. Ver visão em `KAIROS.md
 `Etapa 0` (agora) → `Etapa 1` (auth, fundação) → `Etapa 2` + `Etapa 3` (em paralelo) →
 `Etapa 4` (editor) → `Etapa 6` (estações) → `Etapa 7` (WebRTC).
 `Etapa 5` (arte/conteúdo) e a faixa de **Segurança** correm em paralelo o tempo todo.
+
+---
+
+## 💡 Backlog separado — Ideias futuras (NÃO agendado)
+
+> Coisas que são **só ideia** por enquanto. Não entram no plano atual; só serão
+> consideradas **depois** do app ajustado e maduro (núcleo social, editor e polimento prontos).
+
+- **NPCs com LLM** — estações que conversam (system prompt por NPC), via microserviço de IA.
+  É a última coisa a entrar, e ainda nem está decidida — fica aqui como visão, fora das waves.
