@@ -1,6 +1,9 @@
 import { reactive } from 'vue'
 import { io, type Socket } from 'socket.io-client'
 
+export type Facing = 'down' | 'up' | 'left' | 'right'
+export type Pose = 'idle' | 'walk' | 'dance'
+
 export interface RemotePlayer {
   id: string
   name: string
@@ -8,6 +11,8 @@ export interface RemotePlayer {
   map: string
   x: number
   y: number
+  facing: Facing
+  pose: Pose
 }
 
 export interface AvatarProps {
@@ -38,7 +43,7 @@ export const remotePlayers = reactive(new Map<string, RemotePlayer>())
 
 let socket: Socket | null = null
 let lastEmit = 0
-let pending: { x: number; y: number } | null = null
+let pending: { x: number; y: number; facing: Facing; pose: Pose } | null = null
 
 export function connectPresence(opts: JoinOptions) {
   if (socket) return
@@ -58,9 +63,9 @@ export function connectPresence(opts: JoinOptions) {
     remotePlayers.set(p.id, p)
   })
 
-  socket.on('playerMoved', ({ id, x, y }: { id: string; x: number; y: number }) => {
+  socket.on('playerMoved', ({ id, x, y, facing, pose }: { id: string; x: number; y: number; facing: Facing; pose: Pose }) => {
     const p = remotePlayers.get(id)
-    if (p) { p.x = x; p.y = y }
+    if (p) { p.x = x; p.y = y; if (facing) p.facing = facing; if (pose) p.pose = pose }
   })
 
   socket.on('playerLeft', ({ id }: { id: string }) => {
@@ -72,16 +77,16 @@ export function connectPresence(opts: JoinOptions) {
   })
 }
 
-export function emitMove(x: number, y: number) {
+export function emitMove(x: number, y: number, facing: Facing, pose: Pose) {
   if (!socket) return
   const now = Date.now()
   if (now - lastEmit >= MOVE_INTERVAL) {
     lastEmit = now
-    socket.emit('move', { x, y })
+    socket.emit('move', { x, y, facing, pose })
     pending = null
   } else {
-    // garante que a última posição seja enviada mesmo parando de mexer
-    pending = { x, y }
+    // garante que o último estado seja enviado mesmo parando de mexer
+    pending = { x, y, facing, pose }
     setTimeout(flushPending, MOVE_INTERVAL)
   }
 }

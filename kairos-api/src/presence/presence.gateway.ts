@@ -8,6 +8,8 @@ import {
 import { Server, Socket } from 'socket.io'
 
 type MapId = string
+type Facing = 'down' | 'up' | 'left' | 'right'
+type Pose = 'idle' | 'walk' | 'dance'
 
 interface Player {
   id: string
@@ -16,6 +18,8 @@ interface Player {
   map: MapId
   x: number
   y: number
+  facing: Facing
+  pose: Pose
 }
 
 interface JoinPayload {
@@ -53,6 +57,8 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       map: payload.map,
       x: payload.x,
       y: payload.y,
+      facing: 'down',
+      pose: 'idle',
     }
     this.players.set(socket.id, player)
     socket.join(player.map)
@@ -64,12 +70,20 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   @SubscribeMessage('move')
-  handleMove(socket: Socket, payload: { x: number; y: number }) {
+  handleMove(socket: Socket, payload: { x: number; y: number; facing?: Facing; pose?: Pose }) {
     const player = this.players.get(socket.id)
     if (!player) return
     player.x = payload.x
     player.y = payload.y
-    socket.to(player.map).emit('playerMoved', { id: socket.id, x: payload.x, y: payload.y })
+    if (payload.facing) player.facing = payload.facing
+    if (payload.pose) player.pose = payload.pose
+    socket.to(player.map).emit('playerMoved', {
+      id: socket.id,
+      x: payload.x,
+      y: payload.y,
+      facing: player.facing,
+      pose: player.pose,
+    })
   }
 
   @SubscribeMessage('switchMap')

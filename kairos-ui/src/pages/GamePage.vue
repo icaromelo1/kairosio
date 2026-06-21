@@ -152,8 +152,9 @@ const pos = reactive({ x: 11, y: 9 })
 let facing: Facing = 'down'
 let dancing = false
 const keys = new Set<string>()
-// estado p/ inferir pose/direção dos avatares remotos a partir do movimento
-const peerState = new Map<string, { x: number; y: number }>()
+const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' }
+// ids dos avatares remotos presentes na cena
+const peerIds = new Set<string>()
 
 function onKeyDown(e: KeyboardEvent) {
   const k = e.key.toLowerCase()
@@ -237,14 +238,20 @@ onMounted(async () => {
       if (!isSolid(map, Math.floor(pos.x + dx), Math.floor(pos.y))) pos.x += dx
       if (!isSolid(map, Math.floor(pos.x), Math.floor(pos.y + dy))) pos.y += dy
       facing = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down')
-      emitMove(pos.x, pos.y)
+    }
+    const pose: 'idle' | 'walk' | 'dance' = dancing ? 'dance' : moving ? 'walk' : 'idle'
+    // emite estado quando se move ou quando pose/direção mudam (dança parado conta)
+    if (moving || pose !== lastSent.pose || facing !== lastSent.facing) {
+      emitMove(pos.x, pos.y, facing, pose)
+      lastSent.pose = pose
+      lastSent.facing = facing
     }
     detectZone(map)
 
     const me = scene.avatar('me')
     if (me) {
       me.setFacing(facing)
-      me.setPose(dancing ? 'dance' : moving ? 'walk' : 'idle')
+      me.setPose(pose)
       me.update(dt)
     }
     scene.placeAvatar('me', pos.x, pos.y)
@@ -266,21 +273,17 @@ function syncRemotes(dt: number, map: MapDef) {
     if (!p) {
       p = new AvatarPuppet(peer.avatar as AvatarLook)
       scene.addAvatar(peer.id, p)
-      peerState.set(peer.id, { x: peer.x, y: peer.y })
+      peerIds.add(peer.id)
     }
-    const prev = peerState.get(peer.id) || { x: peer.x, y: peer.y }
-    const ddx = peer.x - prev.x
-    const ddy = peer.y - prev.y
-    const moved = Math.hypot(ddx, ddy) > 0.01
-    if (moved) p.setFacing(Math.abs(ddx) > Math.abs(ddy) ? (ddx < 0 ? 'left' : 'right') : (ddy < 0 ? 'up' : 'down'))
-    p.setPose(moved ? 'walk' : 'idle')
+    // pose e direção agora vêm sincronizadas da rede
+    p.setFacing(peer.facing || 'down')
+    p.setPose(peer.pose || 'idle')
     p.update(dt)
     scene.placeAvatar(peer.id, peer.x, peer.y)
-    peerState.set(peer.id, { x: peer.x, y: peer.y })
   }
   // remove quem saiu / mudou de mapa
-  for (const id of [...peerState.keys()]) {
-    if (!seen.has(id)) { scene.removeAvatar(id); peerState.delete(id) }
+  for (const id of [...peerIds]) {
+    if (!seen.has(id)) { scene.removeAvatar(id); peerIds.delete(id) }
   }
 }
 
