@@ -5,6 +5,13 @@ de verdade. Organizado em **etapas** com dependências. Ver visão em `KAIROS.md
 
 > Atualizado: 2026-06-21.
 
+## ✅ STATUS: todas as etapas implementadas e na `main`
+
+Etapas 1–8 implementadas e publicadas. Único pendente é **externo**: criar os apps
+OAuth (Google/GitHub) e por as credenciais no `.env` do servidor — o código já está
+pronto e env-gated (ativa sozinho quando as creds existirem). Perf: adequada, culling
+adiado (salas pequenas). NPCs com LLM seguem no backlog de ideias (não agendado).
+
 ---
 
 ## ✅ Já feito (até 21/06/2026)
