@@ -17,6 +17,7 @@
       <p style="color:var(--text-3);margin:0;font-size:15px">
         Você pode trocar de mundo a qualquer momento dentro do jogo.
       </p>
+      <button class="k-btn k-btn-accent" style="margin-top:8px" @click="router.push('/editor/new')">+ Criar meu mundo</button>
     </div>
 
     <p v-if="error" style="color:#f87171">{{ error }}</p>
