@@ -69,20 +69,44 @@ kairosio/
 
 O multiplayer, que no plano original era a última fase, vira o **centro**.
 
-### ▶️ Fase atual — Presença multiusuário (MVP)
-**Objetivo mínimo:** ver outros usuários se movendo em tempo real no mesmo mapa.
-Sem chat, sem vídeo — só presença. É o salto que transforma Kairos em Gather.
+### ✅ Presença multiusuário (MVP) — feito (branch `feat/presenca`)
+Ver outros usuários se movendo em tempo real no mesmo mapa. socket.io: gateway no
+`kairos-api` (rooms por mapa, estado em memória), `services/presence.ts` no front,
+avatares remotos renderizados no `GamePage`. Testado em produção. *Falta mergear na main.*
 
-- WebSocket gateway no `kairos-api` (NestJS) — entrar no mapa, broadcast de posição, sair.
-- Cliente no `kairos-ui` — emitir a própria posição, renderizar os avatares remotos via PixiJS.
-- Estado de "quem está na sala" (entrar/sair, lista de presentes).
+### Decisões de arquitetura (jun/2026)
+- **Render:** migrar de DOM/SVG para **PixiJS** (já instalado) — aguenta mapas grandes,
+  câmera, muitos sprites e animação.
+- **Mapas:** **formato de dados próprio** (JSON nosso), NÃO Tiled. Motivo: o objetivo é o
+  usuário customizar o espaço (Gather) — ninguém vai usar o Tiled (app de desktop). Um
+  **editor in-game no browser** (futuro) lê/escreve esse mesmo formato.
+- **NPCs com LLM:** adiados conscientemente. Foco agora é a mecânica geral do jogo.
 
-### Próximas
-1. **Interação por proximidade entre usuários** — eventos quando dois avatares se aproximam.
-2. **Chat de texto por proximidade** — zona de conversa ao se aproximar.
-3. **NPCs com LLM** — estações que conversam (system prompt por NPC).
-4. **Voz/vídeo por proximidade (WebRTC)** — o ápice do modelo Gather.
-5. **OAuth** (Google/GitHub) — completar o auth previsto no plano original.
+### 🏗️ Épico 1 — Motor de mapa (FUNDAÇÃO, destrava o resto)
+- **1a** Schema do mapa (grid de tiles com tipo + flag de colisão, camada de objetos, spawn).
+- **1b** Renderer em **PixiJS** desenhando o mapa a partir do schema (substitui o SVG/DOM).
+- **1c** **Câmera que segue o jogador** (viewport rolante) — destrava mapas grandes.
+- **1d** Migrar os 3 mundos atuais (studio/athenaeum/ágora) pro novo formato.
+- **1e** *(marco futuro)* Editor de mapa no browser pro usuário.
+
+### 🚶 Épico 2 — Personagem & movimento (depende do 1)
+- Colisão do avatar com tiles/objetos sólidos (não só a borda).
+- Hitbox (caixa de colisão de personagem e objetos).
+- Direção (pra onde olha) + animação de caminhada — e **sincronizar na rede**.
+
+### 💬 Épico 3 — Social / multiplayer (depende do 2)
+- Interação por proximidade entre usuários ("bolha" de quem está perto).
+- Chat de texto (global e/ou por proximidade), reações/emotes.
+
+### 🎨 Épico 4 — Customização do personagem (paralelo)
+- Mais opções (cabelos, roupas, cores, acessórios), preview ao vivo melhorado.
+
+### 🧹 Polimentos (rápidos, encaixam cedo)
+- Identidade real (persistir nome em vez de "Convidado" efêmero).
+- Contador "online: X" no HUD usando `remotePlayers`.
+
+### 🧊 Adiados
+- NPCs com LLM · Voz/vídeo por proximidade (WebRTC) · Login/OAuth de verdade.
 
 ---
 
