@@ -134,6 +134,19 @@
         </div>
       </div>
 
+      <!-- Controles touch (mobile) -->
+      <div class="touch-ctl" style="position:absolute;bottom:80px;right:24px;z-index:20;display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:4px;touch-action:none;user-select:none">
+        <span></span>
+        <button class="tbtn" @pointerdown.prevent="pressKey('w')" @pointerup="releaseKey('w')" @pointerleave="releaseKey('w')">▲</button>
+        <span></span>
+        <button class="tbtn" @pointerdown.prevent="pressKey('a')" @pointerup="releaseKey('a')" @pointerleave="releaseKey('a')">◀</button>
+        <button class="tbtn" @pointerdown.prevent="dancing = !dancing">♪</button>
+        <button class="tbtn" @pointerdown.prevent="pressKey('d')" @pointerup="releaseKey('d')" @pointerleave="releaseKey('d')">▶</button>
+        <span></span>
+        <button class="tbtn" @pointerdown.prevent="pressKey('s')" @pointerup="releaseKey('s')" @pointerleave="releaseKey('s')">▼</button>
+        <button class="tbtn" @pointerdown.prevent="emote()">👋</button>
+      </div>
+
       <div v-if="error" style="position:absolute;top:60px;left:50%;transform:translateX(-50%);color:#f87171;font-size:13px;z-index:10">{{ error }}</div>
     </div>
   </div>
@@ -220,6 +233,10 @@ function sendChat() {
   emitChat(t)
   chatInput.value = ''
 }
+
+// controles touch (mobile)
+function pressKey(k: string) { keys.add(k) }
+function releaseKey(k: string) { keys.delete(k) }
 function onKeyUp(e: KeyboardEvent) { keys.delete(e.key.toLowerCase()) }
 
 function tryInteract() {
@@ -382,3 +399,26 @@ onUnmounted(() => {
   scene = null
 })
 </script>
+
+<style scoped>
+.tbtn {
+  background: rgba(13, 13, 20, 0.8);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  font-size: 18px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  border-radius: 6px;
+  touch-action: none;
+}
+.tbtn:active {
+  background: rgba(124, 58, 237, 0.3);
+}
+/* esconde os controles touch em dispositivos com mouse (desktop) */
+@media (hover: hover) and (pointer: fine) {
+  .touch-ctl {
+    display: none !important;
+  }
+}
+</style>
