@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common'
+import { APP_GUARD } from '@nestjs/core'
 import { ConfigModule } from '@nestjs/config'
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { AuthModule } from './auth/auth.module'
 import { CharacterModule } from './character/character.module'
@@ -16,6 +18,7 @@ import { Feedback } from './feedback/feedback.entity'
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 120 }]),
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL || 'postgres://kairos:kairos@localhost:5432/kairosio',
@@ -29,5 +32,6 @@ import { Feedback } from './feedback/feedback.entity'
     MapModule,
     FeedbackModule,
   ],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}
