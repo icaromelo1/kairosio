@@ -1,7 +1,7 @@
 import { defineStore } from 'pinia'
 
 const INITIAL_STATE = {
-  activeMap: 'studio' as 'studio' | 'athenaeum' | 'agora',
+  activeMap: 'studio' as string,
   playerX: 15,
   playerY: 12,
   activeZoneId: null as string | null,
