@@ -54,8 +54,8 @@ entradas pra **editar mundo próprio**, scroll do map-select, limite no nome do 
 > Vindos de uma conta real — o canal de feedback está funcionando.
 
 **1. "Quero ter dinheiro"** (comprar um carro e usar no lago que criou)
-- Vira o épico de **economia / gamificação**: moeda, loja de itens, itens colocáveis no
-  mundo (veículos, etc.), talvez recompensas por uso. — *novo épico, longo prazo* (Etapa 11).
+- ❌ **RECUSADO / não será implementado.** Economia/gamificação (moeda, loja, veículos) está
+  fora do escopo do Kairos. Mantido aqui só como registro da decisão.
 
 **2. "Mais opções de criação de mundo"** (muito acionável — melhora o editor, Etapa 4/5):
 - [ ] **Criador de objeto próprio**: editor de pixel + paleta de cores pra o usuário
@@ -64,9 +64,9 @@ entradas pra **editar mundo próprio**, scroll do map-select, limite no nome do 
 - [ ] **Rotacionar objetos** no editor. — *médio*
 - [ ] **Mais objetos** na paleta. — *quick-win*
 
-### 💰 Etapa 11 — Economia / gamificação (novo épico, longo prazo)
-- [ ] Moeda + saldo por usuário; loja de itens; itens colocáveis (veículos, decoração).
-- [ ] Origem (vinda do feedback "quero ter dinheiro"). Sem prioridade ainda.
+### ❌ Economia / gamificação — RECUSADO (não será implementado)
+> Moeda, loja, veículos, itens compráveis. Decisão (21/06): **fora de escopo.** Registrado
+> aqui apenas pra constar — não entra no plano de execução.
 
 ### 🔒 Blindagem de campos de texto (transversal) — **revisar todos os inputs**
 - [ ] Auditar TODOS os campos: `maxlength`, `trim`, sanitização anti-XSS, validação.

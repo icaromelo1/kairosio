@@ -102,8 +102,9 @@ mas exige re-login ao trocar de org) vs ler do banco por request (sempre fresco)
 1. Entities: `Organization`, `OrgInvite`, colunas em `User` e `GameMap`. (backend)
 2. Módulo `org`: service + controller (POST `/org`, GET `/org/me`, join, invite). (backend)
 3. Escopar `GET /map` e `POST /map` por org + templates. (backend)
-4. Presença: room composta `${org}:${map}`; `join` recebe `organizationId`; ajustar
-   `getCounts`/`peersInMap`. (backend)
+4. **Auth no socket** (passar JWT no handshake, derivar `organizationId` do token — não
+   confiar no payload do cliente) + room composta `${org}:${map}`; ajustar
+   `getCounts`/`peersInMap` por org. (backend) — *ver §12 Segurança*
 5. Front: tela de onboarding (criar/entrar org) + guarda (sem org → onboarding). (front)
 6. Front: `connectPresence` envia org; map-select mostra a org. (front)
 7. Migração + marcar templates. (ops)
@@ -118,9 +119,81 @@ mas exige re-login ao trocar de org) vs ler do banco por request (sempre fresco)
 - Templates (studio/athenaeum/jardim) visíveis a todos.
 - Guest e usuário sem org: só veem templates, não criam mundos.
 
-## 8. Decisões a confirmar com o Icaro
+## 8. Decisões — recomendação (pra confirmar, mas já dá pra seguir)
 
-- 1 org por usuário (vs multi-org)?
-- `organizationId` no JWT (re-login ao trocar) vs lido do banco por request?
-- Solo user: cria org pessoal automática no signup, ou só ao precisar?
-- Templates podem ser **clonados** pra dentro da org (cópia editável)? (provável "sim" futuro)
+| decisão | recomendação | porquê |
+|---|---|---|
+| 1 org por usuário vs várias | **1 org por usuário** (campo direto em User) | simples; multi-org é raro e dá pra evoluir com tabela de membership sem refazer |
+| org no JWT vs lido do banco | **ler do banco por request** (um guard/interceptor injeta `organizationId`+`orgRole` no `req.user` a partir do `sub`) | sempre fresco; troca de org/papel reflete na hora, sem re-login. JWT continua só com `sub`/`email` |
+| solo user (sem org) | **NÃO cria org automática** no signup; ao logar sem org → **onboarding** (criar ou entrar) | evita lixo de orgs vazias; deixa a escolha explícita |
+| templates clonáveis | **sim, mas depois** (v2 do editor) — "Clonar pra minha org" copia o `objects`/paleta num mundo novo da org | reaproveita os mundos oficiais; não bloqueia o MVP |
+
+---
+
+## 9. Fluxos detalhados
+
+### Onboarding (logou e não tem org)
+1. Guarda de rota: se `requiresAuth` e `user.organizationId == null` → redireciona pra `/onboarding`.
+2. `/onboarding`: duas ações —
+   - **Criar organização**: input nome → `POST /org { name }` → vira admin → segue pro fluxo normal.
+   - **Entrar com código**: input do convite → `POST /org/join { code }` → vira member → segue.
+3. Depois disso o usuário tem org e o resto do app funciona normal.
+
+### Criar mundo (já com org)
+- `POST /map` → backend seta `organizationId = req.user.organizationId`. Sem org → 403.
+
+### Entrar num mundo (presença)
+- `connectPresence` envia `{ ...payload, organizationId }`.
+- Gateway monta a room **`${organizationId || 'public'}:${mapId}`**. Templates (sem org do
+  mapa) ainda são separados **por org do jogador** — duas orgs no mesmo template não se misturam.
+- `getCounts()` agrega por `mapId` **dentro da org do requisitante** (o endpoint `/presence/counts`
+  passa a receber/inferir a org e contar só as rooms daquela org).
+
+### Sair / ser removido da org
+- `DELETE /org/member/:id` → seta `organizationId=null`, `orgRole=member` no alvo.
+- Na próxima navegação, o guard manda pro `/onboarding`. Mundos que ele criou **ficam na org**
+  (não somem); dono continua sendo ele, mas só membros da org veem.
+
+---
+
+## 10. Query do `GET /map` (pseudo)
+
+```sql
+SELECT * FROM game_maps
+WHERE is_template = true
+   OR organization_id = :userOrgId   -- null-safe: se userOrgId for null, só templates
+ORDER BY name;
+```
+No TypeORM: `where: [{ isTemplate: true }, { organizationId: userOrgId }]` (OR), tratando
+`userOrgId == null` (aí só `{ isTemplate: true }`).
+
+---
+
+## 11. Convites (OrgInvite)
+
+- `code`: 8 chars alfanuméricos (ex: `nanoid`), case-insensitive.
+- `POST /org/invite` (admin): cria com `expiresAt` (ex: +7 dias) e `maxUses` (ex: 25, ou null=∞).
+- `POST /org/join { code }`: valida (existe, não expirou, `uses < maxUses`) → seta org do
+  usuário, incrementa `uses`. Erros: 404 (inválido), 410 (expirado/esgotado), 409 (já está em org).
+- Link de convite no front: `…/kairos/onboarding?invite=CODE` (preenche o campo).
+
+---
+
+## 12. Segurança / casos de borda
+
+- **Todo endpoint de mundo revalida a org**, não confia só no front: editar/apagar exige
+  `map.organizationId == user.organizationId` (além de dono/admin).
+- **Presença**: o gateway confia no `organizationId` que o cliente manda? Risco: um cliente
+  malicioso manda org alheia e "entra" na sala de outra org. **Mitigação:** o socket deveria
+  autenticar (passar o JWT no handshake) e o gateway derivar a org do token, não do payload.
+  → Tarefa extra: **auth no socket** (passar token no `io(..., { auth: { token } })`, validar no
+  `handleConnection`). Documentar como parte desta etapa.
+- Usuário sem org não cria mundo nem entra em sala de org (só templates, escopo "public").
+
+---
+
+## 13. Decisões ainda abertas (menores)
+- Nome de org único global (slug) vs só dentro de um espaço? → recomendo **slug único global**.
+- Um admin pode deletar a própria org? (e o que acontece com os mundos?) → v2.
+- Trocar de org (sair de uma, entrar em outra) já no MVP? → sim, é só `join` com outro código
+  (o `join` sobrescreve a org atual) — documentar que isso "abandona" a anterior.
