@@ -30,7 +30,12 @@ interface JoinPayload {
   y: number
 }
 
-@WebSocketGateway({ cors: { origin: true, credentials: true } })
+@WebSocketGateway({
+  cors: { origin: true, credentials: true },
+  // detecta queda mais rápido → menos avatares "fantasma"
+  pingInterval: 10000,
+  pingTimeout: 8000,
+})
 export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server
 
