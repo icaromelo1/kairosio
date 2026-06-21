@@ -64,11 +64,11 @@ export type MapId = 'studio' | 'athenaeum' | 'agora'
 // formato antigo). Com o novo schema, cada mapa pode divergir quando quisermos.
 function interactables(): MapObject[] {
   return [
-    { id: 'desk', kind: 'desk', name: 'Mesa de Trabalho', action: 'Abrir Workspace', x: 14, y: 10, w: 4, h: 2, glow: 'purple' },
+    { id: 'desk', kind: 'desk', name: 'Mesa de Trabalho', action: 'Abrir Workspace', x: 14, y: 10, w: 4, h: 2, glow: 'purple', solid: true },
     { id: 'board', kind: 'board', name: 'Lousa Estratégica', action: 'Brainstorm / Whiteboard', x: 22, y: 2, w: 5, h: 1, glow: 'cyan' },
-    { id: 'jukebox', kind: 'jukebox', name: 'Rádio / Jukebox', action: 'Tocar playlist', x: 3, y: 16, w: 2, h: 2, glow: 'purple' },
-    { id: 'servers', kind: 'servers', name: 'Sala de Servidores', action: 'Falar com Agente IA', x: 2, y: 2, w: 4, h: 3, glow: 'purple', npc: true },
-    { id: 'shelf', kind: 'shelf', name: 'Estante de Notas', action: 'Abrir notas', x: 24, y: 16, w: 4, h: 2, glow: 'gold' },
+    { id: 'jukebox', kind: 'jukebox', name: 'Rádio / Jukebox', action: 'Tocar playlist', x: 3, y: 16, w: 2, h: 2, glow: 'purple', solid: true },
+    { id: 'servers', kind: 'servers', name: 'Sala de Servidores', action: 'Falar com Agente IA', x: 2, y: 2, w: 4, h: 3, glow: 'purple', npc: true, solid: true },
+    { id: 'shelf', kind: 'shelf', name: 'Estante de Notas', action: 'Abrir notas', x: 24, y: 16, w: 4, h: 2, glow: 'gold', solid: true },
   ]
 }
 
