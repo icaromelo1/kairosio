@@ -117,6 +117,7 @@ import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/useGameStore'
 import { useCharacterStore } from '@/stores/useCharacterStore'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { MapScene } from '@/game/pixi/scene'
 import { AvatarPuppet, type AvatarLook, type Facing } from '@/game/pixi/avatar'
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
@@ -289,6 +290,7 @@ function syncRemotes(dt: number, map: MapDef) {
 
 function leave() {
   disconnectPresence()
+  useAuthStore().logout()
   router.push('/login')
 }
 
