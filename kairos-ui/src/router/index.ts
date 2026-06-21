@@ -8,6 +8,7 @@ import GamePage from '@/pages/GamePage.vue'
 import LabPage from '@/pages/LabPage.vue'
 import FeedbackPage from '@/pages/FeedbackPage.vue'
 import EditorPage from '@/pages/EditorPage.vue'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -15,13 +16,21 @@ const router = createRouter({
     { path: '/', component: LandingPage },
     { path: '/login', component: LoginPage },
     { path: '/register', component: RegisterPage },
-    { path: '/character', component: CharacterPage },
-    { path: '/map-select', component: MapSelectPage },
-    { path: '/game', component: GamePage },
+    { path: '/character', component: CharacterPage, meta: { requiresAuth: true } },
+    { path: '/map-select', component: MapSelectPage, meta: { requiresAuth: true } },
+    { path: '/game', component: GamePage, meta: { requiresAuth: true } },
+    { path: '/editor/:id', component: EditorPage, meta: { requiresAuth: true } },
     { path: '/lab', component: LabPage },
     { path: '/feedback', component: FeedbackPage },
-    { path: '/editor/:id', component: EditorPage },
   ],
+})
+
+// telas internas exigem sessão (login ou convidado)
+router.beforeEach((to) => {
+  if (to.meta.requiresAuth && !useAuthStore().isAuthenticated) {
+    return { path: '/login' }
+  }
+  return true
 })
 
 export default router

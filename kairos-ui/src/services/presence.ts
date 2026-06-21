@@ -59,6 +59,9 @@ export function connectPresence(opts: JoinOptions) {
 
   socket = io(API_URL, { path: SOCKET_PATH, transports: ['websocket'] })
 
+  // garante desconexão ao fechar/atualizar a aba (evita fantasma)
+  window.addEventListener('beforeunload', disconnectPresence, { once: true })
+
   socket.on('connect', () => {
     socket?.emit('join', opts)
   })
