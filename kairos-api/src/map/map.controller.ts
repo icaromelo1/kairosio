@@ -1,11 +1,13 @@
-import { Body, Controller, Get, Param, Put } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Post, Put, Request, UseGuards } from '@nestjs/common'
+import { AuthGuard } from '@nestjs/passport'
 import { MapService } from './map.service'
-import { GameMap } from './game-map.entity'
+import { CreateMapDto, UpdateMapDto } from './map.dto'
 
 @Controller('map')
 export class MapController {
   constructor(private readonly maps: MapService) {}
 
+  // leitura é pública — qualquer um navega pelos mundos
   @Get()
   findAll() {
     return this.maps.findAll()
@@ -16,9 +18,22 @@ export class MapController {
     return this.maps.findOne(id)
   }
 
-  // editor in-game: salva alterações de tamanho/itens/paleta de um mundo
+  // criar / editar / apagar exigem login; dono vem do token
+  @UseGuards(AuthGuard('jwt'))
+  @Post()
+  create(@Request() req: any, @Body() dto: CreateMapDto) {
+    return this.maps.create(dto, req.user.sub)
+  }
+
+  @UseGuards(AuthGuard('jwt'))
   @Put(':id')
-  update(@Param('id') id: string, @Body() patch: Partial<GameMap>) {
-    return this.maps.update(id, patch)
+  update(@Request() req: any, @Param('id') id: string, @Body() patch: UpdateMapDto) {
+    return this.maps.update(id, patch, req.user.sub)
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Delete(':id')
+  remove(@Request() req: any, @Param('id') id: string) {
+    return this.maps.remove(id, req.user.sub)
   }
 }
