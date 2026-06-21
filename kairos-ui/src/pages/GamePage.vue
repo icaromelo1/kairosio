@@ -228,6 +228,30 @@
           </svg>
         </div>
 
+        <!-- Avatares remotos (outros usuários) -->
+        <div
+          v-for="peer in remotePlayers.values()"
+          :key="peer.id"
+          :style="{
+            position: 'absolute',
+            left: peer.x * TILE + 'px', top: peer.y * TILE + 'px',
+            transform: 'translate(-50%, -90%)',
+            zIndex: 4, pointerEvents: 'none',
+            transition: 'left 0.12s linear, top 0.12s linear',
+          }"
+        >
+          <div style="display:flex;flex-direction:column;align-items:center;gap:2px">
+            <span :style="{
+              fontSize: '9px', fontWeight: 600, color: 'var(--text)',
+              background: 'rgba(13,13,20,0.82)', border: '1px solid var(--border)',
+              padding: '1px 5px', whiteSpace: 'nowrap', letterSpacing: '0.02em',
+            }">{{ peer.name }}</span>
+            <div style="filter:drop-shadow(0 4px 0 rgba(34,211,238,0.4))">
+              <PixelAvatar :scale="3" v-bind="peer.avatar" :shadow="true" :bobbing="true" />
+            </div>
+          </div>
+        </div>
+
         <!-- Avatar -->
         <div :style="{
           position: 'absolute',
@@ -410,6 +434,13 @@ import { useGameStore } from '@/stores/useGameStore'
 import { useCharacterStore } from '@/stores/useCharacterStore'
 import { MAP_THEMES, MAP_ZONES, MAP_W, MAP_H, TILE, type MapZone } from '@/game/constants'
 import { useAvatarController } from '@/game/useAvatarController'
+import {
+  connectPresence,
+  disconnectPresence,
+  emitMove,
+  switchMap,
+  remotePlayers,
+} from '@/services/presence'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import PixelK from '@/components/pixel/PixelK.vue'
 import Logo from '@/components/logos/Logo.vue'
@@ -436,6 +467,26 @@ const avatarProps = computed(() => ({
 }))
 
 const currentTheme = computed(() => MAP_THEMES[gameStore.activeMap] ?? MAP_THEMES.studio)
+
+// Presença multiusuário — outros avatares no mesmo mapa, em tempo real
+const playerName = computed(() => characterStore.name || 'Convidado')
+
+onMounted(() => {
+  connectPresence({
+    name: playerName.value,
+    avatar: avatarProps.value,
+    map: gameStore.activeMap,
+    x: avatarX.value,
+    y: avatarY.value,
+  })
+})
+onUnmounted(() => disconnectPresence())
+
+// Emite a própria posição ao mover (throttle no serviço)
+watch([avatarX, avatarY], ([x, y]) => emitMove(x, y))
+
+// Troca de mundo = troca de sala
+watch(() => gameStore.activeMap, (map) => switchMap(map))
 
 const allTiles = computed(() =>
   Array.from({ length: MAP_H }, (_, y) =>
