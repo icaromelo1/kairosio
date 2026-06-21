@@ -9,7 +9,7 @@ import { Server, Socket } from 'socket.io'
 
 type MapId = string
 type Facing = 'down' | 'up' | 'left' | 'right'
-type Pose = 'idle' | 'walk' | 'dance'
+type Pose = 'idle' | 'walk' | 'dance' | 'wave'
 
 interface Player {
   id: string
@@ -83,6 +83,20 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       y: payload.y,
       facing: player.facing,
       pose: player.pose,
+    })
+  }
+
+  @SubscribeMessage('chat')
+  handleChat(socket: Socket, payload: { text: string }) {
+    const player = this.players.get(socket.id)
+    if (!player) return
+    const text = String(payload?.text ?? '').trim().slice(0, 300)
+    if (!text) return
+    this.server.to(player.map).emit('chatMessage', {
+      id: socket.id,
+      name: player.name,
+      text,
+      ts: Date.now(),
     })
   }
 
