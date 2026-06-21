@@ -54,7 +54,7 @@
     <div class="login-center">
       <!-- Logo -->
       <div class="logo-wrap">
-        <Logo :id="gameStore.activeLogo" size="lg" primary="var(--primary-hi)" accent="var(--accent)" />
+        <Logo id="monogram" size="lg" primary="var(--primary-hi)" accent="var(--accent)" />
       </div>
 
       <!-- Subtitle with columns -->
@@ -106,7 +106,8 @@
         </div>
 
         <!-- Submit -->
-        <button class="k-btn k-btn-primary submit-btn" @click="handleLogin">Entrar →</button>
+        <button class="k-btn k-btn-primary submit-btn" :disabled="loading" @click="handleLogin">{{ loading ? 'Entrando…' : 'Entrar →' }}</button>
+        <p v-if="error" style="color:#f87171;font-size:12px;margin:8px 0 0;text-align:center">{{ error }}</p>
 
         <!-- Divider -->
         <div class="k-divider">
@@ -115,7 +116,7 @@
 
         <!-- Social login grid -->
         <div class="social-grid">
-          <button class="k-btn k-btn-ghost social-btn" @click="handleLogin">
+          <button class="k-btn k-btn-ghost social-btn" @click="socialSoon">
             <svg width="16" height="16" viewBox="0 0 24 24">
               <path fill="#4285f4" d="M22.5 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.9c-.3 1.4-1 2.6-2.2 3.4v2.8h3.6c2.1-1.9 3.2-4.7 3.2-8z" />
               <path fill="#34a853" d="M12 23c2.9 0 5.4-1 7.2-2.8l-3.6-2.8c-1 .7-2.3 1.1-3.6 1.1-2.8 0-5.1-1.9-6-4.4H2.3v2.8C4.1 20.5 7.8 23 12 23z" />
@@ -124,7 +125,7 @@
             </svg>
             Google
           </button>
-          <button class="k-btn k-btn-ghost social-btn" @click="handleLogin">
+          <button class="k-btn k-btn-ghost social-btn" @click="socialSoon">
             <svg width="16" height="16" viewBox="0 0 24 24">
               <path fill="currentColor" d="M12 .5C5.7.5.5 5.7.5 12c0 5 3.3 9.3 7.8 10.8.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2.9-.3 2-.4 3-.4s2 .1 3 .4c2.3-1.5 3.3-1.2 3.3-1.2.7 1.6.2 2.8.1 3.1.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.8C23.5 5.7 18.3.5 12 .5z" />
             </svg>
@@ -158,24 +159,58 @@ import MeanderBorder from '@/components/pixel/MeanderBorder.vue'
 import PixelColumn from '@/components/pixel/PixelColumn.vue'
 import Logo from '@/components/logos/Logo.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { useGameStore } from '@/stores/useGameStore'
+import { login, register, guest } from '@/services/auth.api'
 
 const router = useRouter()
 const authStore = useAuthStore()
-const gameStore = useGameStore()
 
 const email = ref('')
 const password = ref('')
 const keepConnected = ref(false)
 const showLogosModal = ref(false)
+const error = ref('')
+const loading = ref(false)
 
-function handleLogin() {
-  router.push('/character')
+// Entrar: tenta login; se a conta não existir, registra (sem tela de cadastro separada)
+async function handleLogin() {
+  error.value = ''
+  if (!email.value || !password.value) {
+    error.value = 'Informe email e senha.'
+    return
+  }
+  loading.value = true
+  try {
+    let res
+    try {
+      res = await login(email.value, password.value)
+    } catch {
+      res = await register(email.value, password.value)
+    }
+    authStore.setToken(res.token)
+    router.push('/character')
+  } catch {
+    error.value = 'Não foi possível entrar. Tente outra senha.'
+  } finally {
+    loading.value = false
+  }
 }
 
-function handleGuest() {
-  authStore.isGuest = true
-  router.push('/character')
+async function handleGuest() {
+  error.value = ''
+  loading.value = true
+  try {
+    const res = await guest()
+    authStore.setToken(res.token)
+    router.push('/character')
+  } catch {
+    error.value = 'Falha ao entrar como convidado.'
+  } finally {
+    loading.value = false
+  }
+}
+
+function socialSoon() {
+  error.value = 'Login com Google/GitHub em breve. Use email e senha ou entre como convidado.'
 }
 </script>
 
