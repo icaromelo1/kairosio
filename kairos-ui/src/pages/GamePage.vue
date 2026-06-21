@@ -149,6 +149,7 @@ import { MapScene } from '@/game/pixi/scene'
 import { AvatarPuppet, type AvatarLook, type Facing } from '@/game/pixi/avatar'
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
+import { getWorldState, saveWorldState } from '@/services/world.api'
 import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat } from '@/services/presence'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import Logo from '@/components/logos/Logo.vue'
@@ -156,6 +157,14 @@ import Logo from '@/components/logos/Logo.vue'
 const router = useRouter()
 const gameStore = useGameStore()
 const characterStore = useCharacterStore()
+const auth = useAuthStore()
+let stateTimer = 0
+
+function persistState() {
+  if (auth.isAuthenticated && currentId.value) {
+    saveWorldState({ activeMap: currentId.value, playerX: pos.x, playerY: pos.y })
+  }
+}
 
 const host = ref<HTMLElement | null>(null)
 const maps = ref<MapDef[]>([])
@@ -254,9 +263,20 @@ onMounted(async () => {
 
   try {
     maps.value = await fetchMaps()
-    const first = maps.value.find((m) => m.id === gameStore.activeMap) || maps.value[0]
+    // retoma último mundo + posição salvos (se logado)
+    let startId = gameStore.activeMap
+    let savedPos: { x: number; y: number } | null = null
+    if (auth.isAuthenticated) {
+      const st = await getWorldState()
+      if (st && maps.value.find((m) => m.id === st.activeMap)) {
+        startId = st.activeMap
+        savedPos = { x: st.playerX, y: st.playerY }
+      }
+    }
+    const first = maps.value.find((m) => m.id === startId) || maps.value[0]
     if (!first) { error.value = 'Nenhum mundo disponível'; return }
     selectMap(first.id)
+    if (savedPos) { pos.x = savedPos.x; pos.y = savedPos.y }
     connectPresence({ name: playerName.value, avatar: look.value, map: first.id, x: pos.x, y: pos.y })
   } catch (e) {
     error.value = (e as Error).message
@@ -264,6 +284,7 @@ onMounted(async () => {
 
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
+  stateTimer = window.setInterval(persistState, 15000)
 
   scene.app.ticker.add((ticker) => {
     if (!scene) return
@@ -354,6 +375,8 @@ function leave() {
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown)
   window.removeEventListener('keyup', onKeyUp)
+  clearInterval(stateTimer)
+  persistState()
   disconnectPresence()
   scene?.destroy()
   scene = null

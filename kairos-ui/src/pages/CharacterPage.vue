@@ -219,7 +219,7 @@
       </div>
 
       <!-- Enter button -->
-      <button class="k-btn k-btn-accent enter-btn" @click="router.push('/map-select')">
+      <button class="k-btn k-btn-accent enter-btn" @click="enterKairos">
         Entrar no Kairos →
       </button>
     </div>
@@ -227,7 +227,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import MeanderBorder from '@/components/pixel/MeanderBorder.vue'
 import PixelColumn from '@/components/pixel/PixelColumn.vue'
@@ -236,10 +236,35 @@ import PixiAvatarPreview from '@/components/PixiAvatarPreview.vue'
 import Logo from '@/components/logos/Logo.vue'
 import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useGameStore } from '@/stores/useGameStore'
+import { useAuthStore } from '@/stores/useAuthStore'
+import { getCharacter, saveCharacter } from '@/services/character.api'
 
 const router = useRouter()
 const characterStore = useCharacterStore()
 const gameStore = useGameStore()
+const auth = useAuthStore()
+
+// carrega a customização salva no banco (cross-device), se logado
+onMounted(async () => {
+  if (!auth.isAuthenticated) return
+  const saved = await getCharacter()
+  if (saved && saved.hairStyle) characterStore.$patch(saved)
+})
+
+// salva no banco (best-effort) e entra
+async function enterKairos() {
+  if (auth.isAuthenticated) {
+    await saveCharacter({
+      name: characterStore.name,
+      hairStyle: characterStore.hairStyle,
+      hairColor: characterStore.hairColor,
+      skin: characterStore.skin,
+      topColor: characterStore.topColor,
+      pantsColor: characterStore.pantsColor,
+    })
+  }
+  router.push('/map-select')
+}
 
 const activeTab = ref<'hair' | 'skin' | 'outfit'>('hair')
 
