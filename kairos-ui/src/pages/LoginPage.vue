@@ -157,8 +157,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, onMounted } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import MeanderBorder from '@/components/pixel/MeanderBorder.vue'
 import PixelColumn from '@/components/pixel/PixelColumn.vue'
 import Logo from '@/components/logos/Logo.vue'
@@ -224,6 +224,16 @@ async function handleGuest() {
 function socialSoon() {
   error.value = 'Login com Google/GitHub em breve. Use email e senha ou entre como convidado.'
 }
+
+// callback de OAuth: /login?token=... → guarda a sessão e entra
+const route = useRoute()
+onMounted(() => {
+  const token = route.query.token
+  if (typeof token === 'string' && token) {
+    authStore.setToken(token)
+    router.push('/character')
+  }
+})
 </script>
 
 <style scoped>

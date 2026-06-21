@@ -30,6 +30,17 @@ export class AuthService {
     return { token: this.jwtService.sign({ sub: user.id, email: user.email }) }
   }
 
+  // login via OAuth (Google/GitHub): acha ou cria o usuário pelo email
+  async oauthLogin(email: string) {
+    const normalized = email.trim().toLowerCase()
+    let user = await this.userRepo.findOne({ where: { email: normalized } })
+    if (!user) {
+      user = this.userRepo.create({ email: normalized })
+      await this.userRepo.save(user)
+    }
+    return { token: this.jwtService.sign({ sub: user.id, email: user.email }) }
+  }
+
   async loginAsGuest() {
     const user = this.userRepo.create({ isGuest: true })
     await this.userRepo.save(user)
