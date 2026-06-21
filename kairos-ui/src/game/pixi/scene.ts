@@ -224,6 +224,31 @@ export class MapScene {
     this.avatarLayer.children.sort((a, b) => a.position.y - b.position.y)
   }
 
+  /** Modo editor: enquadra o mapa inteiro na viewport (sem câmera que segue). */
+  fit(margin = 24) {
+    if (!this.map) return
+    const vw = this.app.renderer.width
+    const vh = this.app.renderer.height
+    const worldW = this.map.width * TILE_PX
+    const worldH = this.map.height * TILE_PX
+    const scale = Math.min((vw - margin * 2) / worldW, (vh - margin * 2) / worldH, 2)
+    this.world.scale.set(scale)
+    this.world.position.set(
+      Math.round((vw - worldW * scale) / 2),
+      Math.round((vh - worldH * scale) / 2),
+    )
+  }
+
+  /** Converte coordenadas de clique (clientX/Y) em coordenadas de TILE. */
+  screenToTile(clientX: number, clientY: number): { x: number; y: number } {
+    const rect = this.app.canvas.getBoundingClientRect()
+    const s = this.world.scale.x || 1
+    return {
+      x: Math.floor((clientX - rect.left - this.world.position.x) / (TILE_PX * s)),
+      y: Math.floor((clientY - rect.top - this.world.position.y) / (TILE_PX * s)),
+    }
+  }
+
   destroy() {
     for (const p of this.avatars.values()) p.destroy()
     this.avatars.clear()
