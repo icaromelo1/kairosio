@@ -79,15 +79,27 @@
       <div style="position:absolute;top:16px;right:16px;background:rgba(13,13,20,0.82);border:1px solid var(--border-strong);backdrop-filter:blur(10px);padding:8px 12px;z-index:10;min-width:140px">
         <div style="color:var(--accent);font-weight:600;font-family:var(--f-mono);font-size:12px;letter-spacing:0.08em;margin-bottom:6px">{{ online }} online</div>
         <div style="display:flex;flex-direction:column;gap:2px;font-size:12px">
-          <span style="color:var(--text)">● {{ playerName }} <span style="color:var(--text-4)">(você)</span></span>
-          <span v-for="p in roomPeers" :key="p.id" style="color:var(--text-2)">● {{ p.name }}</span>
+          <span style="color:var(--text)">● {{ playerName }} <span style="color:var(--text-4)">(você)</span> <span v-if="voiceOn">🎙</span></span>
+          <span v-for="p in roomPeers" :key="p.id" style="color:var(--text-2)">● {{ p.name }} <span v-if="voicePeers.includes(p.id)">🔊</span></span>
         </div>
       </div>
 
-      <!-- Proximidade -->
+      <!-- Proximidade + voz -->
       <div v-if="nearby" style="position:absolute;top:16px;left:50%;transform:translateX(-50%);background:rgba(124,58,237,0.18);border:1px solid var(--primary-hi);backdrop-filter:blur(10px);padding:6px 14px;font-size:12px;color:var(--text);z-index:10">
         perto de <strong>{{ nearby }}</strong>
       </div>
+
+      <!-- Botão de voz -->
+      <button
+        :title="voiceOn ? 'Desligar microfone' : 'Falar por proximidade'"
+        @click="toggleVoice"
+        :style="{
+          position: 'absolute', bottom: '16px', right: '24px', zIndex: 20,
+          width: '44px', height: '44px', borderRadius: '50%', cursor: 'pointer',
+          border: '1px solid var(--border-strong)', fontSize: '18px',
+          background: voiceOn ? 'rgba(52,211,153,0.3)' : 'rgba(13,13,20,0.8)', color: 'var(--text)',
+        }"
+      >{{ voiceOn ? '🎙' : '🔇' }}</button>
 
       <!-- Chat -->
       <div style="position:absolute;bottom:16px;left:16px;width:280px;z-index:10">
@@ -163,7 +175,8 @@ import { AvatarPuppet, type AvatarLook, type Facing } from '@/game/pixi/avatar'
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat } from '@/services/presence'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, socketId } from '@/services/presence'
+import { VoiceChat } from '@/services/webrtc'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import Logo from '@/components/logos/Logo.vue'
 
@@ -207,6 +220,22 @@ const chatInput = ref('')
 const nearby = ref<string | null>(null)
 let emoteUntil = 0
 const messages = chatMessages
+const voice = new VoiceChat()
+const voiceOn = ref(false)
+const voicePeers = ref<string[]>([])
+
+async function toggleVoice() {
+  if (voiceOn.value) {
+    voice.disable()
+    voiceOn.value = false
+    voicePeers.value = []
+    return
+  }
+  voice.setSelf(socketId() || '')
+  const ok = await voice.enable()
+  voiceOn.value = ok
+  if (!ok) error.value = 'Microfone bloqueado. Permita o acesso para usar a voz.'
+}
 const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' | 'wave' }
 // ids dos avatares remotos presentes na cena
 const peerIds = new Set<string>()
@@ -347,15 +376,21 @@ onMounted(async () => {
     syncRemotes(dt, map)
     scene.sortAvatars()
 
-    // ---- proximidade: quem está perto (base do chat/voz por proximidade) ----
+    // ---- proximidade: indicador + voz por proximidade ----
     let near: string | null = null
     let best = 3
+    const voiceIds: string[] = []
     for (const peer of remotePlayers.values()) {
       if (peer.map && peer.map !== map.id) continue
       const d = Math.hypot(peer.x - pos.x, peer.y - pos.y)
       if (d < best) { best = d; near = peer.name }
+      if (d <= 4) voiceIds.push(peer.id)
     }
     nearby.value = near
+    if (voiceOn.value) {
+      voice.sync(voiceIds)
+      voicePeers.value = voice.activePeers()
+    }
   })
 })
 
@@ -394,6 +429,7 @@ onUnmounted(() => {
   window.removeEventListener('keyup', onKeyUp)
   clearInterval(stateTimer)
   persistState()
+  voice.disable()
   disconnectPresence()
   scene?.destroy()
   scene = null
