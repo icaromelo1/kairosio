@@ -2,7 +2,14 @@ import { reactive } from 'vue'
 import { io, type Socket } from 'socket.io-client'
 
 export type Facing = 'down' | 'up' | 'left' | 'right'
-export type Pose = 'idle' | 'walk' | 'dance'
+export type Pose = 'idle' | 'walk' | 'dance' | 'wave'
+
+export interface ChatMessage {
+  id: string
+  name: string
+  text: string
+  ts: number
+}
 
 export interface RemotePlayer {
   id: string
@@ -40,6 +47,8 @@ const MOVE_INTERVAL = 80
 
 // Mapa reativo de quem mais está na sala — consumido direto pelo GamePage
 export const remotePlayers = reactive(new Map<string, RemotePlayer>())
+// Histórico recente de chat da sala (cap 50)
+export const chatMessages = reactive<ChatMessage[]>([])
 
 let socket: Socket | null = null
 let lastEmit = 0
@@ -72,9 +81,18 @@ export function connectPresence(opts: JoinOptions) {
     remotePlayers.delete(id)
   })
 
+  socket.on('chatMessage', (m: ChatMessage) => {
+    chatMessages.push(m)
+    if (chatMessages.length > 50) chatMessages.splice(0, chatMessages.length - 50)
+  })
+
   socket.on('disconnect', () => {
     remotePlayers.clear()
   })
+}
+
+export function emitChat(text: string) {
+  socket?.emit('chat', { text })
 }
 
 export function emitMove(x: number, y: number, facing: Facing, pose: Pose) {
@@ -104,6 +122,7 @@ function flushPending() {
 export function switchMap(map: string) {
   socket?.emit('switchMap', { map })
   remotePlayers.clear()
+  chatMessages.splice(0)
 }
 
 export function disconnectPresence() {

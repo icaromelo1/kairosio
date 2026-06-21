@@ -15,7 +15,7 @@ export interface AvatarLook {
 }
 
 export type Facing = 'down' | 'up' | 'left' | 'right'
-export type Pose = 'idle' | 'walk' | 'dance'
+export type Pose = 'idle' | 'walk' | 'dance' | 'wave'
 
 // 1 unidade = 1 "pixel" da arte 16x20. UNIT controla o tamanho final do avatar.
 const UNIT = 5
@@ -228,6 +228,18 @@ export class AvatarPuppet {
       this.torso.rotation = s * 0.14
       this.torso.position.y = (9 - Math.abs(s) * 0.6) * UNIT
       this.head.rotation = -s * 0.12
+    } else if (this.pose === 'wave') {
+      // acenar — braço direito levantado balançando
+      const s = Math.sin(t * 9)
+      this.legL.rotation = 0
+      this.legR.rotation = 0
+      this.legL.position.y = HIP_Y
+      this.legR.position.y = HIP_Y
+      this.armL.rotation = 0.05
+      this.armR.rotation = -2.4 + s * 0.4
+      this.torso.rotation = 0
+      this.torso.position.y = 9 * UNIT
+      this.head.rotation = s * 0.05
     } else {
       // idle — respiração leve
       const b = Math.sin(t * 2)
