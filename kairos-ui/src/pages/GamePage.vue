@@ -77,6 +77,7 @@
         <div style="display:flex;flex-direction:column;gap:4px">
           <div style="font-size:10px;letter-spacing:0.18em;color:var(--text-3);text-transform:uppercase;font-weight:600;padding:4px 6px">Você</div>
           <button class="k-btn k-btn-ghost" @click="router.push('/character')" style="width:100%;justify-content:flex-start">Editar avatar</button>
+          <button class="k-btn k-btn-ghost" @click="router.push('/feedback')" style="width:100%;justify-content:flex-start">Feedback / Reportar bug</button>
           <button class="k-btn k-btn-ghost" @click="router.push('/login')" style="width:100%;justify-content:flex-start">Sair</button>
         </div>
 

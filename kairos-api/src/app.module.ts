@@ -6,10 +6,12 @@ import { CharacterModule } from './character/character.module'
 import { WorldModule } from './world/world.module'
 import { PresenceModule } from './presence/presence.module'
 import { MapModule } from './map/map.module'
+import { FeedbackModule } from './feedback/feedback.module'
 import { User } from './user/user.entity'
 import { Character } from './character/character.entity'
 import { WorldState } from './world/world-state.entity'
 import { GameMap } from './map/game-map.entity'
+import { Feedback } from './feedback/feedback.entity'
 
 @Module({
   imports: [
@@ -17,7 +19,7 @@ import { GameMap } from './map/game-map.entity'
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL || 'postgres://kairos:kairos@localhost:5432/kairosio',
-      entities: [User, Character, WorldState, GameMap],
+      entities: [User, Character, WorldState, GameMap, Feedback],
       synchronize: true,
     }),
     AuthModule,
@@ -25,6 +27,7 @@ import { GameMap } from './map/game-map.entity'
     WorldModule,
     PresenceModule,
     MapModule,
+    FeedbackModule,
   ],
 })
 export class AppModule {}
