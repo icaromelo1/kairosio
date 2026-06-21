@@ -70,14 +70,17 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { createFeedback, fetchFeedback, type Feedback, type FeedbackKind, type FeedbackStatus } from '@/services/feedback.api'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 const router = useRouter()
+const auth = useAuthStore()
 const list = ref<Feedback[]>([])
 const sending = ref(false)
 const ok = ref(false)
 const err = ref('')
 
-const form = reactive({ email: '', kind: 'bug' as FeedbackKind, title: '', message: '' })
+// já vem com o email do usuário logado (o gate exige email cadastrado)
+const form = reactive({ email: auth.email || '', kind: 'bug' as FeedbackKind, title: '', message: '' })
 
 const statusLabel: Record<FeedbackStatus, string> = {
   aberto: 'Aberto',
