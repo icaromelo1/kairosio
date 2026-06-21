@@ -75,9 +75,33 @@
         </div>
       </div>
 
-      <!-- HUD top-right -->
-      <div style="position:absolute;top:16px;right:16px;display:inline-flex;align-items:center;gap:10px;background:rgba(13,13,20,0.78);border:1px solid var(--border-strong);backdrop-filter:blur(10px);padding:8px 12px;font-family:var(--f-mono);font-size:12px;letter-spacing:0.08em;z-index:10">
-        <span style="color:var(--accent);font-weight:600">{{ online }} online</span>
+      <!-- HUD top-right: online + lista -->
+      <div style="position:absolute;top:16px;right:16px;background:rgba(13,13,20,0.82);border:1px solid var(--border-strong);backdrop-filter:blur(10px);padding:8px 12px;z-index:10;min-width:140px">
+        <div style="color:var(--accent);font-weight:600;font-family:var(--f-mono);font-size:12px;letter-spacing:0.08em;margin-bottom:6px">{{ online }} online</div>
+        <div style="display:flex;flex-direction:column;gap:2px;font-size:12px">
+          <span style="color:var(--text)">● {{ playerName }} <span style="color:var(--text-4)">(você)</span></span>
+          <span v-for="p in roomPeers" :key="p.id" style="color:var(--text-2)">● {{ p.name }}</span>
+        </div>
+      </div>
+
+      <!-- Proximidade -->
+      <div v-if="nearby" style="position:absolute;top:16px;left:50%;transform:translateX(-50%);background:rgba(124,58,237,0.18);border:1px solid var(--primary-hi);backdrop-filter:blur(10px);padding:6px 14px;font-size:12px;color:var(--text);z-index:10">
+        perto de <strong>{{ nearby }}</strong>
+      </div>
+
+      <!-- Chat -->
+      <div style="position:absolute;bottom:16px;left:16px;width:280px;z-index:10">
+        <div v-if="messages.length" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;margin-bottom:6px">
+          <div v-for="(m, i) in messages" :key="i" style="background:rgba(13,13,20,0.82);border:1px solid var(--border);padding:5px 9px;font-size:12px;line-height:1.4">
+            <span style="color:var(--accent);font-weight:600">{{ m.name }}:</span>
+            <span style="color:var(--text)"> {{ m.text }}</span>
+          </div>
+        </div>
+        <input
+          v-model="chatInput" maxlength="300" placeholder="Conversar… (Enter)"
+          style="width:100%;box-sizing:border-box;background:rgba(13,13,20,0.85);border:1px solid var(--border-strong);color:var(--text);padding:8px 10px;font-size:13px;font-family:inherit"
+          @keydown.enter="sendChat"
+        />
       </div>
 
       <!-- HUD bottom -->
@@ -85,6 +109,8 @@
         <span style="display:inline-flex;gap:6px;align-items:center"><span class="k-key">W</span><span class="k-key">A</span><span class="k-key">S</span><span class="k-key">D</span><span style="color:var(--text-3)">mover</span></span>
         <span style="color:var(--text-4)">·</span>
         <span style="display:inline-flex;gap:6px;align-items:center"><span class="k-key">B</span><span style="color:var(--text-3)">dançar</span></span>
+        <span style="color:var(--text-4)">·</span>
+        <span style="display:inline-flex;gap:6px;align-items:center"><span class="k-key">G</span><span style="color:var(--text-3)">acenar</span></span>
         <template v-if="activeZone">
           <span style="color:var(--text-4)">·</span>
           <span style="display:inline-flex;gap:6px;align-items:center"><span class="k-key">E</span><span style="color:var(--accent)">{{ activeZone.action }}</span></span>
@@ -123,7 +149,7 @@ import { MapScene } from '@/game/pixi/scene'
 import { AvatarPuppet, type AvatarLook, type Facing } from '@/game/pixi/avatar'
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers } from '@/services/presence'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat } from '@/services/presence'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import Logo from '@/components/logos/Logo.vue'
 
@@ -146,25 +172,44 @@ const look = computed<AvatarLook>(() => ({
   pantsColor: characterStore.pantsColor,
 }))
 const playerName = computed(() => characterStore.name || 'Convidado')
-const online = computed(() => remotePlayers.size + 1)
 const currentMap = computed(() => maps.value.find((m) => m.id === currentId.value))
+const roomPeers = computed(() => [...remotePlayers.values()].filter((p) => !p.map || p.map === currentId.value))
+const online = computed(() => roomPeers.value.length + 1)
 
 let scene: MapScene | null = null
 const pos = reactive({ x: 11, y: 9 })
 let facing: Facing = 'down'
 let dancing = false
 const keys = new Set<string>()
-const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' }
+const chatInput = ref('')
+const nearby = ref<string | null>(null)
+let emoteUntil = 0
+const messages = chatMessages
+const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' | 'wave' }
 // ids dos avatares remotos presentes na cena
 const peerIds = new Set<string>()
 
 function onKeyDown(e: KeyboardEvent) {
+  // digitando no chat/inputs → não mexe no jogo
+  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
   const k = e.key.toLowerCase()
-  if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'e', 'b', 'escape'].includes(k)) e.preventDefault()
+  if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'e', 'b', 'g', 'escape'].includes(k)) e.preventDefault()
   if (k === 'e') { tryInteract(); return }
   if (k === 'b') { dancing = !dancing; return }
+  if (k === 'g') { emote(); return }
   if (k === 'escape') { closeModal(); return }
   keys.add(k)
+}
+
+function emote() {
+  emoteUntil = Date.now() + 2500
+}
+
+function sendChat() {
+  const t = chatInput.value.trim()
+  if (!t) return
+  emitChat(t)
+  chatInput.value = ''
 }
 function onKeyUp(e: KeyboardEvent) { keys.delete(e.key.toLowerCase()) }
 
@@ -241,7 +286,8 @@ onMounted(async () => {
       if (!isSolid(map, Math.floor(pos.x), Math.floor(pos.y + dy))) pos.y += dy
       facing = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down')
     }
-    const pose: 'idle' | 'walk' | 'dance' = dancing ? 'dance' : moving ? 'walk' : 'idle'
+    const emoting = Date.now() < emoteUntil
+    const pose: 'idle' | 'walk' | 'dance' | 'wave' = moving ? 'walk' : emoting ? 'wave' : dancing ? 'dance' : 'idle'
     // emite estado quando se move ou quando pose/direção mudam (dança parado conta)
     if (moving || pose !== lastSent.pose || facing !== lastSent.facing) {
       emitMove(pos.x, pos.y, facing, pose)
@@ -262,6 +308,16 @@ onMounted(async () => {
     // ---- avatares remotos ----
     syncRemotes(dt, map)
     scene.sortAvatars()
+
+    // ---- proximidade: quem está perto (base do chat/voz por proximidade) ----
+    let near: string | null = null
+    let best = 3
+    for (const peer of remotePlayers.values()) {
+      if (peer.map && peer.map !== map.id) continue
+      const d = Math.hypot(peer.x - pos.x, peer.y - pos.y)
+      if (d < best) { best = d; near = peer.name }
+    }
+    nearby.value = near
   })
 })
 
