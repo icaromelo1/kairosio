@@ -10,12 +10,23 @@ de verdade. Organizado em **etapas** com dependências. Ver visão em `KAIROS.md
 Etapas 1–8 implementadas e publicadas. OAuth pronto e env-gated (falta só criar os apps
 e por as creds no `.env`). Perf adequada. NPCs com LLM no backlog (não agendado).
 
+**Pós-lançamento (21/06) também já feito:** fix do multiplayer (corpo vazio em
+/world/state e /character quebrava a entrada na sala), **colisão entre personagens**,
+entradas pra **editar mundo próprio**, scroll do map-select, limite no nome do personagem,
+**convidado não cria mundo** (UI + 403), e **contador de online por mundo** no map-select.
+
 ---
 
 ## 🆕 NOVA DIREÇÃO (decidida 21/06) — produto vira multi-tenant (times/orgs)
 
 > Mudança grande de escopo: o Kairos passa a ser um espaço **por organização/equipe**,
 > não um mundo único compartilhado por todos. Isto reordena as prioridades.
+
+### 📂 Specs detalhados (prontos pra implementar) — em `docs/`
+- **`docs/PLANO-multi-tenancy.md`** — modelo de dados, regras de visibilidade, endpoints, presença por org, migração, tarefas e critérios de aceite.
+- **`docs/PLANO-admin-panel.md`** — painel do admin da org (membros, convites, mundos, config).
+- **`docs/PLANO-editor-melhorias.md`** — colisão por objeto, mais objetos, rotação, criador de objeto (pixel+paleta). *(do feedback dos usuários)*
+- **`docs/PLANO-hardening-e-login.md`** — auditoria dos campos de texto + nome cacheando + restantes do login real/OAuth.
 
 ### Decisões tomadas (21/06)
 - **Login real é o caminho** (autoria/identidade fixa entre sessões). ✅ feito: convidado
