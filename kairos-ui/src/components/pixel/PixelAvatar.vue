@@ -68,7 +68,7 @@ import { shade } from '@/game/shadeHelper'
 
 const props = withDefaults(defineProps<{
   scale?: number
-  hairStyle?: 'short' | 'curly' | 'ponytail' | 'mohawk' | 'helmet'
+  hairStyle?: 'short' | 'curly' | 'ponytail' | 'mohawk' | 'helmet' | 'buzz' | 'long'
   hairColor?: string
   skin?: string
   topColor?: string
@@ -92,6 +92,8 @@ const HAIR_STYLES: Record<string, number[][]> = {
   ponytail: [[4,2,8,1],[3,3,10,1],[3,4,10,1],[3,5,2,1],[11,5,2,1],[12,6,2,1],[12,7,2,1],[13,8,1,1]],
   mohawk: [[7,0,2,1],[7,1,2,1],[6,2,4,1],[4,3,8,1],[3,4,10,1],[3,5,1,1],[12,5,1,1]],
   helmet: [[4,2,8,1],[3,3,10,1],[3,4,10,1],[3,5,10,1],[3,6,1,1],[12,6,1,1],[7,0,2,1],[7,1,2,1]],
+  buzz: [[4,2,8,1],[3,3,10,1],[4,4,8,1]],
+  long: [[4,1,8,1],[3,2,10,1],[3,3,10,1],[3,4,2,1],[11,4,2,1],[2,4,1,5],[13,4,1,5],[2,9,1,1],[13,9,1,1]],
 }
 
 const hairRects = computed(() => HAIR_STYLES[props.hairStyle] || HAIR_STYLES.short)

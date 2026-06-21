@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 
 const INITIAL_STATE = {
   name: '',
-  hairStyle: 'short' as 'short' | 'curly' | 'ponytail' | 'mohawk' | 'helmet',
+  hairStyle: 'short' as 'short' | 'curly' | 'ponytail' | 'mohawk' | 'helmet' | 'buzz' | 'long',
   hairColor: '#3d2817',
   skin: '#e8b894',
   topColor: '#7c3aed',

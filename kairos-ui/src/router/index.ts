@@ -4,6 +4,8 @@ import LoginPage from '@/pages/LoginPage.vue'
 import CharacterPage from '@/pages/CharacterPage.vue'
 import MapSelectPage from '@/pages/MapSelectPage.vue'
 import GamePage from '@/pages/GamePage.vue'
+import LabPage from '@/pages/LabPage.vue'
+import FeedbackPage from '@/pages/FeedbackPage.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -13,6 +15,8 @@ const router = createRouter({
     { path: '/character', component: CharacterPage },
     { path: '/map-select', component: MapSelectPage },
     { path: '/game', component: GamePage },
+    { path: '/lab', component: LabPage },
+    { path: '/feedback', component: FeedbackPage },
   ],
 })
 
