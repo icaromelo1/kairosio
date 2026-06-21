@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { AuthModule } from './auth/auth.module'
 import { CharacterModule } from './character/character.module'
 import { WorldModule } from './world/world.module'
+import { PresenceModule } from './presence/presence.module'
 import { User } from './user/user.entity'
 import { Character } from './character/character.entity'
 import { WorldState } from './world/world-state.entity'
@@ -20,6 +21,7 @@ import { WorldState } from './world/world-state.entity'
     AuthModule,
     CharacterModule,
     WorldModule,
+    PresenceModule,
   ],
 })
 export class AppModule {}
