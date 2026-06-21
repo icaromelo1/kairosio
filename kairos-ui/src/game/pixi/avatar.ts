@@ -1,0 +1,201 @@
+// Boneco modular animado (Épico 2) — avatar nativo no PixiJS montado por partes
+// (cabeça, tronco, 2 braços, 2 pernas) numa hierarquia de "ossos". A animação é
+// procedural + keyframes nos transforms das partes: andar, parado, dançar e olhar
+// pra direção. As cores vêm da customização paramétrica (mesmos campos do
+// characterStore), então cada parte é desenhada/tingida na hora — sem arte pronta.
+
+import { Container, Graphics } from 'pixi.js'
+
+export interface AvatarLook {
+  hairStyle: 'short' | 'curly' | 'ponytail' | 'mohawk' | 'helmet'
+  hairColor: string
+  skin: string
+  topColor: string
+  pantsColor: string
+}
+
+export type Facing = 'down' | 'up' | 'left' | 'right'
+export type Pose = 'idle' | 'walk' | 'dance'
+
+// 1 unidade = 1 "pixel" da arte 16x20. UNIT controla o tamanho final do avatar.
+const UNIT = 4
+
+function darken(hex: string, amount: number): number {
+  const h = hex.replace('#', '')
+  const n = parseInt(h.length === 3 ? h.replace(/(.)/g, '$1$1') : h, 16)
+  let r = (n >> 16) & 0xff
+  let g = (n >> 8) & 0xff
+  let b = n & 0xff
+  r = Math.max(0, Math.min(255, Math.round(r * (1 + amount))))
+  g = Math.max(0, Math.min(255, Math.round(g * (1 + amount))))
+  b = Math.max(0, Math.min(255, Math.round(b * (1 + amount))))
+  return (r << 16) | (g << 8) | b
+}
+
+function toNum(hex: string): number {
+  return darken(hex, 0)
+}
+
+function px(g: Graphics, x: number, y: number, w: number, h: number, color: number) {
+  g.rect(x * UNIT, y * UNIT, w * UNIT, h * UNIT).fill({ color })
+}
+
+const HAIR: Record<AvatarLook['hairStyle'], [number, number, number, number][]> = {
+  short:    [[4, 1, 8, 2], [3, 2, 1, 2], [12, 2, 1, 2]],
+  curly:    [[3, 1, 10, 2], [3, 3, 1, 1], [12, 3, 1, 1], [4, 0, 8, 1]],
+  ponytail: [[4, 1, 8, 2], [3, 2, 1, 3], [12, 2, 1, 1], [12, 2, 2, 5]],
+  mohawk:   [[7, 0, 2, 3], [6, 1, 1, 1], [9, 1, 1, 1]],
+  helmet:   [[3, 1, 10, 3], [3, 4, 1, 2], [12, 4, 1, 2]],
+}
+
+export class AvatarPuppet {
+  readonly root: Container
+  private head: Container
+  private face: Graphics
+  private torso: Container
+  private armL: Container
+  private armR: Container
+  private legL: Container
+  private legR: Container
+
+  private t = 0
+  private pose: Pose = 'idle'
+  private facing: Facing = 'down'
+
+  constructor(look: AvatarLook) {
+    this.root = new Container()
+
+    // sombra (não se move com os membros)
+    const shadow = new Graphics()
+    shadow.ellipse(8 * UNIT, 20 * UNIT, 4 * UNIT, 0.8 * UNIT).fill({ color: 0x000000, alpha: 0.4 })
+    this.root.addChild(shadow)
+
+    const skin = toNum(look.skin)
+    const skinDark = darken(look.skin, -0.18)
+    const top = toNum(look.topColor)
+    const topDark = darken(look.topColor, -0.25)
+    const pants = toNum(look.pantsColor)
+    const pantsDark = darken(look.pantsColor, -0.25)
+    const boot = 0x0a0a10
+    const hair = toNum(look.hairColor)
+
+    // ---- pernas (pivot no quadril) ----
+    this.legL = this.makeLeg(pants, pantsDark, boot)
+    this.legR = this.makeLeg(pants, pantsDark, boot)
+    this.legL.position.set(6 * UNIT, 14 * UNIT)
+    this.legR.position.set(10 * UNIT, 14 * UNIT)
+
+    // ---- braços (pivot no ombro) ----
+    this.armL = this.makeArm(skin, skinDark, top)
+    this.armR = this.makeArm(skin, skinDark, top)
+    this.armL.position.set(3 * UNIT, 9.5 * UNIT)
+    this.armR.position.set(13 * UNIT, 9.5 * UNIT)
+
+    // ---- tronco ----
+    this.torso = new Container()
+    const tg = new Graphics()
+    px(tg, 3, 9, 10, 5, top)
+    px(tg, 3, 13, 10, 1, topDark)
+    this.torso.addChild(tg)
+    this.torso.pivot.set(8 * UNIT, 9 * UNIT)
+    this.torso.position.set(8 * UNIT, 9 * UNIT)
+
+    // ---- cabeça (skin + cabelo + rosto) ----
+    this.head = new Container()
+    const hg = new Graphics()
+    px(hg, 4, 2, 8, 6, skin)
+    px(hg, 3, 3, 1, 4, skin)
+    px(hg, 12, 3, 1, 4, skin)
+    px(hg, 4, 7, 8, 1, skinDark)
+    for (const [x, y, w, h] of HAIR[look.hairStyle]) px(hg, x, y, w, h, hair)
+    this.head.addChild(hg)
+    // rosto (olhos + boca) — escondido quando vira de costas (up)
+    this.face = new Graphics()
+    px(this.face, 6, 5, 1, 1, boot)
+    px(this.face, 9, 5, 1, 1, boot)
+    px(this.face, 7, 6, 2, 1, skinDark)
+    this.head.addChild(this.face)
+    this.head.pivot.set(8 * UNIT, 8 * UNIT)
+    this.head.position.set(8 * UNIT, 8 * UNIT)
+
+    // ordem de empilhamento
+    this.root.addChild(this.legL, this.legR, this.armL, this.armR, this.torso, this.head)
+    // pivot do conjunto nos pés, pra posicionar pelo chão
+    this.root.pivot.set(8 * UNIT, 20 * UNIT)
+  }
+
+  private makeLeg(pants: number, pantsDark: number, boot: number): Container {
+    const c = new Container()
+    const g = new Graphics()
+    // desenhado a partir do quadril (0,0) pra baixo
+    g.rect(-2 * UNIT, 0, 4 * UNIT, 4 * UNIT).fill({ color: pants })
+    g.rect(-2 * UNIT, 3 * UNIT, 4 * UNIT, 1 * UNIT).fill({ color: pantsDark })
+    g.rect(-2 * UNIT, 4 * UNIT, 3 * UNIT, 2 * UNIT).fill({ color: boot })
+    c.addChild(g)
+    return c
+  }
+
+  private makeArm(skin: number, skinDark: number, sleeve: number): Container {
+    const c = new Container()
+    const g = new Graphics()
+    // ombro (0,0) pra baixo: manga + mão
+    g.rect(-1 * UNIT, 0, 2 * UNIT, 3 * UNIT).fill({ color: sleeve })
+    g.rect(-1 * UNIT, 3 * UNIT, 2 * UNIT, 1 * UNIT).fill({ color: skin })
+    g.rect(-1 * UNIT, 4 * UNIT, 2 * UNIT, 1 * UNIT).fill({ color: skinDark })
+    c.addChild(g)
+    return c
+  }
+
+  setPose(pose: Pose) {
+    this.pose = pose
+  }
+
+  setFacing(facing: Facing) {
+    if (facing === this.facing) return
+    this.facing = facing
+    // esquerda/direita = espelhar; cima = de costas (esconde rosto)
+    if (facing === 'left') this.root.scale.x = -1
+    else if (facing === 'right') this.root.scale.x = 1
+    this.face.visible = facing !== 'up'
+  }
+
+  /** Avança a animação. dt em segundos. */
+  update(dt: number) {
+    this.t += dt
+    const t = this.t
+
+    if (this.pose === 'walk') {
+      const swing = Math.sin(t * 10) * 0.5
+      this.legL.rotation = swing
+      this.legR.rotation = -swing
+      this.armL.rotation = -swing * 0.8
+      this.armR.rotation = swing * 0.8
+      this.torso.position.y = (9 + Math.abs(Math.sin(t * 10)) * 0.4) * UNIT
+      this.head.rotation = Math.sin(t * 10) * 0.04
+    } else if (this.pose === 'dance') {
+      const s = Math.sin(t * 6)
+      const s2 = Math.sin(t * 6 + Math.PI / 2)
+      this.armL.rotation = -1.6 + s * 0.5
+      this.armR.rotation = 1.6 - s * 0.5
+      this.legL.rotation = s2 * 0.25
+      this.legR.rotation = -s2 * 0.25
+      this.torso.rotation = s * 0.12
+      this.torso.position.y = (9 + Math.abs(s) * 0.6) * UNIT
+      this.head.rotation = -s * 0.1
+    } else {
+      // idle — respiração leve
+      const b = Math.sin(t * 2)
+      this.legL.rotation = 0
+      this.legR.rotation = 0
+      this.armL.rotation = b * 0.04
+      this.armR.rotation = -b * 0.04
+      this.torso.rotation = 0
+      this.torso.position.y = (9 + b * 0.12) * UNIT
+      this.head.rotation = 0
+    }
+  }
+
+  destroy() {
+    this.root.destroy({ children: true })
+  }
+}
