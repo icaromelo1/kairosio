@@ -5,12 +5,47 @@ de verdade. Organizado em **etapas** com dependências. Ver visão em `KAIROS.md
 
 > Atualizado: 2026-06-21.
 
-## ✅ STATUS: todas as etapas implementadas e na `main`
+## ✅ STATUS: etapas 1–8 implementadas e na `main`
 
-Etapas 1–8 implementadas e publicadas. Único pendente é **externo**: criar os apps
-OAuth (Google/GitHub) e por as credenciais no `.env` do servidor — o código já está
-pronto e env-gated (ativa sozinho quando as creds existirem). Perf: adequada, culling
-adiado (salas pequenas). NPCs com LLM seguem no backlog de ideias (não agendado).
+Etapas 1–8 implementadas e publicadas. OAuth pronto e env-gated (falta só criar os apps
+e por as creds no `.env`). Perf adequada. NPCs com LLM no backlog (não agendado).
+
+---
+
+## 🆕 NOVA DIREÇÃO (decidida 21/06) — produto vira multi-tenant (times/orgs)
+
+> Mudança grande de escopo: o Kairos passa a ser um espaço **por organização/equipe**,
+> não um mundo único compartilhado por todos. Isto reordena as prioridades.
+
+### Decisões tomadas (21/06)
+- **Login real é o caminho** (autoria/identidade fixa entre sessões). ✅ feito: convidado
+  NÃO cria mundos (UI escondida + 403 no backend). A seguir: ao logar, carregar o
+  personagem do usuário (DB) e **não vazar** o nome em cache local entre contas.
+
+### 🏢 Etapa 9 — Multi-tenancy (organizações/grupos/equipes) — **PRIORIDADE ALTA**
+> "Pessoas do grupo X só veem os mapas do grupo X." Precisa de hierarquia.
+- [ ] Modelo: **Organization** (tenant) → membros (`User.organizationId` + papel admin/membro).
+      Mundos ganham `organizationId` (`GameMap`).
+- [ ] **Escopo de visibilidade:** `GET /map` filtra pelos mundos da org do usuário do token
+      (mundos oficiais viram templates públicos/sem org, opcional).
+- [ ] Entrar numa org: criar org, **convite** (código/link) ou domínio de email.
+- [ ] Presença/salas isoladas por org (não ver/entrar em mundo de outra org).
+- [ ] Migração dos mundos atuais (definir org dona ou marcar como template).
+
+### 🛠️ Etapa 10 — Painel de administrador da organização
+- [ ] Rota `/admin` (só admin **da org**, papel no banco — não a allowlist global do feedback).
+- [ ] Gerenciar **membros** (convidar / remover / promover a admin).
+- [ ] Gerenciar **mundos** da org (listar, apagar, transferir dono).
+- [ ] Configurações da org (nome, logo, etc.).
+
+### 🔒 Blindagem de campos de texto (transversal) — **revisar todos os inputs**
+- [ ] Auditar TODOS os campos: `maxlength`, `trim`, sanitização anti-XSS, validação.
+      Feitos: chat (maxlength 300), nome do personagem (maxlength 20 + trim), feedback (DTO).
+      Faltam: nome do mundo no editor, e escapar/sanitizar o **chat** (hoje renderiza texto
+      puro — ok no Vue por padrão, mas revisar), nome do mundo, etc.
+- [ ] **Nome do personagem "cacheando":** hoje persiste em `localStorage` genérico → com
+      login real, hidratar do usuário (DB) ao logar e **limpar o cache ao deslogar/trocar
+      de conta** (senão vaza o nome entre contas no mesmo navegador).
 
 ---
 
