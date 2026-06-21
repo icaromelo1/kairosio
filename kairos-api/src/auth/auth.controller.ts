@@ -1,11 +1,41 @@
-import { Controller, Post, Body, Get, Request, UseGuards } from '@nestjs/common'
+import { Controller, Post, Body, Get, Request, Res, UseGuards } from '@nestjs/common'
+import { Response } from 'express'
 import { AuthService } from './auth.service'
 import { AuthGuard } from '@nestjs/passport'
 import { AuthCredentialsDto } from './auth.dto'
 
+const FRONT_URL = process.env.FRONT_URL || 'https://icaromelodev.com.br/kairos'
+
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
+
+  // ---- OAuth (ativo só com credenciais; ver auth.module) ----
+  @Get('google')
+  @UseGuards(AuthGuard('google'))
+  googleStart() {
+    // o guard redireciona pro Google
+  }
+
+  @Get('google/callback')
+  @UseGuards(AuthGuard('google'))
+  async googleCallback(@Request() req: any, @Res() res: Response) {
+    const { token } = await this.authService.oauthLogin(req.user.email)
+    res.redirect(`${FRONT_URL}/login?token=${token}`)
+  }
+
+  @Get('github')
+  @UseGuards(AuthGuard('github'))
+  githubStart() {
+    // o guard redireciona pro GitHub
+  }
+
+  @Get('github/callback')
+  @UseGuards(AuthGuard('github'))
+  async githubCallback(@Request() req: any, @Res() res: Response) {
+    const { token } = await this.authService.oauthLogin(req.user.email)
+    res.redirect(`${FRONT_URL}/login?token=${token}`)
+  }
 
   @Post('login')
   login(@Body() body: AuthCredentialsDto) {
