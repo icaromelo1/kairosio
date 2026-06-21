@@ -126,6 +126,15 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     socket.to(player.map).emit('playerJoined', player)
   }
 
+  // quantos jogadores online por mundo (consumido pelo GET /presence/counts)
+  getCounts(): Record<string, number> {
+    const counts: Record<string, number> = {}
+    for (const p of this.players.values()) {
+      counts[p.map] = (counts[p.map] || 0) + 1
+    }
+    return counts
+  }
+
   private peersInMap(map: MapId, exceptId: string): Player[] {
     const peers: Player[] = []
     for (const player of this.players.values()) {
