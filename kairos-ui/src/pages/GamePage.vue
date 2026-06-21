@@ -313,10 +313,14 @@ onMounted(async () => {
     let startId = gameStore.activeMap
     let savedPos: { x: number; y: number } | null = null
     if (auth.isAuthenticated) {
-      const st = await getWorldState()
-      if (st && maps.value.find((m) => m.id === st.activeMap)) {
-        startId = st.activeMap
-        savedPos = { x: st.playerX, y: st.playerY }
+      try {
+        const st = await getWorldState()
+        if (st && maps.value.find((m) => m.id === st.activeMap)) {
+          startId = st.activeMap
+          savedPos = { x: st.playerX, y: st.playerY }
+        }
+      } catch {
+        // falha ao carregar estado salvo nunca bloqueia a entrada na sala
       }
     }
     const first = maps.value.find((m) => m.id === startId) || maps.value[0]
