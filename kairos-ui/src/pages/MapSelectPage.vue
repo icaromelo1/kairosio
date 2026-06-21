@@ -58,7 +58,10 @@
         <p style="margin:0;font-size:13px;color:var(--text-3);line-height:1.5;min-height:36px">{{ m.blurb }}</p>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
           <span style="font-size:11px;color:var(--text-4);font-family:var(--f-mono)">{{ m.width }}×{{ m.height }} · {{ countZones(m) }} estações · {{ m.hours }}</span>
-          <span style="font-size:13px;color:var(--accent);font-weight:600">Entrar →</span>
+          <span style="display:flex;gap:12px;align-items:center">
+            <a v-if="m.ownerId && m.ownerId === auth.userId" href="#" style="font-size:13px;color:var(--text-2);font-weight:600;text-decoration:none" @click.stop.prevent="router.push(`/editor/${m.id}`)">✎ Editar</a>
+            <span style="font-size:13px;color:var(--accent);font-weight:600">Entrar →</span>
+          </span>
         </div>
       </div>
     </div>
@@ -70,6 +73,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/useGameStore'
 import { useCharacterStore } from '@/stores/useCharacterStore'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { interactableObjects, type MapDef } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import Logo from '@/components/logos/Logo.vue'
@@ -77,6 +81,7 @@ import Logo from '@/components/logos/Logo.vue'
 const router = useRouter()
 const gameStore = useGameStore()
 const characterStore = useCharacterStore()
+const auth = useAuthStore()
 
 const maps = ref<MapDef[]>([])
 const error = ref('')
