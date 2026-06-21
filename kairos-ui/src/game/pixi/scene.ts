@@ -98,6 +98,7 @@ export class MapScene {
 
     const shape = (gg: Graphics) => (circle ? gg.circle(cx, cy, r) : gg.rect(x, y, w, h))
 
+    // base
     if (o.color) {
       shape(g).fill(o.color)
     } else {
@@ -106,10 +107,77 @@ export class MapScene {
       if (!circle) g.rect(x, y, w, Math.max(3, h * 0.18)).fill({ color: 0xffffff, alpha: 0.05 })
     }
 
+    // detalhe por tipo — dá caráter (tronco, água, pernas, livros, etc.)
+    this.drawDetail(g, o, { x, y, w, h, cx, cy, r })
+
     if (o.glow && o.name) {
       shape(g).stroke({ width: 2, color: GLOW[o.glow], alpha: 0.75 })
     }
     this.objectLayer.addChild(g)
+  }
+
+  private drawDetail(
+    g: Graphics,
+    o: MapObject,
+    b: { x: number; y: number; w: number; h: number; cx: number; cy: number; r: number },
+  ) {
+    const { x, y, w, h, cx, cy, r } = b
+    switch (o.kind) {
+      case 'tree':
+        // copa com luz + tronco saindo embaixo
+        g.circle(cx, cy, r).fill({ color: 0x000000, alpha: 0.18 })
+        g.circle(cx - r * 0.25, cy - r * 0.25, r * 0.55).fill({ color: 0xffffff, alpha: 0.12 })
+        g.rect(cx - 3, cy + r * 0.7, 6, r * 0.6).fill({ color: 0x3a2a18 })
+        break
+      case 'fountain':
+        // anéis de água
+        g.circle(cx, cy, r * 0.66).fill({ color: 0x3b82c4, alpha: 0.9 })
+        g.circle(cx, cy, r * 0.32).fill({ color: 0x7cc4f0, alpha: 0.9 })
+        g.circle(cx - r * 0.2, cy - r * 0.2, r * 0.12).fill({ color: 0xffffff, alpha: 0.5 })
+        break
+      case 'desk':
+      case 'table':
+        // tampo + pernas
+        g.rect(x, y, w, Math.max(4, h * 0.22)).fill({ color: 0xffffff, alpha: 0.08 })
+        g.rect(x + 2, y + h - 6, 5, 6).fill({ color: 0x000000, alpha: 0.4 })
+        g.rect(x + w - 7, y + h - 6, 5, 6).fill({ color: 0x000000, alpha: 0.4 })
+        break
+      case 'shelf': {
+        // lombadas de livros coloridas
+        const books = [0x7c3aed, 0xfbbf24, 0x22d3ee, 0x34d399, 0xf87171, 0xa78bfa, 0xfb923c]
+        const n = Math.max(3, Math.floor(w / 10))
+        for (let i = 0; i < n; i++) {
+          g.rect(x + 4 + i * ((w - 8) / n), y + 4, (w - 8) / n - 2, h - 8).fill({ color: books[i % books.length], alpha: 0.85 })
+        }
+        break
+      }
+      case 'jukebox':
+        g.circle(cx, y + h * 0.4, Math.min(w, h) * 0.22).fill({ color: 0x000000, alpha: 0.55 })
+        g.circle(cx, y + h * 0.4, 2).fill({ color: 0xfb923c })
+        break
+      case 'servers':
+        for (let i = 0; i < 5; i++) {
+          g.rect(x + 4, y + 5 + i * ((h - 8) / 5), w - 8, 2).fill({ color: 0x34d399, alpha: 0.8 })
+        }
+        break
+      case 'plant':
+        g.rect(x, y + h * 0.6, w, h * 0.4).fill({ color: 0x6b4a2a })
+        g.circle(cx, y + h * 0.35, Math.min(w, h) * 0.4).fill({ color: 0x34944a, alpha: 0.9 })
+        break
+      case 'flower':
+        g.circle(x + w * 0.3, y + h * 0.4, 3).fill({ color: 0xffffff, alpha: 0.5 })
+        g.circle(x + w * 0.7, y + h * 0.6, 3).fill({ color: 0xffffff, alpha: 0.5 })
+        break
+      case 'bench':
+        g.rect(x, y, w, Math.max(3, h * 0.4)).fill({ color: 0xffffff, alpha: 0.1 })
+        break
+      case 'lamp':
+        g.circle(cx, cy, r * 1.6).fill({ color: 0xfbbf24, alpha: 0.12 })
+        g.circle(cx, cy, Math.max(2, r * 0.4)).fill({ color: 0xfde68a })
+        break
+      default:
+        break
+    }
   }
 
   addAvatar(id: string, puppet: AvatarPuppet) {
