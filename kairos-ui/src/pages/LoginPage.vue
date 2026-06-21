@@ -108,6 +108,10 @@
         <!-- Submit -->
         <button class="k-btn k-btn-primary submit-btn" :disabled="loading" @click="handleLogin">{{ loading ? 'Entrando…' : 'Entrar →' }}</button>
         <p v-if="error" style="color:#f87171;font-size:12px;margin:8px 0 0;text-align:center">{{ error }}</p>
+        <p style="font-size:12px;margin:10px 0 0;text-align:center;color:var(--text-3)">
+          Não tem conta?
+          <a href="#" style="color:var(--accent);font-weight:600;text-decoration:none" @click.prevent="goRegister">Criar conta →</a>
+        </p>
 
         <!-- Divider -->
         <div class="k-divider">
@@ -159,7 +163,7 @@ import MeanderBorder from '@/components/pixel/MeanderBorder.vue'
 import PixelColumn from '@/components/pixel/PixelColumn.vue'
 import Logo from '@/components/logos/Logo.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { login, register, guest } from '@/services/auth.api'
+import { login, guest } from '@/services/auth.api'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -171,28 +175,36 @@ const showLogosModal = ref(false)
 const error = ref('')
 const loading = ref(false)
 
-// Entrar: tenta login; se a conta não existir, registra (sem tela de cadastro separada)
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// Entrar: SÓ login. Conta inexistente → manda criar conta (não cria automático).
 async function handleLogin() {
   error.value = ''
-  if (!email.value || !password.value) {
-    error.value = 'Informe email e senha.'
+  if (!EMAIL_RE.test(email.value)) {
+    error.value = 'Informe um email válido.'
+    return
+  }
+  if (!password.value) {
+    error.value = 'Informe a senha.'
     return
   }
   loading.value = true
   try {
-    let res
-    try {
-      res = await login(email.value, password.value)
-    } catch {
-      res = await register(email.value, password.value)
-    }
+    const res = await login(email.value, password.value)
     authStore.setToken(res.token)
     router.push('/character')
-  } catch {
-    error.value = 'Não foi possível entrar. Tente outra senha.'
+  } catch (e) {
+    error.value =
+      (e as Error).message === 'invalid-credentials'
+        ? 'Email ou senha incorretos. Não tem conta? Crie uma.'
+        : 'Não foi possível entrar. Tente de novo.'
   } finally {
     loading.value = false
   }
+}
+
+function goRegister() {
+  router.push('/register')
 }
 
 async function handleGuest() {

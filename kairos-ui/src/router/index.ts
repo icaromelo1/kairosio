@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import LandingPage from '@/pages/LandingPage.vue'
 import LoginPage from '@/pages/LoginPage.vue'
+import RegisterPage from '@/pages/RegisterPage.vue'
 import CharacterPage from '@/pages/CharacterPage.vue'
 import MapSelectPage from '@/pages/MapSelectPage.vue'
 import GamePage from '@/pages/GamePage.vue'
@@ -12,6 +13,7 @@ const router = createRouter({
   routes: [
     { path: '/', component: LandingPage },
     { path: '/login', component: LoginPage },
+    { path: '/register', component: RegisterPage },
     { path: '/character', component: CharacterPage },
     { path: '/map-select', component: MapSelectPage },
     { path: '/game', component: GamePage },
