@@ -14,21 +14,22 @@ function hexNum(c: string, fallback: number): number {
   return m ? parseInt(m[1], 16) : fallback
 }
 
-const OBJECT_STYLE: Record<MapObject['kind'], { color: number; alpha: number }> = {
+const OBJECT_STYLE: Partial<Record<MapObject['kind'], { color: number; alpha: number }>> = {
   desk: { color: 0x2a2440, alpha: 1 },
   board: { color: 0x14323a, alpha: 1 },
   jukebox: { color: 0x2a1f3a, alpha: 1 },
   servers: { color: 0x1a1430, alpha: 1 },
   shelf: { color: 0x2a2418, alpha: 1 },
-  rug: { color: 0x000000, alpha: 0 },
-  panel: { color: 0x000000, alpha: 0 },
-  grass: { color: 0x000000, alpha: 0 },
+  table: { color: 0x352b1a, alpha: 1 },
+  fountain: { color: 0x2563a8, alpha: 1 },
 }
+const DEFAULT_STYLE = { color: 0x2a2a3a, alpha: 1 }
 
 const GLOW: Record<NonNullable<MapObject['glow']>, number> = {
   purple: 0x7c3aed,
   cyan: 0x22d3ee,
   gold: 0xfbbf24,
+  green: 0x34d399,
 }
 
 export class MapScene {
@@ -90,18 +91,23 @@ export class MapScene {
     const y = o.y * TILE_PX
     const w = o.w * TILE_PX
     const h = o.h * TILE_PX
+    const circle = o.shape === 'circle'
+    const cx = x + w / 2
+    const cy = y + h / 2
+    const r = Math.min(w, h) / 2
+
+    const shape = (gg: Graphics) => (circle ? gg.circle(cx, cy, r) : gg.rect(x, y, w, h))
 
     if (o.color) {
-      // cenário (rug/panel/grass): Pixi aceita a string rgba() direto
-      g.rect(x, y, w, h).fill(o.color)
+      shape(g).fill(o.color)
     } else {
-      const st = OBJECT_STYLE[o.kind]
-      g.rect(x, y, w, h).fill({ color: st.color, alpha: st.alpha })
-      g.rect(x, y, w, Math.max(3, h * 0.18)).fill({ color: 0xffffff, alpha: 0.05 })
+      const st = OBJECT_STYLE[o.kind] ?? DEFAULT_STYLE
+      shape(g).fill({ color: st.color, alpha: st.alpha })
+      if (!circle) g.rect(x, y, w, Math.max(3, h * 0.18)).fill({ color: 0xffffff, alpha: 0.05 })
     }
 
     if (o.glow && o.name) {
-      g.rect(x, y, w, h).stroke({ width: 2, color: GLOW[o.glow], alpha: 0.7 })
+      shape(g).stroke({ width: 2, color: GLOW[o.glow], alpha: 0.75 })
     }
     this.objectLayer.addChild(g)
   }

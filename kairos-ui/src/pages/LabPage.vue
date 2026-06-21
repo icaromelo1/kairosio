@@ -5,9 +5,7 @@
       <span style="font-size:12px;color:#8a8aa0">WASD/setas · colisão e câmera ativas</span>
       <label style="font-size:12px;display:flex;gap:6px;align-items:center">Mundo
         <select v-model="mapId" @change="loadMap" :style="sel">
-          <option value="studio">Studio</option>
-          <option value="athenaeum">Athenaeum</option>
-          <option value="agora">Agora</option>
+          <option v-for="m in MAPS" :key="m.id" :value="m.id">{{ m.name }}</option>
         </select>
       </label>
       <button @click="dancing = !dancing" :style="btn">{{ dancing ? 'Parar' : 'Dançar' }}</button>
