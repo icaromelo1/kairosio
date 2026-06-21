@@ -52,14 +52,21 @@ de verdade. Organizado em **etapas** com dependências. Ver visão em `KAIROS.md
 - [ ] **Emotes/danças** visíveis pros outros.
 - [ ] Lista de quem está online por sala (nomes).
 
-## Etapa 4 — Editor de mapa in-game *(a visão "o usuário cria o mundo dele")*
+## Etapa 4 — Editor de mapa in-game *(PRIORIDADE ELEVADA)*
+
+> **Princípio (decidido 21/06):** mundos só existem no **banco**. O seed faz apenas o
+> bootstrap dos 3 mundos-base; **nenhum mundo novo entra por seed** — todo mundo novo
+> (oficial ou de usuário) nasce pelo **editor** (`POST /map`). Sem conteúdo descartável
+> em código pra limpar depois. Por isso o editor sobe de prioridade: é o caminho certo
+> pra criar/editar qualquer mundo.
 
 > Backend já pronto: `PUT /map/:id` salva, `GameMap.ownerId` separa mundos por dono.
 
+- [ ] `POST /map` (criar mundo) e `DELETE /map/:id` (remover) — **falta**.
 - [ ] Modo edição: colocar/mover/remover objetos no grid (snap).
 - [ ] Paleta de objetos (mesa, árvore, parede, cerca, água, etc.).
 - [ ] Redimensionar o mundo (width/height) e trocar a paleta de cores.
-- [ ] Salvar via `PUT /map/:id`; **criar** mundos novos (`POST /map`, falta endpoint).
+- [ ] Salvar via `PUT /map/:id`.
 - [ ] Permissões: só o dono (ou admin) edita; mundos oficiais protegidos.
 - [ ] Undo/redo, validações (spawn válido, sem sobreposição inválida).
 
@@ -68,7 +75,7 @@ de verdade. Organizado em **etapas** com dependências. Ver visão em `KAIROS.md
 - [ ] **Arte real dos objetos** (hoje são caixas com contorno — sprites de verdade).
 - [ ] **Mais customização do avatar** (cabelos, roupas, acessórios, tons de pele).
 - [ ] **Melhorar a animação/“3D” do avatar** (8 direções, suavização, sombra que segue).
-- [ ] Mais mundos/temas oficiais.
+- [ ] Novos mundos oficiais → criados **pelo editor** (Etapa 4), nunca por seed.
 
 ## Etapa 6 — Estações funcionais *(ligar objetos a ferramentas)*
 
@@ -101,8 +108,8 @@ de verdade. Organizado em **etapas** com dependências. Ver visão em `KAIROS.md
 
 ## Ordem sugerida
 
-`Etapa 0` (agora) → `Etapa 1` (auth, fundação) → `Etapa 2` + `Etapa 3` (em paralelo) →
-`Etapa 4` (editor) → `Etapa 6` (estações) → `Etapa 7` (WebRTC).
+`Etapa 0` (agora) → `Etapa 1` (auth, fundação) → **`Etapa 4` (editor — prioridade, p/ criar mundos do jeito certo)**
+→ `Etapa 3` (social) → `Etapa 2` (persistência) → `Etapa 6` (estações) → `Etapa 7` (WebRTC).
 `Etapa 5` (arte/conteúdo) e a faixa de **Segurança** correm em paralelo o tempo todo.
 
 ---
