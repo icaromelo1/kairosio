@@ -2,10 +2,10 @@
   <div style="height:100vh;display:flex;flex-direction:column;background:#0d0d14;color:#e8e8f0;font-family:system-ui">
     <div style="padding:10px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #252535">
       <strong style="letter-spacing:0.04em">Lab · Mapa + Avatar (PixiJS)</strong>
-      <span style="font-size:12px;color:#8a8aa0">WASD/setas · colisão e câmera ativas</span>
+      <span style="font-size:12px;color:#8a8aa0">WASD/setas · mapas vindos da API</span>
       <label style="font-size:12px;display:flex;gap:6px;align-items:center">Mundo
-        <select v-model="mapId" @change="loadMap" :style="sel">
-          <option v-for="m in MAPS" :key="m.id" :value="m.id">{{ m.name }}</option>
+        <select v-model="currentId" @change="loadMap" :style="sel" :disabled="!maps.length">
+          <option v-for="m in maps" :key="m.id" :value="m.id">{{ m.name }}</option>
         </select>
       </label>
       <button @click="dancing = !dancing" :style="btn">{{ dancing ? 'Parar' : 'Dançar' }}</button>
@@ -22,6 +22,7 @@
         {{ c.label }}
         <input type="color" v-model="look[c.key]" @input="rebuild" style="width:26px;height:22px;border:none;background:none;cursor:pointer" />
       </label>
+      <span v-if="error" style="font-size:12px;color:#f87171">{{ error }}</span>
     </div>
     <div ref="host" style="flex:1;overflow:hidden"></div>
   </div>
@@ -31,11 +32,14 @@
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { MapScene } from '@/game/pixi/scene'
 import { AvatarPuppet, type AvatarLook, type Facing } from '@/game/pixi/avatar'
-import { MAPS, isSolid, type MapId } from '@/game/maps'
+import { isSolid, type MapDef } from '@/game/maps'
+import { fetchMaps } from '@/services/maps.api'
 
 const host = ref<HTMLElement | null>(null)
 const dancing = ref(false)
-const mapId = ref<MapId>('studio')
+const maps = ref<MapDef[]>([])
+const currentId = ref('')
+const error = ref('')
 
 const look = reactive<AvatarLook>({
   hairStyle: 'short',
@@ -56,9 +60,13 @@ const btn = 'appearance:none;background:#7c3aed;border:none;color:#fff;padding:6
 const sel = 'background:#1d1d2a;color:#e8e8f0;border:1px solid #303045;padding:3px;border-radius:2px'
 
 let scene: MapScene | null = null
-const pos = reactive({ x: 15, y: 12 })
+const pos = reactive({ x: 11, y: 9 })
 let facing: Facing = 'down'
 const keys = new Set<string>()
+
+function currentMap(): MapDef | undefined {
+  return maps.value.find((m) => m.id === currentId.value)
+}
 
 function onKeyDown(e: KeyboardEvent) {
   const k = e.key.toLowerCase()
@@ -68,8 +76,8 @@ function onKeyDown(e: KeyboardEvent) {
 function onKeyUp(e: KeyboardEvent) { keys.delete(e.key.toLowerCase()) }
 
 function loadMap() {
-  if (!scene) return
-  const map = MAPS[mapId.value]
+  const map = currentMap()
+  if (!scene || !map) return
   scene.setMap(map)
   pos.x = map.spawn.x
   pos.y = map.spawn.y
@@ -84,16 +92,28 @@ function rebuild() {
 onMounted(async () => {
   scene = new MapScene()
   await scene.init(host.value!)
-  scene.setMap(MAPS[mapId.value])
   scene.addAvatar('me', new AvatarPuppet({ ...look }))
+
+  try {
+    maps.value = await fetchMaps()
+    if (maps.value.length) {
+      currentId.value = maps.value[0].id
+      loadMap()
+    } else {
+      error.value = 'Nenhum mapa cadastrado'
+    }
+  } catch (e) {
+    error.value = (e as Error).message
+  }
 
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
 
   scene.app.ticker.add((ticker) => {
     if (!scene) return
+    const map = currentMap()
+    if (!map) return
     const dt = Math.min(ticker.deltaMS / 1000, 0.05)
-    const map = MAPS[mapId.value]
     const sp = 5 * dt
     let dx = 0, dy = 0
     if (keys.has('w') || keys.has('arrowup')) dy -= sp
@@ -103,7 +123,6 @@ onMounted(async () => {
 
     const moving = dx !== 0 || dy !== 0
     if (moving) {
-      // colisão por eixo (permite deslizar na parede)
       if (!isSolid(map, Math.floor(pos.x + dx), Math.floor(pos.y))) pos.x += dx
       if (!isSolid(map, Math.floor(pos.x), Math.floor(pos.y + dy))) pos.y += dy
       if (Math.abs(dx) > Math.abs(dy)) facing = dx < 0 ? 'left' : 'right'
