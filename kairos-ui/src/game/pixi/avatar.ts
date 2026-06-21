@@ -18,7 +18,9 @@ export type Facing = 'down' | 'up' | 'left' | 'right'
 export type Pose = 'idle' | 'walk' | 'dance'
 
 // 1 unidade = 1 "pixel" da arte 16x20. UNIT controla o tamanho final do avatar.
-const UNIT = 4
+const UNIT = 5
+// contorno escuro pra silhueta destacar em qualquer piso
+const OUTLINE = 0x07070c
 
 function darken(hex: string, amount: number): number {
   const h = hex.replace('#', '')
@@ -73,29 +75,36 @@ export class AvatarPuppet {
     const skin = toNum(look.skin)
     const skinDark = darken(look.skin, -0.18)
     const top = toNum(look.topColor)
-    const topDark = darken(look.topColor, -0.25)
+    const topDark = darken(look.topColor, -0.28)
+    const topLite = darken(look.topColor, 0.16)
     const pants = toNum(look.pantsColor)
-    const pantsDark = darken(look.pantsColor, -0.25)
-    const boot = 0x0a0a10
+    const pantsDark = darken(look.pantsColor, -0.3)
+    const pantsLite = darken(look.pantsColor, 0.22)
+    const boot = darken(look.pantsColor, -0.55)
     const hair = toNum(look.hairColor)
+    const hairDark = darken(look.hairColor, -0.3)
 
     // ---- pernas (pivot no quadril) ----
-    this.legL = this.makeLeg(pants, pantsDark, boot)
-    this.legR = this.makeLeg(pants, pantsDark, boot)
+    this.legL = this.makeLeg(pants, pantsDark, pantsLite, boot, 'left')
+    this.legR = this.makeLeg(pants, pantsDark, pantsLite, boot, 'right')
     this.legL.position.set(6 * UNIT, 14 * UNIT)
     this.legR.position.set(10 * UNIT, 14 * UNIT)
 
     // ---- braços (pivot no ombro) ----
-    this.armL = this.makeArm(skin, skinDark, top)
-    this.armR = this.makeArm(skin, skinDark, top)
-    this.armL.position.set(3 * UNIT, 9.5 * UNIT)
-    this.armR.position.set(13 * UNIT, 9.5 * UNIT)
+    this.armL = this.makeArm(skin, skinDark, top, topDark)
+    this.armR = this.makeArm(skin, skinDark, top, topDark)
+    this.armL.position.set(3 * UNIT, 9 * UNIT)
+    this.armR.position.set(13 * UNIT, 9 * UNIT)
 
     // ---- tronco ----
     this.torso = new Container()
     const tg = new Graphics()
+    px(tg, 3, 8, 10, 7, OUTLINE) // contorno
     px(tg, 3, 9, 10, 5, top)
-    px(tg, 3, 13, 10, 1, topDark)
+    px(tg, 3, 9, 2, 5, topLite) // luz na esquerda
+    px(tg, 11, 9, 2, 5, topDark) // sombra na direita
+    px(tg, 3, 13, 10, 1, topDark) // barra inferior
+    px(tg, 7, 8, 2, 1, skinDark) // pescoço
     this.torso.addChild(tg)
     this.torso.pivot.set(8 * UNIT, 9 * UNIT)
     this.torso.position.set(8 * UNIT, 9 * UNIT)
@@ -103,16 +112,19 @@ export class AvatarPuppet {
     // ---- cabeça (skin + cabelo + rosto) ----
     this.head = new Container()
     const hg = new Graphics()
+    px(hg, 3, 1, 10, 8, OUTLINE) // contorno
     px(hg, 4, 2, 8, 6, skin)
     px(hg, 3, 3, 1, 4, skin)
     px(hg, 12, 3, 1, 4, skin)
+    px(hg, 11, 3, 1, 4, skinDark) // sombra do rosto
     px(hg, 4, 7, 8, 1, skinDark)
     for (const [x, y, w, h] of HAIR[look.hairStyle]) px(hg, x, y, w, h, hair)
+    px(hg, 4, 1, 8, 1, hairDark) // topo do cabelo
     this.head.addChild(hg)
     // rosto (olhos + boca) — escondido quando vira de costas (up)
     this.face = new Graphics()
-    px(this.face, 6, 5, 1, 1, boot)
-    px(this.face, 9, 5, 1, 1, boot)
+    px(this.face, 6, 5, 1, 1, 0x101018)
+    px(this.face, 9, 5, 1, 1, 0x101018)
     px(this.face, 7, 6, 2, 1, skinDark)
     this.head.addChild(this.face)
     this.head.pivot.set(8 * UNIT, 8 * UNIT)
@@ -125,24 +137,33 @@ export class AvatarPuppet {
     this.root.pivot.set(8 * UNIT, 20 * UNIT)
   }
 
-  private makeLeg(pants: number, pantsDark: number, boot: number): Container {
+  private makeLeg(pants: number, pantsDark: number, pantsLite: number, boot: number, side: 'left' | 'right'): Container {
     const c = new Container()
     const g = new Graphics()
-    // desenhado a partir do quadril (0,0) pra baixo
-    g.rect(-2 * UNIT, 0, 4 * UNIT, 4 * UNIT).fill({ color: pants })
-    g.rect(-2 * UNIT, 3 * UNIT, 4 * UNIT, 1 * UNIT).fill({ color: pantsDark })
-    g.rect(-2 * UNIT, 4 * UNIT, 3 * UNIT, 2 * UNIT).fill({ color: boot })
+    const U = UNIT
+    // contorno; depois calça (4 de largura) e bota, desenhados do quadril (0,0) pra baixo
+    g.rect(-2 * U - 1, -1, 4 * U + 2, 6 * U + 2).fill({ color: OUTLINE })
+    g.rect(-2 * U, 0, 4 * U, 4 * U).fill({ color: pants })
+    // luz/sombra lateral dá volume
+    g.rect(side === 'left' ? -2 * U : 1 * U, 0, 1 * U, 4 * U).fill({ color: side === 'left' ? pantsLite : pantsDark })
+    g.rect(-2 * U, 3 * U, 4 * U, 1 * U).fill({ color: pantsDark })
+    // bota
+    g.rect(-2 * U, 4 * U, 4 * U, 2 * U).fill({ color: boot })
+    g.rect(-2 * U, 4 * U, 4 * U, 1 * U).fill({ color: pantsDark })
     c.addChild(g)
     return c
   }
 
-  private makeArm(skin: number, skinDark: number, sleeve: number): Container {
+  private makeArm(skin: number, skinDark: number, sleeve: number, sleeveDark: number): Container {
     const c = new Container()
     const g = new Graphics()
-    // ombro (0,0) pra baixo: manga + mão
-    g.rect(-1 * UNIT, 0, 2 * UNIT, 3 * UNIT).fill({ color: sleeve })
-    g.rect(-1 * UNIT, 3 * UNIT, 2 * UNIT, 1 * UNIT).fill({ color: skin })
-    g.rect(-1 * UNIT, 4 * UNIT, 2 * UNIT, 1 * UNIT).fill({ color: skinDark })
+    const U = UNIT
+    // ombro (0,0) pra baixo: contorno + manga + mão
+    g.rect(-1 * U - 1, -1, 2 * U + 2, 5 * U + 2).fill({ color: OUTLINE })
+    g.rect(-1 * U, 0, 2 * U, 3 * U).fill({ color: sleeve })
+    g.rect(0, 0, 1 * U, 3 * U).fill({ color: sleeveDark })
+    g.rect(-1 * U, 3 * U, 2 * U, 1 * U).fill({ color: skin })
+    g.rect(-1 * U, 4 * U, 2 * U, 1 * U).fill({ color: skinDark })
     c.addChild(g)
     return c
   }
