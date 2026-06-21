@@ -42,9 +42,10 @@
         <span class="avatar-label-bottom">◇ frente · idle ◇</span>
 
         <input
-          v-model="characterStore.name"
+          v-model.trim="characterStore.name"
           class="k-input name-input"
           type="text"
+          maxlength="20"
           placeholder="Seu nome..."
         />
       </div>

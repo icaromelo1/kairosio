@@ -53,7 +53,7 @@
         <div style="display:flex;flex-direction:column;gap:4px">
           <div style="font-size:10px;letter-spacing:0.18em;color:var(--text-3);text-transform:uppercase;font-weight:600;padding:4px 6px">Você</div>
           <button class="k-btn k-btn-ghost" @click="router.push('/character')" style="width:100%;justify-content:flex-start">Editar avatar</button>
-          <button class="k-btn k-btn-ghost" @click="router.push('/editor/new')" style="width:100%;justify-content:flex-start">Criar mundo</button>
+          <button v-if="!auth.isGuest" class="k-btn k-btn-ghost" @click="router.push('/editor/new')" style="width:100%;justify-content:flex-start">Criar mundo</button>
           <button v-if="currentMap && currentMap.ownerId === auth.userId" class="k-btn k-btn-ghost" @click="router.push(`/editor/${currentId}`)" style="width:100%;justify-content:flex-start">Editar este mundo</button>
           <button class="k-btn k-btn-ghost" @click="router.push('/feedback')" style="width:100%;justify-content:flex-start">Feedback / Reportar bug</button>
           <button class="k-btn k-btn-ghost" @click="leave" style="width:100%;justify-content:flex-start">Sair</button>
