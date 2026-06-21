@@ -54,7 +54,9 @@
 
         <div style="display:flex;justify-content:space-between;align-items:baseline">
           <h3 style="margin:0;font-size:18px;font-weight:600;letter-spacing:-0.02em">{{ m.name }}</h3>
-          <span style="font-size:10px;letter-spacing:0.18em;color:var(--text-4);text-transform:uppercase">{{ m.label }}</span>
+          <span :style="{ fontSize: '12px', fontWeight: 600, color: (counts[m.id] || 0) > 0 ? 'var(--ok)' : 'var(--text-4)' }">
+            ● {{ counts[m.id] || 0 }} online
+          </span>
         </div>
         <p style="margin:0;font-size:13px;color:var(--text-3);line-height:1.5;min-height:36px">{{ m.blurb }}</p>
         <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
@@ -70,13 +72,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/useGameStore'
 import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { interactableObjects, type MapDef } from '@/game/maps'
-import { fetchMaps } from '@/services/maps.api'
+import { fetchMaps, fetchOnlineCounts } from '@/services/maps.api'
 import Logo from '@/components/logos/Logo.vue'
 
 const router = useRouter()
@@ -86,6 +88,8 @@ const auth = useAuthStore()
 
 const maps = ref<MapDef[]>([])
 const error = ref('')
+const counts = ref<Record<string, number>>({})
+let countTimer = 0
 
 const previewTiles = Array.from({ length: 10 }, (_, ry) =>
   Array.from({ length: 15 }, (_, rx) => ({ rx, ry })),
@@ -103,11 +107,19 @@ function pickMap(id: string) {
   router.push('/game')
 }
 
+async function loadCounts() {
+  counts.value = await fetchOnlineCounts()
+}
+
 onMounted(async () => {
   try {
     maps.value = await fetchMaps()
   } catch (e) {
     error.value = 'Não foi possível carregar os mundos.'
   }
+  loadCounts()
+  countTimer = window.setInterval(loadCounts, 8000)
 })
+
+onUnmounted(() => clearInterval(countTimer))
 </script>

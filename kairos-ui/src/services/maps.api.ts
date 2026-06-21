@@ -19,6 +19,14 @@ export async function fetchMaps(): Promise<MapDef[]> {
   return res.json()
 }
 
+// { mapId: quantos online } — quantos jogadores em cada mundo agora
+export async function fetchOnlineCounts(): Promise<Record<string, number>> {
+  const res = await apiFetch('/presence/counts')
+  if (!res.ok) return {}
+  const text = await res.text()
+  return text ? (JSON.parse(text) as Record<string, number>) : {}
+}
+
 export async function fetchMap(id: string): Promise<MapDef> {
   const res = await apiFetch(`/map/${id}`)
   if (!res.ok) throw new Error(`Falha ao carregar mapa ${id} (${res.status})`)
