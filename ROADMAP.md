@@ -38,6 +38,25 @@ e por as creds no `.env`). Perf adequada. NPCs com LLM no backlog (não agendado
 - [ ] Gerenciar **mundos** da org (listar, apagar, transferir dono).
 - [ ] Configurações da org (nome, logo, etc.).
 
+### 📨 Feedbacks dos usuários (mapeados do canal `/feedback`, 21/06)
+
+> Vindos de uma conta real — o canal de feedback está funcionando.
+
+**1. "Quero ter dinheiro"** (comprar um carro e usar no lago que criou)
+- Vira o épico de **economia / gamificação**: moeda, loja de itens, itens colocáveis no
+  mundo (veículos, etc.), talvez recompensas por uso. — *novo épico, longo prazo* (Etapa 11).
+
+**2. "Mais opções de criação de mundo"** (muito acionável — melhora o editor, Etapa 4/5):
+- [ ] **Criador de objeto próprio**: editor de pixel + paleta de cores pra o usuário
+      desenhar o próprio objeto. — *grande*
+- [ ] **Marcar se o objeto tem colisão** (toggle por objeto no editor). — *quick-win*
+- [ ] **Rotacionar objetos** no editor. — *médio*
+- [ ] **Mais objetos** na paleta. — *quick-win*
+
+### 💰 Etapa 11 — Economia / gamificação (novo épico, longo prazo)
+- [ ] Moeda + saldo por usuário; loja de itens; itens colocáveis (veículos, decoração).
+- [ ] Origem (vinda do feedback "quero ter dinheiro"). Sem prioridade ainda.
+
 ### 🔒 Blindagem de campos de texto (transversal) — **revisar todos os inputs**
 - [ ] Auditar TODOS os campos: `maxlength`, `trim`, sanitização anti-XSS, validação.
       Feitos: chat (maxlength 300), nome do personagem (maxlength 20 + trim), feedback (DTO).
