@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Request, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Put, Request, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { MapService } from './map.service'
 import { CreateMapDto, UpdateMapDto } from './map.dto'
@@ -22,6 +22,9 @@ export class MapController {
   @UseGuards(AuthGuard('jwt'))
   @Post()
   create(@Request() req: any, @Body() dto: CreateMapDto) {
+    if (req.user.isGuest) {
+      throw new ForbiddenException('Convidados não podem criar mundos. Crie uma conta.')
+    }
     return this.maps.create(dto, req.user.sub)
   }
 

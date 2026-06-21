@@ -172,6 +172,11 @@ async function save() {
 }
 
 onMounted(async () => {
+  // convidado não cria mundo — precisa de conta
+  if (isNew.value && auth.isGuest) {
+    router.replace('/map-select')
+    return
+  }
   scene = new MapScene()
   await scene.init(host.value!, '#0a0a10')
   if (!isNew.value) {

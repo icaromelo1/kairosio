@@ -1,6 +1,6 @@
 <template>
   <div class="screen-enter" :style="{
-    minHeight: '100vh', padding: '32px',
+    height: '100vh', boxSizing: 'border-box', padding: '32px',
     background: 'radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.18), transparent 50%), var(--bg-1)',
     display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', overflowY: 'auto',
   }">
@@ -17,7 +17,8 @@
       <p style="color:var(--text-3);margin:0;font-size:15px">
         Você pode trocar de mundo a qualquer momento dentro do jogo.
       </p>
-      <button class="k-btn k-btn-accent" style="margin-top:8px" @click="router.push('/editor/new')">+ Criar meu mundo</button>
+      <button v-if="!auth.isGuest" class="k-btn k-btn-accent" style="margin-top:8px" @click="router.push('/editor/new')">+ Criar meu mundo</button>
+      <span v-else style="font-size:12px;color:var(--text-4)">Entre com uma conta para criar seus próprios mundos.</span>
     </div>
 
     <p v-if="error" style="color:#f87171">{{ error }}</p>
