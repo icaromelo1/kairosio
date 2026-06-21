@@ -1,0 +1,14 @@
+{
+  "name": "kairos-e2e",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Smoke tests E2E do Kairos (Playwright)",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "install:browsers": "playwright install chromium"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}
