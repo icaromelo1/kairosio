@@ -89,6 +89,10 @@ export function connectPresence(opts: JoinOptions) {
     if (chatMessages.length > 50) chatMessages.splice(0, chatMessages.length - 50)
   })
 
+  socket.on('rtc-signal', ({ from, signal }: { from: string; signal: unknown }) => {
+    rtcHandler?.(from, signal)
+  })
+
   socket.on('disconnect', () => {
     remotePlayers.clear()
   })
@@ -96,6 +100,19 @@ export function connectPresence(opts: JoinOptions) {
 
 export function emitChat(text: string) {
   socket?.emit('chat', { text })
+}
+
+// ---- sinalização WebRTC (voz por proximidade) ----
+let rtcHandler: ((from: string, signal: unknown) => void) | null = null
+
+export function socketId(): string | undefined {
+  return socket?.id
+}
+export function sendRtcSignal(to: string, signal: unknown) {
+  socket?.emit('rtc-signal', { to, signal })
+}
+export function setRtcHandler(cb: ((from: string, signal: unknown) => void) | null) {
+  rtcHandler = cb
 }
 
 export function emitMove(x: number, y: number, facing: Facing, pose: Pose) {

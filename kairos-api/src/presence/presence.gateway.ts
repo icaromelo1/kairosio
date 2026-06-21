@@ -105,6 +105,13 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     })
   }
 
+  // relay de sinalização WebRTC 1:1 (voz por proximidade)
+  @SubscribeMessage('rtc-signal')
+  handleRtcSignal(socket: Socket, payload: { to: string; signal: unknown }) {
+    if (!this.players.has(socket.id) || !payload?.to) return
+    this.server.to(payload.to).emit('rtc-signal', { from: socket.id, signal: payload.signal })
+  }
+
   @SubscribeMessage('switchMap')
   handleSwitchMap(socket: Socket, payload: { map: MapId }) {
     const player = this.players.get(socket.id)
