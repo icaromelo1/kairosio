@@ -10,6 +10,7 @@ export async function login(email: string, password: string): Promise<TokenRespo
     method: 'POST',
     body: JSON.stringify({ email, password }),
   })
+  if (res.status === 401) throw new Error('invalid-credentials')
   if (!res.ok) throw new Error('login-failed')
   return res.json()
 }
@@ -19,6 +20,8 @@ export async function register(email: string, password: string): Promise<TokenRe
     method: 'POST',
     body: JSON.stringify({ email, password }),
   })
+  if (res.status === 409) throw new Error('email-exists')
+  if (res.status === 400) throw new Error('invalid-input')
   if (!res.ok) throw new Error('register-failed')
   return res.json()
 }

@@ -29,11 +29,8 @@
       <div class="avatar-center">
         <span class="avatar-label-top">Crie seu avatar</span>
 
-        <div class="avatar-preview">
-          <PixelAvatar
-            :scale="14"
-            :bobbing="true"
-            :shadow="true"
+        <div class="avatar-preview" style="width:240px;height:300px">
+          <PixiAvatarPreview
             :hairStyle="characterStore.hairStyle"
             :hairColor="characterStore.hairColor"
             :skin="characterStore.skin"
@@ -235,6 +232,7 @@ import { useRouter } from 'vue-router'
 import MeanderBorder from '@/components/pixel/MeanderBorder.vue'
 import PixelColumn from '@/components/pixel/PixelColumn.vue'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
+import PixiAvatarPreview from '@/components/PixiAvatarPreview.vue'
 import Logo from '@/components/logos/Logo.vue'
 import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useGameStore } from '@/stores/useGameStore'
