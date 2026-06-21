@@ -257,6 +257,8 @@ const HAIR_STYLES = [
   { id: 'ponytail', label: 'ponytail' },
   { id: 'mohawk', label: 'mohawk' },
   { id: 'helmet', label: 'helmet' },
+  { id: 'buzz', label: 'buzz' },
+  { id: 'long', label: 'long' },
 ]
 
 const HAIR_COLORS = [

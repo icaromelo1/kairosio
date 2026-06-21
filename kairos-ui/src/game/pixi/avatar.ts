@@ -7,7 +7,7 @@
 import { Container, Graphics } from 'pixi.js'
 
 export interface AvatarLook {
-  hairStyle: 'short' | 'curly' | 'ponytail' | 'mohawk' | 'helmet'
+  hairStyle: 'short' | 'curly' | 'ponytail' | 'mohawk' | 'helmet' | 'buzz' | 'long'
   hairColor: string
   skin: string
   topColor: string
@@ -48,6 +48,8 @@ const HAIR: Record<AvatarLook['hairStyle'], [number, number, number, number][]> 
   ponytail: [[4, 1, 8, 2], [3, 2, 1, 3], [12, 2, 1, 1], [12, 2, 2, 5]],
   mohawk:   [[7, 0, 2, 3], [6, 1, 1, 1], [9, 1, 1, 1]],
   helmet:   [[3, 1, 10, 3], [3, 4, 1, 2], [12, 4, 1, 2]],
+  buzz:     [[4, 1, 8, 1], [4, 2, 8, 1]],
+  long:     [[4, 1, 8, 2], [3, 2, 1, 6], [12, 2, 1, 6], [2, 3, 1, 4], [13, 3, 1, 4]],
 }
 
 export class AvatarPuppet {
