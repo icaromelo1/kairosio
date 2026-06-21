@@ -118,8 +118,9 @@ export class AvatarPuppet {
     this.head.pivot.set(8 * UNIT, 8 * UNIT)
     this.head.position.set(8 * UNIT, 8 * UNIT)
 
-    // ordem de empilhamento
-    this.root.addChild(this.legL, this.legR, this.armL, this.armR, this.torso, this.head)
+    // ordem de empilhamento — braços NA FRENTE do tronco pra ficarem visíveis
+    // ao levantar (dança); cabeça por cima de tudo
+    this.root.addChild(this.legL, this.legR, this.torso, this.armL, this.armR, this.head)
     // pivot do conjunto nos pés, pra posicionar pelo chão
     this.root.pivot.set(8 * UNIT, 20 * UNIT)
   }
@@ -163,30 +164,54 @@ export class AvatarPuppet {
   update(dt: number) {
     this.t += dt
     const t = this.t
+    const HIP_Y = 14 * UNIT
+    const sideView = this.facing === 'left' || this.facing === 'right'
 
     if (this.pose === 'walk') {
-      const swing = Math.sin(t * 10) * 0.5
-      this.legL.rotation = swing
-      this.legR.rotation = -swing
-      this.armL.rotation = -swing * 0.8
-      this.armR.rotation = swing * 0.8
-      this.torso.position.y = (9 + Math.abs(Math.sin(t * 10)) * 0.4) * UNIT
-      this.head.rotation = Math.sin(t * 10) * 0.04
+      const phase = t * 9
+      const s = Math.sin(phase)
+      if (sideView) {
+        // de lado: pêndulo (passada real frente↔trás)
+        const swing = s * 0.55
+        this.legL.rotation = swing
+        this.legR.rotation = -swing
+        this.legL.position.y = HIP_Y
+        this.legR.position.y = HIP_Y
+        this.armL.rotation = -swing * 0.85
+        this.armR.rotation = swing * 0.85
+      } else {
+        // de frente/costas: marcha — pernas sobem alternadas
+        this.legL.rotation = s * 0.1
+        this.legR.rotation = -s * 0.1
+        this.legL.position.y = HIP_Y - Math.max(0, s) * 2 * UNIT
+        this.legR.position.y = HIP_Y - Math.max(0, -s) * 2 * UNIT
+        this.armL.rotation = -s * 0.35
+        this.armR.rotation = s * 0.35
+      }
+      // bob do corpo: 2x por passada (sobe quando as pernas se cruzam)
+      this.torso.rotation = 0
+      this.torso.position.y = (9 - Math.abs(Math.cos(phase)) * 0.4) * UNIT
+      this.head.rotation = s * 0.04
     } else if (this.pose === 'dance') {
       const s = Math.sin(t * 6)
       const s2 = Math.sin(t * 6 + Math.PI / 2)
-      this.armL.rotation = -1.6 + s * 0.5
-      this.armR.rotation = 1.6 - s * 0.5
-      this.legL.rotation = s2 * 0.25
-      this.legR.rotation = -s2 * 0.25
-      this.torso.rotation = s * 0.12
-      this.torso.position.y = (9 + Math.abs(s) * 0.6) * UNIT
-      this.head.rotation = -s * 0.1
+      // braços bem pra cima e abrindo — agora visíveis (na frente do tronco)
+      this.armL.rotation = -2.3 + s * 0.45
+      this.armR.rotation = 2.3 - s * 0.45
+      this.legL.position.y = HIP_Y
+      this.legR.position.y = HIP_Y
+      this.legL.rotation = s2 * 0.22
+      this.legR.rotation = -s2 * 0.22
+      this.torso.rotation = s * 0.14
+      this.torso.position.y = (9 - Math.abs(s) * 0.6) * UNIT
+      this.head.rotation = -s * 0.12
     } else {
       // idle — respiração leve
       const b = Math.sin(t * 2)
       this.legL.rotation = 0
       this.legR.rotation = 0
+      this.legL.position.y = HIP_Y
+      this.legR.position.y = HIP_Y
       this.armL.rotation = b * 0.04
       this.armR.rotation = -b * 0.04
       this.torso.rotation = 0
