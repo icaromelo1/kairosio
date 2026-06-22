@@ -27,4 +27,7 @@ export class Character {
 
   @Column({ default: '#1f2937' })
   pantsColor: string
+
+  @Column({ default: 'none' })
+  accessory: string
 }

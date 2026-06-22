@@ -28,6 +28,7 @@ export interface AvatarProps {
   skin?: string | null
   topColor?: string | null
   pantsColor?: string | null
+  accessory?: string | null
 }
 
 interface JoinOptions {
