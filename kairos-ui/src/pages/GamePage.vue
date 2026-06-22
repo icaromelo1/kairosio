@@ -312,6 +312,9 @@ function closeModal() {
 }
 
 function selectMap(id: string) {
+  // B2: já estou neste mundo → no-op. Re-entrar recriava a sessão (switchMap limpa
+  // os peers e re-join), me deixando "sozinho" e exigindo F5 pra voltar.
+  if (id === currentId.value) return
   const map = maps.value.find((m) => m.id === id)
   if (!scene || !map) return
   currentId.value = id
