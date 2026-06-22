@@ -94,9 +94,19 @@ entradas pra **editar mundo próprio**, scroll do map-select, limite no nome do 
 
 **❌ Recusado:** "Quero ter dinheiro" (economia/gamificação — fora de escopo).
 
-### 🎥 Câmera (zoom/rotação) + melhoria de estilo — planejado
-- [ ] Zoom in/out + rotação da câmera, estilo **Don't Starve Together / Stardew Valley**;
-      casa com a melhoria de "feel/estilo" do jogo. → `docs/PLANO-camera-e-estilo.md`.
+### 🎥 Câmera (zoom/rotação) + melhoria de estilo — zoom/rotação FEITOS
+- [x] Zoom + rotação 90° da câmera. → `docs/PLANO-camera-e-estilo.md`.
+- ⚠️ Rotação revelou: o jogo é **2D plano** (objetos chapados), então girar deixa as árvores
+  de cabeça pra baixo. O certo é **2.5D oblíquo** (billboards), ver abaixo.
+
+### 🎨 Direção de arte 2.5D (estilo Stardew/DST) — planejado — **prioridade pós-feedback**
+> Avatar "mais fofo/pixelado" (Stardew) + objetos como **billboards** que ficam em pé na
+> rotação (em vez de virar de cabeça pra baixo). Causa raiz comum: hoje é 2D plano (Terraria),
+> alvo é "3D em 2D". → `docs/PLANO-arte-2.5d.md`.
+- [ ] Fix da rotação: objetos "em pé" viram billboard + contra-giram (tira o de-cabeça-pra-baixo).
+- [ ] Y-sort objetos+avatares + sombras (profundidade).
+- [ ] Arte do avatar mais fofa/pixelada (refinar o boneco procedural; spritesheets depois).
+- [ ] Objetos com base+altura no render.
 
 ### 🏷️ Branding & posicionamento — planejado
 > **Posicionamento (22/06):** o Kairos é uma **rede social** (espaço virtual), e **talvez vire
