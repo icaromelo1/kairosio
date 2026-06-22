@@ -41,6 +41,8 @@ export const useAuthStore = defineStore('auth', {
     },
     logout() {
       localStorage.removeItem(TOKEN_KEY)
+      // não vazar nome/avatar pra próxima conta no mesmo navegador
+      localStorage.removeItem('kairos_character')
       this.token = null
       this.userId = null
       this.email = null

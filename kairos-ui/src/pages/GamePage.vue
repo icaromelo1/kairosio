@@ -64,7 +64,13 @@
 
     <!-- Stage (PixiJS) -->
     <div style="position:relative;overflow:hidden;background:var(--bg-0)">
-      <div ref="host" style="position:absolute;inset:0"></div>
+      <div ref="host" style="position:absolute;inset:0" @wheel.prevent="onWheel"></div>
+
+      <!-- Zoom -->
+      <div style="position:absolute;top:64px;right:16px;z-index:10;display:flex;flex-direction:column;gap:4px">
+        <button class="k-key" style="cursor:pointer;width:30px;height:30px;font-size:16px" @click="zoomBy(1.15)">+</button>
+        <button class="k-key" style="cursor:pointer;width:30px;height:30px;font-size:16px" @click="zoomBy(0.87)">−</button>
+      </div>
 
       <!-- HUD top-left -->
       <div style="position:absolute;top:16px;left:16px;display:inline-flex;align-items:center;gap:10px;background:rgba(13,13,20,0.78);border:1px solid var(--border-strong);backdrop-filter:blur(10px);padding:8px 12px 8px 8px;z-index:10">
@@ -220,6 +226,7 @@ let scene: MapScene | null = null
 const pos = reactive({ x: 11, y: 9 })
 let facing: Facing = 'down'
 let dancing = false
+let sitting = false
 const keys = new Set<string>()
 const chatInput = ref('')
 const nearby = ref<string | null>(null)
@@ -241,7 +248,7 @@ async function toggleVoice() {
   voiceOn.value = ok
   if (!ok) error.value = 'Microfone bloqueado. Permita o acesso para usar a voz.'
 }
-const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' | 'wave' }
+const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' | 'wave' | 'sit' }
 // ids dos avatares remotos presentes na cena
 const peerIds = new Set<string>()
 
@@ -271,13 +278,30 @@ function sendChat() {
 // controles touch (mobile)
 function pressKey(k: string) { keys.add(k) }
 function releaseKey(k: string) { keys.delete(k) }
+
+// zoom da câmera (+ persistir)
+function zoomBy(factor: number) {
+  if (!scene) return
+  scene.setZoom(scene.getZoom() * factor)
+  localStorage.setItem('kairos_zoom', String(scene.getZoom()))
+}
+function onWheel(e: WheelEvent) {
+  zoomBy(e.deltaY < 0 ? 1.1 : 0.9)
+}
 function onKeyUp(e: KeyboardEvent) { keys.delete(e.key.toLowerCase()) }
 
 function tryInteract() {
-  if (activeZone.value && !gameStore.isModalOpen) {
-    activeModal.value = activeZone.value
-    gameStore.isModalOpen = true
+  const z = activeZone.value
+  if (!z || gameStore.isModalOpen) return
+  // cadeira/sofá → sentar (em vez de modal)
+  if (z.kind === 'chair' || z.kind === 'sofa') {
+    sitting = true
+    pos.x = z.x + z.w / 2
+    pos.y = z.y + z.h / 2
+    return
   }
+  activeModal.value = z
+  gameStore.isModalOpen = true
 }
 function closeModal() {
   gameStore.isModalOpen = false
@@ -306,6 +330,11 @@ function peerBlocks(nx: number, ny: number, cx: number, cy: number): boolean {
   return false
 }
 
+// água atravessável deixa o movimento mais lento
+function onWater(map: MapDef, x: number, y: number): boolean {
+  return map.objects.some((o) => o.kind === 'water' && x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h)
+}
+
 function detectZone(map: MapDef) {
   let nearest: MapObject | null = null
   let best = 2.6
@@ -321,6 +350,8 @@ function detectZone(map: MapDef) {
 onMounted(async () => {
   scene = new MapScene()
   await scene.init(host.value!)
+  const savedZoom = parseFloat(localStorage.getItem('kairos_zoom') || '')
+  if (savedZoom) scene.setZoom(savedZoom)
   scene.addAvatar('me', new AvatarPuppet(look.value))
 
   try {
@@ -361,13 +392,14 @@ onMounted(async () => {
     // ---- movimento local (com colisão) ----
     let dx = 0, dy = 0
     if (!gameStore.isModalOpen) {
-      const sp = 5 * dt
+      const sp = 5 * dt * (onWater(map, pos.x, pos.y) ? 0.5 : 1)
       if (keys.has('w') || keys.has('arrowup')) dy -= sp
       if (keys.has('s') || keys.has('arrowdown')) dy += sp
       if (keys.has('a') || keys.has('arrowleft')) dx -= sp
       if (keys.has('d') || keys.has('arrowright')) dx += sp
     }
     const moving = dx !== 0 || dy !== 0
+    if (moving) sitting = false // mover levanta
     if (moving) {
       const nx = pos.x + dx
       const ny = pos.y + dy
@@ -376,7 +408,7 @@ onMounted(async () => {
       facing = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down')
     }
     const emoting = Date.now() < emoteUntil
-    const pose: 'idle' | 'walk' | 'dance' | 'wave' = moving ? 'walk' : emoting ? 'wave' : dancing ? 'dance' : 'idle'
+    const pose: 'idle' | 'walk' | 'dance' | 'wave' | 'sit' = sitting ? 'sit' : moving ? 'walk' : emoting ? 'wave' : dancing ? 'dance' : 'idle'
     // emite estado quando se move ou quando pose/direção mudam (dança parado conta)
     if (moving || pose !== lastSent.pose || facing !== lastSent.facing) {
       emitMove(pos.x, pos.y, facing, pose)
@@ -443,6 +475,7 @@ function syncRemotes(dt: number, map: MapDef) {
 function leave() {
   disconnectPresence()
   useAuthStore().logout()
+  characterStore.$reset() // limpa nome/avatar em memória (não vaza pra próxima conta)
   router.push('/login')
 }
 
