@@ -34,8 +34,9 @@ const GLOW: Record<NonNullable<MapObject['glow']>, number> = {
   green: 0x34d399,
 }
 
-// objetos "em pé" (billboards) — contra-giram com a câmera pra não ficar de cabeça pra baixo.
-// os de fora (rug/water/path/grass/panel/flower) são "de chão" e giram com o piso.
+// objetos "em pé" (billboards) — ficam ancorados na base e entram na entityLayer
+// ordenada por Y (profundidade). os de fora (rug/water/path/grass/panel/flower)
+// são "de chão" e ficam na camada de baixo.
 const UPRIGHT_KINDS = new Set<MapObject['kind']>([
   'desk', 'board', 'jukebox', 'servers', 'shelf', 'plant', 'tree', 'fountain',
   'bench', 'lamp', 'table', 'column', 'chair', 'sofa', 'hedge', 'custom',
@@ -51,8 +52,6 @@ export class MapScene {
   private entityLayer: Container // objetos em pé + avatares, ordenados por Y (profundidade)
   private ghostLayer: Container
   private avatars = new Map<string, AvatarPuppet>()
-  // containers dos objetos "em pé" que contra-giram com a câmera
-  private uprightObjects: { c: Container; own: number }[] = []
   map: MapDef | null = null
 
   constructor() {
@@ -81,7 +80,6 @@ export class MapScene {
     this.entityLayer.removeChildren()
     // re-adiciona os avatares (ficam na entityLayer junto com objetos em pé)
     for (const p of this.avatars.values()) this.entityLayer.addChild(p.root)
-    this.uprightObjects = []
 
     const pal = map.palette
     const floorA = hexNum(pal.floor[0], 0x1a1a26)
@@ -164,10 +162,9 @@ export class MapScene {
       oc.addChild(g)
       oc.pivot.set(cx, y + h)
       oc.position.set(cx, y + h)
-      oc.rotation = own - this.rotation
+      oc.rotation = own
       oc.zIndex = y + h // profundidade pela base
       this.entityLayer.addChild(oc)
-      this.uprightObjects.push({ c: oc, own })
     } else if (own) {
       const oc = new Container()
       oc.addChild(g)
@@ -278,7 +275,10 @@ export class MapScene {
   }
 
   private zoom = 1
-  private rotation = 0 // radianos (0/90/180/270)
+  // offset de pan (B3.3): deslocamento livre da câmera com Espaço+arrastar.
+  // some (volta a centralizar no personagem) ao soltar o Espaço.
+  private panX = 0
+  private panY = 0
 
   setZoom(z: number) {
     this.zoom = Math.max(0.6, Math.min(2, z))
@@ -286,41 +286,28 @@ export class MapScene {
   getZoom() {
     return this.zoom
   }
-  /** Gira a câmera em passos de 90°. */
-  rotateBy(deg: number) {
-    this.rotation = ((this.rotation + (deg * Math.PI) / 180) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2)
+
+  /** Acumula o deslocamento da câmera (arrastar com Espaço pressionado). */
+  panBy(dx: number, dy: number) {
+    this.panX += dx
+    this.panY += dy
   }
-  getRotation() {
-    return this.rotation
+  /** Zera o pan — a câmera volta a centralizar no personagem. */
+  resetPan() {
+    this.panX = 0
+    this.panY = 0
   }
 
-  /** Centraliza a câmera no alvo (tiles), respeitando zoom e rotação. */
+  /** Centraliza a câmera no alvo (tiles), respeitando zoom + offset de pan.
+   *  Sem clamp de borda: o personagem fica SEMPRE no centro (B3.2). */
   follow(tileX: number, tileY: number) {
     if (!this.map) return
     const z = this.zoom
     const vw = this.app.renderer.width
     const vh = this.app.renderer.height
     this.world.scale.set(z)
-    // objetos "em pé" contra-giram pra ficar de pé na rotação da câmera
-    for (const u of this.uprightObjects) u.c.rotation = u.own - this.rotation
-    if (this.rotation !== 0) {
-      // rotação: gira em torno do avatar, sem clamp (centraliza nele)
-      this.world.rotation = this.rotation
-      this.world.pivot.set(tileX * TILE_PX, tileY * TILE_PX)
-      this.world.position.set(vw / 2, vh / 2)
-      // avatares contra-giram pra ficar em pé
-      for (const p of this.avatars.values()) p.root.rotation = -this.rotation
-      return
-    }
-    this.world.rotation = 0
-    this.world.pivot.set(0, 0)
-    for (const p of this.avatars.values()) p.root.rotation = 0
-    const worldW = this.map.width * TILE_PX * z
-    const worldH = this.map.height * TILE_PX * z
-    let cx = vw / 2 - tileX * TILE_PX * z
-    let cy = vh / 2 - tileY * TILE_PX * z
-    cx = worldW > vw ? Math.min(0, Math.max(vw - worldW, cx)) : (vw - worldW) / 2
-    cy = worldH > vh ? Math.min(0, Math.max(vh - worldH, cy)) : (vh - worldH) / 2
+    const cx = vw / 2 - tileX * TILE_PX * z + this.panX
+    const cy = vh / 2 - tileY * TILE_PX * z + this.panY
     this.world.position.set(Math.round(cx), Math.round(cy))
   }
 

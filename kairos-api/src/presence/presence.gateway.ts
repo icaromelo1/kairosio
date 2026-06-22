@@ -25,6 +25,7 @@ interface Player {
   y: number
   facing: Facing
   pose: Pose
+  boost: boolean
 }
 
 interface JoinPayload {
@@ -95,6 +96,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       y: payload.y,
       facing: 'down',
       pose: 'idle',
+      boost: false,
     }
     this.players.set(socket.id, player)
     const room = this.room(org, player.map)
@@ -104,19 +106,21 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   @SubscribeMessage('move')
-  handleMove(socket: Socket, payload: { x: number; y: number; facing?: Facing; pose?: Pose }) {
+  handleMove(socket: Socket, payload: { x: number; y: number; facing?: Facing; pose?: Pose; boost?: boolean }) {
     const player = this.players.get(socket.id)
     if (!player) return
     player.x = payload.x
     player.y = payload.y
     if (payload.facing) player.facing = payload.facing
     if (payload.pose) player.pose = payload.pose
+    player.boost = !!payload.boost
     socket.to(this.room(player.org, player.map)).emit('playerMoved', {
       id: socket.id,
       x: payload.x,
       y: payload.y,
       facing: player.facing,
       pose: player.pose,
+      boost: player.boost,
     })
   }
 

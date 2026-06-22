@@ -656,4 +656,23 @@ const ACCESSORIES = [
   padding: 16px 18px;
   margin-top: auto;
 }
+
+/* B4: em telas estreitas o grid de 2 colunas + 100vh fixo cortava o painel.
+   Empilha (preview em cima, controles embaixo) e libera o scroll da página. */
+@media (max-width: 820px) {
+  .char-root {
+    grid-template-columns: 1fr;
+    height: auto;
+    min-height: 100vh;
+    overflow: visible;
+  }
+  .stage-col {
+    min-height: 50vh;
+  }
+  .panel-col {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    overflow-y: visible;
+  }
+}
 </style>

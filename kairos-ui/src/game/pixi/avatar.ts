@@ -58,6 +58,7 @@ export class AvatarPuppet {
   readonly root: Container
   private head: Container
   private face: Graphics
+  private profileFace!: Graphics
   private backHead!: Graphics
   private torso: Container
   private armL: Container
@@ -139,6 +140,16 @@ export class AvatarPuppet {
     // boquinha
     px(this.face, 7, 6, 2, 1, skinDark)
     this.head.addChild(this.face)
+    // rosto de PERFIL (M1) — desenhado virado pra direita; o facing left espelha via scale.x.
+    // só um olho (o da frente) + nariz na ponta → lê como "de lado", não de frente espelhado.
+    this.profileFace = new Graphics()
+    px(this.profileFace, 9, 4, 1, 2, 0x20202e) // olho da frente
+    px(this.profileFace, 9, 4, 1, 1, 0xffffff) // brilho
+    px(this.profileFace, 11, 4, 1, 2, skinDark) // nariz saliente na frente
+    px(this.profileFace, 10, 6, 1, 1, 0xf7a8c0) // bochecha
+    px(this.profileFace, 9, 6, 2, 1, skinDark) // boca puxada pra frente
+    this.profileFace.visible = false
+    this.head.addChild(this.profileFace)
     // nuca (parte de trás da cabeça) — cabelo cobrindo o rosto quando olha pra cima
     this.backHead = new Graphics()
     px(this.backHead, 4, 3, 8, 5, hair)
@@ -206,13 +217,39 @@ export class AvatarPuppet {
     this.pose = pose
   }
 
+  private cart?: Container
+  /** Mostra/esconde um carrinho sob o avatar durante o boost (Shift). */
+  setBoost(on: boolean) {
+    if (on && !this.cart) {
+      const c = new Container()
+      const g = new Graphics()
+      // plataforma de madeira sob os pés
+      g.rect(2 * UNIT, 18 * UNIT, 12 * UNIT, 2.4 * UNIT).fill({ color: 0x6b4a2a })
+      g.rect(2 * UNIT, 18 * UNIT, 12 * UNIT, 0.8 * UNIT).fill({ color: 0x8a6a3a })
+      g.rect(2 * UNIT, 20 * UNIT, 12 * UNIT, 0.4 * UNIT).fill({ color: 0x3a2a18 })
+      // rodas
+      for (const wx of [4.5, 11.5]) {
+        g.circle(wx * UNIT, 21 * UNIT, 1.7 * UNIT).fill({ color: 0x14141a })
+        g.circle(wx * UNIT, 21 * UNIT, 0.7 * UNIT).fill({ color: 0x55556e })
+      }
+      c.addChild(g)
+      this.cart = c
+      // acima da sombra (índice 0), atrás das pernas
+      this.root.addChildAt(c, 1)
+    }
+    if (this.cart) this.cart.visible = on
+  }
+
   setFacing(facing: Facing) {
     if (facing === this.facing) return
     this.facing = facing
-    // esquerda/direita = espelhar; cima = de costas (mostra a nuca, não some o rosto)
+    // esquerda/direita = espelhar; cima = de costas (mostra a nuca)
     if (facing === 'left') this.root.scale.x = -1
     else if (facing === 'right') this.root.scale.x = 1
-    this.face.visible = facing !== 'up'
+    const side = facing === 'left' || facing === 'right'
+    // de lado mostra o rosto de PERFIL; de frente o rosto normal; de costas a nuca
+    this.face.visible = facing === 'down'
+    this.profileFace.visible = side
     this.backHead.visible = facing === 'up'
   }
 

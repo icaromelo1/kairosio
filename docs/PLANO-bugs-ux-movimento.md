@@ -1,7 +1,7 @@
 # Plano — Bugs, UX e movimento (mapeado 22/06)
 
 > Itens trazidos pelo Icaro direto (não pelo canal `/feedback`). Cada um com diagnóstico
-> + abordagem proposta. Status: mapeado (a implementar).
+> + abordagem proposta. **Status: ✅ TODOS implementados em 22/06** (B1·B2·B3·B4·M1·M2).
 
 ---
 
@@ -88,6 +88,14 @@
 
 ---
 
-## Prioridade sugerida
-B1 (rápido, incomoda) · B2 (rápido, bug chato de multiplayer) · B4 (auditoria de scroll, médio) →
-M2 (boost, divertido) · M1 (perfil de lado) · B3 (rever rotação — precisa decisão).
+## Status final (22/06) — ✅ implementado
+- **B1** — blur global após clique de mouse em `<button>` (`main.ts`).
+- **B2** — `selectMap` vira no-op quando `id === currentId` (`GamePage.vue`).
+- **B3** — `scene.ts`: removida rotação/contra-rotação; `follow` centraliza sempre no
+  personagem (sem clamp) + `panBy/resetPan`. `GamePage.vue`: botão ↻ removido, pan com
+  Espaço+arrastar (modo "olhar" congela o personagem), recentra ao soltar Espaço.
+- **B4** — `LoginPage` (min-height + scroll) e `CharacterPage` (media query <820px empilha e
+  libera scroll). MapSelect/Register/Onboarding já eram ok.
+- **M1** — rosto de perfil no `avatar.ts` (um olho + nariz) ao virar A/D.
+- **M2** — boost ~1.8x no Shift + carrinho sob o avatar; flag `boost` sincronizada
+  ponta-a-ponta (`presence.ts` + `presence.gateway.ts`).

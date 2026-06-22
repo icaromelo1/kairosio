@@ -240,15 +240,19 @@ onMounted(async () => {
 <style scoped>
 .login-root {
   position: relative;
-  height: 100vh;
+  min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
+  /* B4: padding + box-sizing garante scroll da página quando o card não cabe (telas baixas) */
+  padding: 40px 16px;
+  box-sizing: border-box;
   background:
     radial-gradient(ellipse at 50% 60%, rgba(124, 58, 237, 0.18) 0%, transparent 55%),
     radial-gradient(ellipse at 80% 20%, rgba(251, 191, 36, 0.08) 0%, transparent 40%),
     var(--bg-0);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
 }
 
 .city-bg {
