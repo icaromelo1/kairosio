@@ -28,18 +28,30 @@
   `id === currentId.value`, apenas fechar o seletor (no-op) — não reconectar nem re-join.
 - **Aceite:** escolher o mundo atual não derruba ninguém nem reseta a sala.
 
-### B3. Rotação da câmera 2.5D está ruim
-- **Sintoma:** a rotação 90° (botão ↻) ficou estranha/confusa.
-- **Causa provável:** giramos o **mundo inteiro** (incl. o piso/grid) e contra-giramos
-  billboards+avatar; o movimento é remapeado, mas o resultado fica desorientador, e o giro é
-  **abrupto** (sem transição).
-- **Abordagem (decidir):**
-  - (a) **Suavizar** o giro (animar a rotação) + manter o piso legível; ou
-  - (b) **Trocar rotação livre por um tilt oblíquo fixo** (perspectiva leve estilo Stardew, sem
-    girar) — muitos top-down nem giram; ou
-  - (c) **Remover a rotação** e investir no tilt/parallax pra dar o 2.5D.
-- Liga em `docs/PLANO-arte-2.5d.md` (a rotação faz parte da direção de arte).
-- **Aceite:** câmera com sensação boa de 2.5D; se mantiver rotação, ela é suave e não desorienta.
+### B3. Câmera — remover rotação, centralizar no zoom e adicionar pan (decidido 22/06)
+> **Decisão do Icaro:** **tirar a rotação** de tela; em vez disso, (1) manter o personagem
+> **sempre centralizado** no zoom in/out e (2) permitir **arrastar a câmera** com **Espaço + clique
+> esquerdo** (pan estilo "clicar e arrastar").
+
+- **B3.1 — Remover a rotação:** apagar o botão ↻ e toda a lógica de `rotation`/contra-rotação
+  no `scene.ts` (e o remap de movimento no `GamePage`). Mantém billbords/sombras/y-sort.
+  - *Cuidado:* os objetos "em pé" e avatares hoje contra-giram em função da rotação — ao remover,
+    simplificar (rotação some, billboards ficam fixos em pé).
+- **B3.2 — Zoom centralizado no personagem:** hoje o zoom **não** mantém o avatar centralizado
+  (o `follow` clampa nas bordas do mapa, então perto da borda o boneco "desce" pro canto).
+  - **Abordagem:** ao dar zoom, **centralizar no avatar** (zoom "pivota" no personagem). Relaxar/
+    remover o clamp de borda quando o foco é o jogador, ou ancorar a escala no avatar.
+  - **Aceite:** dar zoom in/out mantém o personagem no centro da tela.
+- **B3.3 — Pan com Espaço + clique esquerdo (arrastar a câmera):** segurar **Espaço** e
+  **arrastar com o botão esquerdo** desloca a câmera livremente (offset de pan), pra olhar outra
+  parte do mundo sem mover o personagem.
+  - **Abordagem:** estado `panOffset {x,y}` somado à posição da câmera no `follow`; ativa com
+    `keydown Space` + `pointerdown/move` (acumula o delta do mouse); **ao soltar o Espaço, a câmera
+    volta a seguir/centralizar o personagem** (zera o offset). Cursor vira "grab" enquanto ativo.
+  - *Atenção:* enquanto o pan está ativo, **não** mover o personagem com as teclas de movimento
+    (ou manter, mas a câmera fica solta) — definir: Espaço pressionado = modo "olhar".
+  - **Aceite:** Espaço+arrastar move a vista; soltar Espaço recentra no personagem.
+- Liga em `docs/PLANO-arte-2.5d.md` e `docs/PLANO-camera-e-estilo.md`.
 
 ### B4. Falta scroll — telas com `height` fixo cortam conteúdo
 - **Sintoma:** na página inicial (e outras) o conteúdo **sai da tela** e fica inacessível por
