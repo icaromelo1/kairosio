@@ -49,6 +49,7 @@ export class FeedbackService {
     const fb = await this.repo.findOne({ where: { id } })
     if (!fb) throw new NotFoundException('Feedback não encontrado')
     fb.status = status
+    fb.resolvedAt = status === 'resolvido' || status === 'recusado' ? new Date() : null
     return this.repo.save(fb)
   }
 }
