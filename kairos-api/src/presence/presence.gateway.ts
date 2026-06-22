@@ -13,7 +13,7 @@ import { User } from '../user/user.entity'
 
 type MapId = string
 type Facing = 'down' | 'up' | 'left' | 'right'
-type Pose = 'idle' | 'walk' | 'dance' | 'wave'
+type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit'
 
 interface Player {
   id: string

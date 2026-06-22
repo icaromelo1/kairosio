@@ -2,7 +2,7 @@ import { reactive } from 'vue'
 import { io, type Socket } from 'socket.io-client'
 
 export type Facing = 'down' | 'up' | 'left' | 'right'
-export type Pose = 'idle' | 'walk' | 'dance' | 'wave'
+export type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit'
 
 export interface ChatMessage {
   id: string
