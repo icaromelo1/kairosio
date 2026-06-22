@@ -206,51 +206,67 @@ export class AvatarPuppet {
     this.pose = pose
   }
 
-  private cart?: Container
-  /** Mostra/esconde um kart esportivo vermelho sob o avatar durante o boost (Shift).
-   *  Desenhado ATRÁS do boneco (pernas/tronco por cima) → dá a impressão de estar DENTRO. */
+  private cartBack?: Container
+  private cartFront?: Container
+  /** Mostra/esconde um kart esportivo vermelho durante o boost (Shift).
+   *  Em DUAS camadas: a traseira/assento ATRÁS do boneco e a frente/painel NA FRENTE
+   *  das pernas (mas abaixo do tronco) → o personagem parece sentado DENTRO. */
   setBoost(on: boolean) {
-    if (on && !this.cart) {
+    if (on && !this.cartBack) {
       const U = UNIT
       const red = 0xd11f2a
       const redDark = 0x8e1018
       const redLite = 0xf2545b
       const tire = 0x141418
       const rim = 0xc8c8d6
-      const c = new Container()
-      const g = new Graphics()
-      // rodas grandes (atrás do corpo) — saindo das laterais
-      for (const wx of [2.5, 13.5]) {
-        g.circle(wx * U, 19.5 * U, 2.6 * U).fill({ color: tire })
-        g.circle(wx * U, 19.5 * U, 1.3 * U).fill({ color: rim })
-        g.circle(wx * U, 19.5 * U, 0.5 * U).fill({ color: 0x2a2a32 })
+
+      // ---- camada TRASEIRA (atrás do boneco) ----
+      const back = new Container()
+      const gb = new Graphics()
+      // rodas grandes saindo das laterais
+      for (const wx of [2.2, 13.8]) {
+        gb.circle(wx * U, 18.5 * U, 2.7 * U).fill({ color: tire })
+        gb.circle(wx * U, 18.5 * U, 1.3 * U).fill({ color: rim })
+        gb.circle(wx * U, 18.5 * U, 0.5 * U).fill({ color: 0x2a2a32 })
       }
-      // chassi baixo e largo, envolvendo o boneco (cockpit aberto no meio)
-      g.rect(0.5 * U, 15 * U, 15 * U, 5.5 * U).fill({ color: red })
-      g.rect(0.5 * U, 15 * U, 15 * U, 1 * U).fill({ color: redLite }) // brilho no topo
-      g.rect(0.5 * U, 19.5 * U, 15 * U, 1 * U).fill({ color: redDark }) // sombra na base
-      // laterais sobem mais (parede do cockpit) pra "abraçar" o personagem
-      g.rect(0.5 * U, 12.5 * U, 3 * U, 5 * U).fill({ color: red })
-      g.rect(12.5 * U, 12.5 * U, 3 * U, 5 * U).fill({ color: red })
-      g.rect(0.5 * U, 12.5 * U, 3 * U, 1 * U).fill({ color: redLite })
-      g.rect(12.5 * U, 12.5 * U, 3 * U, 1 * U).fill({ color: redLite })
-      // cockpit interno escuro (atrás das pernas → some sob o boneco, reforça "dentro")
-      g.rect(4 * U, 13 * U, 8 * U, 5 * U).fill({ color: 0x2a0a0c })
-      // nariz esportivo apontando pra frente (direita)
-      g.rect(15.5 * U, 16 * U, 2.5 * U, 2.5 * U).fill({ color: red })
-      g.rect(15.5 * U, 16 * U, 2.5 * U, 0.8 * U).fill({ color: redLite })
-      g.rect(17 * U, 16.5 * U, 1 * U, 1.5 * U).fill({ color: redDark })
+      // corpo/assento + cockpit escuro (some sob o boneco)
+      gb.rect(0.5 * U, 11.5 * U, 15 * U, 7 * U).fill({ color: red })
+      gb.rect(0.5 * U, 11.5 * U, 15 * U, 1 * U).fill({ color: redLite })
+      gb.rect(3.5 * U, 11 * U, 9 * U, 6 * U).fill({ color: 0x2a0a0c }) // cockpit (encosto do banco)
+      // paredes laterais subindo pra "abraçar" o personagem
+      gb.rect(0.5 * U, 10 * U, 3 * U, 7 * U).fill({ color: red })
+      gb.rect(12.5 * U, 10 * U, 3 * U, 7 * U).fill({ color: red })
+      gb.rect(0.5 * U, 10 * U, 3 * U, 1 * U).fill({ color: redLite })
+      gb.rect(12.5 * U, 10 * U, 3 * U, 1 * U).fill({ color: redLite })
       // aerofólio traseiro (esquerda)
-      g.rect(-1.5 * U, 12.5 * U, 1.2 * U, 4 * U).fill({ color: redDark })
-      g.rect(-2 * U, 12.5 * U, 3 * U, 1 * U).fill({ color: red })
-      // faixa de corrida branca no capô
-      g.rect(7.2 * U, 15 * U, 1.6 * U, 5 * U).fill({ color: 0xf4f4f8, alpha: 0.9 })
-      c.addChild(g)
-      this.cart = c
-      // acima da sombra (índice 0), atrás das pernas/tronco
-      this.root.addChildAt(c, 1)
+      gb.rect(-1.5 * U, 10 * U, 1.2 * U, 4.5 * U).fill({ color: redDark })
+      gb.rect(-2 * U, 10 * U, 3 * U, 1 * U).fill({ color: red })
+      back.addChild(gb)
+
+      // ---- camada FRONTAL (na frente das pernas, abaixo do tronco) ----
+      const front = new Container()
+      const gf = new Graphics()
+      // lip/bumper dianteiro cobrindo a parte de baixo do boneco → "sentado dentro"
+      gf.rect(0.5 * U, 16.5 * U, 15 * U, 4 * U).fill({ color: red })
+      gf.rect(0.5 * U, 16.5 * U, 15 * U, 1 * U).fill({ color: redLite }) // brilho no topo do painel
+      gf.rect(0.5 * U, 19.8 * U, 15 * U, 0.8 * U).fill({ color: redDark }) // sombra na base
+      // nariz esportivo apontando pra frente (direita)
+      gf.rect(15.5 * U, 16.5 * U, 2.6 * U, 3 * U).fill({ color: red })
+      gf.rect(15.5 * U, 16.5 * U, 2.6 * U, 0.9 * U).fill({ color: redLite })
+      gf.rect(17.2 * U, 17 * U, 1 * U, 2 * U).fill({ color: redDark })
+      // faixa de corrida branca no painel
+      gf.rect(7.2 * U, 16.5 * U, 1.6 * U, 4 * U).fill({ color: 0xf4f4f8, alpha: 0.9 })
+      front.addChild(gf)
+
+      this.cartBack = back
+      this.cartFront = front
+      // traseira logo acima da sombra (índice 0), atrás de tudo
+      this.root.addChildAt(back, 1)
+      // frente inserida logo ANTES do tronco → cobre as pernas, fica sob tronco/braços/cabeça
+      this.root.addChildAt(front, this.root.getChildIndex(this.torso))
     }
-    if (this.cart) this.cart.visible = on
+    if (this.cartBack) this.cartBack.visible = on
+    if (this.cartFront) this.cartFront.visible = on
   }
 
   setFacing(facing: Facing) {

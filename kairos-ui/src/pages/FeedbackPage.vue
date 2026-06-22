@@ -176,7 +176,7 @@ onMounted(() => {
 .fb-err { color: #f87171; font-size: 13px; margin: 12px 0 0; }
 .fb-count { color: #8a8aa0; font-weight: 400; }
 .fb-empty { font-size: 13px; color: #8a8aa0; }
-.fb-list { list-style: none; margin: 0; padding: 0 6px 0 0; display: flex; flex-direction: column; gap: 12px; max-height: 65vh; overflow-y: auto; }
+.fb-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
 .fb-item { background: #1a1a26; border: 1px solid #262636; border-radius: 6px; padding: 12px 14px; overflow-wrap: anywhere; word-break: break-word; min-width: 0; }
 .fb-item-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
 .fb-tag { font-size: 12px; color: #c8c8d8; }

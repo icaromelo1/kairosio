@@ -96,6 +96,7 @@
   Espaço+arrastar (modo "olhar" congela o personagem), recentra ao soltar Espaço.
 - **B4** — `LoginPage` (min-height + scroll) e `CharacterPage` (media query <820px empilha e
   libera scroll). MapSelect/Register/Onboarding já eram ok.
-- **M1** — rosto de perfil no `avatar.ts` (um olho + nariz) ao virar A/D.
+- **M1** — tentado (rosto de perfil) e **revertido**: ficou estranho. A/D volta a espelhar o
+  rosto de frente. Perfil de verdade só com spritesheet desenhado (fica pro Arte 2.5D).
 - **M2** — boost ~1.8x no Shift + carrinho sob o avatar; flag `boost` sincronizada
   ponta-a-ponta (`presence.ts` + `presence.gateway.ts`).

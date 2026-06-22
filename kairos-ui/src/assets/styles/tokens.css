@@ -41,13 +41,17 @@
 html, body, #app {
   margin: 0;
   padding: 0;
-  height: 100%;
   background: var(--bg-1);
   color: var(--text);
   font-family: var(--f-sans);
   -webkit-font-smoothing: antialiased;
-  overflow: hidden;
 }
+/* html/body com altura definida pra preencher a viewport, mas SEM travar o scroll:
+   páginas comuns (landing, login, etc.) rolam pelo body; game/editor travam a 100vh
+   por conta própria (root height:100vh + overflow:hidden). */
+html, body { height: 100%; }
+body { overflow-x: hidden; }
+#app { min-height: 100%; }
 
 .pixelated {
   image-rendering: pixelated;

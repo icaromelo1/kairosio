@@ -11,7 +11,7 @@
 - [x] **B2** Selecionar o mundo atual cria outra sessão. FEITO 22/06 (guard `id === currentId` no `selectMap`).
 - [x] **B3** Câmera: rotação removida + zoom centralizado no personagem + pan com Espaço+arrastar. FEITO 22/06.
 - [x] **B4** Scroll — login e personagem responsivos/scrolláveis (MapSelect/Register já ok). FEITO 22/06.
-- [x] **M1** Virar de **lado** (perfil) no A/D. FEITO 22/06 (rosto de perfil no `avatar.ts`).
+- [~] **M1** Virar de **lado** (perfil) no A/D — tentado e **revertido** 22/06 (ficou estranho; A/D volta a espelhar o rosto de frente). *requer spritesheet real do avatar pra ficar bom*
 - [x] **M2** **Boost no Shift** + carrinho sob o avatar (sincronizado na rede). FEITO 22/06.
 
 ---
