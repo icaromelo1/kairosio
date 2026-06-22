@@ -38,4 +38,11 @@ export class GameMap {
   // dono do mapa (null = mapa oficial/global). Base pros mundos criados por usuários.
   @Column({ type: 'uuid', nullable: true })
   ownerId: string | null
+
+  // multi-tenancy: org dona do mundo (null = template global, visível a todos)
+  @Column({ type: 'uuid', nullable: true })
+  organizationId: string | null
+
+  @Column({ default: false })
+  isTemplate: boolean
 }

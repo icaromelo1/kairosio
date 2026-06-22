@@ -1,13 +1,15 @@
-import { Controller, Get } from '@nestjs/common'
+import { Controller, Get, Request, UseGuards } from '@nestjs/common'
+import { AuthGuard } from '@nestjs/passport'
 import { PresenceGateway } from './presence.gateway'
 
+@UseGuards(AuthGuard('jwt'))
 @Controller('presence')
 export class PresenceController {
   constructor(private readonly gateway: PresenceGateway) {}
 
-  // { mapId: quantidade } — quantos jogadores online em cada mundo
+  // { mapId: quantos online } dentro da org do usuário
   @Get('counts')
-  counts() {
-    return this.gateway.getCounts()
+  counts(@Request() req: any) {
+    return this.gateway.getCounts(req.user.organizationId)
   }
 }
