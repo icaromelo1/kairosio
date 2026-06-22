@@ -36,7 +36,7 @@
 
         <div class="fb-field">
           <label>Descrição</label>
-          <textarea v-model="form.message" rows="5" placeholder="Descreva com detalhes. Em bugs, inclua os passos para reproduzir."></textarea>
+          <textarea v-model="form.message" rows="5" maxlength="2000" placeholder="Descreva com detalhes. Em bugs, inclua os passos para reproduzir."></textarea>
         </div>
 
         <button class="fb-submit" :disabled="sending" @click="submit">

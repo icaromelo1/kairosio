@@ -91,17 +91,20 @@
         perto de <strong>{{ nearby }}</strong>
       </div>
 
-      <!-- Botão de voz -->
-      <button
-        :title="voiceOn ? 'Desligar microfone' : 'Falar por proximidade'"
-        @click="toggleVoice"
-        :style="{
-          position: 'absolute', bottom: '16px', right: '24px', zIndex: 20,
-          width: '44px', height: '44px', borderRadius: '50%', cursor: 'pointer',
-          border: '1px solid var(--border-strong)', fontSize: '18px',
-          background: voiceOn ? 'rgba(52,211,153,0.3)' : 'rgba(13,13,20,0.8)', color: 'var(--text)',
-        }"
-      >{{ voiceOn ? '🎙' : '🔇' }}</button>
+      <!-- Botão de voz (claro: rótulo + estado) -->
+      <div style="position:absolute;bottom:16px;right:24px;z-index:20;display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+        <button
+          :title="voiceOn ? 'Microfone ligado — clique pra desligar' : 'Clique pra falar por voz com quem está perto'"
+          @click="toggleVoice"
+          :style="{
+            display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
+            padding: '9px 14px', borderRadius: '22px', fontSize: '13px', fontWeight: 600,
+            border: '1px solid ' + (voiceOn ? 'var(--ok)' : 'var(--border-strong)'),
+            background: voiceOn ? 'rgba(52,211,153,0.22)' : 'rgba(13,13,20,0.85)', color: 'var(--text)',
+          }"
+        >{{ voiceOn ? '🎙 Microfone ligado' : '🔇 Falar por voz' }}</button>
+        <span v-if="!voiceOn" style="font-size:11px;color:var(--text-3);background:rgba(13,13,20,0.7);padding:2px 8px;border-radius:4px">aproxime-se de alguém pra conversar por voz</span>
+      </div>
 
       <!-- Chat -->
       <div style="position:absolute;bottom:16px;left:16px;width:280px;z-index:10">

@@ -7,7 +7,7 @@
         <strong>Editor</strong>
       </div>
 
-      <input v-model="map.name" class="ed-input" placeholder="Nome do mundo" :disabled="!canEdit" />
+      <input v-model.trim="map.name" maxlength="40" class="ed-input" placeholder="Nome do mundo" :disabled="!canEdit" />
 
       <div class="ed-row">
         <label>Largura<input v-model.number="map.width" type="number" min="8" max="120" class="ed-num" :disabled="!canEdit" @change="render" /></label>
