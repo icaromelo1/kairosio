@@ -33,21 +33,33 @@ entradas pra **editar mundo próprio**, scroll do map-select, limite no nome do 
   NÃO cria mundos (UI escondida + 403 no backend). A seguir: ao logar, carregar o
   personagem do usuário (DB) e **não vazar** o nome em cache local entre contas.
 
-### 🏢 Etapa 9 — Multi-tenancy (organizações/grupos/equipes) — **PRIORIDADE ALTA**
-> "Pessoas do grupo X só veem os mapas do grupo X." Precisa de hierarquia.
-- [ ] Modelo: **Organization** (tenant) → membros (`User.organizationId` + papel admin/membro).
-      Mundos ganham `organizationId` (`GameMap`).
-- [ ] **Escopo de visibilidade:** `GET /map` filtra pelos mundos da org do usuário do token
-      (mundos oficiais viram templates públicos/sem org, opcional).
-- [ ] Entrar numa org: criar org, **convite** (código/link) ou domínio de email.
-- [ ] Presença/salas isoladas por org (não ver/entrar em mundo de outra org).
-- [ ] Migração dos mundos atuais (definir org dona ou marcar como template).
+### 🏢 Etapa 9 — Multi-tenancy + administração de orgs/times — **PRIORIDADE ALTA**
+> "Pessoas do grupo X só veem os mapas do grupo X." Multi-tenancy e **administração são um
+> épico único** — gerir org/membros é intrínseco à ideia de organização. Entregue junto.
+> Specs: `docs/PLANO-multi-tenancy.md` + `docs/PLANO-admin-panel.md`. Ordem de execução
+> (waves) detalhada abaixo, em **"Plano de execução"**.
 
-### 🛠️ Etapa 10 — Painel de administrador da organização
+**Tenancy (base):**
+- [ ] Modelo: **Organization** (tenant) → membros (`User.organizationId` + `orgRole` admin/membro).
+      Mundos ganham `organizationId` + `isTemplate` (`GameMap`).
+- [ ] **Escopo de visibilidade:** `GET /map` = mundos da org do usuário + templates.
+- [ ] Entrar numa org: criar org ou **convite** (código/link).
+- [ ] **Presença/salas isoladas por org** (auth no socket; não ver/entrar em mundo de outra org).
+- [ ] Migração: marcar oficiais como template; limpar mundos de teste.
+
+**Administração (intrínseca, mesma entrega):**
 - [ ] Rota `/admin` (só admin **da org**, papel no banco — não a allowlist global do feedback).
 - [ ] Gerenciar **membros** (convidar / remover / promover a admin).
-- [ ] Gerenciar **mundos** da org (listar, apagar, transferir dono).
-- [ ] Configurações da org (nome, logo, etc.).
+- [ ] Gerenciar **mundos** da org (listar, apagar).
+- [ ] Configurações da org (nome, slug).
+
+#### Plano de execução (waves) — 11 tasks · 5 waves
+- **Wave 1:** T1 entidades+colunas (Organization, OrgInvite, User.org, GameMap.org/template).
+- **Wave 2:** T2 org-context (injeta org/role no request) · T6 migração+templates.
+- **Wave 3:** T3 módulo `org` (criar/entrar/convite) · T4 escopo dos mapas · T5 **auth no socket + salas por org** (peça central) · T9 `OrgAdminGuard`.
+- **Wave 4:** T7 front onboarding (criar/entrar org)+guarda · T10 endpoints admin (membros/config/del mundo).
+- **Wave 5:** T8 front presença por org + map-select mostra org · T11 front painel `/admin`.
+- Caminho crítico: `T1 → T2 → T5 → T8`. (2 tasks simples via dispatch+review: T6, T9.)
 
 ### 📨 Feedbacks dos usuários (mapeados do canal `/feedback`, 21/06)
 

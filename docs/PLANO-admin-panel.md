@@ -1,8 +1,9 @@
 # Plano — Painel de administrador da organização
 
-> Cada organização tem admin(s) que gerenciam membros, mundos e configurações.
-> Depende de **PLANO-multi-tenancy.md** (precisa do modelo de org + papéis).
-> Status: planejado. Prioridade: ALTA (logo após multi-tenancy).
+> **Parte do épico de multi-tenancy** (entregue JUNTO, não depois) — administrar a org é
+> intrínseco à ideia de organização. Ver `PLANO-multi-tenancy.md` e o "Plano de execução"
+> (waves) no `ROADMAP.md`: tasks **T9 (guard), T10 (endpoints admin), T11 (painel /admin)**.
+> Status: planejado. Prioridade: ALTA.
 
 ---
 
