@@ -64,13 +64,14 @@
 
     <!-- Stage (PixiJS) -->
     <div style="position:relative;overflow:hidden;background:var(--bg-0)">
-      <div ref="host" style="position:absolute;inset:0" @wheel.prevent="onWheel"></div>
+      <div ref="host" :style="{ position:'absolute', inset:0, cursor: panMode ? (panDragging ? 'grabbing' : 'grab') : 'default' }"
+        @wheel.prevent="onWheel"
+        @pointerdown="onPanDown" @pointermove="onPanMove" @pointerup="onPanUp" @pointerleave="onPanUp"></div>
 
       <!-- Zoom -->
       <div style="position:absolute;top:64px;right:16px;z-index:10;display:flex;flex-direction:column;gap:4px">
         <button class="k-key" style="cursor:pointer;width:30px;height:30px;font-size:16px" @click="zoomBy(1.15)" title="Zoom +">+</button>
         <button class="k-key" style="cursor:pointer;width:30px;height:30px;font-size:16px" @click="zoomBy(0.87)" title="Zoom −">−</button>
-        <button class="k-key" style="cursor:pointer;width:30px;height:30px;font-size:14px" @click="scene?.rotateBy(90)" title="Girar câmera 90°">↻</button>
       </div>
 
       <!-- HUD top-left -->
@@ -259,6 +260,12 @@ function onKeyDown(e: KeyboardEvent) {
   // digitando no chat/inputs → não mexe no jogo
   if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
   const k = e.key.toLowerCase()
+  if (e.key === ' ' || e.code === 'Space') {
+    // Espaço entra no modo olhar (pan) — não rola a página nem reativa botão
+    e.preventDefault()
+    panMode.value = true
+    return
+  }
   if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'e', 'b', 'g', 'escape'].includes(k)) e.preventDefault()
   if (k === 'e') { tryInteract(); return }
   if (k === 'b') { dancing = !dancing; return }
@@ -291,7 +298,38 @@ function zoomBy(factor: number) {
 function onWheel(e: WheelEvent) {
   zoomBy(e.deltaY < 0 ? 1.1 : 0.9)
 }
-function onKeyUp(e: KeyboardEvent) { keys.delete(e.key.toLowerCase()) }
+function onKeyUp(e: KeyboardEvent) {
+  if (e.key === ' ' || e.code === 'Space') {
+    // soltou o Espaço → sai do modo olhar e recentra no personagem
+    panMode.value = false
+    panDragging = false
+    scene?.resetPan()
+    return
+  }
+  keys.delete(e.key.toLowerCase())
+}
+
+// ---- pan da câmera (B3.3): Espaço + arrastar com o botão esquerdo ----
+const panMode = ref(false) // Espaço pressionado = "modo olhar"
+let panDragging = false
+let panLastX = 0
+let panLastY = 0
+function onPanDown(e: PointerEvent) {
+  if (!panMode.value || e.button !== 0) return
+  panDragging = true
+  panLastX = e.clientX
+  panLastY = e.clientY
+  ;(e.target as HTMLElement).setPointerCapture?.(e.pointerId)
+}
+function onPanMove(e: PointerEvent) {
+  if (!panDragging) return
+  scene?.panBy(e.clientX - panLastX, e.clientY - panLastY)
+  panLastX = e.clientX
+  panLastY = e.clientY
+}
+function onPanUp() {
+  panDragging = false
+}
 
 function tryInteract() {
   const z = activeZone.value
@@ -397,7 +435,8 @@ onMounted(async () => {
 
     // ---- movimento local (com colisão) ----
     let dx = 0, dy = 0
-    if (!gameStore.isModalOpen) {
+    // Espaço (modo olhar/pan) congela o personagem — só a câmera se move
+    if (!gameStore.isModalOpen && !panMode.value) {
       const sp = 5 * dt * (onWater(map, pos.x, pos.y) ? 0.5 : 1)
       if (keys.has('w') || keys.has('arrowup')) dy -= sp
       if (keys.has('s') || keys.has('arrowdown')) dy += sp
@@ -407,14 +446,7 @@ onMounted(async () => {
     const moving = dx !== 0 || dy !== 0
     if (moving) sitting = false // mover levanta
     if (moving) {
-      // facing pela direção na TELA; movimento remapeado pela rotação da câmera
       facing = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down')
-      const rot = scene.getRotation()
-      if (rot) {
-        const c = Math.cos(-rot), s = Math.sin(-rot)
-        const rdx = dx * c - dy * s, rdy = dx * s + dy * c
-        dx = rdx; dy = rdy
-      }
       const nx = pos.x + dx
       const ny = pos.y + dy
       if (!isSolid(map, Math.floor(nx), Math.floor(pos.y)) && !peerBlocks(nx, pos.y, pos.x, pos.y)) pos.x = nx
