@@ -33,6 +33,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { register } from '@/services/auth.api'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { consumePendingInvite } from '@/services/org.api'
 import Logo from '@/components/logos/Logo.vue'
 
 const router = useRouter()
@@ -64,7 +65,9 @@ async function submit() {
   try {
     const res = await register(email.value, password.value)
     authStore.setToken(res.token)
-    router.push('/onboarding')
+    // se veio por link de convite, leva o código pro onboarding já preenchido
+    const invite = consumePendingInvite()
+    router.push(invite ? { path: '/onboarding', query: { invite } } : '/onboarding')
   } catch (e) {
     const code = (e as Error).message
     error.value =

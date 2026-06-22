@@ -164,7 +164,15 @@ import PixelColumn from '@/components/pixel/PixelColumn.vue'
 import Logo from '@/components/logos/Logo.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { login, guest } from '@/services/auth.api'
-import { getMyOrg } from '@/services/org.api'
+import { getMyOrg, consumePendingInvite } from '@/services/org.api'
+import type { RouteLocationRaw } from 'vue-router'
+
+// destino pós-login: convite pendente (do link) tem prioridade; senão org → jogo, sem org → onboarding
+async function postAuthDest(): Promise<RouteLocationRaw> {
+  const invite = consumePendingInvite()
+  if (invite) return { path: '/onboarding', query: { invite } }
+  return (await getMyOrg()) ? '/character' : '/onboarding'
+}
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -193,7 +201,7 @@ async function handleLogin() {
   try {
     const res = await login(email.value, password.value)
     authStore.setToken(res.token)
-    router.push((await getMyOrg()) ? '/character' : '/onboarding')
+    router.push(await postAuthDest())
   } catch (e) {
     error.value =
       (e as Error).message === 'invalid-credentials'
@@ -214,7 +222,7 @@ async function handleGuest() {
   try {
     const res = await guest()
     authStore.setToken(res.token)
-    router.push('/character')
+    router.push(await postAuthDest())
   } catch {
     error.value = 'Falha ao entrar como convidado.'
   } finally {
@@ -232,7 +240,7 @@ onMounted(async () => {
   const token = route.query.token
   if (typeof token === 'string' && token) {
     authStore.setToken(token)
-    router.push((await getMyOrg()) ? '/character' : '/onboarding')
+    router.push(await postAuthDest())
   }
 })
 </script>

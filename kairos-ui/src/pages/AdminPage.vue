@@ -16,7 +16,14 @@
         <h2>Membros ({{ members.length }})</h2>
         <button class="ad-btn" @click="invite">+ Gerar convite</button>
       </div>
-      <p v-if="inviteCode" class="ad-invite">Convite: <code>{{ inviteCode }}</code> <span>(válido 7 dias)</span></p>
+      <div v-if="inviteCode" class="ad-invite">
+        <span class="ad-invite-label">Link de convite (válido 7 dias):</span>
+        <div class="ad-invite-row">
+          <input class="ad-invite-input" :value="inviteUrl" readonly @focus="($event.target as HTMLInputElement).select()" />
+          <button class="ad-btn" @click="copyInvite">{{ copied ? '✓ Copiado' : 'Copiar' }}</button>
+        </div>
+        <span class="ad-invite-hint">Quem abrir o link entra direto na sua organização (cria conta ou faz login e já cai no convite).</span>
+      </div>
       <ul class="ad-list">
         <li v-for="m in members" :key="m.id" class="ad-item">
           <span class="ad-email">{{ m.email }} <span v-if="m.id === auth.userId" class="ad-you">(você)</span></span>
@@ -56,7 +63,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { getMyOrg, createInvite, setMemberRole, removeMember, updateOrg, type Org, type OrgMember } from '@/services/org.api'
+import { getMyOrg, createInvite, inviteLink, setMemberRole, removeMember, updateOrg, type Org, type OrgMember } from '@/services/org.api'
 import { fetchMaps, deleteMap } from '@/services/maps.api'
 import type { MapDef } from '@/game/maps'
 
@@ -69,6 +76,8 @@ const org = ref<Org | null>(null)
 const members = ref<OrgMember[]>([])
 const orgMaps = ref<MapDef[]>([])
 const inviteCode = ref('')
+const inviteUrl = computed(() => (inviteCode.value ? inviteLink(inviteCode.value) : ''))
+const copied = ref(false)
 const orgNameEdit = ref('')
 const error = ref('')
 const saved = ref(false)
@@ -85,7 +94,15 @@ async function load() {
 }
 
 async function invite() {
+  copied.value = false
   try { inviteCode.value = (await createInvite()).code } catch { error.value = 'Falha ao gerar convite.' }
+}
+async function copyInvite() {
+  try {
+    await navigator.clipboard.writeText(inviteUrl.value)
+    copied.value = true
+    setTimeout(() => (copied.value = false), 2000)
+  } catch { /* navegador sem clipboard: o input fica selecionável pra cópia manual */ }
 }
 async function toggleRole(m: OrgMember) {
   await setMemberRole(m.id, m.orgRole === 'admin' ? 'member' : 'admin')
@@ -132,8 +149,11 @@ onMounted(load)
 .ad-dim { color: #6a6a80; font-size: 12px; }
 .ad-empty { color: #8a8aa0; font-size: 13px; }
 .ad-btn { background: #7c3aed; border: none; color: #fff; padding: 8px 14px; cursor: pointer; border-radius: 4px; font-weight: 600; }
-.ad-invite { font-size: 13px; color: #34d399; margin: 10px 0 0; }
-.ad-invite code { background: #1d1d2a; padding: 2px 8px; border-radius: 4px; }
+.ad-invite { margin: 12px 0 0; display: flex; flex-direction: column; gap: 6px; }
+.ad-invite-label { font-size: 12px; color: #34d399; }
+.ad-invite-row { display: flex; gap: 8px; }
+.ad-invite-input { flex: 1; min-width: 0; background: #1d1d2a; border: 1px solid #303045; color: #e8e8f0; padding: 8px 10px; border-radius: 4px; font-size: 13px; font-family: var(--f-mono, monospace); }
+.ad-invite-hint { font-size: 11px; color: #6a6a80; }
 .ad-input { width: 100%; box-sizing: border-box; background: #1d1d2a; border: 1px solid #303045; color: #e8e8f0; padding: 9px; border-radius: 4px; margin-bottom: 12px; }
 .ad-label { font-size: 12px; color: #8a8aa0; display: block; margin-bottom: 5px; }
 .ad-error { color: #f87171; text-align: center; }
