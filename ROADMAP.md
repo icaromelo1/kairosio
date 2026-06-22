@@ -89,6 +89,10 @@ entradas pra **editar mundo próprio**, scroll do map-select, limite no nome do 
 - [ ] Zoom in/out + rotação da câmera, estilo **Don't Starve Together / Stardew Valley**;
       casa com a melhoria de "feel/estilo" do jogo. → `docs/PLANO-camera-e-estilo.md`.
 
+### 🛬 Landing page — explicar melhor o produto — planejado
+- [ ] Reescrever a landing pra explicar **o que é, como usar, o que faz e pra que serve**
+      (casos de uso) + CTA claro e visuais reais. → `docs/PLANO-landing-page.md`.
+
 ### 🗂️ Status + data do feedback — planejado (+ regra de processo)
 - [ ] Coluna `resolvedAt` + UI com **timer relativo** ("atualizado há X") e **data absoluta**
       ("implementado/recusado dd/mm/yy hh:mm"). → `docs/PLANO-feedback-status.md`.
