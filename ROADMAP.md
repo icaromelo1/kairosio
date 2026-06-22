@@ -5,6 +5,15 @@ de verdade. Organizado em **etapas** com dependências. Ver visão em `KAIROS.md
 
 > Atualizado: 2026-06-21.
 
+## ✅ STATUS: etapas 1–8 + multi-tenancy + backlog de 19 tasks implementados e na `main`
+
+> **Backlog do plan-analyzer (19 tasks/6 waves) FEITO (22/06):** branding (Kairos+favicon),
+> landing reescrita, feedback com status+data (relativo+absoluto), zoom+rotação de câmera,
+> editor (ghost, rotação, +objetos, toggle colisão, **criador de objeto pixel**), sentar em
+> cadeira/sofá, água lenta, mic claro + reconectar, nome não vaza no logout. Tudo na main.
+> Feedbacks atualizados (7 resolvido, 1 em_andamento, 1 recusado). Câmera-rotação (C3) e
+> criador-de-objeto (E5) precisam da **validação visual do Icaro**.
+
 ## ✅ STATUS: etapas 1–8 implementadas e na `main`
 
 Etapas 1–8 implementadas e publicadas. OAuth pronto e env-gated (falta só criar os apps
