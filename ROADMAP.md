@@ -33,11 +33,10 @@ entradas pra **editar mundo próprio**, scroll do map-select, limite no nome do 
   NÃO cria mundos (UI escondida + 403 no backend). A seguir: ao logar, carregar o
   personagem do usuário (DB) e **não vazar** o nome em cache local entre contas.
 
-### 🏢 Etapa 9 — Multi-tenancy + administração de orgs/times — **PRIORIDADE ALTA**
-> "Pessoas do grupo X só veem os mapas do grupo X." Multi-tenancy e **administração são um
-> épico único** — gerir org/membros é intrínseco à ideia de organização. Entregue junto.
-> Specs: `docs/PLANO-multi-tenancy.md` + `docs/PLANO-admin-panel.md`. Ordem de execução
-> (waves) detalhada abaixo, em **"Plano de execução"**.
+### 🏢 Etapa 9 — Multi-tenancy + administração de orgs/times — ✅ **FEITO (21/06)**
+> "Pessoas do grupo X só veem os mapas do grupo X." **Implementado e na main** — 11 tasks/5
+> waves, validado por HTTP+socket (org A não vê org B; convite/join; salas isoladas; painel
+> admin). Specs: `docs/PLANO-multi-tenancy.md` + `docs/PLANO-admin-panel.md`.
 
 **Tenancy (base):**
 - [ ] Modelo: **Organization** (tenant) → membros (`User.organizationId` + `orgRole` admin/membro).
