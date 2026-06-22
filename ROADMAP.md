@@ -89,6 +89,14 @@ entradas pra **editar mundo próprio**, scroll do map-select, limite no nome do 
 - [ ] Zoom in/out + rotação da câmera, estilo **Don't Starve Together / Stardew Valley**;
       casa com a melhoria de "feel/estilo" do jogo. → `docs/PLANO-camera-e-estilo.md`.
 
+### 🏷️ Branding & posicionamento — planejado
+> **Posicionamento (22/06):** o Kairos é uma **rede social** (espaço virtual), e **talvez vire
+> B2B no futuro** — por enquanto **aberto a todos**. A landing/copy deve refletir isso.
+- [ ] **Renomear "Kairos IO" → "Kairos"** em tudo (title da aba, textos `Kairos.IO` nos
+      componentes — sidebar do jogo, login, etc.).
+- [ ] **Favicon/logo na aba** (hoje está o globo padrão): gerar um `favicon.svg` a partir do
+      "K" pixel (`PixelK.vue`) e referenciar no `index.html`.
+
 ### 🛬 Landing page — explicar melhor o produto — planejado
 - [ ] Reescrever a landing pra explicar **o que é, como usar, o que faz e pra que serve**
       (casos de uso) + CTA claro e visuais reais. → `docs/PLANO-landing-page.md`.
