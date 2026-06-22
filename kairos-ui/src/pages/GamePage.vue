@@ -52,12 +52,12 @@
         <!-- Você -->
         <div style="display:flex;flex-direction:column;gap:4px">
           <div style="font-size:10px;letter-spacing:0.18em;color:var(--text-3);text-transform:uppercase;font-weight:600;padding:4px 6px">Você</div>
-          <button class="k-btn k-btn-ghost" @click="router.push('/character')" style="width:100%;justify-content:flex-start">Editar avatar</button>
-          <button v-if="!auth.isGuest" class="k-btn k-btn-ghost" @click="router.push('/editor/new')" style="width:100%;justify-content:flex-start">Criar mundo</button>
-          <button v-if="currentMap && currentMap.ownerId === auth.userId" class="k-btn k-btn-ghost" @click="router.push(`/editor/${currentId}`)" style="width:100%;justify-content:flex-start">Editar este mundo</button>
-          <button v-if="!auth.isGuest" class="k-btn k-btn-ghost" @click="router.push('/admin')" style="width:100%;justify-content:flex-start">Administração</button>
-          <button class="k-btn k-btn-ghost" @click="router.push('/feedback')" style="width:100%;justify-content:flex-start">Feedback / Reportar bug</button>
-          <button class="k-btn k-btn-ghost" @click="leave" style="width:100%;justify-content:flex-start">Sair</button>
+          <button class="k-btn k-btn-ghost menu-act" @click="router.push('/character')">Editar avatar</button>
+          <button v-if="!auth.isGuest" class="k-btn k-btn-ghost menu-act" @click="router.push('/editor/new')">Criar mundo</button>
+          <button v-if="currentMap && currentMap.ownerId === auth.userId" class="k-btn k-btn-ghost menu-act" @click="router.push(`/editor/${currentId}`)">Editar este mundo</button>
+          <button v-if="!auth.isGuest" class="k-btn k-btn-ghost menu-act" @click="router.push('/admin')">Administração</button>
+          <button class="k-btn k-btn-ghost menu-act" @click="router.push('/feedback')">Feedback / Reportar</button>
+          <button class="k-btn k-btn-ghost menu-act" @click="leave">Sair</button>
         </div>
       </template>
     </aside>
@@ -543,6 +543,17 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+/* botões do menu lateral: ocupam a largura toda e QUEBRAM linha em vez de estourar
+   a sidebar (rótulos longos como "Feedback / Reportar" não vazam mais). */
+.menu-act {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+  min-width: 0;
+}
 .tbtn {
   background: rgba(13, 13, 20, 0.8);
   border: 1px solid var(--border-strong);
