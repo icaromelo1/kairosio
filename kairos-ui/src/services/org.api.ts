@@ -45,6 +45,24 @@ export async function createInvite(): Promise<{ code: string; expiresAt: string 
   return res.json()
 }
 
+// ---- link de convite (em vez de só o código) ----
+// monta a URL completa que cai em /join/<code>; respeita o base do app (/kairos/)
+export function inviteLink(code: string): string {
+  const base = import.meta.env.BASE_URL.replace(/\/$/, '')
+  return `${window.location.origin}${base}/join/${code}`
+}
+
+// guarda/recupera um convite que veio pelo link mas precisa esperar o login
+const PENDING_INVITE_KEY = 'kairos_pending_invite'
+export function setPendingInvite(code: string): void {
+  if (code) localStorage.setItem(PENDING_INVITE_KEY, code)
+}
+export function consumePendingInvite(): string | null {
+  const code = localStorage.getItem(PENDING_INVITE_KEY)
+  if (code) localStorage.removeItem(PENDING_INVITE_KEY)
+  return code
+}
+
 export async function setMemberRole(id: string, role: 'admin' | 'member'): Promise<void> {
   await apiFetch(`/org/member/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) })
 }

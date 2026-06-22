@@ -11,6 +11,7 @@ import EditorPage from '@/pages/EditorPage.vue'
 import OnboardingPage from '@/pages/OnboardingPage.vue'
 import AdminPage from '@/pages/AdminPage.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { setPendingInvite } from '@/services/org.api'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -18,6 +19,18 @@ const router = createRouter({
     { path: '/', component: LandingPage },
     { path: '/login', component: LoginPage },
     { path: '/register', component: RegisterPage },
+    // link de convite: guarda o código e encaminha (já logado → onboarding; senão → login)
+    {
+      path: '/join/:code',
+      beforeEnter: (to) => {
+        const code = String(to.params.code || '')
+        setPendingInvite(code)
+        if (useAuthStore().isAuthenticated) return { path: '/onboarding', query: { invite: code } }
+        return { path: '/login' }
+      },
+      // componente nunca renderiza (sempre redireciona), mas a rota exige um
+      component: OnboardingPage,
+    },
     { path: '/onboarding', component: OnboardingPage, meta: { requiresAuth: true } },
     { path: '/admin', component: AdminPage, meta: { requiresAuth: true } },
     { path: '/character', component: CharacterPage, meta: { requiresAuth: true } },

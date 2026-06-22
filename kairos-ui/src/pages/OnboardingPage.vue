@@ -16,7 +16,7 @@
 
       <section class="ob-card">
         <h2>Entrar com convite</h2>
-        <p class="ob-sub">Cole o código que um admin te passou.</p>
+        <p class="ob-sub">Abriu um link de convite? O código já vem preenchido — é só confirmar. Ou cole o código manualmente.</p>
         <input v-model.trim="code" maxlength="16" class="ob-input" placeholder="Código do convite" @keyup.enter="join" />
         <button class="ob-btn ob-btn-ghost" :disabled="busy" @click="join">{{ busy ? '…' : 'Entrar' }}</button>
       </section>
