@@ -85,6 +85,15 @@ entradas pra **editar mundo próprio**, scroll do map-select, limite no nome do 
 
 **❌ Recusado:** "Quero ter dinheiro" (economia/gamificação — fora de escopo).
 
+### 🎥 Câmera (zoom/rotação) + melhoria de estilo — planejado
+- [ ] Zoom in/out + rotação da câmera, estilo **Don't Starve Together / Stardew Valley**;
+      casa com a melhoria de "feel/estilo" do jogo. → `docs/PLANO-camera-e-estilo.md`.
+
+### 🗂️ Status + data do feedback — planejado (+ regra de processo)
+- [ ] Coluna `resolvedAt` + UI com **timer relativo** ("atualizado há X") e **data absoluta**
+      ("implementado/recusado dd/mm/yy hh:mm"). → `docs/PLANO-feedback-status.md`.
+- Regra: **sempre atualizar o status do feedback** ao implementar/recusar (e a data).
+
 ### ❌ Economia / gamificação — RECUSADO (não será implementado)
 > Moeda, loja, veículos, itens compráveis. Decisão (21/06): **fora de escopo.** Registrado
 > aqui apenas pra constar — não entra no plano de execução.
