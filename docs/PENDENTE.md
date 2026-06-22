@@ -5,6 +5,17 @@
 
 ---
 
+## 🐞 0. Bugs + UX/movimento (novo, 22/06) — *prioridade*
+> Detalhe + abordagem: `docs/PLANO-bugs-ux-movimento.md`.
+- [ ] **B1** Botões ficam focados após clique → Enter reaciona (blur após clique). *quick-win*
+- [ ] **B2** Selecionar o mundo atual cria outra sessão e fica sozinho (guard `id === atual`). *quick-win*
+- [ ] **B3** Rotação 2.5D ruim — suavizar / trocar por tilt fixo / remover (decidir). *médio*
+- [ ] **B4** Sem scroll — auditar TODAS as telas com `height` fixo e deixar scrollável. *médio*
+- [ ] **M1** Virar de **lado** (perfil) no A/D, não só de costas no W. *médio*
+- [ ] **M2** **Boost no Shift** (acelerar) + carrinho estilo Gather. *médio*
+
+---
+
 ## 🎨 1. Arte / visual 2.5D (estilo Stardew) — *quase tudo feito*
 > Billboards, avatar fofo, y-sort, sombras e customização já feitos. `docs/PLANO-arte-2.5d.md`.
 - [x] **Y-sort + sombras** — profundidade (avatar passa atrás/na frente; sombra na base). FEITO 22/06.
