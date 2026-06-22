@@ -34,6 +34,13 @@ const GLOW: Record<NonNullable<MapObject['glow']>, number> = {
   green: 0x34d399,
 }
 
+// objetos "em pé" (billboards) — contra-giram com a câmera pra não ficar de cabeça pra baixo.
+// os de fora (rug/water/path/grass/panel/flower) são "de chão" e giram com o piso.
+const UPRIGHT_KINDS = new Set<MapObject['kind']>([
+  'desk', 'board', 'jukebox', 'servers', 'shelf', 'plant', 'tree', 'fountain',
+  'bench', 'lamp', 'table', 'column', 'chair', 'sofa', 'hedge', 'custom',
+])
+
 export class MapScene {
   app: Application
   /** Container da câmera — move-se ao contrário do alvo pra dar o follow. */
@@ -43,6 +50,8 @@ export class MapScene {
   private avatarLayer: Container
   private ghostLayer: Container
   private avatars = new Map<string, AvatarPuppet>()
+  // containers dos objetos "em pé" que contra-giram com a câmera
+  private uprightObjects: { c: Container; own: number }[] = []
   map: MapDef | null = null
 
   constructor() {
@@ -65,6 +74,7 @@ export class MapScene {
     this.map = map
     this.floorLayer.removeChildren()
     this.objectLayer.removeChildren()
+    this.uprightObjects = []
 
     const pal = map.palette
     const floorA = hexNum(pal.floor[0], 0x1a1a26)
@@ -129,14 +139,19 @@ export class MapScene {
     if (o.glow && o.name) {
       shape(g).stroke({ width: 2, color: GLOW[o.glow], alpha: 0.75 })
     }
-    if (o.rotation) {
-      // gira o objeto em torno do próprio centro
+    const own = ((o.rotation || 0) * Math.PI) / 180
+    const upright = UPRIGHT_KINDS.has(o.kind)
+    if (upright || own) {
       const oc = new Container()
       oc.addChild(g)
-      oc.pivot.set(cx, cy)
-      oc.position.set(cx, cy)
-      oc.rotation = (o.rotation * Math.PI) / 180
+      // billboard ancora na BASE do objeto (meio embaixo); chão gira no centro
+      const baseX = upright ? cx : cx
+      const baseY = upright ? y + h : cy
+      oc.pivot.set(baseX, baseY)
+      oc.position.set(baseX, baseY)
+      oc.rotation = own + (upright ? -this.rotation : 0)
       this.objectLayer.addChild(oc)
+      if (upright) this.uprightObjects.push({ c: oc, own })
     } else {
       this.objectLayer.addChild(g)
     }
@@ -260,6 +275,8 @@ export class MapScene {
     const vw = this.app.renderer.width
     const vh = this.app.renderer.height
     this.world.scale.set(z)
+    // objetos "em pé" contra-giram pra ficar de pé na rotação da câmera
+    for (const u of this.uprightObjects) u.c.rotation = u.own - this.rotation
     if (this.rotation !== 0) {
       // rotação: gira em torno do avatar, sem clamp (centraliza nele)
       this.world.rotation = this.rotation

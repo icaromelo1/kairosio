@@ -127,8 +127,15 @@ export class AvatarPuppet {
     this.head.addChild(hg)
     // rosto (olhos + boca) — escondido quando vira de costas (up)
     this.face = new Graphics()
-    px(this.face, 6, 5, 1, 1, 0x101018)
-    px(this.face, 9, 5, 1, 1, 0x101018)
+    // olhos maiores e fofos (com brilhinho) — estilo Stardew
+    px(this.face, 6, 4, 1, 2, 0x20202e)
+    px(this.face, 9, 4, 1, 2, 0x20202e)
+    px(this.face, 6, 4, 1, 1, 0xffffff)
+    px(this.face, 9, 4, 1, 1, 0xffffff)
+    // bochechas rosadas
+    px(this.face, 5, 6, 1, 1, 0xf7a8c0)
+    px(this.face, 10, 6, 1, 1, 0xf7a8c0)
+    // boquinha
     px(this.face, 7, 6, 2, 1, skinDark)
     this.head.addChild(this.face)
     // nuca (parte de trás da cabeça) — cabelo cobrindo o rosto quando olha pra cima
