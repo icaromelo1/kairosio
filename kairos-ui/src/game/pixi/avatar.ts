@@ -58,7 +58,6 @@ export class AvatarPuppet {
   readonly root: Container
   private head: Container
   private face: Graphics
-  private profileFace!: Graphics
   private backHead!: Graphics
   private torso: Container
   private armL: Container
@@ -140,22 +139,6 @@ export class AvatarPuppet {
     // boquinha
     px(this.face, 7, 6, 2, 1, skinDark)
     this.head.addChild(this.face)
-    // rosto de PERFIL (M1) — desenhado virado pra direita; o facing left espelha via scale.x.
-    // cabelo cobre a nuca (lado de trás) + um olho/nariz na frente → lê natural "de lado".
-    this.profileFace = new Graphics()
-    // cabelo na lateral/nuca (lado esquerdo = traseira quando olha pra direita)
-    px(this.profileFace, 3, 2, 4, 6, hair) // massa de cabelo cobrindo a parte de trás
-    px(this.profileFace, 3, 1, 5, 1, hairDark) // topo
-    px(this.profileFace, 3, 7, 4, 1, hairDark) // sombra embaixo
-    px(this.profileFace, 6, 4, 1, 3, hair) // costeleta descendo na frente da orelha
-    // rosto
-    px(this.profileFace, 9, 4, 1, 2, 0x20202e) // olho da frente
-    px(this.profileFace, 9, 4, 1, 1, 0xffffff) // brilho
-    px(this.profileFace, 11, 4, 1, 2, skinDark) // nariz saliente na ponta
-    px(this.profileFace, 10, 6, 1, 1, 0xf7a8c0) // bochecha
-    px(this.profileFace, 9, 6, 2, 1, skinDark) // boca puxada pra frente
-    this.profileFace.visible = false
-    this.head.addChild(this.profileFace)
     // nuca (parte de trás da cabeça) — cabelo cobrindo o rosto quando olha pra cima
     this.backHead = new Graphics()
     px(this.backHead, 4, 3, 8, 5, hair)
@@ -273,13 +256,10 @@ export class AvatarPuppet {
   setFacing(facing: Facing) {
     if (facing === this.facing) return
     this.facing = facing
-    // esquerda/direita = espelhar; cima = de costas (mostra a nuca)
+    // esquerda/direita = espelhar o rosto de frente; cima = de costas (mostra a nuca)
     if (facing === 'left') this.root.scale.x = -1
     else if (facing === 'right') this.root.scale.x = 1
-    const side = facing === 'left' || facing === 'right'
-    // de lado mostra o rosto de PERFIL; de frente o rosto normal; de costas a nuca
-    this.face.visible = facing === 'down'
-    this.profileFace.visible = side
+    this.face.visible = facing !== 'up'
     this.backHead.visible = facing === 'up'
   }
 
