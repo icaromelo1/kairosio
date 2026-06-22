@@ -292,11 +292,13 @@ function selectMap(id: string) {
   switchMap(id)
 }
 
-// colisão entre personagens: bloqueia entrar no "espaço" de outro player
-function peerBlocks(x: number, y: number): boolean {
+// colisão entre personagens: bloqueia só se o movimento APROXIMA de quem já está perto
+// (assim nunca "trava" dentro de outro — sempre dá pra se afastar/deslizar)
+function peerBlocks(nx: number, ny: number, cx: number, cy: number): boolean {
   for (const peer of remotePlayers.values()) {
     if (peer.map && peer.map !== currentId.value) continue
-    if (Math.hypot(peer.x - x, peer.y - y) < 0.8) return true
+    const dNew = Math.hypot(peer.x - nx, peer.y - ny)
+    if (dNew < 0.7 && dNew < Math.hypot(peer.x - cx, peer.y - cy)) return true
   }
   return false
 }
@@ -366,8 +368,8 @@ onMounted(async () => {
     if (moving) {
       const nx = pos.x + dx
       const ny = pos.y + dy
-      if (!isSolid(map, Math.floor(nx), Math.floor(pos.y)) && !peerBlocks(nx, pos.y)) pos.x = nx
-      if (!isSolid(map, Math.floor(pos.x), Math.floor(ny)) && !peerBlocks(pos.x, ny)) pos.y = ny
+      if (!isSolid(map, Math.floor(nx), Math.floor(pos.y)) && !peerBlocks(nx, pos.y, pos.x, pos.y)) pos.x = nx
+      if (!isSolid(map, Math.floor(pos.x), Math.floor(ny)) && !peerBlocks(pos.x, ny, pos.x, pos.y)) pos.y = ny
       facing = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down')
     }
     const emoting = Date.now() < emoteUntil

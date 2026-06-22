@@ -21,6 +21,9 @@
       </div>
 
       <div class="ed-label">Objetos</div>
+      <label style="display:flex;gap:6px;align-items:center;font-size:12px;color:#c8c8d8;cursor:pointer">
+        <input type="checkbox" v-model="placeSolid" /> sólido (colisão)
+      </label>
       <div class="ed-palette">
         <button
           v-for="p in PALETTE" :key="p.kind + p.label"
@@ -32,6 +35,7 @@
       <div class="ed-spacer"></div>
       <p v-if="!canEdit" class="ed-note">Mundo oficial ou de outro usuário — somente leitura.</p>
       <button class="ed-save" :disabled="!canEdit || saving" @click="save">{{ saving ? 'Salvando…' : isNew ? 'Criar mundo' : 'Salvar' }}</button>
+      <button v-if="!isNew && canEdit" class="ed-del" :disabled="saving" @click="del">Apagar mundo</button>
       <p v-if="msg" class="ed-msg">{{ msg }}</p>
     </aside>
 
@@ -45,7 +49,7 @@ import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { MapScene } from '@/game/pixi/scene'
 import type { MapDef, MapObject, ObjectKind } from '@/game/maps'
-import { fetchMap, createMap, saveMap } from '@/services/maps.api'
+import { fetchMap, createMap, saveMap, deleteMap } from '@/services/maps.api'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 const route = useRoute()
@@ -94,6 +98,7 @@ const PALETTE: PaletteItem[] = [
   { kind: 'column', label: 'Coluna', w: 1, h: 2, color: 'rgba(251,191,36,0.22)', solid: true },
 ]
 const current = ref<PaletteItem>(PALETTE[0])
+const placeSolid = ref<boolean>(!!PALETTE[0].solid)
 
 const canEdit = computed(() => isNew.value || (!!map.ownerId && map.ownerId === auth.userId))
 
@@ -101,6 +106,7 @@ let scene: MapScene | null = null
 
 function selectObj(p: PaletteItem) {
   current.value = p
+  placeSolid.value = !!p.solid // sugere o padrão do objeto; usuário pode alterar
   tool.value = 'place'
 }
 
@@ -140,7 +146,7 @@ function onClick(e: PointerEvent) {
   const obj: MapObject = {
     id: `${p.kind}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     kind: p.kind, x, y, w: Math.max(1, w), h: Math.max(1, h),
-    solid: p.solid, shape: p.shape, color: p.color, glow: p.glow, name: p.name, action: p.action,
+    solid: placeSolid.value, shape: p.shape, color: p.color, glow: p.glow, name: p.name, action: p.action,
   }
   map.objects.push(obj)
   render()
@@ -167,6 +173,18 @@ async function save() {
   } catch (e) {
     msg.value = (e as Error).message.includes('403') ? 'Sem permissão para salvar este mundo.' : 'Falha ao salvar.'
   } finally {
+    saving.value = false
+  }
+}
+
+async function del() {
+  if (isNew.value || !confirm('Apagar este mundo? Não dá pra desfazer.')) return
+  saving.value = true
+  try {
+    await deleteMap(route.params.id as string)
+    router.replace('/map-select')
+  } catch {
+    msg.value = 'Falha ao apagar o mundo.'
     saving.value = false
   }
 }
@@ -211,6 +229,7 @@ onUnmounted(() => scene?.destroy())
 .ed-note { font-size: 11px; color: #fbbf24; }
 .ed-save { background: #7c3aed; border: none; color: #fff; padding: 10px; cursor: pointer; border-radius: 4px; font-weight: 600; }
 .ed-save:disabled { opacity: 0.5; cursor: default; }
+.ed-del { background: transparent; border: 1px solid rgba(248,113,113,0.5); color: #f87171; padding: 8px; cursor: pointer; border-radius: 4px; margin-top: 6px; }
 .ed-msg { font-size: 12px; color: #34d399; text-align: center; }
 .ed-stage { position: relative; overflow: hidden; cursor: crosshair; }
 </style>

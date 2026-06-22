@@ -18,7 +18,8 @@ export type Facing = 'down' | 'up' | 'left' | 'right'
 export type Pose = 'idle' | 'walk' | 'dance' | 'wave'
 
 // 1 unidade = 1 "pixel" da arte 16x20. UNIT controla o tamanho final do avatar.
-const UNIT = 5
+// (reduzido de 5 → 4: personagem menor, mais proporcional aos objetos do mapa)
+const UNIT = 4
 // contorno escuro pra silhueta destacar em qualquer piso
 const OUTLINE = 0x07070c
 
@@ -56,6 +57,7 @@ export class AvatarPuppet {
   readonly root: Container
   private head: Container
   private face: Graphics
+  private backHead!: Graphics
   private torso: Container
   private armL: Container
   private armR: Container
@@ -129,6 +131,12 @@ export class AvatarPuppet {
     px(this.face, 9, 5, 1, 1, 0x101018)
     px(this.face, 7, 6, 2, 1, skinDark)
     this.head.addChild(this.face)
+    // nuca (parte de trás da cabeça) — cabelo cobrindo o rosto quando olha pra cima
+    this.backHead = new Graphics()
+    px(this.backHead, 4, 3, 8, 5, hair)
+    px(this.backHead, 4, 2, 8, 1, hairDark)
+    this.backHead.visible = false
+    this.head.addChild(this.backHead)
     this.head.pivot.set(8 * UNIT, 8 * UNIT)
     this.head.position.set(8 * UNIT, 8 * UNIT)
 
@@ -177,10 +185,11 @@ export class AvatarPuppet {
   setFacing(facing: Facing) {
     if (facing === this.facing) return
     this.facing = facing
-    // esquerda/direita = espelhar; cima = de costas (esconde rosto)
+    // esquerda/direita = espelhar; cima = de costas (mostra a nuca, não some o rosto)
     if (facing === 'left') this.root.scale.x = -1
     else if (facing === 'right') this.root.scale.x = 1
     this.face.visible = facing !== 'up'
+    this.backHead.visible = facing === 'up'
   }
 
   /** Avança a animação. dt em segundos. */
