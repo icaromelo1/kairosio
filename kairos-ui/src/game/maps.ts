@@ -35,6 +35,9 @@ export type ObjectKind =
   | 'lamp'
   | 'table'
   | 'column'
+  | 'chair'
+  | 'sofa'
+  | 'custom'
 
 export interface MapObject {
   id: string
@@ -47,8 +50,12 @@ export interface MapObject {
   solid?: boolean
   /** Forma desenhada (padrão retângulo). */
   shape?: 'rect' | 'circle'
+  /** Rotação visual em graus (0/90/180/270). */
+  rotation?: number
   /** Cor de override (cenário). Aceita hex ou rgba(). */
   color?: string
+  /** Arte de pixel do objeto customizado (matriz de cores; null = transparente). */
+  pixels?: (string | null)[][]
   // Campos de interativo (quando o objeto abre algo ao apertar [E]):
   name?: string
   action?: string

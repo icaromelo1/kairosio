@@ -28,6 +28,10 @@ export class Feedback {
   @Column({ type: 'uuid' })
   authorId: string
 
+  // setada quando o status vai pra resolvido/recusado (data da resolução)
+  @Column({ type: 'timestamp', nullable: true })
+  resolvedAt: Date | null
+
   @CreateDateColumn()
   createdAt: Date
 

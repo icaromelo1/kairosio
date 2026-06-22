@@ -22,6 +22,8 @@ const OBJECT_STYLE: Partial<Record<MapObject['kind'], { color: number; alpha: nu
   shelf: { color: 0x2a2418, alpha: 1 },
   table: { color: 0x352b1a, alpha: 1 },
   fountain: { color: 0x2563a8, alpha: 1 },
+  chair: { color: 0x5a4a32, alpha: 1 },
+  sofa: { color: 0x6b4a3a, alpha: 1 },
 }
 const DEFAULT_STYLE = { color: 0x2a2a3a, alpha: 1 }
 
@@ -39,6 +41,7 @@ export class MapScene {
   private floorLayer: Container
   private objectLayer: Container
   private avatarLayer: Container
+  private ghostLayer: Container
   private avatars = new Map<string, AvatarPuppet>()
   map: MapDef | null = null
 
@@ -48,12 +51,13 @@ export class MapScene {
     this.floorLayer = new Container()
     this.objectLayer = new Container()
     this.avatarLayer = new Container()
+    this.ghostLayer = new Container()
   }
 
   async init(host: HTMLElement, background = '#0d0d14') {
     await this.app.init({ background, resizeTo: host, antialias: false })
     host.appendChild(this.app.canvas)
-    this.world.addChild(this.floorLayer, this.objectLayer, this.avatarLayer)
+    this.world.addChild(this.floorLayer, this.objectLayer, this.ghostLayer, this.avatarLayer)
     this.app.stage.addChild(this.world)
   }
 
@@ -99,7 +103,19 @@ export class MapScene {
     const shape = (gg: Graphics) => (circle ? gg.circle(cx, cy, r) : gg.rect(x, y, w, h))
 
     // base
-    if (o.color) {
+    if (o.pixels && o.pixels.length) {
+      // objeto customizado: desenha a matriz de pixels escalada
+      const rows = o.pixels.length
+      const cols = o.pixels[0]?.length || 1
+      const cw = w / cols
+      const ch = h / rows
+      for (let ry = 0; ry < rows; ry++) {
+        for (let cc = 0; cc < cols; cc++) {
+          const col = o.pixels[ry][cc]
+          if (col) g.rect(x + cc * cw, y + ry * ch, cw + 0.5, ch + 0.5).fill(col)
+        }
+      }
+    } else if (o.color) {
       shape(g).fill(o.color)
     } else {
       const st = OBJECT_STYLE[o.kind] ?? DEFAULT_STYLE
@@ -107,13 +123,23 @@ export class MapScene {
       if (!circle) g.rect(x, y, w, Math.max(3, h * 0.18)).fill({ color: 0xffffff, alpha: 0.05 })
     }
 
-    // detalhe por tipo — dá caráter (tronco, água, pernas, livros, etc.)
-    this.drawDetail(g, o, { x, y, w, h, cx, cy, r })
+    // detalhe por tipo (não em objetos customizados)
+    if (!o.pixels) this.drawDetail(g, o, { x, y, w, h, cx, cy, r })
 
     if (o.glow && o.name) {
       shape(g).stroke({ width: 2, color: GLOW[o.glow], alpha: 0.75 })
     }
-    this.objectLayer.addChild(g)
+    if (o.rotation) {
+      // gira o objeto em torno do próprio centro
+      const oc = new Container()
+      oc.addChild(g)
+      oc.pivot.set(cx, cy)
+      oc.position.set(cx, cy)
+      oc.rotation = (o.rotation * Math.PI) / 180
+      this.objectLayer.addChild(oc)
+    } else {
+      this.objectLayer.addChild(g)
+    }
   }
 
   private drawDetail(
@@ -175,6 +201,12 @@ export class MapScene {
         g.circle(cx, cy, r * 1.6).fill({ color: 0xfbbf24, alpha: 0.12 })
         g.circle(cx, cy, Math.max(2, r * 0.4)).fill({ color: 0xfde68a })
         break
+      case 'chair':
+      case 'sofa':
+        // encosto no topo + assento
+        g.rect(x, y, w, Math.max(4, h * 0.35)).fill({ color: 0x000000, alpha: 0.35 })
+        g.rect(x + 2, y + h * 0.4, w - 4, h * 0.5).fill({ color: 0xffffff, alpha: 0.1 })
+        break
       default:
         break
     }
@@ -204,16 +236,46 @@ export class MapScene {
     if (p) p.root.position.set(tileX * TILE_PX, tileY * TILE_PX)
   }
 
-  /** Centraliza a câmera no alvo (tiles), com clamp nas bordas do mapa. */
+  private zoom = 1
+  private rotation = 0 // radianos (0/90/180/270)
+
+  setZoom(z: number) {
+    this.zoom = Math.max(0.6, Math.min(2, z))
+  }
+  getZoom() {
+    return this.zoom
+  }
+  /** Gira a câmera em passos de 90°. */
+  rotateBy(deg: number) {
+    this.rotation = ((this.rotation + (deg * Math.PI) / 180) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2)
+  }
+  getRotation() {
+    return this.rotation
+  }
+
+  /** Centraliza a câmera no alvo (tiles), respeitando zoom e rotação. */
   follow(tileX: number, tileY: number) {
     if (!this.map) return
+    const z = this.zoom
     const vw = this.app.renderer.width
     const vh = this.app.renderer.height
-    const worldW = this.map.width * TILE_PX
-    const worldH = this.map.height * TILE_PX
-    let cx = vw / 2 - tileX * TILE_PX
-    let cy = vh / 2 - tileY * TILE_PX
-    // não mostra além das bordas (quando o mapa cabe, centraliza)
+    this.world.scale.set(z)
+    if (this.rotation !== 0) {
+      // rotação: gira em torno do avatar, sem clamp (centraliza nele)
+      this.world.rotation = this.rotation
+      this.world.pivot.set(tileX * TILE_PX, tileY * TILE_PX)
+      this.world.position.set(vw / 2, vh / 2)
+      // avatares contra-giram pra ficar em pé
+      for (const p of this.avatars.values()) p.root.rotation = -this.rotation
+      return
+    }
+    this.world.rotation = 0
+    this.world.pivot.set(0, 0)
+    for (const p of this.avatars.values()) p.root.rotation = 0
+    const worldW = this.map.width * TILE_PX * z
+    const worldH = this.map.height * TILE_PX * z
+    let cx = vw / 2 - tileX * TILE_PX * z
+    let cy = vh / 2 - tileY * TILE_PX * z
     cx = worldW > vw ? Math.min(0, Math.max(vw - worldW, cx)) : (vw - worldW) / 2
     cy = worldH > vh ? Math.min(0, Math.max(vh - worldH, cy)) : (vh - worldH) / 2
     this.world.position.set(Math.round(cx), Math.round(cy))
@@ -237,6 +299,23 @@ export class MapScene {
       Math.round((vw - worldW * scale) / 2),
       Math.round((vh - worldH * scale) / 2),
     )
+  }
+
+  /** Mostra um preview translúcido do objeto no tile (editor). */
+  showGhost(tileX: number, tileY: number, w: number, h: number, color: string | number = 0x7c3aed, circle = false) {
+    this.ghostLayer.removeChildren()
+    const g = new Graphics()
+    const x = tileX * TILE_PX
+    const y = tileY * TILE_PX
+    const ww = w * TILE_PX
+    const hh = h * TILE_PX
+    if (circle) g.circle(x + ww / 2, y + hh / 2, Math.min(ww, hh) / 2).fill({ color, alpha: 0.45 })
+    else g.rect(x, y, ww, hh).fill({ color, alpha: 0.45 })
+    g.rect(x, y, ww, hh).stroke({ width: 1, color: 0xffffff, alpha: 0.6 })
+    this.ghostLayer.addChild(g)
+  }
+  clearGhost() {
+    this.ghostLayer.removeChildren()
   }
 
   /** Converte coordenadas de clique (clientX/Y) em coordenadas de TILE. */

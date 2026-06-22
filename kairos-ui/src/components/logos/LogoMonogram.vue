@@ -13,7 +13,7 @@
     </div>
     <div style="display:flex;flex-direction:column;line-height:1">
       <span :style="{ fontFamily: 'var(--f-sans)', fontWeight: 700, fontSize: fs + 'px', letterSpacing: '-0.03em', color: 'var(--text)' }">
-        Kairos<span :style="{ color: accent }">.IO</span>
+        Kairos
       </span>
       <span :style="{ fontSize: (fs * 0.32) + 'px', color: 'var(--text-3)', letterSpacing: '0.18em', textTransform: 'uppercase', marginTop: '4px' }">
         your productive world

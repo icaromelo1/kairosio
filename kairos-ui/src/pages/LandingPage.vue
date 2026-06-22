@@ -1,212 +1,116 @@
 <template>
-  <div class="landing-root">
-    <!-- background pixel city -->
-    <svg class="city-bg pixelated" width="100%" height="100%" viewBox="0 0 200 100" preserveAspectRatio="xMidYMid slice">
-      <rect x="0" y="62" width="200" height="1" fill="rgba(124, 58, 237, 0.4)" />
-      <g fill="rgba(124, 58, 237, 0.22)">
-        <rect x="10" y="50" width="6" height="12" /><rect x="18" y="44" width="8" height="18" />
-        <rect x="34" y="40" width="10" height="22" /><rect x="54" y="42" width="12" height="20" />
-        <rect x="76" y="38" width="8" height="24" /><rect x="94" y="42" width="14" height="20" />
-        <rect x="118" y="44" width="10" height="18" /><rect x="138" y="40" width="12" height="22" />
-        <rect x="160" y="44" width="10" height="18" /><rect x="182" y="42" width="12" height="20" />
-      </g>
-      <g fill="#fbbf24" opacity="0.5">
-        <rect x="20" y="48" width="1" height="1" /><rect x="36" y="44" width="1" height="1" />
-        <rect x="78" y="42" width="1" height="1" /><rect x="96" y="46" width="1" height="1" />
-        <rect x="140" y="44" width="1" height="1" /><rect x="184" y="46" width="1" height="1" />
-      </g>
-    </svg>
-
-    <!-- top bar -->
-    <header class="lp-nav">
-      <div class="lp-brand">
-        <span class="lp-monogram">K</span>
-        <span class="lp-brandname">KAIROS<span class="io">.IO</span></span>
+  <div class="lp">
+    <!-- Hero -->
+    <header class="lp-hero">
+      <Logo id="monogram" size="lg" primary="var(--primary-hi)" accent="var(--accent)" />
+      <h1>Seu espaço virtual em pixel art — junte a galera num mundo só.</h1>
+      <p class="lp-sub">
+        O Kairos é um espaço social estilo Gather.town em pixel art: cada um tem um avatar,
+        anda pelos mundos e conversa por <strong>texto e voz por proximidade</strong>. E você
+        pode <strong>criar os próprios mundos</strong>.
+      </p>
+      <div class="lp-cta">
+        <button class="lp-btn" @click="entrar">Entrar / Criar conta →</button>
+        <span class="lp-free">Aberto a todos — grátis.</span>
       </div>
-      <button class="k-btn k-btn-primary lp-nav-cta" @click="entrar">Entrar</button>
     </header>
 
-    <!-- HERO -->
-    <section class="lp-hero">
-      <span class="k-chip">⚇ ambiente de trabalho gamificado</span>
-      <h1 class="lp-title">Seu trabalho<br />vira um <span class="hl">mundo</span>.</h1>
-      <p class="lp-sub">
-        Kairos transforma sua produtividade num RPG top-down em pixel art: você habita um mapa,
-        cumpre missões e trabalha lado a lado com <strong>agentes de IA</strong>.
+    <!-- O que é -->
+    <section class="lp-sec">
+      <h2>O que é</h2>
+      <p>
+        Um espaço virtual multiusuário <strong>por organização/equipe</strong>: você entra com
+        seu avatar, vê as outras pessoas em tempo real e interage com quem está perto — como num
+        escritório ou praça virtual, mas pixel art e do seu jeito.
       </p>
-      <div class="lp-actions">
-        <button class="k-btn k-btn-accent lp-big" @click="entrar">▶ Começar a jogar</button>
-        <a class="k-btn k-btn-ghost lp-big" href="#como-features">Saber mais</a>
-      </div>
     </section>
 
-    <!-- mock screen -->
-    <section class="lp-shot">
-      <div class="lp-shot-frame k-card">
-        <div class="lp-shot-bar"><span></span><span></span><span></span><em>kairos.io — mundo</em></div>
-        <div class="lp-shot-body pixelated">
-          <div class="mini-grid"></div>
-          <div class="mini-player glow-purple"></div>
-          <div class="mini-npc glow-gold" style="left:64%; top:38%"></div>
-          <div class="mini-npc" style="left:30%; top:62%"></div>
-          <span class="lp-shot-tag">screenshot do jogo · em breve</span>
+    <!-- Como usar -->
+    <section class="lp-sec">
+      <h2>Como usar</h2>
+      <ol class="lp-steps">
+        <li><b>1.</b> Crie uma conta (ou entre como convidado pra experimentar).</li>
+        <li><b>2.</b> Crie ou entre numa <b>organização</b> (sua equipe/grupo).</li>
+        <li><b>3.</b> Monte seu <b>avatar</b>.</li>
+        <li><b>4.</b> Escolha um <b>mundo</b> e entre.</li>
+        <li><b>5.</b> <b>Ande</b> (WASD), <b>converse</b> (chat), <b>fale</b> (voz por proximidade), <b>acene/dance</b>.</li>
+        <li><b>6.</b> <b>Crie seu próprio mundo</b> no editor.</li>
+      </ol>
+    </section>
+
+    <!-- Recursos -->
+    <section class="lp-sec">
+      <h2>O que dá pra fazer</h2>
+      <div class="lp-grid">
+        <div v-for="f in features" :key="f.t" class="lp-card">
+          <strong>{{ f.t }}</strong>
+          <span>{{ f.d }}</span>
         </div>
       </div>
     </section>
 
-    <!-- FEATURES -->
-    <section class="lp-block" id="como-features">
-      <div class="lp-label">// por que kairos</div>
-      <div class="lp-features">
-        <div class="k-card lp-feat">
-          <div class="lp-feat-ic">🗺</div>
-          <h3>Mundo top-down</h3>
-          <p>Um mapa pixel-art navegável onde cada área é um contexto de trabalho.</p>
-        </div>
-        <div class="k-card lp-feat">
-          <div class="lp-feat-ic">🤖</div>
-          <h3>Agentes de IA</h3>
-          <p>NPCs inteligentes que ajudam em tarefas, dentro do próprio mundo.</p>
-        </div>
-        <div class="k-card lp-feat">
-          <div class="lp-feat-ic">⚔</div>
-          <h3>Missões & progresso</h3>
-          <p>Transforme objetivos em quests com recompensa e sensação de avanço.</p>
-        </div>
-        <div class="k-card lp-feat">
-          <div class="lp-feat-ic">✦</div>
-          <h3>Pixel-art autoral</h3>
-          <p>Estética retro de game, renderizada em tempo real com PixiJS.</p>
+    <!-- Casos de uso -->
+    <section class="lp-sec">
+      <h2>Pra que serve</h2>
+      <div class="lp-grid">
+        <div v-for="u in useCases" :key="u.t" class="lp-card">
+          <strong>{{ u.t }}</strong>
+          <span>{{ u.d }}</span>
         </div>
       </div>
     </section>
 
-    <!-- STACK -->
-    <section class="lp-block">
-      <div class="lp-label">// construído com</div>
-      <div class="lp-stack">
-        <span v-for="t in stack" :key="t" class="lp-badge">{{ t }}</span>
-      </div>
+    <!-- CTA final -->
+    <section class="lp-final">
+      <h2>Crie sua organização e chame o time.</h2>
+      <button class="lp-btn" @click="entrar">Começar agora →</button>
     </section>
 
-    <!-- CTA -->
-    <section class="lp-cta">
-      <h2>Pronto pra entrar no mundo?</h2>
-      <button class="k-btn k-btn-primary lp-big" @click="entrar">Entrar agora</button>
-    </section>
-
-    <footer class="lp-foot">KAIROS.IO · um experimento de produtividade gamificada</footer>
+    <footer class="lp-foot">© Kairos 2026</footer>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
+import Logo from '@/components/logos/Logo.vue'
+
 const router = useRouter()
-const stack = ['Vue 3', 'Quasar', 'NestJS', 'TypeORM', 'PostgreSQL', 'PixiJS']
 function entrar() { router.push('/login') }
+
+const features = [
+  { t: 'Mundos em tempo real', d: 'Veja os outros andando, com colisão e presença ao vivo.' },
+  { t: 'Chat + voz por proximidade', d: 'Converse por texto e fale por voz com quem está perto.' },
+  { t: 'Editor de mundos', d: 'Coloque objetos, redimensione e salve seu próprio espaço.' },
+  { t: 'Organizações / times', d: 'Cada equipe só vê os próprios mundos — espaços isolados.' },
+  { t: 'Avatar e emotes', d: 'Customize seu personagem; acene, dance e interaja.' },
+  { t: 'Pixel art', d: 'Visual leve e gostoso, roda no navegador.' },
+]
+const useCases = [
+  { t: 'Escritório virtual', d: 'Equipe remota "junta" num espaço, com presença e voz.' },
+  { t: 'Eventos e encontros', d: 'Salas temáticas e conversas por proximidade.' },
+  { t: 'Estudo / coworking', d: 'Foco compartilhado, salas de trabalho em grupo.' },
+  { t: 'Socializar o time', d: 'Happy hour, dinâmicas, onboarding mais humano.' },
+]
 </script>
 
 <style scoped>
-.landing-root {
-  position: fixed;
-  inset: 0;
-  overflow-y: auto;
-  background:
-    radial-gradient(ellipse at 50% 0%, rgba(124, 58, 237, 0.18) 0%, transparent 55%),
-    radial-gradient(ellipse at 85% 30%, rgba(251, 191, 36, 0.07) 0%, transparent 45%),
-    var(--bg-0);
-  color: var(--text);
-}
-.city-bg { position: fixed; inset: 0; opacity: 0.28; pointer-events: none; z-index: 0; }
-
-.lp-nav, .lp-hero, .lp-shot, .lp-block, .lp-cta, .lp-foot { position: relative; z-index: 1; }
-
-/* NAV */
-.lp-nav {
-  display: flex; align-items: center; justify-content: space-between;
-  max-width: 1080px; margin: 0 auto; padding: 22px 24px;
-}
-.lp-brand { display: flex; align-items: center; gap: 12px; }
-.lp-monogram {
-  width: 34px; height: 34px; display: grid; place-items: center;
-  background: var(--primary); color: #fff; font-family: var(--f-pixel); font-size: 13px;
-  border: 3px solid var(--primary-hi); box-shadow: 3px 3px 0 var(--primary-lo);
-}
-.lp-brandname { font-family: var(--f-pixel); font-size: 13px; letter-spacing: 0.06em; }
-.lp-brandname .io { color: var(--primary-hi); }
-.lp-nav-cta { font-size: 9px; padding: 9px 14px; }
-
-/* HERO */
-.lp-hero { max-width: 1080px; margin: 0 auto; padding: 48px 24px 12px; text-align: center; }
-.lp-title {
-  font-family: var(--f-pixel); font-size: clamp(26px, 5.5vw, 52px); line-height: 1.3;
-  margin: 22px 0 0; letter-spacing: 0.02em; text-shadow: 4px 4px 0 rgba(0,0,0,0.5);
-}
-.lp-title .hl { color: var(--primary-hi); }
-.lp-sub {
-  max-width: 620px; margin: 24px auto 0; font-size: 17px; line-height: 1.65; color: var(--text-2);
-}
-.lp-sub strong { color: var(--accent-hi); }
-.lp-actions { display: flex; flex-wrap: wrap; gap: 16px; justify-content: center; margin-top: 36px; }
-.lp-big { font-size: 11px; padding: 15px 22px; }
-
-/* SHOT */
-.lp-shot { max-width: 880px; margin: 64px auto 0; padding: 0 24px; }
-.lp-shot-frame { overflow: hidden; }
-.lp-shot-bar {
-  display: flex; align-items: center; gap: 7px; padding: 12px 14px;
-  border-bottom: 3px solid var(--primary-hi); background: var(--bg-3);
-  font-family: var(--f-mono); font-size: 11px; color: var(--text-3);
-}
-.lp-shot-bar span { width: 10px; height: 10px; background: var(--border-strong); }
-.lp-shot-bar em { margin-left: 8px; font-style: normal; }
-.lp-shot-body {
-  position: relative; height: 340px; overflow: hidden;
-  background:
-    linear-gradient(rgba(124,58,237,0.05), transparent),
-    var(--bg-0);
-}
-.mini-grid {
-  position: absolute; inset: 0;
-  background-image:
-    repeating-linear-gradient(0deg, rgba(124,58,237,0.10) 0 1px, transparent 1px 24px),
-    repeating-linear-gradient(90deg, rgba(124,58,237,0.10) 0 1px, transparent 1px 24px);
-}
-.mini-player {
-  position: absolute; left: 47%; top: 50%; width: 18px; height: 18px;
-  background: var(--primary-hi); border: 3px solid #fff;
-}
-.mini-npc { position: absolute; width: 16px; height: 16px; background: var(--accent); }
-.lp-shot-tag {
-  position: absolute; left: 50%; bottom: 16px; transform: translateX(-50%);
-  font-family: var(--f-mono); font-size: 12px; color: var(--text-3);
-}
-
-/* BLOCKS */
-.lp-block { max-width: 1080px; margin: 80px auto 0; padding: 0 24px; }
-.lp-label { font-family: var(--f-mono); font-size: 12px; color: var(--text-3); margin-bottom: 22px; }
-.lp-features { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
-.lp-feat { padding: 22px; }
-.lp-feat-ic { font-size: 24px; margin-bottom: 14px; }
-.lp-feat h3 { font-family: var(--f-pixel); font-size: 11px; line-height: 1.5; margin: 0 0 10px; color: var(--primary-hi); }
-.lp-feat p { font-size: 13.5px; line-height: 1.55; color: var(--text-2); margin: 0; }
-
-.lp-stack { display: flex; flex-wrap: wrap; gap: 10px; }
-.lp-badge {
-  font-family: var(--f-mono); font-size: 12px; color: var(--accent-hi);
-  background: rgba(251,191,36,0.10); border: 2px solid rgba(251,191,36,0.28); padding: 6px 12px;
-}
-
-/* CTA */
-.lp-cta { max-width: 1080px; margin: 96px auto 0; padding: 0 24px; text-align: center; }
-.lp-cta h2 { font-family: var(--f-pixel); font-size: clamp(16px, 3vw, 24px); line-height: 1.5; margin: 0 0 28px; }
-
-.lp-foot {
-  max-width: 1080px; margin: 80px auto 0; padding: 28px 24px 48px;
-  border-top: 3px solid var(--border); text-align: center;
-  font-family: var(--f-mono); font-size: 12px; color: var(--text-4);
-}
-
-@media (max-width: 860px) { .lp-features { grid-template-columns: 1fr 1fr; } }
-@media (max-width: 520px) { .lp-features { grid-template-columns: 1fr; } .lp-nav-cta { display: none; } }
+.lp { min-height: 100vh; background: radial-gradient(ellipse at 50% -10%, rgba(124,58,237,0.18), transparent 55%), var(--bg-0); color: var(--text); font-family: system-ui; }
+.lp-hero { max-width: 760px; margin: 0 auto; padding: 64px 24px 40px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.lp-hero h1 { font-size: 38px; line-height: 1.1; letter-spacing: -0.03em; margin: 8px 0 0; }
+.lp-sub { color: var(--text-2); font-size: 17px; line-height: 1.6; margin: 0; max-width: 640px; }
+.lp-cta { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 8px; }
+.lp-btn { background: var(--primary); border: none; color: #fff; padding: 13px 26px; font-size: 16px; font-weight: 600; border-radius: 6px; cursor: pointer; }
+.lp-free { font-size: 13px; color: var(--text-3); }
+.lp-sec { max-width: 880px; margin: 0 auto; padding: 32px 24px; }
+.lp-sec h2 { font-size: 22px; margin: 0 0 14px; letter-spacing: -0.02em; }
+.lp-sec p { color: var(--text-2); font-size: 16px; line-height: 1.7; margin: 0; }
+.lp-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; color: var(--text-2); font-size: 16px; line-height: 1.5; }
+.lp-steps b { color: var(--accent); }
+.lp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+.lp-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.lp-card strong { font-size: 15px; }
+.lp-card span { color: var(--text-3); font-size: 14px; line-height: 1.5; }
+.lp-final { max-width: 760px; margin: 24px auto; padding: 48px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.lp-final h2 { font-size: 26px; margin: 0; letter-spacing: -0.02em; }
+.lp-foot { text-align: center; color: var(--text-4); font-size: 12px; padding: 24px; }
 </style>

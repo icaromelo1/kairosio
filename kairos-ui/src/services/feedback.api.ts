@@ -12,6 +12,8 @@ export interface Feedback {
   status: FeedbackStatus
   authorEmail: string
   createdAt: string
+  updatedAt?: string
+  resolvedAt?: string | null
 }
 
 export interface NewFeedback {

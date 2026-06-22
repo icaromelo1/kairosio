@@ -7,7 +7,7 @@
         <strong>Editor</strong>
       </div>
 
-      <input v-model="map.name" class="ed-input" placeholder="Nome do mundo" :disabled="!canEdit" />
+      <input v-model.trim="map.name" maxlength="40" class="ed-input" placeholder="Nome do mundo" :disabled="!canEdit" />
 
       <div class="ed-row">
         <label>Largura<input v-model.number="map.width" type="number" min="8" max="120" class="ed-num" :disabled="!canEdit" @change="render" /></label>
@@ -18,18 +18,39 @@
       <div class="ed-tools">
         <button :class="['ed-tool', tool === 'spawn' && 'on']" @click="tool = 'spawn'">⌖ Spawn</button>
         <button :class="['ed-tool', tool === 'erase' && 'on']" @click="tool = 'erase'">⌫ Apagar</button>
+        <button :class="['ed-tool', tool === 'toggle' && 'on']" @click="tool = 'toggle'">⊟ Colisão</button>
       </div>
 
       <div class="ed-label">Objetos</div>
       <label style="display:flex;gap:6px;align-items:center;font-size:12px;color:#c8c8d8;cursor:pointer">
         <input type="checkbox" v-model="placeSolid" /> sólido (colisão)
       </label>
+      <button class="ed-tool" style="align-self:flex-start" @click="rotate">↻ Girar: {{ placeRotation }}°</button>
       <div class="ed-palette">
         <button
           v-for="p in PALETTE" :key="p.kind + p.label"
           :class="['ed-obj', tool === 'place' && current?.label === p.label && 'on']"
           @click="selectObj(p)"
         >{{ p.label }}</button>
+      </div>
+
+      <button class="ed-tool" style="align-self:flex-start;margin-top:8px" @click="showPixel = !showPixel">{{ showPixel ? '▾' : '▸' }} Criar objeto próprio</button>
+      <div v-if="showPixel" style="background:#1a1a26;border:1px solid #262636;padding:8px;border-radius:6px">
+        <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px">
+          <button v-for="col in PIXEL_COLORS" :key="col || 'none'" @click="pixelColor = col"
+            :style="{ width: '18px', height: '18px', borderRadius: '3px', cursor: 'pointer', border: pixelColor === col ? '2px solid #fff' : '1px solid #444', background: col || '#0d0d14' }">{{ col ? '' : '⌫' }}</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(8,15px);gap:1px;width:fit-content">
+          <template v-for="(row, r) in pixelGrid">
+            <div v-for="(cell, c) in row" :key="r + '-' + c"
+              @pointerdown="paintCell(r, c)" @pointerenter="(e: any) => e.buttons && paintCell(r, c)"
+              :style="{ width: '15px', height: '15px', background: cell || '#1d1d2a', cursor: 'crosshair' }"></div>
+          </template>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button class="ed-tool" @click="useCustom">Usar como pincel</button>
+          <button class="ed-tool" @click="clearPixels">Limpar</button>
+        </div>
       </div>
 
       <div class="ed-spacer"></div>
@@ -40,7 +61,7 @@
     </aside>
 
     <!-- Stage -->
-    <div class="ed-stage" ref="host" @pointerdown="onClick"></div>
+    <div class="ed-stage" ref="host" @pointerdown="onClick" @pointermove="onMove" @pointerleave="scene?.clearGhost()"></div>
   </div>
 </template>
 
@@ -59,7 +80,7 @@ const auth = useAuthStore()
 const host = ref<HTMLElement | null>(null)
 const saving = ref(false)
 const msg = ref('')
-const tool = ref<'place' | 'erase' | 'spawn'>('place')
+const tool = ref<'place' | 'erase' | 'spawn' | 'toggle'>('place')
 
 const isNew = computed(() => route.params.id === 'new')
 
@@ -96,9 +117,32 @@ const PALETTE: PaletteItem[] = [
   { kind: 'path', label: 'Caminho', w: 3, h: 1, color: 'rgba(120,110,90,0.5)' },
   { kind: 'lamp', label: 'Poste', w: 1, h: 1, color: 'rgba(251,191,36,0.85)' },
   { kind: 'column', label: 'Coluna', w: 1, h: 2, color: 'rgba(251,191,36,0.22)', solid: true },
+  { kind: 'chair', label: 'Cadeira', w: 1, h: 1, solid: true, name: 'Cadeira', action: 'Sentar' },
+  { kind: 'sofa', label: 'Sofá', w: 3, h: 1, solid: true, name: 'Sofá', action: 'Sentar' },
+  { kind: 'grass', label: 'Grama', w: 3, h: 2, color: 'rgba(52,211,153,0.25)' },
+  { kind: 'panel', label: 'Painel', w: 2, h: 1, color: 'rgba(34,211,238,0.18)' },
 ]
 const current = ref<PaletteItem>(PALETTE[0])
 const placeSolid = ref<boolean>(!!PALETTE[0].solid)
+const placeRotation = ref<number>(0)
+function rotate() { placeRotation.value = (placeRotation.value + 90) % 360 }
+
+// --- criador de objeto próprio (pixel + paleta) ---
+const PIXEL_N = 8
+const PIXEL_COLORS = ['#000000', '#ffffff', '#f87171', '#fbbf24', '#34d399', '#22d3ee', '#7c3aed', '#fb923c', '#8b5a2b', null]
+const pixelColor = ref<string | null>('#7c3aed')
+const showPixel = ref(false)
+const pixelGrid = reactive<(string | null)[][]>(
+  Array.from({ length: PIXEL_N }, () => Array.from({ length: PIXEL_N }, () => null as string | null)),
+)
+let customPixels: (string | null)[][] | null = null
+function paintCell(r: number, c: number) { pixelGrid[r][c] = pixelColor.value }
+function clearPixels() { for (let r = 0; r < PIXEL_N; r++) for (let c = 0; c < PIXEL_N; c++) pixelGrid[r][c] = null }
+function useCustom() {
+  customPixels = pixelGrid.map((row) => row.slice())
+  current.value = { kind: 'custom', label: 'Meu objeto', w: 2, h: 2, solid: placeSolid.value }
+  tool.value = 'place'
+}
 
 const canEdit = computed(() => isNew.value || (!!map.ownerId && map.ownerId === auth.userId))
 
@@ -116,6 +160,14 @@ function render() {
   map.height = Math.max(8, Math.min(120, map.height))
   scene.setMap(map)
   scene.fit()
+}
+
+function onMove(e: PointerEvent) {
+  if (!scene || !canEdit.value || tool.value !== 'place') { scene?.clearGhost(); return }
+  const { x, y } = scene.screenToTile(e.clientX, e.clientY)
+  if (x < 1 || y < 1 || x > map.width - 2 || y > map.height - 2) { scene.clearGhost(); return }
+  const p = current.value
+  scene.showGhost(x, y, Math.min(p.w, map.width - 1 - x), Math.min(p.h, map.height - 1 - y), p.color || 0x7c3aed, p.shape === 'circle')
 }
 
 function onClick(e: PointerEvent) {
@@ -139,6 +191,18 @@ function onClick(e: PointerEvent) {
     }
     return
   }
+  if (tool.value === 'toggle') {
+    // alterna a colisão do objeto no topo do tile
+    for (let i = map.objects.length - 1; i >= 0; i--) {
+      const o = map.objects[i]
+      if (x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h) {
+        o.solid = !o.solid
+        render()
+        return
+      }
+    }
+    return
+  }
   // place
   const p = current.value
   const w = Math.min(p.w, map.width - 1 - x)
@@ -147,7 +211,9 @@ function onClick(e: PointerEvent) {
     id: `${p.kind}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     kind: p.kind, x, y, w: Math.max(1, w), h: Math.max(1, h),
     solid: placeSolid.value, shape: p.shape, color: p.color, glow: p.glow, name: p.name, action: p.action,
+    rotation: placeRotation.value || undefined,
   }
+  if (p.kind === 'custom' && customPixels) obj.pixels = customPixels
   map.objects.push(obj)
   render()
 }

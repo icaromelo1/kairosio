@@ -36,7 +36,7 @@
 
         <div class="fb-field">
           <label>Descrição</label>
-          <textarea v-model="form.message" rows="5" placeholder="Descreva com detalhes. Em bugs, inclua os passos para reproduzir."></textarea>
+          <textarea v-model="form.message" rows="5" maxlength="2000" placeholder="Descreva com detalhes. Em bugs, inclua os passos para reproduzir."></textarea>
         </div>
 
         <button class="fb-submit" :disabled="sending" @click="submit">
@@ -58,7 +58,12 @@
             </div>
             <div class="fb-item-title">{{ f.title }}</div>
             <div class="fb-item-msg">{{ f.message }}</div>
-            <div class="fb-item-meta">{{ maskEmail(f.authorEmail) }} · {{ fmtDate(f.createdAt) }}</div>
+            <div class="fb-item-meta">
+              {{ maskEmail(f.authorEmail) }} · enviado {{ fmtDate(f.createdAt) }} · atualizado {{ relTime(f.resolvedAt || f.updatedAt || f.createdAt) }}
+            </div>
+            <div v-if="(f.status === 'resolvido' || f.status === 'recusado') && f.resolvedAt" class="fb-item-resolved">
+              {{ f.status === 'resolvido' ? 'implementado' : 'recusado' }} em {{ fmtDateTime(f.resolvedAt) }}
+            </div>
           </li>
         </ul>
       </section>
@@ -97,6 +102,24 @@ function maskEmail(e: string): string {
 function fmtDate(s: string): string {
   return new Date(s).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' })
 }
+function fmtDateTime(s: string): string {
+  return new Date(s).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })
+}
+// "há X" — timer regressivo (recalcula via `now`, que atualiza a cada 60s)
+const now = ref(Date.now())
+function relTime(s: string): string {
+  void now.value
+  const diff = Math.max(0, (Date.now() - new Date(s).getTime()) / 1000)
+  const u: [number, string][] = [[31536000, 'ano'], [2592000, 'mês'], [86400, 'dia'], [3600, 'hora'], [60, 'min'], [1, 's']]
+  for (const [sec, label] of u) {
+    if (diff >= sec) {
+      const n = Math.floor(diff / sec)
+      const plural = n > 1 && label !== 'min' && label !== 's' ? (label === 'mês' ? 'meses' : label + 's') : label
+      return `há ${n} ${plural}`
+    }
+  }
+  return 'agora'
+}
 
 async function load() {
   try { list.value = await fetchFeedback() } catch { /* silencioso */ }
@@ -123,7 +146,10 @@ async function submit() {
   }
 }
 
-onMounted(load)
+onMounted(() => {
+  load()
+  setInterval(() => (now.value = Date.now()), 60000)
+})
 </script>
 
 <style scoped>
@@ -159,6 +185,7 @@ onMounted(load)
 .fb-status.em_andamento { background: rgba(251,191,36,0.18); color: #fbbf24; }
 .fb-status.resolvido { background: rgba(52,211,153,0.18); color: #34d399; }
 .fb-status.recusado { background: rgba(248,113,113,0.18); color: #f87171; }
+.fb-item-resolved { font-size: 11px; color: #34d399; margin-top: 4px; }
 .fb-item-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
 .fb-item-msg { font-size: 13px; color: #a0a0b8; line-height: 1.5; white-space: pre-wrap; }
 .fb-item-meta { font-size: 11px; color: #6a6a80; margin-top: 8px; }
