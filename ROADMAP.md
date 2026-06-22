@@ -10,7 +10,7 @@ specs detalhados em `docs/PLANO-*.md`.
 ## 🔜 O QUE FALTA → `docs/PENDENTE.md`
 
 Resumo (detalhe + ordem no PENDENTE.md):
-1. **Arte 2.5D** (y-sort+sombras, objetos com volume, avatar art completa, +customização). — `PLANO-arte-2.5d.md`
+1. **Arte 2.5D** — y-sort+sombras+customização ✅; falta objetos com volume "real" + spritesheets do avatar. — `PLANO-arte-2.5d.md`
 2. **Editor**: undo/redo + validações; poltrona sentável.
 3. **Estações funcionais**: ligar lousa/jukebox/mesa/estante a ferramentas reais.
 4. **Voz/vídeo**: vídeo por proximidade + indicador de "quem fala".

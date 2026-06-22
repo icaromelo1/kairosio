@@ -5,12 +5,13 @@
 
 ---
 
-## 🎨 1. Arte / visual 2.5D (estilo Stardew) — *maior valor de "feel"*
-> Billboards e avatar fofo (1ª passada) já feitos. Continuação: `docs/PLANO-arte-2.5d.md`.
-- [ ] **Y-sort + sombras** — profundidade (avatar passa atrás/na frente dos objetos; sombra na base). *médio*
-- [ ] **Objetos com base+altura** — billboard "com volume" (árvore tronco+copa, mesa com pernas…). *médio/grande*
-- [ ] **Avatar art completa** — spritesheets desenhadas (4 direções, walk frames) pro look Stardew. *grande*
-- [ ] **Mais customização do avatar** — roupas, acessórios, mais tons de pele. *médio*
+## 🎨 1. Arte / visual 2.5D (estilo Stardew) — *quase tudo feito*
+> Billboards, avatar fofo, y-sort, sombras e customização já feitos. `docs/PLANO-arte-2.5d.md`.
+- [x] **Y-sort + sombras** — profundidade (avatar passa atrás/na frente; sombra na base). FEITO 22/06.
+- [x] **Hint de volume** nos objetos em pé (topo claro/base escura). FEITO 22/06 (1ª passada).
+- [x] **Mais customização** — acessório (óculos/chapéu) + +tons de pele e cores. FEITO 22/06.
+- [ ] **Objetos com base+altura "real"** (árvore tronco+copa subindo, etc.) — redesenho por tipo. *grande, precisa iteração visual*
+- [ ] **Avatar art completa** — spritesheets desenhadas (4 direções, walk frames). *grande, precisa decisão+arte*
 
 ## 🛠️ 2. Editor — refinos
 > `docs/PLANO-editor-melhorias.md`.
