@@ -14,6 +14,9 @@ import { Character } from './character/character.entity'
 import { WorldState } from './world/world-state.entity'
 import { GameMap } from './map/game-map.entity'
 import { Feedback } from './feedback/feedback.entity'
+import { OrgModule } from './org/org.module'
+import { Organization } from './org/organization.entity'
+import { OrgInvite } from './org/org-invite.entity'
 
 @Module({
   imports: [
@@ -22,7 +25,7 @@ import { Feedback } from './feedback/feedback.entity'
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL || 'postgres://kairos:kairos@localhost:5432/kairosio',
-      entities: [User, Character, WorldState, GameMap, Feedback],
+      entities: [User, Character, WorldState, GameMap, Feedback, Organization, OrgInvite],
       synchronize: true,
     }),
     AuthModule,
@@ -31,6 +34,7 @@ import { Feedback } from './feedback/feedback.entity'
     PresenceModule,
     MapModule,
     FeedbackModule,
+    OrgModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })

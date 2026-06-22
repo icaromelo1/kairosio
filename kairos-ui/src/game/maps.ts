@@ -68,6 +68,10 @@ export interface MapDef {
   palette: MapPalette
   spawn: { x: number; y: number }
   objects: MapObject[]
+  // multi-tenancy (vêm da API; opcionais no front)
+  ownerId?: string | null
+  organizationId?: string | null
+  isTemplate?: boolean
 }
 
 /** Objetos com os quais se pode interagir ([E]). */

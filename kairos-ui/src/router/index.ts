@@ -8,6 +8,8 @@ import GamePage from '@/pages/GamePage.vue'
 import LabPage from '@/pages/LabPage.vue'
 import FeedbackPage from '@/pages/FeedbackPage.vue'
 import EditorPage from '@/pages/EditorPage.vue'
+import OnboardingPage from '@/pages/OnboardingPage.vue'
+import AdminPage from '@/pages/AdminPage.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 const router = createRouter({
@@ -16,6 +18,8 @@ const router = createRouter({
     { path: '/', component: LandingPage },
     { path: '/login', component: LoginPage },
     { path: '/register', component: RegisterPage },
+    { path: '/onboarding', component: OnboardingPage, meta: { requiresAuth: true } },
+    { path: '/admin', component: AdminPage, meta: { requiresAuth: true } },
     { path: '/character', component: CharacterPage, meta: { requiresAuth: true } },
     { path: '/map-select', component: MapSelectPage, meta: { requiresAuth: true } },
     { path: '/game', component: GamePage, meta: { requiresAuth: true } },
