@@ -68,8 +68,9 @@
 
       <!-- Zoom -->
       <div style="position:absolute;top:64px;right:16px;z-index:10;display:flex;flex-direction:column;gap:4px">
-        <button class="k-key" style="cursor:pointer;width:30px;height:30px;font-size:16px" @click="zoomBy(1.15)">+</button>
-        <button class="k-key" style="cursor:pointer;width:30px;height:30px;font-size:16px" @click="zoomBy(0.87)">−</button>
+        <button class="k-key" style="cursor:pointer;width:30px;height:30px;font-size:16px" @click="zoomBy(1.15)" title="Zoom +">+</button>
+        <button class="k-key" style="cursor:pointer;width:30px;height:30px;font-size:16px" @click="zoomBy(0.87)" title="Zoom −">−</button>
+        <button class="k-key" style="cursor:pointer;width:30px;height:30px;font-size:14px" @click="scene?.rotateBy(90)" title="Girar câmera 90°">↻</button>
       </div>
 
       <!-- HUD top-left -->
@@ -110,6 +111,7 @@
           }"
         >{{ voiceOn ? '🎙 Microfone ligado' : '🔇 Falar por voz' }}</button>
         <span v-if="!voiceOn" style="font-size:11px;color:var(--text-3);background:rgba(13,13,20,0.7);padding:2px 8px;border-radius:4px">aproxime-se de alguém pra conversar por voz</span>
+        <button v-else style="font-size:11px;color:var(--text-2);background:rgba(13,13,20,0.7);border:1px solid var(--border);padding:2px 8px;border-radius:4px;cursor:pointer" @click="voice.reconnect()">↻ reconectar (se a voz travar)</button>
       </div>
 
       <!-- Chat -->
@@ -401,11 +403,18 @@ onMounted(async () => {
     const moving = dx !== 0 || dy !== 0
     if (moving) sitting = false // mover levanta
     if (moving) {
+      // facing pela direção na TELA; movimento remapeado pela rotação da câmera
+      facing = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down')
+      const rot = scene.getRotation()
+      if (rot) {
+        const c = Math.cos(-rot), s = Math.sin(-rot)
+        const rdx = dx * c - dy * s, rdy = dx * s + dy * c
+        dx = rdx; dy = rdy
+      }
       const nx = pos.x + dx
       const ny = pos.y + dy
       if (!isSolid(map, Math.floor(nx), Math.floor(pos.y)) && !peerBlocks(nx, pos.y, pos.x, pos.y)) pos.x = nx
       if (!isSolid(map, Math.floor(pos.x), Math.floor(ny)) && !peerBlocks(pos.x, ny, pos.x, pos.y)) pos.y = ny
-      facing = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down')
     }
     const emoting = Date.now() < emoteUntil
     const pose: 'idle' | 'walk' | 'dance' | 'wave' | 'sit' = sitting ? 'sit' : moving ? 'walk' : emoting ? 'wave' : dancing ? 'dance' : 'idle'

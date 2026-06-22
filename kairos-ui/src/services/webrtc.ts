@@ -59,6 +59,11 @@ export class VoiceChat {
     return [...this.pcs.keys()]
   }
 
+  /** Derruba todas as conexões; o `sync` recria no próximo frame (corrige áudio travado). */
+  reconnect() {
+    for (const id of [...this.pcs.keys()]) this.drop(id)
+  }
+
   private connect(peerId: string, initiator: boolean) {
     const pc = new RTCPeerConnection(RTC_CONFIG)
     this.pcs.set(peerId, pc)
