@@ -57,7 +57,9 @@ let pending: { x: number; y: number; facing: Facing; pose: Pose } | null = null
 export function connectPresence(opts: JoinOptions) {
   if (socket) return
 
-  socket = io(API_URL, { path: SOCKET_PATH, transports: ['websocket'] })
+  // o token vai no handshake → o gateway deriva a org (isolamento de salas por org)
+  const token = localStorage.getItem('kairos_token') || undefined
+  socket = io(API_URL, { path: SOCKET_PATH, transports: ['websocket'], auth: { token } })
 
   // garante desconexão ao fechar/atualizar a aba (evita fantasma)
   window.addEventListener('beforeunload', disconnectPresence, { once: true })

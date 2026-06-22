@@ -10,7 +10,7 @@
     </div>
 
     <div style="display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
-      <span class="k-chip">escolha um mundo</span>
+      <span class="k-chip">{{ orgName ? orgName : 'escolha um mundo' }}</span>
       <h1 :style="{ fontSize: '36px', margin: 0, fontWeight: 600, letterSpacing: '-0.03em' }">
         Olá, <span style="color:var(--accent)">{{ characterStore.name || 'viajante' }}</span>. Em qual mundo você entra?
       </h1>
@@ -79,6 +79,7 @@ import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { interactableObjects, type MapDef } from '@/game/maps'
 import { fetchMaps, fetchOnlineCounts } from '@/services/maps.api'
+import { getMyOrg } from '@/services/org.api'
 import Logo from '@/components/logos/Logo.vue'
 
 const router = useRouter()
@@ -89,6 +90,7 @@ const auth = useAuthStore()
 const maps = ref<MapDef[]>([])
 const error = ref('')
 const counts = ref<Record<string, number>>({})
+const orgName = ref('')
 let countTimer = 0
 
 const previewTiles = Array.from({ length: 10 }, (_, ry) =>
@@ -119,6 +121,7 @@ onMounted(async () => {
   }
   loadCounts()
   countTimer = window.setInterval(loadCounts, 8000)
+  getMyOrg().then((o) => { if (o) orgName.value = o.name })
 })
 
 onUnmounted(() => clearInterval(countTimer))

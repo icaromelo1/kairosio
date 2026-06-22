@@ -64,7 +64,7 @@ async function submit() {
   try {
     const res = await register(email.value, password.value)
     authStore.setToken(res.token)
-    router.push('/character')
+    router.push('/onboarding')
   } catch (e) {
     const code = (e as Error).message
     error.value =

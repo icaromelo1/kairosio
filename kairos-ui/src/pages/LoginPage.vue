@@ -164,6 +164,7 @@ import PixelColumn from '@/components/pixel/PixelColumn.vue'
 import Logo from '@/components/logos/Logo.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { login, guest } from '@/services/auth.api'
+import { getMyOrg } from '@/services/org.api'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -192,7 +193,7 @@ async function handleLogin() {
   try {
     const res = await login(email.value, password.value)
     authStore.setToken(res.token)
-    router.push('/character')
+    router.push((await getMyOrg()) ? '/character' : '/onboarding')
   } catch (e) {
     error.value =
       (e as Error).message === 'invalid-credentials'
@@ -227,11 +228,11 @@ function socialSoon() {
 
 // callback de OAuth: /login?token=... → guarda a sessão e entra
 const route = useRoute()
-onMounted(() => {
+onMounted(async () => {
   const token = route.query.token
   if (typeof token === 'string' && token) {
     authStore.setToken(token)
-    router.push('/character')
+    router.push((await getMyOrg()) ? '/character' : '/onboarding')
   }
 })
 </script>

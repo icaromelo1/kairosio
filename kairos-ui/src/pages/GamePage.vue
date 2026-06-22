@@ -55,6 +55,7 @@
           <button class="k-btn k-btn-ghost" @click="router.push('/character')" style="width:100%;justify-content:flex-start">Editar avatar</button>
           <button v-if="!auth.isGuest" class="k-btn k-btn-ghost" @click="router.push('/editor/new')" style="width:100%;justify-content:flex-start">Criar mundo</button>
           <button v-if="currentMap && currentMap.ownerId === auth.userId" class="k-btn k-btn-ghost" @click="router.push(`/editor/${currentId}`)" style="width:100%;justify-content:flex-start">Editar este mundo</button>
+          <button v-if="!auth.isGuest" class="k-btn k-btn-ghost" @click="router.push('/admin')" style="width:100%;justify-content:flex-start">Administração</button>
           <button class="k-btn k-btn-ghost" @click="router.push('/feedback')" style="width:100%;justify-content:flex-start">Feedback / Reportar bug</button>
           <button class="k-btn k-btn-ghost" @click="leave" style="width:100%;justify-content:flex-start">Sair</button>
         </div>
