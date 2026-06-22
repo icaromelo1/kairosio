@@ -37,7 +37,8 @@ Resumo (detalhe + ordem no PENDENTE.md):
 **Identidade / multi-tenancy**
 - Auth real (login/registro/convidado, guarda de rota); **OAuth Google/GitHub** pronto (env-gated, falta creds).
 - **Multi-tenancy**: organizações/times, escopo de mapas por org, **salas isoladas por org** (auth no socket),
-  onboarding (criar/entrar org via convite), **painel `/admin`** (membros/mundos/config).
+  onboarding (criar/entrar org via convite), **link de convite** (`/join/<code>`, copiável no admin,
+  preservado através de login/registro), **painel `/admin`** (membros/mundos/config).
 - Persistência: personagem + último mundo/posição no banco (retoma ao logar); nome não vaza entre contas.
 
 **Produto / outros**
