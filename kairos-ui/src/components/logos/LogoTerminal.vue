@@ -12,8 +12,6 @@
   }">
     <span :style="{ color: accent }">$</span>
     <span style="color:var(--text);font-weight:600">kairos</span>
-    <span style="color:var(--text-3)">--</span>
-    <span :style="{ color: primary, fontWeight: 600 }">io</span>
     <span :style="{
       width: (fs * 0.5) + 'px',
       height: (fs * 0.9) + 'px',

@@ -143,7 +143,7 @@
 
       <!-- Footer -->
       <div class="login-footer">
-        <span>© Kairos IO 2026</span>
+        <span>© Kairos 2026</span>
         <span class="footer-links">
           <a href="#" @click.prevent>termos</a>
           <span> · </span>
