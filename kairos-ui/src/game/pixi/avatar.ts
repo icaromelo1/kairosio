@@ -12,6 +12,7 @@ export interface AvatarLook {
   skin: string
   topColor: string
   pantsColor: string
+  accessory?: 'none' | 'glasses' | 'hat'
 }
 
 export type Facing = 'down' | 'up' | 'left' | 'right'
@@ -144,6 +145,22 @@ export class AvatarPuppet {
     px(this.backHead, 4, 2, 8, 1, hairDark)
     this.backHead.visible = false
     this.head.addChild(this.backHead)
+    // acessório (óculos / chapéu)
+    if (look.accessory && look.accessory !== 'none') {
+      const acc = new Graphics()
+      if (look.accessory === 'glasses') {
+        px(acc, 5, 4, 2, 2, 0x202028) // lente esq
+        px(acc, 9, 4, 2, 2, 0x202028) // lente dir
+        px(acc, 6, 4, 1, 1, 0x9cd2ff) // brilho
+        px(acc, 10, 4, 1, 1, 0x9cd2ff)
+        px(acc, 7, 4, 2, 1, 0x202028) // ponte
+      } else if (look.accessory === 'hat') {
+        px(acc, 3, 0, 10, 2, 0x2a2a3a) // copa
+        px(acc, 2, 2, 12, 1, 0x44445a) // aba
+        px(acc, 4, 0, 8, 1, 0x55556e) // brilho no topo
+      }
+      this.head.addChild(acc)
+    }
     this.head.pivot.set(8 * UNIT, 8 * UNIT)
     this.head.position.set(8 * UNIT, 8 * UNIT)
 

@@ -46,8 +46,9 @@ export class MapScene {
   /** Container da câmera — move-se ao contrário do alvo pra dar o follow. */
   world: Container
   private floorLayer: Container
-  private objectLayer: Container
-  private avatarLayer: Container
+  private objectLayer: Container // objetos "de chão" (rug/água/caminho/grama) — sempre embaixo
+  private shadowLayer: Container // sombras dos objetos em pé (no chão, não giram)
+  private entityLayer: Container // objetos em pé + avatares, ordenados por Y (profundidade)
   private ghostLayer: Container
   private avatars = new Map<string, AvatarPuppet>()
   // containers dos objetos "em pé" que contra-giram com a câmera
@@ -59,14 +60,16 @@ export class MapScene {
     this.world = new Container()
     this.floorLayer = new Container()
     this.objectLayer = new Container()
-    this.avatarLayer = new Container()
+    this.shadowLayer = new Container()
+    this.entityLayer = new Container()
+    this.entityLayer.sortableChildren = true // ordena por zIndex (= Y da base)
     this.ghostLayer = new Container()
   }
 
   async init(host: HTMLElement, background = '#0d0d14') {
     await this.app.init({ background, resizeTo: host, antialias: false })
     host.appendChild(this.app.canvas)
-    this.world.addChild(this.floorLayer, this.objectLayer, this.ghostLayer, this.avatarLayer)
+    this.world.addChild(this.floorLayer, this.objectLayer, this.shadowLayer, this.entityLayer, this.ghostLayer)
     this.app.stage.addChild(this.world)
   }
 
@@ -74,6 +77,10 @@ export class MapScene {
     this.map = map
     this.floorLayer.removeChildren()
     this.objectLayer.removeChildren()
+    this.shadowLayer.removeChildren()
+    this.entityLayer.removeChildren()
+    // re-adiciona os avatares (ficam na entityLayer junto com objetos em pé)
+    for (const p of this.avatars.values()) this.entityLayer.addChild(p.root)
     this.uprightObjects = []
 
     const pal = map.palette
@@ -136,22 +143,38 @@ export class MapScene {
     // detalhe por tipo (não em objetos customizados)
     if (!o.pixels) this.drawDetail(g, o, { x, y, w, h, cx, cy, r })
 
+    // hint de volume: topo mais claro + base mais escura sugerem "altura" (2.5D)
+    if (UPRIGHT_KINDS.has(o.kind) && !o.pixels && !circle) {
+      g.rect(x, y, w, Math.max(3, h * 0.2)).fill({ color: 0xffffff, alpha: 0.05 })
+      g.rect(x, y + h * 0.74, w, h * 0.26).fill({ color: 0x000000, alpha: 0.2 })
+    }
+
     if (o.glow && o.name) {
       shape(g).stroke({ width: 2, color: GLOW[o.glow], alpha: 0.75 })
     }
     const own = ((o.rotation || 0) * Math.PI) / 180
     const upright = UPRIGHT_KINDS.has(o.kind)
-    if (upright || own) {
+    if (upright) {
+      // sombra elíptica no chão, na base (fica na shadowLayer, não gira/sobe)
+      const sh = new Graphics()
+      sh.ellipse(cx, y + h, w * 0.42, Math.max(4, h * 0.14)).fill({ color: 0x000000, alpha: 0.22 })
+      this.shadowLayer.addChild(sh)
+      // billboard ancorado na BASE; vai pra entityLayer ordenada por Y
       const oc = new Container()
       oc.addChild(g)
-      // billboard ancora na BASE do objeto (meio embaixo); chão gira no centro
-      const baseX = upright ? cx : cx
-      const baseY = upright ? y + h : cy
-      oc.pivot.set(baseX, baseY)
-      oc.position.set(baseX, baseY)
-      oc.rotation = own + (upright ? -this.rotation : 0)
+      oc.pivot.set(cx, y + h)
+      oc.position.set(cx, y + h)
+      oc.rotation = own - this.rotation
+      oc.zIndex = y + h // profundidade pela base
+      this.entityLayer.addChild(oc)
+      this.uprightObjects.push({ c: oc, own })
+    } else if (own) {
+      const oc = new Container()
+      oc.addChild(g)
+      oc.pivot.set(cx, cy)
+      oc.position.set(cx, cy)
+      oc.rotation = own
       this.objectLayer.addChild(oc)
-      if (upright) this.uprightObjects.push({ c: oc, own })
     } else {
       this.objectLayer.addChild(g)
     }
@@ -229,13 +252,13 @@ export class MapScene {
 
   addAvatar(id: string, puppet: AvatarPuppet) {
     this.avatars.set(id, puppet)
-    this.avatarLayer.addChild(puppet.root)
+    this.entityLayer.addChild(puppet.root)
   }
 
   removeAvatar(id: string) {
     const p = this.avatars.get(id)
     if (p) {
-      this.avatarLayer.removeChild(p.root)
+      this.entityLayer.removeChild(p.root)
       p.destroy()
       this.avatars.delete(id)
     }
@@ -248,7 +271,10 @@ export class MapScene {
   /** Posiciona um avatar em coordenadas de TILE (float). */
   placeAvatar(id: string, tileX: number, tileY: number) {
     const p = this.avatars.get(id)
-    if (p) p.root.position.set(tileX * TILE_PX, tileY * TILE_PX)
+    if (p) {
+      p.root.position.set(tileX * TILE_PX, tileY * TILE_PX)
+      p.root.zIndex = tileY * TILE_PX // profundidade (y-sort junto com objetos)
+    }
   }
 
   private zoom = 1
@@ -298,9 +324,9 @@ export class MapScene {
     this.world.position.set(Math.round(cx), Math.round(cy))
   }
 
-  /** Reordena avatares por Y pra dar profundidade (quem está mais embaixo, na frente). */
+  /** Profundidade agora é automática (entityLayer.sortableChildren + zIndex por Y). */
   sortAvatars() {
-    this.avatarLayer.children.sort((a, b) => a.position.y - b.position.y)
+    // no-op: o Pixi ordena objetos+avatares pelo zIndex (base Y) a cada render
   }
 
   /** Modo editor: enquadra o mapa inteiro na viewport (sem câmera que segue). */

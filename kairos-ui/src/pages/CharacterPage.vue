@@ -36,6 +36,7 @@
             :skin="characterStore.skin"
             :topColor="characterStore.topColor"
             :pantsColor="characterStore.pantsColor"
+            :accessory="characterStore.accessory"
           />
         </div>
 
@@ -189,6 +190,17 @@
             />
           </button>
         </div>
+
+        <div class="section-label" style="margin-top: 16px">Acessório</div>
+        <div class="swatches-wrap">
+          <button
+            v-for="a in ACCESSORIES"
+            :key="a.id"
+            class="acc-btn"
+            :class="{ on: characterStore.accessory === a.id }"
+            @click="characterStore.accessory = a.id"
+          >{{ a.label }}</button>
+        </div>
       </div>
 
       <!-- Summary card -->
@@ -262,6 +274,7 @@ async function enterKairos() {
       skin: characterStore.skin,
       topColor: characterStore.topColor,
       pantsColor: characterStore.pantsColor,
+      accessory: characterStore.accessory,
     })
   }
   router.push('/map-select')
@@ -288,18 +301,28 @@ const HAIR_STYLES = [
 const HAIR_COLORS = [
   '#1a1a1a', '#3d2817', '#6b3410', '#a0522d', '#d4a259',
   '#f4d35e', '#c2185b', '#7b1fa2', '#1565c0', '#cfd8dc',
+  '#e84393', '#00b894', '#fd79a8', '#6c5ce7', '#b2bec3',
 ]
 
 const SKIN_TONES = [
-  '#f4d4ba', '#e8b894', '#c98c68', '#9c6b3f', '#6b4226', '#3e2718',
+  '#ffe0bd', '#f4d4ba', '#e8b894', '#d9a066', '#c98c68',
+  '#9c6b3f', '#7a5230', '#6b4226', '#4e3320', '#3e2718',
 ]
 
 const TOP_COLORS = [
   '#7c3aed', '#22d3ee', '#34d399', '#fbbf24', '#f87171', '#e8e8f0',
+  '#ec4899', '#f97316', '#84cc16', '#0ea5e9', '#1e293b', '#a855f7',
 ]
 
 const PANTS_COLORS = [
   '#1f2937', '#3b3b4a', '#4c1d95', '#0f766e', '#7f1d1d', '#92400e',
+  '#0c4a6e', '#365314', '#831843', '#111827', '#5b21b6', '#78350f',
+]
+
+const ACCESSORIES = [
+  { id: 'none' as const, label: 'Nenhum' },
+  { id: 'glasses' as const, label: '🤓 Óculos' },
+  { id: 'hat' as const, label: '🧢 Chapéu' },
 ]
 </script>
 
@@ -550,6 +573,23 @@ const PANTS_COLORS = [
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+}
+
+.acc-btn {
+  appearance: none;
+  border: 1px solid var(--border);
+  background: var(--bg-1);
+  color: var(--text-2);
+  padding: 8px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+}
+.acc-btn.on {
+  border-color: var(--primary-hi);
+  color: var(--text);
+  box-shadow: 0 0 0 2px var(--bg-2), 0 0 0 4px var(--primary-hi);
 }
 
 .swatch-btn {

@@ -218,6 +218,7 @@ const look = computed<AvatarLook>(() => ({
   skin: characterStore.skin,
   topColor: characterStore.topColor,
   pantsColor: characterStore.pantsColor,
+  accessory: characterStore.accessory,
 }))
 const playerName = computed(() => characterStore.name || 'Convidado')
 const currentMap = computed(() => maps.value.find((m) => m.id === currentId.value))

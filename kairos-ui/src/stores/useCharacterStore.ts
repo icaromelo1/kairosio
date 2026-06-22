@@ -7,6 +7,7 @@ const INITIAL_STATE = {
   skin: '#e8b894',
   topColor: '#7c3aed',
   pantsColor: '#1f2937',
+  accessory: 'none' as 'none' | 'glasses' | 'hat',
 }
 
 export const useCharacterStore = defineStore('character', {

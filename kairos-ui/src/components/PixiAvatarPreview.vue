@@ -13,6 +13,7 @@ const props = defineProps<{
   skin: string
   topColor: string
   pantsColor: string
+  accessory?: AvatarLook['accessory']
 }>()
 
 const host = ref<HTMLElement | null>(null)
@@ -26,6 +27,7 @@ function look(): AvatarLook {
     skin: props.skin,
     topColor: props.topColor,
     pantsColor: props.pantsColor,
+    accessory: props.accessory,
   }
 }
 
@@ -57,7 +59,7 @@ onMounted(async () => {
 })
 
 // rebuild ao mudar qualquer parte da customização
-watch(() => [props.hairStyle, props.hairColor, props.skin, props.topColor, props.pantsColor], rebuild)
+watch(() => [props.hairStyle, props.hairColor, props.skin, props.topColor, props.pantsColor, props.accessory], rebuild)
 
 onUnmounted(() => app?.destroy(true))
 </script>
