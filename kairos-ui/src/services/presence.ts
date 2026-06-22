@@ -20,6 +20,7 @@ export interface RemotePlayer {
   y: number
   facing: Facing
   pose: Pose
+  boost?: boolean
 }
 
 export interface AvatarProps {
@@ -53,7 +54,7 @@ export const chatMessages = reactive<ChatMessage[]>([])
 
 let socket: Socket | null = null
 let lastEmit = 0
-let pending: { x: number; y: number; facing: Facing; pose: Pose } | null = null
+let pending: { x: number; y: number; facing: Facing; pose: Pose; boost: boolean } | null = null
 
 export function connectPresence(opts: JoinOptions) {
   if (socket) return
@@ -78,9 +79,9 @@ export function connectPresence(opts: JoinOptions) {
     remotePlayers.set(p.id, p)
   })
 
-  socket.on('playerMoved', ({ id, x, y, facing, pose }: { id: string; x: number; y: number; facing: Facing; pose: Pose }) => {
+  socket.on('playerMoved', ({ id, x, y, facing, pose, boost }: { id: string; x: number; y: number; facing: Facing; pose: Pose; boost?: boolean }) => {
     const p = remotePlayers.get(id)
-    if (p) { p.x = x; p.y = y; if (facing) p.facing = facing; if (pose) p.pose = pose }
+    if (p) { p.x = x; p.y = y; if (facing) p.facing = facing; if (pose) p.pose = pose; p.boost = !!boost }
   })
 
   socket.on('playerLeft', ({ id }: { id: string }) => {
@@ -118,16 +119,16 @@ export function setRtcHandler(cb: ((from: string, signal: unknown) => void) | nu
   rtcHandler = cb
 }
 
-export function emitMove(x: number, y: number, facing: Facing, pose: Pose) {
+export function emitMove(x: number, y: number, facing: Facing, pose: Pose, boost = false) {
   if (!socket) return
   const now = Date.now()
   if (now - lastEmit >= MOVE_INTERVAL) {
     lastEmit = now
-    socket.emit('move', { x, y, facing, pose })
+    socket.emit('move', { x, y, facing, pose, boost })
     pending = null
   } else {
     // garante que o último estado seja enviado mesmo parando de mexer
-    pending = { x, y, facing, pose }
+    pending = { x, y, facing, pose, boost }
     setTimeout(flushPending, MOVE_INTERVAL)
   }
 }

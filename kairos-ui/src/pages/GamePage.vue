@@ -252,7 +252,7 @@ async function toggleVoice() {
   voiceOn.value = ok
   if (!ok) error.value = 'Microfone bloqueado. Permita o acesso para usar a voz.'
 }
-const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' | 'wave' | 'sit' }
+const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' | 'wave' | 'sit', boost: false }
 // ids dos avatares remotos presentes na cena
 const peerIds = new Set<string>()
 
@@ -435,9 +435,11 @@ onMounted(async () => {
 
     // ---- movimento local (com colisão) ----
     let dx = 0, dy = 0
+    // boost (M2): Shift acelera ~1.8x — carrinho aparece sob o boneco enquanto anda
+    const boosting = keys.has('shift')
     // Espaço (modo olhar/pan) congela o personagem — só a câmera se move
     if (!gameStore.isModalOpen && !panMode.value) {
-      const sp = 5 * dt * (onWater(map, pos.x, pos.y) ? 0.5 : 1)
+      const sp = 5 * dt * (onWater(map, pos.x, pos.y) ? 0.5 : 1) * (boosting ? 1.8 : 1)
       if (keys.has('w') || keys.has('arrowup')) dy -= sp
       if (keys.has('s') || keys.has('arrowdown')) dy += sp
       if (keys.has('a') || keys.has('arrowleft')) dx -= sp
@@ -452,13 +454,15 @@ onMounted(async () => {
       if (!isSolid(map, Math.floor(nx), Math.floor(pos.y)) && !peerBlocks(nx, pos.y, pos.x, pos.y)) pos.x = nx
       if (!isSolid(map, Math.floor(pos.x), Math.floor(ny)) && !peerBlocks(pos.x, ny, pos.x, pos.y)) pos.y = ny
     }
+    const onCart = boosting && moving
     const emoting = Date.now() < emoteUntil
     const pose: 'idle' | 'walk' | 'dance' | 'wave' | 'sit' = sitting ? 'sit' : moving ? 'walk' : emoting ? 'wave' : dancing ? 'dance' : 'idle'
-    // emite estado quando se move ou quando pose/direção mudam (dança parado conta)
-    if (moving || pose !== lastSent.pose || facing !== lastSent.facing) {
-      emitMove(pos.x, pos.y, facing, pose)
+    // emite estado quando se move ou quando pose/direção/boost mudam (dança parado conta)
+    if (moving || pose !== lastSent.pose || facing !== lastSent.facing || onCart !== lastSent.boost) {
+      emitMove(pos.x, pos.y, facing, pose, onCart)
       lastSent.pose = pose
       lastSent.facing = facing
+      lastSent.boost = onCart
     }
     detectZone(map)
 
@@ -466,6 +470,7 @@ onMounted(async () => {
     if (me) {
       me.setFacing(facing)
       me.setPose(pose)
+      me.setBoost(onCart)
       me.update(dt)
     }
     scene.placeAvatar('me', pos.x, pos.y)
@@ -508,6 +513,7 @@ function syncRemotes(dt: number, map: MapDef) {
     // pose e direção agora vêm sincronizadas da rede
     p.setFacing(peer.facing || 'down')
     p.setPose(peer.pose || 'idle')
+    p.setBoost(!!peer.boost)
     p.update(dt)
     scene.placeAvatar(peer.id, peer.x, peer.y)
   }

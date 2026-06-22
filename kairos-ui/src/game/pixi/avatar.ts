@@ -206,6 +206,29 @@ export class AvatarPuppet {
     this.pose = pose
   }
 
+  private cart?: Container
+  /** Mostra/esconde um carrinho sob o avatar durante o boost (Shift). */
+  setBoost(on: boolean) {
+    if (on && !this.cart) {
+      const c = new Container()
+      const g = new Graphics()
+      // plataforma de madeira sob os pés
+      g.rect(2 * UNIT, 18 * UNIT, 12 * UNIT, 2.4 * UNIT).fill({ color: 0x6b4a2a })
+      g.rect(2 * UNIT, 18 * UNIT, 12 * UNIT, 0.8 * UNIT).fill({ color: 0x8a6a3a })
+      g.rect(2 * UNIT, 20 * UNIT, 12 * UNIT, 0.4 * UNIT).fill({ color: 0x3a2a18 })
+      // rodas
+      for (const wx of [4.5, 11.5]) {
+        g.circle(wx * UNIT, 21 * UNIT, 1.7 * UNIT).fill({ color: 0x14141a })
+        g.circle(wx * UNIT, 21 * UNIT, 0.7 * UNIT).fill({ color: 0x55556e })
+      }
+      c.addChild(g)
+      this.cart = c
+      // acima da sombra (índice 0), atrás das pernas
+      this.root.addChildAt(c, 1)
+    }
+    if (this.cart) this.cart.visible = on
+  }
+
   setFacing(facing: Facing) {
     if (facing === this.facing) return
     this.facing = facing
