@@ -5,14 +5,14 @@
 
 ---
 
-## 🐞 0. Bugs + UX/movimento (novo, 22/06) — *prioridade*
+## 🐞 0. Bugs + UX/movimento (novo, 22/06) — ✅ *lote concluído 22/06*
 > Detalhe + abordagem: `docs/PLANO-bugs-ux-movimento.md`.
-- [ ] **B1** Botões ficam focados após clique → Enter reaciona (blur após clique). *quick-win*
-- [ ] **B2** Selecionar o mundo atual cria outra sessão e fica sozinho (guard `id === atual`). *quick-win*
-- [ ] **B3** Câmera (decidido): **remover rotação** + **zoom centralizado no personagem** + **pan com Espaço+clique** (arrastar a vista). *médio*
-- [ ] **B4** Sem scroll — auditar TODAS as telas com `height` fixo e deixar scrollável. *médio*
-- [ ] **M1** Virar de **lado** (perfil) no A/D, não só de costas no W. *médio*
-- [ ] **M2** **Boost no Shift** (acelerar) + carrinho estilo Gather. *médio*
+- [x] **B1** Botões ficam focados após clique → Enter reaciona. FEITO 22/06 (blur global em `main.ts`).
+- [x] **B2** Selecionar o mundo atual cria outra sessão. FEITO 22/06 (guard `id === currentId` no `selectMap`).
+- [x] **B3** Câmera: rotação removida + zoom centralizado no personagem + pan com Espaço+arrastar. FEITO 22/06.
+- [x] **B4** Scroll — login e personagem responsivos/scrolláveis (MapSelect/Register já ok). FEITO 22/06.
+- [x] **M1** Virar de **lado** (perfil) no A/D. FEITO 22/06 (rosto de perfil no `avatar.ts`).
+- [x] **M2** **Boost no Shift** + carrinho sob o avatar (sincronizado na rede). FEITO 22/06.
 
 ---
 
@@ -54,10 +54,9 @@
 ---
 
 ## Ordem sugerida
-**Agora (bugs/UX/movimento):** `B1 botão focado` → `B2 selecionar mundo atual` → `B4 scroll`
-→ `B3 câmera (sem rotação + zoom centrado + pan)` → `M2 boost Shift` → `M1 perfil A/D`.
+**Bugs/UX/movimento:** ✅ concluído (B1, B2, B4, B3, M2, M1 — 22/06).
 
-**Depois (features):** `Estações funcionais` → `Vídeo + indicador de fala` → `Editor undo/redo`
+**Agora (features):** `Estações funcionais` → `Vídeo + indicador de fala` → `Editor undo/redo`
 → `Objetos com volume real` → `Performance`. → `Spritesheets do avatar` quando decidir a arte.
 
 **Bloqueado em você:** OAuth (criar apps + creds).

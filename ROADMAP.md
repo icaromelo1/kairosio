@@ -10,8 +10,6 @@ specs detalhados em `docs/PLANO-*.md`.
 ## 🔜 O QUE FALTA → `docs/PENDENTE.md`
 
 Resumo (detalhe + ordem no PENDENTE.md):
-0. **🐞 Bugs + UX/movimento (novo, prioridade)** — botão focado/Enter, selecionar mundo atual,
-   rotação 2.5D ruim, scroll em telas de height fixo, perfil no A/D, boost no Shift. — `PLANO-bugs-ux-movimento.md`
 1. **Arte 2.5D** — y-sort+sombras+customização ✅; falta objetos com volume "real" + spritesheets do avatar. — `PLANO-arte-2.5d.md`
 2. **Editor**: undo/redo + validações; poltrona sentável.
 3. **Estações funcionais**: ligar lousa/jukebox/mesa/estante a ferramentas reais.
@@ -31,7 +29,7 @@ Resumo (detalhe + ordem no PENDENTE.md):
 - **Voz por proximidade (WebRTC áudio)** opt-in, mic com rótulo claro + reconectar.
 
 **Mundos / editor**
-- Motor de mapa no PixiJS (render por dados, câmera que segue, **zoom + rotação 90°**, billboards na rotação).
+- Motor de mapa no PixiJS (render por dados, câmera que segue, **zoom centrado no personagem + pan com Espaço**, billboards/y-sort/sombras).
 - Mapas no banco (`GameMap`), 3 mundos-base como **templates**.
 - **Editor completo**: criar/editar/apagar mundo, paleta, colocar/remover, redimensionar, spawn,
   ghost preview, rotacionar objetos, **criador de objeto pixel**, toggle de colisão.
@@ -48,6 +46,12 @@ Resumo (detalhe + ordem no PENDENTE.md):
 - **Contador de online por mundo**; controles touch (mobile); presença robusta (ping/beforeunload).
 - Segurança: authz por dono no map, authz admin no feedback-status, validação DTO, rate limiting.
 - Suite **E2E Playwright** (smoke). Avatar com cara mais fofa (1ª passada).
+
+**Bugs/UX/movimento (lote 22/06)**
+- Blur de botão após clique (Enter não reativa); selecionar o mundo atual virou no-op.
+- Câmera: rotação removida, zoom centrado no personagem, pan com Espaço+arrastar.
+- Scroll liberado em telas de height fixo (login/personagem responsivos).
+- Avatar de **perfil** ao andar de lado (A/D); **boost no Shift** com carrinho (sincronizado).
 
 ---
 
