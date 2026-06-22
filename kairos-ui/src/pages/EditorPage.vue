@@ -34,6 +34,25 @@
         >{{ p.label }}</button>
       </div>
 
+      <button class="ed-tool" style="align-self:flex-start;margin-top:8px" @click="showPixel = !showPixel">{{ showPixel ? '▾' : '▸' }} Criar objeto próprio</button>
+      <div v-if="showPixel" style="background:#1a1a26;border:1px solid #262636;padding:8px;border-radius:6px">
+        <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px">
+          <button v-for="col in PIXEL_COLORS" :key="col || 'none'" @click="pixelColor = col"
+            :style="{ width: '18px', height: '18px', borderRadius: '3px', cursor: 'pointer', border: pixelColor === col ? '2px solid #fff' : '1px solid #444', background: col || '#0d0d14' }">{{ col ? '' : '⌫' }}</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(8,15px);gap:1px;width:fit-content">
+          <template v-for="(row, r) in pixelGrid">
+            <div v-for="(cell, c) in row" :key="r + '-' + c"
+              @pointerdown="paintCell(r, c)" @pointerenter="(e: any) => e.buttons && paintCell(r, c)"
+              :style="{ width: '15px', height: '15px', background: cell || '#1d1d2a', cursor: 'crosshair' }"></div>
+          </template>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button class="ed-tool" @click="useCustom">Usar como pincel</button>
+          <button class="ed-tool" @click="clearPixels">Limpar</button>
+        </div>
+      </div>
+
       <div class="ed-spacer"></div>
       <p v-if="!canEdit" class="ed-note">Mundo oficial ou de outro usuário — somente leitura.</p>
       <button class="ed-save" :disabled="!canEdit || saving" @click="save">{{ saving ? 'Salvando…' : isNew ? 'Criar mundo' : 'Salvar' }}</button>
@@ -108,6 +127,23 @@ const placeSolid = ref<boolean>(!!PALETTE[0].solid)
 const placeRotation = ref<number>(0)
 function rotate() { placeRotation.value = (placeRotation.value + 90) % 360 }
 
+// --- criador de objeto próprio (pixel + paleta) ---
+const PIXEL_N = 8
+const PIXEL_COLORS = ['#000000', '#ffffff', '#f87171', '#fbbf24', '#34d399', '#22d3ee', '#7c3aed', '#fb923c', '#8b5a2b', null]
+const pixelColor = ref<string | null>('#7c3aed')
+const showPixel = ref(false)
+const pixelGrid = reactive<(string | null)[][]>(
+  Array.from({ length: PIXEL_N }, () => Array.from({ length: PIXEL_N }, () => null as string | null)),
+)
+let customPixels: (string | null)[][] | null = null
+function paintCell(r: number, c: number) { pixelGrid[r][c] = pixelColor.value }
+function clearPixels() { for (let r = 0; r < PIXEL_N; r++) for (let c = 0; c < PIXEL_N; c++) pixelGrid[r][c] = null }
+function useCustom() {
+  customPixels = pixelGrid.map((row) => row.slice())
+  current.value = { kind: 'custom', label: 'Meu objeto', w: 2, h: 2, solid: placeSolid.value }
+  tool.value = 'place'
+}
+
 const canEdit = computed(() => isNew.value || (!!map.ownerId && map.ownerId === auth.userId))
 
 let scene: MapScene | null = null
@@ -177,6 +213,7 @@ function onClick(e: PointerEvent) {
     solid: placeSolid.value, shape: p.shape, color: p.color, glow: p.glow, name: p.name, action: p.action,
     rotation: placeRotation.value || undefined,
   }
+  if (p.kind === 'custom' && customPixels) obj.pixels = customPixels
   map.objects.push(obj)
   render()
 }

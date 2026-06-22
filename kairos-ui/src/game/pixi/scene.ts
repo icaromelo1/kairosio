@@ -103,7 +103,19 @@ export class MapScene {
     const shape = (gg: Graphics) => (circle ? gg.circle(cx, cy, r) : gg.rect(x, y, w, h))
 
     // base
-    if (o.color) {
+    if (o.pixels && o.pixels.length) {
+      // objeto customizado: desenha a matriz de pixels escalada
+      const rows = o.pixels.length
+      const cols = o.pixels[0]?.length || 1
+      const cw = w / cols
+      const ch = h / rows
+      for (let ry = 0; ry < rows; ry++) {
+        for (let cc = 0; cc < cols; cc++) {
+          const col = o.pixels[ry][cc]
+          if (col) g.rect(x + cc * cw, y + ry * ch, cw + 0.5, ch + 0.5).fill(col)
+        }
+      }
+    } else if (o.color) {
       shape(g).fill(o.color)
     } else {
       const st = OBJECT_STYLE[o.kind] ?? DEFAULT_STYLE
@@ -111,8 +123,8 @@ export class MapScene {
       if (!circle) g.rect(x, y, w, Math.max(3, h * 0.18)).fill({ color: 0xffffff, alpha: 0.05 })
     }
 
-    // detalhe por tipo — dá caráter (tronco, água, pernas, livros, etc.)
-    this.drawDetail(g, o, { x, y, w, h, cx, cy, r })
+    // detalhe por tipo (não em objetos customizados)
+    if (!o.pixels) this.drawDetail(g, o, { x, y, w, h, cx, cy, r })
 
     if (o.glow && o.name) {
       shape(g).stroke({ width: 2, color: GLOW[o.glow], alpha: 0.75 })
@@ -225,22 +237,41 @@ export class MapScene {
   }
 
   private zoom = 1
+  private rotation = 0 // radianos (0/90/180/270)
 
-  /** Ajusta o zoom (clamp). 1 = normal. */
   setZoom(z: number) {
     this.zoom = Math.max(0.6, Math.min(2, z))
   }
   getZoom() {
     return this.zoom
   }
+  /** Gira a câmera em passos de 90°. */
+  rotateBy(deg: number) {
+    this.rotation = ((this.rotation + (deg * Math.PI) / 180) % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2)
+  }
+  getRotation() {
+    return this.rotation
+  }
 
-  /** Centraliza a câmera no alvo (tiles), respeitando o zoom + clamp nas bordas. */
+  /** Centraliza a câmera no alvo (tiles), respeitando zoom e rotação. */
   follow(tileX: number, tileY: number) {
     if (!this.map) return
     const z = this.zoom
-    this.world.scale.set(z)
     const vw = this.app.renderer.width
     const vh = this.app.renderer.height
+    this.world.scale.set(z)
+    if (this.rotation !== 0) {
+      // rotação: gira em torno do avatar, sem clamp (centraliza nele)
+      this.world.rotation = this.rotation
+      this.world.pivot.set(tileX * TILE_PX, tileY * TILE_PX)
+      this.world.position.set(vw / 2, vh / 2)
+      // avatares contra-giram pra ficar em pé
+      for (const p of this.avatars.values()) p.root.rotation = -this.rotation
+      return
+    }
+    this.world.rotation = 0
+    this.world.pivot.set(0, 0)
+    for (const p of this.avatars.values()) p.root.rotation = 0
     const worldW = this.map.width * TILE_PX * z
     const worldH = this.map.height * TILE_PX * z
     let cx = vw / 2 - tileX * TILE_PX * z
