@@ -18,12 +18,14 @@
       <div class="ed-tools">
         <button :class="['ed-tool', tool === 'spawn' && 'on']" @click="tool = 'spawn'">⌖ Spawn</button>
         <button :class="['ed-tool', tool === 'erase' && 'on']" @click="tool = 'erase'">⌫ Apagar</button>
+        <button :class="['ed-tool', tool === 'toggle' && 'on']" @click="tool = 'toggle'">⊟ Colisão</button>
       </div>
 
       <div class="ed-label">Objetos</div>
       <label style="display:flex;gap:6px;align-items:center;font-size:12px;color:#c8c8d8;cursor:pointer">
         <input type="checkbox" v-model="placeSolid" /> sólido (colisão)
       </label>
+      <button class="ed-tool" style="align-self:flex-start" @click="rotate">↻ Girar: {{ placeRotation }}°</button>
       <div class="ed-palette">
         <button
           v-for="p in PALETTE" :key="p.kind + p.label"
@@ -40,7 +42,7 @@
     </aside>
 
     <!-- Stage -->
-    <div class="ed-stage" ref="host" @pointerdown="onClick"></div>
+    <div class="ed-stage" ref="host" @pointerdown="onClick" @pointermove="onMove" @pointerleave="scene?.clearGhost()"></div>
   </div>
 </template>
 
@@ -59,7 +61,7 @@ const auth = useAuthStore()
 const host = ref<HTMLElement | null>(null)
 const saving = ref(false)
 const msg = ref('')
-const tool = ref<'place' | 'erase' | 'spawn'>('place')
+const tool = ref<'place' | 'erase' | 'spawn' | 'toggle'>('place')
 
 const isNew = computed(() => route.params.id === 'new')
 
@@ -96,9 +98,15 @@ const PALETTE: PaletteItem[] = [
   { kind: 'path', label: 'Caminho', w: 3, h: 1, color: 'rgba(120,110,90,0.5)' },
   { kind: 'lamp', label: 'Poste', w: 1, h: 1, color: 'rgba(251,191,36,0.85)' },
   { kind: 'column', label: 'Coluna', w: 1, h: 2, color: 'rgba(251,191,36,0.22)', solid: true },
+  { kind: 'chair', label: 'Cadeira', w: 1, h: 1, solid: true, name: 'Cadeira', action: 'Sentar' },
+  { kind: 'sofa', label: 'Sofá', w: 3, h: 1, solid: true, name: 'Sofá', action: 'Sentar' },
+  { kind: 'grass', label: 'Grama', w: 3, h: 2, color: 'rgba(52,211,153,0.25)' },
+  { kind: 'panel', label: 'Painel', w: 2, h: 1, color: 'rgba(34,211,238,0.18)' },
 ]
 const current = ref<PaletteItem>(PALETTE[0])
 const placeSolid = ref<boolean>(!!PALETTE[0].solid)
+const placeRotation = ref<number>(0)
+function rotate() { placeRotation.value = (placeRotation.value + 90) % 360 }
 
 const canEdit = computed(() => isNew.value || (!!map.ownerId && map.ownerId === auth.userId))
 
@@ -116,6 +124,14 @@ function render() {
   map.height = Math.max(8, Math.min(120, map.height))
   scene.setMap(map)
   scene.fit()
+}
+
+function onMove(e: PointerEvent) {
+  if (!scene || !canEdit.value || tool.value !== 'place') { scene?.clearGhost(); return }
+  const { x, y } = scene.screenToTile(e.clientX, e.clientY)
+  if (x < 1 || y < 1 || x > map.width - 2 || y > map.height - 2) { scene.clearGhost(); return }
+  const p = current.value
+  scene.showGhost(x, y, Math.min(p.w, map.width - 1 - x), Math.min(p.h, map.height - 1 - y), p.color || 0x7c3aed, p.shape === 'circle')
 }
 
 function onClick(e: PointerEvent) {
@@ -139,6 +155,18 @@ function onClick(e: PointerEvent) {
     }
     return
   }
+  if (tool.value === 'toggle') {
+    // alterna a colisão do objeto no topo do tile
+    for (let i = map.objects.length - 1; i >= 0; i--) {
+      const o = map.objects[i]
+      if (x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h) {
+        o.solid = !o.solid
+        render()
+        return
+      }
+    }
+    return
+  }
   // place
   const p = current.value
   const w = Math.min(p.w, map.width - 1 - x)
@@ -147,6 +175,7 @@ function onClick(e: PointerEvent) {
     id: `${p.kind}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
     kind: p.kind, x, y, w: Math.max(1, w), h: Math.max(1, h),
     solid: placeSolid.value, shape: p.shape, color: p.color, glow: p.glow, name: p.name, action: p.action,
+    rotation: placeRotation.value || undefined,
   }
   map.objects.push(obj)
   render()
