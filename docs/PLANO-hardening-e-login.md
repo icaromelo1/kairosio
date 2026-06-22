@@ -51,7 +51,25 @@ nome/avatar da conta anterior até o usuário mudar.
 
 ---
 
+## 4. Voz / microfone (WebRTC) — feedback (instável + pouco claro)
+
+**Problemas relatados:** às vezes precisa **desconectar/reconectar o mic** pra funcionar; e
+o controle do microfone **não está claro** (tem o botão embaixo, mas o usuário não percebe).
+
+**A fazer:**
+- [ ] **Clareza do controle**: botão de mic maior/rotulado ("Falar por voz"), com estado
+      visível (ligado/desligado), e uma dica curta na 1ª vez ("aproxime-se de alguém pra falar").
+- [ ] **Confiabilidade**: hoje só o de id "menor" inicia a oferta (anti-glare) e a conexão é
+      tentada no `sync` por frame. Investigar: (a) renegociar quando o OUTRO liga o mic depois
+      (hoje não há gatilho); (b) reconectar peer em `iceConnectionState=failed`; (c) garantir
+      `getUserMedia` antes de tentar conectar. Possível: ao ligar o mic, forçar re-sync de
+      todos os peers próximos (drop+reconnect) em vez de esperar o frame.
+- [ ] Indicador de "quem está falando" (nível de áudio) — além do 🔊 de conectado.
+
+---
+
 ## Critérios de aceite
 - Nenhum input aceita texto além do limite; nada renderizado via `v-html`.
 - Trocar de conta no mesmo navegador não vaza nome/avatar da conta anterior.
 - (quando configurado) login social funciona e cai logado no personagem.
+- Voz: o usuário entende como ligar o mic; conexão estabelece sem precisar reconectar manual.

@@ -60,20 +60,30 @@ entradas pra **editar mundo próprio**, scroll do map-select, limite no nome do 
 - **Wave 5:** T8 front presença por org + map-select mostra org · T11 front painel `/admin`.
 - Caminho crítico: `T1 → T2 → T5 → T8`. (2 tasks simples via dispatch+review: T6, T9.)
 
-### 📨 Feedbacks dos usuários (mapeados do canal `/feedback`, 21/06)
+### 📨 Feedbacks dos usuários (canal `/feedback`)
 
-> Vindos de uma conta real — o canal de feedback está funcionando.
+> O canal está funcionando (feedbacks reais chegando).
 
-**1. "Quero ter dinheiro"** (comprar um carro e usar no lago que criou)
-- ❌ **RECUSADO / não será implementado.** Economia/gamificação (moeda, loja, veículos) está
-  fora do escopo do Kairos. Mantido aqui só como registro da decisão.
+**✅ Já resolvidos (batch 22/06):**
+- Personagem do tamanho de árvore → **proporção ajustada** (avatar menor).
+- Olhar pra cima ficava estranho (sem cabelo atrás) → **mostra a nuca** agora.
+- Travava dentro de outro personagem → **colisão anti-stuck** (sempre dá pra escapar).
+- Faltava excluir mundo → **botão "Apagar mundo"** no editor (+ órfãos de convidado já limpos).
+- Marcar colisão por objeto → **toggle "sólido"** no editor.
+- Sem scroll na tela de feedback → **scroll na lista**.
 
-**2. "Mais opções de criação de mundo"** (muito acionável — melhora o editor, Etapa 4/5):
-- [ ] **Criador de objeto próprio**: editor de pixel + paleta de cores pra o usuário
-      desenhar o próprio objeto. — *grande*
-- [ ] **Marcar se o objeto tem colisão** (toggle por objeto no editor). — *quick-win*
-- [ ] **Rotacionar objetos** no editor. — *médio*
-- [ ] **Mais objetos** na paleta. — *quick-win*
+**🗺️ Mapeados (a fazer):**
+- [ ] **Interações por objeto** (sentar em cadeira/sofá/poltrona; água com efeito/bloqueio).
+      → `docs/PLANO-interacoes-objetos.md`. *épico*
+- [ ] **Ghost/preview transparente** do objeto antes de soltar no editor. — *médio* (PLANO-editor)
+- [ ] **Criador de objeto próprio** (pixel + paleta + colisão). — *grande* (PLANO-editor)
+- [ ] **Rotacionar objetos** no editor. — *médio* (PLANO-editor)
+- [ ] **Mais objetos** na paleta. — *quick-win* (PLANO-editor)
+- [ ] **Voz (mic)**: instabilidade (às vezes precisa desconectar/reconectar) + deixar o
+      controle do microfone **muito mais claro/visível**. → `docs/PLANO-hardening-e-login.md` (seção voz).
+- [ ] Cabeça do boneco "mais fofa" (ajuste visual). — *pequeno/subjetivo*
+
+**❌ Recusado:** "Quero ter dinheiro" (economia/gamificação — fora de escopo).
 
 ### ❌ Economia / gamificação — RECUSADO (não será implementado)
 > Moeda, loja, veículos, itens compráveis. Decisão (21/06): **fora de escopo.** Registrado

@@ -7,13 +7,14 @@
 
 ---
 
-## 1. Toggle de colisão por objeto — **quick-win**
-- No editor, ao selecionar um item da paleta (ou um objeto já colocado), um checkbox
-  **"sólido (colisão)"**. Hoje cada item da paleta tem `solid` fixo no `PALETTE` do
-  `EditorPage`; passar a permitir override por objeto.
-- Schema já tem `MapObject.solid` — é só expor no editor e gravar.
-- Tarefa: estado `solidSelecionado` + aplicar ao colocar; ao clicar num objeto existente,
-  poder alternar.
+## 1. Toggle de colisão por objeto — ✅ **FEITO (22/06)**
+- Checkbox "sólido (colisão)" no editor; sugere o padrão do objeto e o usuário altera.
+  Aplicado ao colocar. (falta: alternar a colisão de um objeto JÁ colocado — clicar nele.)
+
+## 1b. Ghost / preview transparente ao colocar — **médio** (feedback)
+- Mostrar o objeto **translúcido no tile sob o cursor** antes de clicar (evita errar o pixel).
+- `scene.ts`: camada `ghostLayer` + `showGhost(tileX,tileY,obj)` / `clearGhost()`.
+- `EditorPage`: `@pointermove` no stage → `screenToTile` → `showGhost`; `@pointerleave` → limpar.
 
 ## 2. Mais objetos na paleta — **quick-win**
 - Adicionar kinds que faltam ao `PALETTE` (já existem no `ObjectKind`/render): `grass`,
