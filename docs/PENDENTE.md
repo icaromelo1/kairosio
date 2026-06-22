@@ -53,6 +53,11 @@
 
 ---
 
-## Ordem sugerida (por impacto)
-`Arte 2.5D (y-sort+sombras)` → `Estações funcionais` → `Vídeo + indicador de fala` →
-`Editor undo/redo` → `Performance`. OAuth você destrava quando criar os apps.
+## Ordem sugerida
+**Agora (bugs/UX/movimento):** `B1 botão focado` → `B2 selecionar mundo atual` → `B4 scroll`
+→ `B3 câmera (sem rotação + zoom centrado + pan)` → `M2 boost Shift` → `M1 perfil A/D`.
+
+**Depois (features):** `Estações funcionais` → `Vídeo + indicador de fala` → `Editor undo/redo`
+→ `Objetos com volume real` → `Performance`. → `Spritesheets do avatar` quando decidir a arte.
+
+**Bloqueado em você:** OAuth (criar apps + creds).
