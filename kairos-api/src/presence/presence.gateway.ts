@@ -10,10 +10,28 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Server, Socket } from 'socket.io'
 import { User } from '../user/user.entity'
+import { JukeboxService } from '../jukebox/jukebox.service'
 
 type MapId = string
 type Facing = 'down' | 'up' | 'left' | 'right'
 type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit'
+type JukeboxMode = 'proximity' | 'room'
+
+interface JukeboxQueueItem {
+  trackId: string
+  youtubeId: string
+  title: string
+  durationSec: number
+  addedByName: string
+}
+
+interface JukeboxRoomState {
+  mode: JukeboxMode
+  queue: JukeboxQueueItem[]
+  current: JukeboxQueueItem | null
+  startedAt: number | null
+  timer: ReturnType<typeof setTimeout> | null
+}
 
 interface Player {
   id: string
@@ -47,10 +65,13 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   private readonly players = new Map<string, Player>()
   // org de cada socket, derivada do JWT no handshake (fonte de verdade do isolamento)
   private readonly socketOrg = new Map<string, string | null>()
+  // estado do jukebox por sala (org:map) — fila/faixa atual/modo, em memória
+  private readonly jukebox = new Map<string, JukeboxRoomState>()
 
   constructor(
     private readonly jwt: JwtService,
     @InjectRepository(User) private readonly users: Repository<User>,
+    private readonly jukeboxService: JukeboxService,
   ) {}
 
   // sala = org + mapa (templates de orgs diferentes não se misturam)
@@ -103,6 +124,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     socket.join(room)
     socket.emit('players', this.peersInRoom(org, player.map, socket.id))
     socket.to(room).emit('playerJoined', player)
+    socket.emit('jukeboxState', this.jukeboxSnapshot(room))
   }
 
   @SubscribeMessage('move')
@@ -159,6 +181,82 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     socket.join(room)
     socket.emit('players', this.peersInRoom(player.org, player.map, socket.id))
     socket.to(room).emit('playerJoined', player)
+    socket.emit('jukeboxState', this.jukeboxSnapshot(room))
+  }
+
+  // ---- jukebox: fila por sala (org:map), sincronizada por startedAt ----
+
+  @SubscribeMessage('jukeboxAdd')
+  async handleJukeboxAdd(socket: Socket, payload: { input: string }) {
+    const player = this.players.get(socket.id)
+    if (!player) return
+    const room = this.room(player.org, player.map)
+    try {
+      const track = await this.jukeboxService.resolveTrack(payload?.input, player.id, player.name)
+      const item: JukeboxQueueItem = {
+        trackId: track.id,
+        youtubeId: track.youtubeId,
+        title: track.title,
+        durationSec: track.durationSec,
+        addedByName: player.name,
+      }
+      const state = this.jukeboxStateFor(room)
+      state.queue.push(item)
+      if (!state.current) this.advanceJukebox(room)
+      else this.broadcastJukebox(room)
+    } catch (e) {
+      socket.emit('jukeboxError', { message: (e as Error).message || 'Falha ao adicionar música' })
+    }
+  }
+
+  @SubscribeMessage('jukeboxSkip')
+  handleJukeboxSkip(socket: Socket) {
+    const player = this.players.get(socket.id)
+    if (!player) return
+    this.advanceJukebox(this.room(player.org, player.map))
+  }
+
+  @SubscribeMessage('jukeboxSetMode')
+  handleJukeboxSetMode(socket: Socket, payload: { mode: JukeboxMode }) {
+    const player = this.players.get(socket.id)
+    if (!player || (payload?.mode !== 'proximity' && payload?.mode !== 'room')) return
+    const room = this.room(player.org, player.map)
+    this.jukeboxStateFor(room).mode = payload.mode
+    this.broadcastJukebox(room)
+  }
+
+  private jukeboxStateFor(room: string): JukeboxRoomState {
+    let state = this.jukebox.get(room)
+    if (!state) {
+      state = { mode: 'proximity', queue: [], current: null, startedAt: null, timer: null }
+      this.jukebox.set(room, state)
+    }
+    return state
+  }
+
+  private jukeboxSnapshot(room: string) {
+    const s = this.jukeboxStateFor(room)
+    return { mode: s.mode, queue: s.queue, current: s.current, startedAt: s.startedAt }
+  }
+
+  private broadcastJukebox(room: string) {
+    this.server.to(room).emit('jukeboxState', this.jukeboxSnapshot(room))
+  }
+
+  // toca a próxima da fila (chamado ao terminar a atual, pular, ou ao chegar a 1ª música)
+  private advanceJukebox(room: string) {
+    const state = this.jukeboxStateFor(room)
+    if (state.timer) {
+      clearTimeout(state.timer)
+      state.timer = null
+    }
+    state.current = state.queue.shift() || null
+    state.startedAt = state.current ? Date.now() : null
+    this.broadcastJukebox(room)
+    if (state.current) {
+      const ms = Math.max(5000, state.current.durationSec * 1000)
+      state.timer = setTimeout(() => this.advanceJukebox(room), ms)
+    }
   }
 
   // { mapId: qtd } dentro de uma org (consumido pelo GET /presence/counts)

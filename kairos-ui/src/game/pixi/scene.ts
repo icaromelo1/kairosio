@@ -2,7 +2,7 @@
 // objetos) a partir do schema de dados e hospeda os avatares numa camada com
 // câmera que segue um alvo. Reutilizável tanto no preview /lab quanto no /game.
 
-import { Application, Container, Graphics } from 'pixi.js'
+import { Application, Container, Graphics, Text } from 'pixi.js'
 import type { MapDef, MapObject } from '../maps'
 import type { AvatarPuppet } from './avatar'
 
@@ -52,6 +52,7 @@ export class MapScene {
   private entityLayer: Container // objetos em pé + avatares, ordenados por Y (profundidade)
   private ghostLayer: Container
   private avatars = new Map<string, AvatarPuppet>()
+  private jukeboxIcons: Container[] = [] // notas ♪ sobre objetos jukebox — visíveis só enquanto toca
   map: MapDef | null = null
 
   constructor() {
@@ -78,6 +79,7 @@ export class MapScene {
     this.objectLayer.removeChildren()
     this.shadowLayer.removeChildren()
     this.entityLayer.removeChildren()
+    this.jukeboxIcons = []
     // re-adiciona os avatares (ficam na entityLayer junto com objetos em pé)
     for (const p of this.avatars.values()) this.entityLayer.addChild(p.root)
 
@@ -150,6 +152,16 @@ export class MapScene {
     if (o.glow && o.name) {
       shape(g).stroke({ width: 2, color: GLOW[o.glow], alpha: 0.75 })
     }
+    if (o.kind === 'jukebox') {
+      const note = new Text({ text: '♪', style: { fill: 0xfbbf24, fontSize: 16, fontWeight: 'bold' } })
+      note.anchor.set(0.5)
+      note.position.set(cx, y - 6)
+      note.zIndex = 999999 // sempre por cima, é só um indicador de "tocando"
+      note.visible = false
+      this.entityLayer.addChild(note)
+      this.jukeboxIcons.push(note)
+    }
+
     const own = ((o.rotation || 0) * Math.PI) / 180
     const upright = UPRIGHT_KINDS.has(o.kind)
     if (upright) {
@@ -309,6 +321,11 @@ export class MapScene {
     const cx = vw / 2 - tileX * TILE_PX * z + this.panX
     const cy = vh / 2 - tileY * TILE_PX * z + this.panY
     this.world.position.set(Math.round(cx), Math.round(cy))
+  }
+
+  /** Mostra/esconde a nota ♪ sobre todo objeto jukebox do mapa atual. */
+  setJukeboxPlaying(playing: boolean) {
+    for (const icon of this.jukeboxIcons) icon.visible = playing
   }
 
   /** Profundidade agora é automática (entityLayer.sortableChildren + zIndex por Y). */

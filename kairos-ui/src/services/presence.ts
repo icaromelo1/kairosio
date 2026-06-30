@@ -1,4 +1,4 @@
-import { reactive } from 'vue'
+import { reactive, ref } from 'vue'
 import { io, type Socket } from 'socket.io-client'
 
 export type Facing = 'down' | 'up' | 'left' | 'right'
@@ -9,6 +9,23 @@ export interface ChatMessage {
   name: string
   text: string
   ts: number
+}
+
+export type JukeboxMode = 'proximity' | 'room'
+
+export interface JukeboxQueueItem {
+  trackId: string
+  youtubeId: string
+  title: string
+  durationSec: number
+  addedByName: string
+}
+
+export interface JukeboxState {
+  mode: JukeboxMode
+  queue: JukeboxQueueItem[]
+  current: JukeboxQueueItem | null
+  startedAt: number | null
 }
 
 export interface RemotePlayer {
@@ -51,6 +68,9 @@ const MOVE_INTERVAL = 80
 export const remotePlayers = reactive(new Map<string, RemotePlayer>())
 // Histórico recente de chat da sala (cap 50)
 export const chatMessages = reactive<ChatMessage[]>([])
+// Estado do jukebox da sala atual (fila/faixa tocando/modo)
+export const jukeboxState = reactive<JukeboxState>({ mode: 'proximity', queue: [], current: null, startedAt: null })
+export const jukeboxError = ref('')
 
 let socket: Socket | null = null
 let lastEmit = 0
@@ -97,9 +117,30 @@ export function connectPresence(opts: JoinOptions) {
     rtcHandler?.(from, signal)
   })
 
+  socket.on('jukeboxState', (s: JukeboxState) => {
+    jukeboxState.mode = s.mode
+    jukeboxState.queue = s.queue
+    jukeboxState.current = s.current
+    jukeboxState.startedAt = s.startedAt
+  })
+  socket.on('jukeboxError', ({ message }: { message: string }) => {
+    jukeboxError.value = message
+  })
+
   socket.on('disconnect', () => {
     remotePlayers.clear()
   })
+}
+
+// ---- jukebox ----
+export function emitJukeboxAdd(input: string) {
+  socket?.emit('jukeboxAdd', { input })
+}
+export function emitJukeboxSkip() {
+  socket?.emit('jukeboxSkip')
+}
+export function emitJukeboxSetMode(mode: JukeboxMode) {
+  socket?.emit('jukeboxSetMode', { mode })
 }
 
 export function emitChat(text: string) {

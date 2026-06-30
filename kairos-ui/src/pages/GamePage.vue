@@ -160,6 +160,9 @@
         </div>
       </div>
 
+      <!-- Painel do jukebox -->
+      <JukeboxPanel v-if="jukeboxOpen" @close="closeModal" />
+
       <!-- Controles touch (mobile) -->
       <div class="touch-ctl" style="position:absolute;bottom:80px;right:24px;z-index:20;display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:4px;touch-action:none;user-select:none">
         <span></span>
@@ -189,10 +192,12 @@ import { AvatarPuppet, type AvatarLook, type Facing } from '@/game/pixi/avatar'
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, socketId } from '@/services/presence'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, socketId, jukeboxState } from '@/services/presence'
 import { VoiceChat } from '@/services/webrtc'
+import { jukeboxAudio } from '@/services/jukeboxAudio'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import Logo from '@/components/logos/Logo.vue'
+import JukeboxPanel from '@/components/JukeboxPanel.vue'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -212,6 +217,8 @@ const currentId = ref('')
 const error = ref('')
 const activeZone = ref<MapObject | null>(null)
 const activeModal = ref<MapObject | null>(null)
+const jukeboxOpen = ref(false)
+const JUKEBOX_RADIUS = 6 // tiles — alcance do modo "proximidade"
 
 const look = computed<AvatarLook>(() => ({
   hairStyle: characterStore.hairStyle,
@@ -341,12 +348,18 @@ function tryInteract() {
     pos.y = z.y + z.h / 2
     return
   }
+  if (z.kind === 'jukebox') {
+    jukeboxOpen.value = true
+    gameStore.isModalOpen = true
+    return
+  }
   activeModal.value = z
   gameStore.isModalOpen = true
 }
 function closeModal() {
   gameStore.isModalOpen = false
   activeModal.value = null
+  jukeboxOpen.value = false
 }
 
 function selectMap(id: string) {
@@ -495,6 +508,23 @@ onMounted(async () => {
       voice.sync(voiceIds)
       voicePeers.value = voice.activePeers()
     }
+
+    // ---- jukebox: toca sincronizado, volume por distância (modo proximidade) ----
+    jukeboxAudio.sync()
+    scene.setJukeboxPlaying(!!jukeboxState.current)
+    if (jukeboxState.current) {
+      if (jukeboxState.mode === 'room') {
+        jukeboxAudio.setVolume(1)
+      } else {
+        let nearestBox = Infinity
+        for (const o of map.objects) {
+          if (o.kind !== 'jukebox') continue
+          const d = Math.hypot(o.x + o.w / 2 - pos.x, o.y + o.h / 2 - pos.y)
+          if (d < nearestBox) nearestBox = d
+        }
+        jukeboxAudio.setVolume(Math.max(0, 1 - nearestBox / JUKEBOX_RADIUS))
+      }
+    }
   })
 })
 
@@ -527,6 +557,7 @@ function leave() {
   disconnectPresence()
   useAuthStore().logout()
   characterStore.$reset() // limpa nome/avatar em memória (não vaza pra próxima conta)
+  jukeboxAudio.stop()
   router.push('/login')
 }
 
@@ -537,6 +568,7 @@ onUnmounted(() => {
   persistState()
   voice.disable()
   disconnectPresence()
+  jukeboxAudio.stop()
   scene?.destroy()
   scene = null
 })

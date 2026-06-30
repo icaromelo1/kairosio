@@ -31,7 +31,11 @@
 
 ## 🔌 3. Estações funcionais — *ligar objetos a ferramentas reais*
 > Hoje abrem modal genérico "em breve".
-- [ ] **Lousa** = whiteboard · **Jukebox** = música · **Mesa** = workspace/tarefas · **Estante** = notas. *médio cada*
+- [x] **Jukebox** = música. FEITO 30/06 — fila dinâmica via link do YouTube (`yt-dlp`), storage
+      permanente no Google Drive (`rclone`, remote `gdrive:kairos-music`, reaproveitado dos backups
+      do Minecraft), cache local quente com limite de 10GB/LRU, toggle sala/proximidade, sincronizado
+      por timestamp entre quem ouve. Detalhe: `docs/PLANO-jukebox.md`.
+- [ ] **Lousa** = whiteboard · **Mesa** = workspace/tarefas · **Estante** = notas. *médio cada*
 
 ## 🎙️ 4. Voz / vídeo (WebRTC) — *só áudio existe hoje*
 - [ ] **Vídeo** por proximidade (além do áudio). *grande*
