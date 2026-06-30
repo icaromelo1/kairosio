@@ -9,6 +9,16 @@
 > não havia necessidade de playlists nomeadas/salváveis pro escopo pedido. `tracks` é
 > a única entidade persistida (dedup + storage permanente).
 
+> ⚠️ **Bloqueado em você:** o YouTube bloqueia download a partir do IP da VM Oracle
+> ("Sign in to confirm you're not a bot" — comum em IPs de datacenter). Testado com
+> vários `--extractor-args player_client` (tv/ios/mweb/web_embedded/web_creator/web_safari),
+> nenhum contorna. Único fix real: autenticar com cookies de uma sessão logada.
+> 1. Instale a extensão **"Get cookies.txt LOCALLY"** no Chrome, logado na sua conta YouTube.
+> 2. Exporte o cookies.txt do youtube.com.
+> 3. Envie pro servidor: `scp cookies.txt ubuntu@147.15.78.182:/home/ubuntu/projects/kairos-api/cookies/youtube.txt`
+> 4. Pronto — o `YtDlpService` já detecta o arquivo (não-vazio) e passa `--cookies` sozinho,
+>    sem precisar de novo deploy. Mount + env var (`COOKIES_FILE`) já estão configurados.
+
 ---
 
 ## 1. Decisões já tomadas (não reabrir sem motivo novo)
