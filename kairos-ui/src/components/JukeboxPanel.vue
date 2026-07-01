@@ -192,7 +192,7 @@ async function syncFromDrive() {
   try {
     const res = await apiFetch('/jukebox/sync', { method: 'POST' })
     const r = await res.json()
-    syncMessage.value = `${r.downloaded} baixadas, ${r.skipped} já no cache (${r.total} no total)`
+    syncMessage.value = `${r.downloaded} baixadas, ${r.skipped} já no cache, ${r.recovered} recuperadas no banco (${r.total} no total)`
     if (libraryOpen.value) fetchLibrary()
   } catch {
     syncMessage.value = 'falha ao sincronizar'
