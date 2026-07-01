@@ -46,18 +46,30 @@
       <p v-if="jukeboxError" style="color:var(--err);font-size:12px;margin:0">{{ jukeboxError }}</p>
 
       <!-- biblioteca: músicas já baixadas antes, adiciona sem esperar download -->
-      <button class="k-btn k-btn-ghost" style="font-size:11px" @click="toggleLibrary">
-        {{ libraryOpen ? '▲ esconder biblioteca' : '▼ ver músicas já baixadas' }}
-      </button>
-      <div v-if="libraryOpen" style="display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:140px;background:var(--bg-1);border:1px solid var(--border);padding:8px">
-        <div v-if="libraryLoading" style="color:var(--text-4);font-size:12px">carregando...</div>
-        <div v-else-if="!library.length" style="color:var(--text-4);font-size:12px">nenhuma música baixada ainda</div>
-        <button
-          v-for="t in library" :key="t.id" class="k-btn k-btn-ghost"
-          style="font-size:12px;text-align:left;justify-content:flex-start;padding:6px 8px"
-          :disabled="!!jukeboxState.status"
-          @click="addFromLibrary(t.youtubeId)"
-        >{{ t.title }}</button>
+      <div style="display:flex;gap:8px">
+        <button class="k-btn k-btn-ghost" style="font-size:11px;flex:1" @click="toggleLibrary">
+          {{ libraryOpen ? '▲ esconder biblioteca' : '▼ ver músicas já baixadas' }}
+        </button>
+        <button class="k-btn k-btn-ghost" style="font-size:11px" :disabled="syncing" @click="syncFromDrive" title="rebaixar do Drive tudo que estiver faltando no cache local">
+          {{ syncing ? 'sincronizando...' : '⟲ sync' }}
+        </button>
+      </div>
+      <p v-if="syncMessage" style="color:var(--text-3);font-size:12px;margin:0">{{ syncMessage }}</p>
+      <div v-if="libraryOpen" style="display:flex;flex-direction:column;gap:6px">
+        <input
+          v-model="librarySearch" placeholder="buscar por título…"
+          style="box-sizing:border-box;background:var(--bg-1);border:1px solid var(--border-strong);color:var(--text);padding:6px 10px;font-size:12px;font-family:inherit"
+        />
+        <div style="display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:140px;background:var(--bg-1);border:1px solid var(--border);padding:8px">
+          <div v-if="libraryLoading" style="color:var(--text-4);font-size:12px">carregando...</div>
+          <div v-else-if="!library.length" style="color:var(--text-4);font-size:12px">nenhuma música encontrada</div>
+          <button
+            v-for="t in library" :key="t.id" class="k-btn k-btn-ghost"
+            style="font-size:12px;text-align:left;justify-content:flex-start;padding:6px 8px"
+            :disabled="!!jukeboxState.status"
+            @click="addFromLibrary(t.youtubeId)"
+          >{{ t.title }}</button>
+        </div>
       </div>
 
       <!-- volume pessoal -->
@@ -83,7 +95,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { jukeboxState, jukeboxError, emitJukeboxAdd, emitJukeboxSkip, emitJukeboxSetMode } from '@/services/presence'
 import { personalVolume } from '@/services/jukeboxAudio'
 import { apiFetch } from '@/services/http'
@@ -109,22 +121,51 @@ interface LibraryTrack { id: string; youtubeId: string; title: string; durationS
 const library = ref<LibraryTrack[]>([])
 const libraryOpen = ref(false)
 const libraryLoading = ref(false)
+const librarySearch = ref('')
+let searchDebounce: ReturnType<typeof setTimeout> | null = null
 
-async function toggleLibrary() {
-  libraryOpen.value = !libraryOpen.value
-  if (libraryOpen.value && !library.value.length) {
-    libraryLoading.value = true
-    try {
-      const res = await apiFetch('/jukebox/tracks')
-      library.value = await res.json()
-    } finally {
-      libraryLoading.value = false
-    }
+async function fetchLibrary() {
+  libraryLoading.value = true
+  try {
+    const qs = librarySearch.value.trim() ? `?q=${encodeURIComponent(librarySearch.value.trim())}` : ''
+    const res = await apiFetch(`/jukebox/tracks${qs}`)
+    library.value = await res.json()
+  } finally {
+    libraryLoading.value = false
   }
 }
+
+function toggleLibrary() {
+  libraryOpen.value = !libraryOpen.value
+  if (libraryOpen.value) fetchLibrary()
+}
+
+watch(librarySearch, () => {
+  if (!libraryOpen.value) return
+  if (searchDebounce) clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(fetchLibrary, 300)
+})
 
 function addFromLibrary(youtubeId: string) {
   jukeboxError.value = ''
   emitJukeboxAdd(youtubeId)
+}
+
+const syncing = ref(false)
+const syncMessage = ref('')
+
+async function syncFromDrive() {
+  syncing.value = true
+  syncMessage.value = ''
+  try {
+    const res = await apiFetch('/jukebox/sync', { method: 'POST' })
+    const r = await res.json()
+    syncMessage.value = `${r.downloaded} baixadas, ${r.skipped} já no cache (${r.total} no total)`
+    if (libraryOpen.value) fetchLibrary()
+  } catch {
+    syncMessage.value = 'falha ao sincronizar'
+  } finally {
+    syncing.value = false
+  }
 }
 </script>

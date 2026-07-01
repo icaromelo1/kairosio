@@ -1,4 +1,4 @@
-import { Controller, Get, Param, Res } from '@nestjs/common'
+import { Controller, Get, Param, Post, Query, Res } from '@nestjs/common'
 import { Response } from 'express'
 import { JukeboxService } from './jukebox.service'
 
@@ -14,9 +14,16 @@ export class JukeboxController {
   }
 
   // biblioteca de músicas já baixadas antes (qualquer sala) — pra reaproveitar sem
-  // colar o link de novo, já vem do cache/Drive sem precisar do yt-dlp
+  // colar o link de novo, já vem do cache/Drive sem precisar do yt-dlp. ?q= filtra por título
   @Get('tracks')
-  async listTracks() {
-    return this.jukebox.listTracks()
+  async listTracks(@Query('q') q?: string) {
+    return this.jukebox.listTracks(q)
+  }
+
+  // rebaixa do Drive pro cache local tudo que estiver faltando (ex: depois de perder
+  // o volume de cache num redeploy) — não bate no YouTube, só no Drive
+  @Post('sync')
+  async sync() {
+    return this.jukebox.syncFromDrive()
   }
 }

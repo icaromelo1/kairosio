@@ -4,6 +4,15 @@
 > Discord, com fila por busca/link do YouTube. Status: ✅ **implementado 30/06/2026**
 > (v1 — link colado, sem busca por texto ainda).
 
+> **v1.1 (01/07):** status de progresso no add (buscando/baixando/enviando), bloqueio
+> de duplicata na fila, volume individual por jogador (slider, persiste em
+> localStorage), biblioteca de músicas já baixadas com busca por título (`GET
+> /jukebox/tracks?q=`), endpoint de sync manual do Drive pro cache local (`POST
+> /jukebox/sync`, útil depois de perder o volume do cache num redeploy). Expiração
+> mudou de **limite de espaço (10GB/LRU)** pra **7 dias sem tocar** — job em
+> `JukeboxService.pruneStaleTracks()` (roda no boot + a cada 6h) apaga Drive + cache +
+> registro de faixas com `lastPlayedAt` mais antigo que 7 dias.
+
 > Nota: a tabela `playlists`/`playlist_tracks` da seção 2 não entrou na v1 — a fila
 > é só estado em memória por sala (room_state no gateway), como já estava desenhado;
 > não havia necessidade de playlists nomeadas/salváveis pro escopo pedido. `tracks` é
@@ -158,8 +167,6 @@
 - **Modo sala/proximidade**: qualquer pessoa na sala pode trocar — sem restrição de
   permissão/dono.
 - **Fila**: sem limite de tamanho nem de duração por faixa.
-- **Cache local**: sem TTL por tempo — é por **espaço em disco**. Vai acumulando
-  músicas baixadas livremente até bater **10GB** de uso no diretório de cache; ao
-  estourar, limpa por **LRU** (apaga primeiro as mais antigas/menos tocadas
-  recentemente) até voltar abaixo do limite. Drive continua com a cópia permanente
-  de tudo, independente do que sobra no cache local.
+- **Cache local (revisado 01/07)**: era por espaço (10GB/LRU), agora é por **tempo**
+  — faixa que não toca há mais de **7 dias** é removida por completo (Drive + cache
+  + registro), não só do cache local. Sem limite de espaço em disco.
