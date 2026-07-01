@@ -19,6 +19,15 @@ export class JukeboxService {
     return this.ytdlp.extractYoutubeId(input)
   }
 
+  // biblioteca de faixas já baixadas (qualquer sala), mais tocadas recentemente primeiro
+  async listTracks(): Promise<Pick<Track, 'id' | 'youtubeId' | 'title' | 'durationSec'>[]> {
+    return this.tracks.find({
+      select: ['id', 'youtubeId', 'title', 'durationSec'],
+      order: { lastPlayedAt: 'DESC' },
+      take: 100,
+    })
+  }
+
   // resolve um link/id pra uma Track: dedup por youtubeId (já baixada antes? só
   // garante que está quente no cache) ou baixa + sobe pro Drive pela primeira vez.
   async resolveTrack(
