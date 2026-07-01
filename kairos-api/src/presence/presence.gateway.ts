@@ -229,11 +229,10 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       socket.emit('jukeboxError', { message: (e as Error).message || 'Link inválido' })
       return
     }
-    if (state.current?.youtubeId === youtubeId || state.queue.some((q) => q.youtubeId === youtubeId)) {
-      socket.emit('jukeboxError', { message: 'Essa música já está na fila' })
-      return
-    }
-
+    // fila de TOCAR e fila de BAIXAR são coisas diferentes: a mesma música pode
+    // entrar quantas vezes quiser na fila de tocar — o download em si é dedupado
+    // por youtubeId dentro do JukeboxService (baixa uma vez só, mesmo com pedidos
+    // concorrentes pra essa música).
     try {
       state.status = 'buscando informações...'
       this.broadcastJukebox(room)
