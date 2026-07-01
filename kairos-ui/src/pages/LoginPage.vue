@@ -164,14 +164,16 @@ import PixelColumn from '@/components/pixel/PixelColumn.vue'
 import Logo from '@/components/logos/Logo.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { login, guest } from '@/services/auth.api'
-import { getMyOrg, consumePendingInvite } from '@/services/org.api'
+import { getMyOrgs, consumePendingInvite } from '@/services/org.api'
 import type { RouteLocationRaw } from 'vue-router'
 
-// destino pós-login: convite pendente (do link) tem prioridade; senão org → jogo, sem org → onboarding
+// destino pós-login: convite pendente (do link) tem prioridade; 1 org só → direto pro
+// jogo; 0 ou 2+ orgs → onboarding (cria/entra, ou escolhe qual usar nesta sessão)
 async function postAuthDest(): Promise<RouteLocationRaw> {
   const invite = consumePendingInvite()
   if (invite) return { path: '/onboarding', query: { invite } }
-  return (await getMyOrg()) ? '/character' : '/onboarding'
+  const orgs = await getMyOrgs()
+  return orgs.length === 1 ? '/character' : '/onboarding'
 }
 
 const router = useRouter()

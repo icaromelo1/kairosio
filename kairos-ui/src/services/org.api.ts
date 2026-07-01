@@ -25,6 +25,27 @@ export async function getMyOrg(): Promise<Org | null> {
   return jsonOrNull<Org>(await apiFetch('/org/me'))
 }
 
+export interface MyOrgSummary {
+  id: string
+  name: string
+  slug: string
+  role: 'admin' | 'member'
+  active: boolean
+}
+
+// todas as orgs de que o usuário é membro — usada pra decidir se mostra a tela de escolha
+export async function getMyOrgs(): Promise<MyOrgSummary[]> {
+  const res = await apiFetch('/org/mine')
+  if (!res.ok) return []
+  return res.json()
+}
+
+export async function switchOrg(orgId: string): Promise<Org | null> {
+  const res = await apiFetch(`/org/switch/${orgId}`, { method: 'POST' })
+  if (!res.ok) throw new Error('Falha ao trocar de organização')
+  return res.json()
+}
+
 export async function createOrg(name: string): Promise<Org> {
   const res = await apiFetch('/org', { method: 'POST', body: JSON.stringify({ name }) })
   if (!res.ok) throw new Error('Falha ao criar organização')

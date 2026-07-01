@@ -17,6 +17,7 @@ import { Feedback } from './feedback/feedback.entity'
 import { OrgModule } from './org/org.module'
 import { Organization } from './org/organization.entity'
 import { OrgInvite } from './org/org-invite.entity'
+import { OrgMembership } from './org/org-membership.entity'
 import { JukeboxModule } from './jukebox/jukebox.module'
 import { Track } from './jukebox/track.entity'
 
@@ -27,7 +28,7 @@ import { Track } from './jukebox/track.entity'
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL || 'postgres://kairos:kairos@localhost:5432/kairosio',
-      entities: [User, Character, WorldState, GameMap, Feedback, Organization, OrgInvite, Track],
+      entities: [User, Character, WorldState, GameMap, Feedback, Organization, OrgInvite, OrgMembership, Track],
       synchronize: true,
     }),
     AuthModule,
