@@ -36,10 +36,12 @@ export class YtDlpService {
   }
 
   // sidecar bgutil-ytdlp-pot-provider (container "bgutil-provider") gera o PO token
-  // que o YouTube passou a exigir junto com cookies pro gate anti-bot
+  // que o YouTube passou a exigir junto com cookies pro gate anti-bot. player_client=web
+  // é obrigatório aqui: outros clients (tv/android_vr/...) pegam PO token de client
+  // diferente do que assina a URL do stream e dá 403 no download do segmento.
   private potArgs(): string[] {
     if (!this.potProviderUrl) return []
-    return ['--extractor-args', `youtubepot-bgutilhttp:base_url=${this.potProviderUrl}`]
+    return ['--extractor-args', `youtube:player_client=web;youtubepot-bgutilhttp:base_url=${this.potProviderUrl}`]
   }
 
   extractYoutubeId(input: string): string {
