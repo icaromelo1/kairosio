@@ -46,13 +46,17 @@
       <p v-if="jukeboxError" style="color:var(--err);font-size:12px;margin:0">{{ jukeboxError }}</p>
 
       <!-- biblioteca: músicas já baixadas antes, adiciona sem esperar download -->
-      <div style="display:flex;gap:8px">
-        <button class="k-btn k-btn-ghost" style="font-size:11px;flex:1" @click="toggleLibrary">
-          {{ libraryOpen ? '▲ esconder biblioteca' : '▼ ver músicas já baixadas' }}
-        </button>
-        <button class="k-btn k-btn-ghost" style="font-size:11px" :disabled="syncing" @click="syncFromDrive" title="rebaixar do Drive tudo que estiver faltando no cache local">
-          {{ syncing ? 'sincronizando...' : '⟲ sync' }}
-        </button>
+      <div class="row q-gutter-xs no-wrap">
+        <div class="col">
+          <button class="k-btn k-btn-ghost ellipsis full-width" style="font-size:11px" @click="toggleLibrary">
+            {{ libraryOpen ? '▲ esconder biblioteca' : '▼ ver músicas já baixadas' }}
+          </button>
+        </div>
+        <div class="col-auto">
+          <button class="k-btn k-btn-ghost" style="font-size:11px" :disabled="syncing" @click="syncFromDrive" title="rebaixar do Drive tudo que estiver faltando no cache local">
+            {{ syncing ? 'sincronizando...' : '⟲ sync' }}
+          </button>
+        </div>
       </div>
       <p v-if="syncMessage" style="color:var(--text-3);font-size:12px;margin:0">{{ syncMessage }}</p>
       <div v-if="libraryOpen" style="display:flex;flex-direction:column;gap:6px">
@@ -60,11 +64,19 @@
           v-model="librarySearch" placeholder="buscar por título…"
           class="k-input" style="padding:8px 12px;font-size:10px"
         />
+        <div class="row q-gutter-xs no-wrap">
+          <div class="col">
+            <button class="k-btn k-btn-ghost full-width" style="font-size:11px" :disabled="!library.length || !!jukeboxState.status" @click="addRandom">🔀 aleatória</button>
+          </div>
+          <div class="col">
+            <button class="k-btn k-btn-ghost full-width" style="font-size:11px" :disabled="!library.length || !!jukeboxState.status" @click="addAll">▶ tocar todas</button>
+          </div>
+        </div>
         <div style="display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:140px;background:var(--bg-1);border:1px solid var(--border);padding:8px">
           <div v-if="libraryLoading" style="color:var(--text-4);font-size:12px">carregando...</div>
           <div v-else-if="!library.length" style="color:var(--text-4);font-size:12px">nenhuma música encontrada</div>
           <button
-            v-for="t in library" :key="t.id" class="k-btn k-btn-ghost"
+            v-for="t in library" :key="t.id" class="k-btn k-btn-ghost ellipsis"
             style="font-size:12px;text-align:left;justify-content:flex-start;padding:6px 8px"
             :disabled="!!jukeboxState.status"
             @click="addFromLibrary(t.youtubeId)"
@@ -149,6 +161,18 @@ watch(librarySearch, () => {
 function addFromLibrary(youtubeId: string) {
   jukeboxError.value = ''
   emitJukeboxAdd(youtubeId)
+}
+
+function addRandom() {
+  if (!library.value.length) return
+  const t = library.value[Math.floor(Math.random() * library.value.length)]
+  addFromLibrary(t.youtubeId)
+}
+
+function addAll() {
+  // manda um por vez (servidor processa sequencialmente) — duplicatas já na fila
+  // são recusadas silenciosamente pelo backend (jukeboxError, sem travar o resto)
+  for (const t of library.value) emitJukeboxAdd(t.youtubeId)
 }
 
 const syncing = ref(false)
