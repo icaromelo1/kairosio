@@ -6,10 +6,18 @@ import * as path from 'node:path'
 
 const execFileAsync = promisify(execFile)
 const EXEC_OPTS = { maxBuffer: 1024 * 1024 * 10, timeout: 5 * 60 * 1000 }
+const MAX_DURATION_SEC = parseInt(process.env.JUKEBOX_MAX_DURATION_SEC || '1200', 10) // 20min
 
 export interface YtDlpInfo {
   title: string
   durationSec: number
+}
+
+function formatDuration(sec: number): string {
+  const h = Math.floor(sec / 3600)
+  const m = Math.floor((sec % 3600) / 60)
+  if (h > 0) return `${h}h${String(m).padStart(2, '0')}min`
+  return `${m}min`
 }
 
 // Download de áudio via yt-dlp. Aceita link completo ou o id de 11 caracteres do YouTube.
@@ -61,8 +69,21 @@ export class YtDlpService {
         EXEC_OPTS,
       )
       const data = JSON.parse(stdout)
-      return { title: String(data.title || youtubeId), durationSec: Math.round(Number(data.duration) || 0) }
+      if (data.is_live) {
+        throw new BadRequestException('Não dá pra adicionar uma live em andamento')
+      }
+      const durationSec = Math.round(Number(data.duration) || 0)
+      if (!durationSec) {
+        throw new BadRequestException('Não foi possível determinar a duração do vídeo')
+      }
+      if (durationSec > MAX_DURATION_SEC) {
+        throw new BadRequestException(
+          `Vídeo muito longo (${formatDuration(durationSec)}) — máximo permitido é ${formatDuration(MAX_DURATION_SEC)}`,
+        )
+      }
+      return { title: String(data.title || youtubeId), durationSec }
     } catch (e) {
+      if (e instanceof BadRequestException) throw e
       throw this.translateError(e as Error)
     }
   }

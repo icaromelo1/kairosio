@@ -13,6 +13,11 @@
 > `JukeboxService.pruneStaleTracks()` (roda no boot + a cada 6h) apaga Drive + cache +
 > registro de faixas com `lastPlayedAt` mais antigo que 7 dias.
 
+> **v1.2 (01/07):** validação de duração/live no `fetchInfo()` (`ytdlp.service.ts`) —
+> rejeita `is_live` (transmissão em andamento) e vídeos acima de `JUKEBOX_MAX_DURATION_SEC`
+> (padrão 1200s = 20min), antes de baixar qualquer coisa. Cobre o caso de link de live
+> de 2h ou vídeo longo demais pra tocar num room compartilhado.
+
 > Nota: a tabela `playlists`/`playlist_tracks` da seção 2 não entrou na v1 — a fila
 > é só estado em memória por sala (room_state no gateway), como já estava desenhado;
 > não havia necessidade de playlists nomeadas/salváveis pro escopo pedido. `tracks` é
