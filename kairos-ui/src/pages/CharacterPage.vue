@@ -203,6 +203,31 @@
         </div>
       </div>
 
+      <!-- Tab content: Foto de perfil -->
+      <div v-if="activeTab === 'photo'" class="tab-content">
+        <div class="section-label">Foto de perfil</div>
+        <p v-if="!auth.isAuthenticated" class="photo-hint">Faça login pra configurar uma foto de perfil.</p>
+        <template v-else>
+          <p class="photo-hint">
+            Se você configurar uma foto, ela substitui o avatar pixel no jogo (todo mundo passa a te ver por ela). Sem foto, continua o sprite normal.
+          </p>
+          <div class="photo-row row items-center q-gutter-md">
+            <div class="photo-preview">
+              <img v-if="characterStore.photoFile" :src="photoUrl(characterStore.photoFile)" alt="Sua foto de perfil" />
+              <span v-else class="photo-empty">sem foto</span>
+            </div>
+            <div class="column q-gutter-xs">
+              <input ref="fileInput" type="file" accept="image/jpeg,image/png,image/webp" class="photo-file-input" @change="onPhotoPicked" />
+              <button class="k-btn k-btn-ghost photo-btn" :disabled="uploadingPhoto" @click="fileInput?.click()">
+                {{ uploadingPhoto ? 'Enviando…' : (characterStore.photoFile ? 'Trocar foto' : 'Enviar foto') }}
+              </button>
+              <button v-if="characterStore.photoFile" class="k-btn k-btn-ghost photo-btn" @click="onRemovePhoto">Remover foto</button>
+            </div>
+          </div>
+          <p v-if="photoError" class="photo-error">{{ photoError }}</p>
+        </template>
+      </div>
+
       <!-- Summary card -->
       <div class="summary-card k-card">
         <div class="summary-item">
@@ -250,7 +275,7 @@ import Logo from '@/components/logos/Logo.vue'
 import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useGameStore } from '@/stores/useGameStore'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { getCharacter, saveCharacter } from '@/services/character.api'
+import { getCharacter, saveCharacter, uploadPhoto, removePhoto, photoUrl } from '@/services/character.api'
 
 const router = useRouter()
 const characterStore = useCharacterStore()
@@ -280,13 +305,37 @@ async function enterKairos() {
   router.push('/map-select')
 }
 
-const activeTab = ref<'hair' | 'skin' | 'outfit'>('hair')
+const activeTab = ref<'hair' | 'skin' | 'outfit' | 'photo'>('hair')
 
 const TABS = [
   { id: 'hair', label: 'Cabelo' },
   { id: 'skin', label: 'Pele' },
   { id: 'outfit', label: 'Roupa' },
+  { id: 'photo', label: 'Foto' },
 ]
+
+const fileInput = ref<HTMLInputElement | null>(null)
+const uploadingPhoto = ref(false)
+const photoError = ref('')
+
+async function onPhotoPicked(e: Event) {
+  const file = (e.target as HTMLInputElement).files?.[0]
+  if (!file) return
+  photoError.value = ''
+  uploadingPhoto.value = true
+  const res = await uploadPhoto(file)
+  uploadingPhoto.value = false
+  if (fileInput.value) fileInput.value.value = ''
+  if (!res.ok) { photoError.value = res.error || 'Falha ao enviar a foto'; return }
+  characterStore.photoFile = res.photoFile || null
+}
+
+async function onRemovePhoto() {
+  photoError.value = ''
+  const ok = await removePhoto()
+  if (ok) characterStore.photoFile = null
+  else photoError.value = 'Falha ao remover a foto'
+}
 
 const HAIR_STYLES = [
   { id: 'short', label: 'short' },
@@ -566,6 +615,47 @@ const ACCESSORIES = [
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+.photo-hint {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.5;
+  margin: 0;
+}
+.photo-preview {
+  width: 72px;
+  height: 72px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--bg-1);
+  border: 2px solid var(--border-strong);
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+.photo-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.photo-empty {
+  font-size: 9px;
+  color: var(--text-4);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.photo-file-input {
+  display: none;
+}
+.photo-btn {
+  font-size: 11px;
+  padding: 8px 12px;
+}
+.photo-error {
+  color: var(--err);
+  font-size: 12px;
+  margin: 0;
 }
 
 /* Swatches */

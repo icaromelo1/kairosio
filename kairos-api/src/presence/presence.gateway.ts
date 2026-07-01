@@ -16,6 +16,7 @@ type MapId = string
 type Facing = 'down' | 'up' | 'left' | 'right'
 type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit'
 type JukeboxMode = 'proximity' | 'room'
+type VoiceMode = 'proximity' | 'room'
 
 interface JukeboxQueueItem {
   trackId: string
@@ -70,6 +71,8 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   private readonly socketUserId = new Map<string, string | null>()
   // estado do jukebox por sala (org:map) — fila/faixa atual/modo, em memória
   private readonly jukebox = new Map<string, JukeboxRoomState>()
+  // modo de voz por sala (org:map) — qualquer membro pode alternar, vale pra todos
+  private readonly voiceMode = new Map<string, VoiceMode>()
 
   constructor(
     private readonly jwt: JwtService,
@@ -133,6 +136,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     socket.emit('players', this.peersInRoom(org, player.map, socket.id))
     socket.to(room).emit('playerJoined', player)
     socket.emit('jukeboxState', this.jukeboxSnapshot(room))
+    socket.emit('voiceState', { mode: this.voiceMode.get(room) || 'proximity' })
   }
 
   @SubscribeMessage('move')
@@ -190,6 +194,18 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     socket.emit('players', this.peersInRoom(player.org, player.map, socket.id))
     socket.to(room).emit('playerJoined', player)
     socket.emit('jukeboxState', this.jukeboxSnapshot(room))
+    socket.emit('voiceState', { mode: this.voiceMode.get(room) || 'proximity' })
+  }
+
+  // ---- voz: modo por sala (org:map) — proximidade (padrão) ou sala inteira ----
+
+  @SubscribeMessage('voiceSetMode')
+  handleVoiceSetMode(socket: Socket, payload: { mode: VoiceMode }) {
+    const player = this.players.get(socket.id)
+    if (!player || (payload?.mode !== 'proximity' && payload?.mode !== 'room')) return
+    const room = this.room(player.org, player.map)
+    this.voiceMode.set(room, payload.mode)
+    this.server.to(room).emit('voiceState', { mode: payload.mode })
   }
 
   // ---- jukebox: fila por sala (org:map), sincronizada por startedAt ----

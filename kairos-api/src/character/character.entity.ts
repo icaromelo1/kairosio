@@ -30,4 +30,8 @@ export class Character {
 
   @Column({ default: 'none' })
   accessory: string
+
+  // nome do arquivo da foto de perfil no Drive/cache (null = usa o sprite pixel)
+  @Column({ type: 'varchar', nullable: true, default: null })
+  photoFile: string | null
 }

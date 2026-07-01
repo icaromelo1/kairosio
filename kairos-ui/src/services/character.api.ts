@@ -8,6 +8,7 @@ export interface CharacterData {
   skin: string
   topColor: string
   pantsColor: string
+  photoFile?: string | null
 }
 
 export async function getCharacter(): Promise<CharacterData | null> {
@@ -20,5 +21,28 @@ export async function getCharacter(): Promise<CharacterData | null> {
 
 export async function saveCharacter(data: CharacterData): Promise<boolean> {
   const res = await apiFetch('/character', { method: 'PUT', body: JSON.stringify(data) })
+  return res.ok
+}
+
+// URL pública da foto (mesma pra todo mundo — usada tanto na tela de perfil quanto no jogo)
+export function photoUrl(fileName: string): string {
+  const base = import.meta.env.VITE_API_URL || window.location.origin
+  return `${base}/kairos-api/character/photo/${fileName}`
+}
+
+export async function uploadPhoto(file: File): Promise<{ ok: boolean; error?: string; photoFile?: string }> {
+  const form = new FormData()
+  form.append('photo', file)
+  const res = await apiFetch('/character/photo', { method: 'POST', body: form })
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    return { ok: false, error: body?.message || 'Falha ao enviar a foto' }
+  }
+  const data = await res.json()
+  return { ok: true, photoFile: data.photoFile }
+}
+
+export async function removePhoto(): Promise<boolean> {
+  const res = await apiFetch('/character/photo', { method: 'DELETE' })
   return res.ok
 }

@@ -32,6 +32,19 @@
           </button>
         </div>
 
+        <!-- Voz (estilo Discord: quem está na chamada + mute individual) -->
+        <VoicePanel
+          :mode="voiceMode"
+          :voice-on="voiceOn"
+          :mic-muted="micMuted"
+          :self-name="playerName"
+          :peers="voicePanelPeers"
+          @toggle-voice="toggleVoice"
+          @toggle-mic="toggleMic"
+          @toggle-peer-mute="togglePeerMute"
+          @set-mode="setVoiceModeUi"
+        />
+
         <!-- Você -->
         <div class="column q-gutter-xs">
           <div class="gp-section-label">Você</div>
@@ -174,12 +187,14 @@ import { AvatarPuppet, type AvatarLook, type Facing } from '@/game/pixi/avatar'
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, socketId, jukeboxState } from '@/services/presence'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, socketId, jukeboxState, voiceMode, emitVoiceSetMode, type AvatarProps } from '@/services/presence'
 import { VoiceChat } from '@/services/webrtc'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
+import { photoUrl } from '@/services/character.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import Logo from '@/components/logos/Logo.vue'
 import JukeboxPanel from '@/components/JukeboxPanel.vue'
+import VoicePanel from '@/components/VoicePanel.vue'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -210,6 +225,9 @@ const look = computed<AvatarLook>(() => ({
   pantsColor: characterStore.pantsColor,
   accessory: characterStore.accessory,
 }))
+// URL pública da foto (mesma pra todo mundo) — vai junto no avatar broadcast pro resto da sala
+const myPhotoUrl = computed(() => (characterStore.photoFile ? photoUrl(characterStore.photoFile) : null))
+const joinAvatarPayload = computed(() => ({ ...look.value, photoUrl: myPhotoUrl.value }))
 const playerName = computed(() => characterStore.name || 'Convidado')
 const currentMap = computed(() => maps.value.find((m) => m.id === currentId.value))
 const roomPeers = computed(() => [...remotePlayers.values()].filter((p) => !p.map || p.map === currentId.value))
@@ -228,12 +246,16 @@ const messages = chatMessages
 const voice = new VoiceChat()
 const voiceOn = ref(false)
 const voicePeers = ref<string[]>([])
+const micMuted = ref(false)
+const mutedPeerIds = reactive(new Set<string>())
 
 async function toggleVoice() {
   if (voiceOn.value) {
     voice.disable()
     voiceOn.value = false
     voicePeers.value = []
+    micMuted.value = false
+    mutedPeerIds.clear()
     return
   }
   voice.setSelf(socketId() || '')
@@ -241,6 +263,24 @@ async function toggleVoice() {
   voiceOn.value = ok
   if (!ok) error.value = 'Microfone bloqueado. Permita o acesso para usar a voz.'
 }
+
+function toggleMic() {
+  if (micMuted.value) { voice.unmuteMic(); micMuted.value = false }
+  else { voice.muteMic(); micMuted.value = true }
+}
+function togglePeerMute(id: string) {
+  if (mutedPeerIds.has(id)) { voice.unmuteRemote(id); mutedPeerIds.delete(id) }
+  else { voice.muteRemote(id); mutedPeerIds.add(id) }
+}
+function setVoiceModeUi(mode: 'proximity' | 'room') {
+  emitVoiceSetMode(mode)
+}
+const voicePanelPeers = computed(() => roomPeers.value.map((p) => ({
+  id: p.id,
+  name: p.name,
+  connected: voicePeers.value.includes(p.id),
+  muted: mutedPeerIds.has(p.id),
+})))
 const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' | 'wave' | 'sit', boost: false }
 // ids dos avatares remotos presentes na cena
 const peerIds = new Set<string>()
@@ -392,6 +432,7 @@ onMounted(async () => {
   const savedZoom = parseFloat(localStorage.getItem('kairos_zoom') || '')
   if (savedZoom) scene.setZoom(savedZoom)
   scene.addAvatar('me', new AvatarPuppet(look.value))
+  scene.avatar('me')?.setPhoto(myPhotoUrl.value)
 
   try {
     maps.value = await fetchMaps()
@@ -413,7 +454,7 @@ onMounted(async () => {
     if (!first) { error.value = 'Nenhum mundo disponível'; return }
     selectMap(first.id)
     if (savedPos) { pos.x = savedPos.x; pos.y = savedPos.y }
-    connectPresence({ name: playerName.value, avatar: look.value, map: first.id, x: pos.x, y: pos.y })
+    connectPresence({ name: playerName.value, avatar: joinAvatarPayload.value, map: first.id, x: pos.x, y: pos.y })
   } catch (e) {
     error.value = (e as Error).message
   }
@@ -483,7 +524,10 @@ onMounted(async () => {
       if (peer.map && peer.map !== map.id) continue
       const d = Math.hypot(peer.x - pos.x, peer.y - pos.y)
       if (d < best) { best = d; near = peer.name }
-      if (d <= 4) voiceIds.push(peer.id)
+      const inRange = d <= 4 // raio de comunicação — mesmo alcance usado pra voz por proximidade
+      // no modo "sala", a voz conecta com todo mundo — o raio some, só regula nomes flutuantes
+      if (voiceMode.value === 'room' || inRange) voiceIds.push(peer.id)
+      scene.avatar(peer.id)?.setNameVisible(inRange)
     }
     nearby.value = near
     if (voiceOn.value) {
@@ -519,6 +563,8 @@ function syncRemotes(dt: number, map: MapDef) {
     let p = scene.avatar(peer.id)
     if (!p) {
       p = new AvatarPuppet(peer.avatar as AvatarLook)
+      p.setName(peer.name)
+      p.setPhoto((peer.avatar as AvatarProps)?.photoUrl || null)
       scene.addAvatar(peer.id, p)
       peerIds.add(peer.id)
     }

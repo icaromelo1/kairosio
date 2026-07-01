@@ -8,6 +8,7 @@ const INITIAL_STATE = {
   topColor: '#7c3aed',
   pantsColor: '#1f2937',
   accessory: 'none' as 'none' | 'glasses' | 'hat',
+  photoFile: null as string | null,
 }
 
 export const useCharacterStore = defineStore('character', {

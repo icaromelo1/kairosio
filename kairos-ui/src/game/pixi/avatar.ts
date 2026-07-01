@@ -4,7 +4,7 @@
 // pra direção. As cores vêm da customização paramétrica (mesmos campos do
 // characterStore), então cada parte é desenhada/tingida na hora — sem arte pronta.
 
-import { Container, Graphics } from 'pixi.js'
+import { Assets, Container, Graphics, Sprite, Text } from 'pixi.js'
 
 export interface AvatarLook {
   hairStyle: 'short' | 'curly' | 'ponytail' | 'mohawk' | 'helmet' | 'buzz' | 'long'
@@ -68,6 +68,11 @@ export class AvatarPuppet {
   private t = 0
   private pose: Pose = 'idle'
   private facing: Facing = 'down'
+  private nameLabel: Text
+  private photoLayer: Container
+  private photoSprite: Sprite | null = null
+  private photoUrl: string | null = null
+  private usingPhoto = false
 
   constructor(look: AvatarLook) {
     this.root = new Container()
@@ -76,6 +81,28 @@ export class AvatarPuppet {
     const shadow = new Graphics()
     shadow.ellipse(8 * UNIT, 20 * UNIT, 4 * UNIT, 0.8 * UNIT).fill({ color: 0x000000, alpha: 0.4 })
     this.root.addChild(shadow)
+
+    // camada da foto de perfil (círculo) — só visível quando setPhoto(url) é chamado
+    this.photoLayer = new Container()
+    this.photoLayer.visible = false
+    this.root.addChild(this.photoLayer)
+
+    // nome flutuante — só aparece quando alguém entra no raio de comunicação (ver setNameVisible)
+    this.nameLabel = new Text({
+      text: '',
+      style: {
+        fontFamily: '"Space Grotesk", sans-serif',
+        fontSize: 11,
+        fontWeight: '600',
+        fill: 0xe8e8f0,
+        stroke: { color: 0x0a0a10, width: 3 },
+      },
+    })
+    this.nameLabel.anchor.set(0.5, 1)
+    this.nameLabel.position.set(8 * UNIT, -6)
+    this.nameLabel.visible = false
+    this.nameLabel.zIndex = 999999
+    this.root.addChild(this.nameLabel)
 
     const skin = toNum(look.skin)
     const skinDark = darken(look.skin, -0.18)
@@ -169,6 +196,8 @@ export class AvatarPuppet {
     this.root.addChild(this.legL, this.legR, this.torso, this.armL, this.armR, this.head)
     // pivot do conjunto nos pés, pra posicionar pelo chão
     this.root.pivot.set(8 * UNIT, 20 * UNIT)
+    // nome sempre por cima de tudo (readicionar move pro fim da lista de filhos)
+    this.root.addChild(this.nameLabel)
   }
 
   private makeLeg(pants: number, pantsDark: number, pantsLite: number, boot: number, side: 'left' | 'right'): Container {
@@ -277,6 +306,62 @@ export class AvatarPuppet {
     else if (facing === 'right') this.root.scale.x = 1
     this.face.visible = facing !== 'up'
     this.backHead.visible = facing === 'up'
+    // contra-espelha o nome pra não ficar de trás pra frente junto com o boneco
+    this.nameLabel.scale.x = this.root.scale.x
+  }
+
+  /** Nome exibido flutuando sobre o boneco (some por padrão, aparece por proximidade). */
+  setName(name: string) {
+    this.nameLabel.text = name
+  }
+  setNameVisible(visible: boolean) {
+    this.nameLabel.visible = visible
+  }
+
+  private setBodyVisible(v: boolean) {
+    this.legL.visible = v
+    this.legR.visible = v
+    this.torso.visible = v
+    this.armL.visible = v
+    this.armR.visible = v
+    this.head.visible = v
+  }
+
+  /** Foto de perfil (círculo) no lugar do boneco pixel — null volta a mostrar o sprite. */
+  async setPhoto(url: string | null) {
+    if (this.photoUrl === url) return
+    this.photoUrl = url
+    if (!url) {
+      this.usingPhoto = false
+      this.photoLayer.visible = false
+      this.setBodyVisible(true)
+      return
+    }
+    try {
+      const texture = await Assets.load(url)
+      if (this.photoUrl !== url) return // trocou de novo (ou foi limpa) enquanto carregava
+      if (!this.photoSprite) {
+        const size = 16 * UNIT
+        const mask = new Graphics().circle(size / 2, size / 2, size / 2).fill(0xffffff)
+        const ring = new Graphics().circle(size / 2, size / 2, size / 2).stroke({ width: 2, color: OUTLINE })
+        this.photoSprite = new Sprite(texture)
+        this.photoSprite.width = size
+        this.photoSprite.height = size
+        this.photoSprite.mask = mask
+        this.photoLayer.addChild(mask, this.photoSprite, ring)
+        this.photoLayer.position.set(0, 2 * UNIT)
+      } else {
+        this.photoSprite.texture = texture
+      }
+      this.usingPhoto = true
+      this.photoLayer.visible = true
+      this.setBodyVisible(false)
+    } catch {
+      // falha ao carregar a foto (ex: removida no meio do caminho) → mantém o sprite
+      this.usingPhoto = false
+      this.photoLayer.visible = false
+      this.setBodyVisible(true)
+    }
   }
 
   /** Avança a animação. dt em segundos. */
