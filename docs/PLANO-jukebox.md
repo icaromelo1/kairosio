@@ -18,6 +18,22 @@
 > 3. Envie pro servidor: `scp cookies.txt ubuntu@147.15.78.182:/home/ubuntu/projects/kairos-api/cookies/youtube.txt`
 > 4. Pronto — o `YtDlpService` já detecta o arquivo (não-vazio) e passa `--cookies` sozinho,
 >    sem precisar de novo deploy. Mount + env var (`COOKIES_FILE`) já estão configurados.
+>
+> **Teste local (30/06):** baixado com sucesso da máquina local (IP residencial, sem
+> cookies) o mesmo link que falhou na VM — confirma que o bloqueio é específico do IP
+> de datacenter da Oracle, não uma exigência geral de autenticação. Avaliada alternativa
+> de proxy residencial pro `yt-dlp` da VM; descartada por custo recorrente e complexidade
+> extra desnecessária pra esse caso de uso pessoal. **Decisão: seguir só com cookies.txt.**
+>
+> **Atualização (01/07):** cookies.txt exportado (conta `ica121jogador@gmail.com`, via
+> `yt-dlp --cookies-from-browser chrome`, sem precisar de extensão) e enviado pro servidor.
+> Resolveu a busca de metadado, mas o download real de áudio continuou bloqueado — o
+> YouTube passou a exigir também um **PO Token** (proof-of-origin) junto com o cookie.
+> Fix: subido o sidecar `bgutil-ytdlp-pot-provider` (container `bgutil-provider`, porta
+> 4416 interna) + plugin `bgutil-ytdlp-pot-provider` (pip) no `yt-dlp` da imagem +
+> `POT_PROVIDER_URL` no `YtDlpService`. Mount do cookies.txt trocado de `:ro` pra
+> leitura-escrita (o `yt-dlp` regrava o cookie jar sozinho quando os tokens rotacionam).
+> **Status: ✅ resolvido de vez** — cookies + PO token juntos contornam o anti-bot.
 
 ---
 

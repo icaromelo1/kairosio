@@ -22,6 +22,7 @@ export interface YtDlpInfo {
 @Injectable()
 export class YtDlpService {
   private readonly cookiesFile = process.env.COOKIES_FILE
+  private readonly potProviderUrl = process.env.POT_PROVIDER_URL
 
   // só ativa se o arquivo existir E não estiver vazio (placeholder até o Icaro subir
   // o cookies.txt de verdade — sem isso, --cookies de um arquivo vazio dá erro pior)
@@ -32,6 +33,13 @@ export class YtDlpService {
     } catch {
       return []
     }
+  }
+
+  // sidecar bgutil-ytdlp-pot-provider (container "bgutil-provider") gera o PO token
+  // que o YouTube passou a exigir junto com cookies pro gate anti-bot
+  private potArgs(): string[] {
+    if (!this.potProviderUrl) return []
+    return ['--extractor-args', `youtubepot-bgutilhttp:base_url=${this.potProviderUrl}`]
   }
 
   extractYoutubeId(input: string): string {
@@ -45,7 +53,11 @@ export class YtDlpService {
   async fetchInfo(youtubeId: string): Promise<YtDlpInfo> {
     const url = `https://www.youtube.com/watch?v=${youtubeId}`
     try {
-      const { stdout } = await execFileAsync('yt-dlp', ['-j', '--no-playlist', ...this.cookieArgs(), url], EXEC_OPTS)
+      const { stdout } = await execFileAsync(
+        'yt-dlp',
+        ['-j', '--no-playlist', ...this.cookieArgs(), ...this.potArgs(), url],
+        EXEC_OPTS,
+      )
       const data = JSON.parse(stdout)
       return { title: String(data.title || youtubeId), durationSec: Math.round(Number(data.duration) || 0) }
     } catch (e) {
@@ -59,7 +71,17 @@ export class YtDlpService {
     try {
       await execFileAsync(
         'yt-dlp',
-        ['-x', '--audio-format', 'mp3', '--no-playlist', ...this.cookieArgs(), '-o', outTemplate, url],
+        [
+          '-x',
+          '--audio-format',
+          'mp3',
+          '--no-playlist',
+          ...this.cookieArgs(),
+          ...this.potArgs(),
+          '-o',
+          outTemplate,
+          url,
+        ],
         EXEC_OPTS,
       )
     } catch (e) {
