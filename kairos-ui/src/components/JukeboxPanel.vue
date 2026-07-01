@@ -178,8 +178,8 @@ function addRandom() {
 }
 
 function addAll() {
-  // manda um por vez (servidor processa sequencialmente) — duplicatas já na fila
-  // são recusadas silenciosamente pelo backend (jukeboxError, sem travar o resto)
+  // fila de tocar aceita repetição — servidor processa um por vez, sem bloquear
+  // duplicatas (o download em si já é dedupado por youtubeId no backend)
   for (const t of library.value) emitJukeboxAdd(t.youtubeId)
 }
 

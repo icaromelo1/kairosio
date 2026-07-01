@@ -13,6 +13,11 @@ const PRUNE_INTERVAL_MS = 6 * 60 * 60 * 1000 // checa a cada 6h
 @Injectable()
 export class JukeboxService implements OnModuleInit {
   private readonly logger = new Logger(JukeboxService.name)
+  // dedup real da fila de DOWNLOAD: pedidos concorrentes da mesma música (ex: duas
+  // pessoas adicionando o mesmo link ao mesmo tempo) esperam o MESMO download em vez
+  // de baixar/subir pro Drive em paralelo. A fila de TOCAR não tem esse limite — a
+  // mesma faixa pode entrar quantas vezes quiser (ver PresenceGateway.handleJukeboxAdd).
+  private readonly inFlightDownloads = new Map<string, Promise<Track>>()
 
   constructor(
     @InjectRepository(Track) private readonly tracks: Repository<Track>,
@@ -97,6 +102,25 @@ export class JukeboxService implements OnModuleInit {
       return existing
     }
 
+    // ainda não foi baixada — dedupa downloads concorrentes da MESMA música (ex:
+    // duas pessoas mandando o mesmo link ao mesmo tempo): quem chegar depois só
+    // espera o download que já está em andamento, em vez de baixar/subir de novo.
+    const inFlight = this.inFlightDownloads.get(youtubeId)
+    if (inFlight) return inFlight
+
+    const promise = this.downloadAndSave(youtubeId, userId, userName, onProgress).finally(() => {
+      this.inFlightDownloads.delete(youtubeId)
+    })
+    this.inFlightDownloads.set(youtubeId, promise)
+    return promise
+  }
+
+  private async downloadAndSave(
+    youtubeId: string,
+    userId: string,
+    userName: string,
+    onProgress?: (label: string) => void,
+  ): Promise<Track> {
     onProgress?.('baixando áudio do YouTube...')
     const info = await this.ytdlp.fetchInfo(youtubeId)
     await this.ytdlp.downloadAudio(youtubeId, this.cache.dirPath())
