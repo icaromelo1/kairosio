@@ -23,4 +23,14 @@ export class DriveService {
   async download(fileName: string, destPath: string): Promise<void> {
     await execFileAsync('rclone', this.args(['copyto', `${this.remote}/${fileName}`, destPath]), EXEC_OPTS)
   }
+
+  async deleteFile(fileName: string): Promise<void> {
+    await execFileAsync('rclone', this.args(['deletefile', `${this.remote}/${fileName}`]), EXEC_OPTS)
+  }
+
+  // lista os arquivos do remote (nome só, um por linha) — usado pra sincronizar o cache local
+  async listFiles(): Promise<string[]> {
+    const { stdout } = await execFileAsync('rclone', this.args(['lsf', this.remote]), EXEC_OPTS)
+    return stdout.split('\n').map((l) => l.trim()).filter(Boolean)
+  }
 }
