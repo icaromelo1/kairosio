@@ -1,7 +1,14 @@
+import { ref, watch } from 'vue'
 import { jukeboxState } from './presence'
 
 const API_URL = import.meta.env.VITE_API_URL || window.location.origin
 const STREAM_BASE = `${API_URL}/kairos-api/jukebox/stream`
+
+// volume pessoal (0-1), independente por jogador — multiplica o volume calculado
+// por proximidade/sala antes de aplicar no <audio>. Persiste entre sessões.
+const storedVolume = Number(localStorage.getItem('kairos-jukebox-volume'))
+export const personalVolume = ref(Number.isFinite(storedVolume) && storedVolume >= 0 && storedVolume <= 1 ? storedVolume : 1)
+watch(personalVolume, (v) => localStorage.setItem('kairos-jukebox-volume', String(v)))
 
 // Toca a faixa atual da sala sincronizada por startedAt (quem entra no meio
 // entra no ponto certo, não do início). Volume é controlado de fora (proximidade
@@ -38,7 +45,7 @@ class JukeboxAudio {
   }
 
   setVolume(v: number) {
-    if (this.audio) this.audio.volume = Math.max(0, Math.min(1, v))
+    if (this.audio) this.audio.volume = Math.max(0, Math.min(1, v)) * personalVolume.value
   }
 
   stop() {

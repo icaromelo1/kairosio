@@ -37,11 +37,20 @@
       <div style="display:flex;gap:8px">
         <input
           v-model="linkInput" placeholder="Cole o link do YouTube…" @keydown.enter="add"
+          :disabled="!!jukeboxState.status"
           style="flex:1;box-sizing:border-box;background:var(--bg-1);border:1px solid var(--border-strong);color:var(--text);padding:8px 10px;font-size:13px;font-family:inherit"
         />
-        <button class="k-btn k-btn-primary" style="padding:8px 14px;font-size:11px" :disabled="adding" @click="add">{{ adding ? '...' : 'add' }}</button>
+        <button class="k-btn k-btn-primary" style="padding:8px 14px;font-size:11px" :disabled="adding || !!jukeboxState.status" @click="add">{{ adding || jukeboxState.status ? '...' : 'add' }}</button>
       </div>
+      <p v-if="jukeboxState.status" style="color:var(--text-3);font-size:12px;margin:0">🔄 {{ jukeboxState.status }}</p>
       <p v-if="jukeboxError" style="color:var(--err);font-size:12px;margin:0">{{ jukeboxError }}</p>
+
+      <!-- volume pessoal -->
+      <div style="display:flex;align-items:center;gap:8px;font-size:12px">
+        <span style="color:var(--text-3)">seu volume:</span>
+        <input type="range" min="0" max="1" step="0.05" v-model.number="personalVolume" style="flex:1" />
+        <span style="color:var(--text-3);width:32px;text-align:right">{{ Math.round(personalVolume * 100) }}%</span>
+      </div>
 
       <!-- fila -->
       <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;max-height:160px">
@@ -61,6 +70,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { jukeboxState, jukeboxError, emitJukeboxAdd, emitJukeboxSkip, emitJukeboxSetMode } from '@/services/presence'
+import { personalVolume } from '@/services/jukeboxAudio'
 
 defineEmits(['close'])
 

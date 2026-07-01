@@ -26,6 +26,7 @@ export interface JukeboxState {
   queue: JukeboxQueueItem[]
   current: JukeboxQueueItem | null
   startedAt: number | null
+  status: string | null
 }
 
 export interface RemotePlayer {
@@ -69,7 +70,7 @@ export const remotePlayers = reactive(new Map<string, RemotePlayer>())
 // Histórico recente de chat da sala (cap 50)
 export const chatMessages = reactive<ChatMessage[]>([])
 // Estado do jukebox da sala atual (fila/faixa tocando/modo)
-export const jukeboxState = reactive<JukeboxState>({ mode: 'proximity', queue: [], current: null, startedAt: null })
+export const jukeboxState = reactive<JukeboxState>({ mode: 'proximity', queue: [], current: null, startedAt: null, status: null })
 export const jukeboxError = ref('')
 
 let socket: Socket | null = null
@@ -122,6 +123,7 @@ export function connectPresence(opts: JoinOptions) {
     jukeboxState.queue = s.queue
     jukeboxState.current = s.current
     jukeboxState.startedAt = s.startedAt
+    jukeboxState.status = s.status
   })
   socket.on('jukeboxError', ({ message }: { message: string }) => {
     jukeboxError.value = message

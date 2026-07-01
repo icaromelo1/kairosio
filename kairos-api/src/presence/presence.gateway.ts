@@ -31,6 +31,7 @@ interface JukeboxRoomState {
   current: JukeboxQueueItem | null
   startedAt: number | null
   timer: ReturnType<typeof setTimeout> | null
+  status: string | null
 }
 
 interface Player {
@@ -203,8 +204,27 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       return
     }
     const room = this.room(player.org, player.map)
+    const state = this.jukeboxStateFor(room)
+
+    let youtubeId: string
     try {
-      const track = await this.jukeboxService.resolveTrack(payload?.input, userId, player.name)
+      youtubeId = this.jukeboxService.extractYoutubeId(payload?.input)
+    } catch (e) {
+      socket.emit('jukeboxError', { message: (e as Error).message || 'Link inválido' })
+      return
+    }
+    if (state.current?.youtubeId === youtubeId || state.queue.some((q) => q.youtubeId === youtubeId)) {
+      socket.emit('jukeboxError', { message: 'Essa música já está na fila' })
+      return
+    }
+
+    try {
+      state.status = 'buscando informações...'
+      this.broadcastJukebox(room)
+      const track = await this.jukeboxService.resolveTrack(youtubeId, userId, player.name, (label) => {
+        state.status = label
+        this.broadcastJukebox(room)
+      })
       const item: JukeboxQueueItem = {
         trackId: track.id,
         youtubeId: track.youtubeId,
@@ -212,11 +232,13 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
         durationSec: track.durationSec,
         addedByName: player.name,
       }
-      const state = this.jukeboxStateFor(room)
       state.queue.push(item)
+      state.status = null
       if (!state.current) this.advanceJukebox(room)
       else this.broadcastJukebox(room)
     } catch (e) {
+      state.status = null
+      this.broadcastJukebox(room)
       socket.emit('jukeboxError', { message: (e as Error).message || 'Falha ao adicionar música' })
     }
   }
@@ -240,7 +262,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   private jukeboxStateFor(room: string): JukeboxRoomState {
     let state = this.jukebox.get(room)
     if (!state) {
-      state = { mode: 'proximity', queue: [], current: null, startedAt: null, timer: null }
+      state = { mode: 'proximity', queue: [], current: null, startedAt: null, timer: null, status: null }
       this.jukebox.set(room, state)
     }
     return state
@@ -248,7 +270,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   private jukeboxSnapshot(room: string) {
     const s = this.jukeboxStateFor(room)
-    return { mode: s.mode, queue: s.queue, current: s.current, startedAt: s.startedAt }
+    return { mode: s.mode, queue: s.queue, current: s.current, startedAt: s.startedAt, status: s.status }
   }
 
   private broadcastJukebox(room: string) {
