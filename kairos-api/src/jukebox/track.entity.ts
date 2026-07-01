@@ -20,8 +20,10 @@ export class Track {
   @Column()
   driveFile: string
 
-  @Column({ type: 'uuid' })
-  addedBy: string
+  // null quando o registro foi reconstruído por syncFromDrive (ninguém "adicionou" —
+  // o arquivo já existia no Drive, sem correspondente no banco)
+  @Column({ type: 'uuid', nullable: true })
+  addedBy: string | null
 
   @Column()
   addedByName: string

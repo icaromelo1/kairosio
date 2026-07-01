@@ -68,20 +68,49 @@ export class JukeboxService implements OnModuleInit {
   }
 
   // rebaixa (re-sincroniza) tudo que está no Drive pro cache local — útil depois de
-  // perder o volume de cache (redeploy, disco novo) sem precisar rebaixar do YouTube
-  async syncFromDrive(): Promise<{ total: number; downloaded: number; skipped: number }> {
+  // perder o volume de cache (redeploy, disco novo) sem precisar rebaixar do YouTube.
+  // Também RECONSTRÓI o registro no banco pra faixa que existe no Drive mas não tem
+  // Track correspondente (ex: banco local vazio) — sem isso, o arquivo baixa mas não
+  // aparece na busca da biblioteca, que lista pelo banco, não pelo disco/Drive.
+  async syncFromDrive(): Promise<{ total: number; downloaded: number; skipped: number; recovered: number }> {
     const files = await this.drive.listFiles()
     let downloaded = 0
     let skipped = 0
+    let recovered = 0
     for (const fileName of files) {
       if (this.cache.has(fileName)) {
         skipped++
-        continue
+      } else {
+        await this.drive.download(fileName, this.cache.localPath(fileName))
+        downloaded++
       }
-      await this.drive.download(fileName, this.cache.localPath(fileName))
-      downloaded++
+
+      const youtubeId = fileName.replace(/\.mp3$/i, '')
+      const existing = await this.tracks.findOne({ where: { youtubeId } })
+      if (existing) continue
+
+      let title = youtubeId
+      let durationSec = 0
+      try {
+        const info = await this.ytdlp.fetchInfo(youtubeId)
+        title = info.title
+        durationSec = info.durationSec
+      } catch (e) {
+        this.logger.warn(`Sync: não deu pra buscar metadados de ${youtubeId}, usando título genérico: ${(e as Error).message}`)
+      }
+      const track = this.tracks.create({
+        youtubeId,
+        title,
+        durationSec,
+        driveFile: fileName,
+        addedBy: null,
+        addedByName: 'sincronizado do Drive',
+        lastPlayedAt: new Date(),
+      })
+      await this.tracks.save(track)
+      recovered++
     }
-    return { total: files.length, downloaded, skipped }
+    return { total: files.length, downloaded, skipped, recovered }
   }
 
   // resolve um link/id pra uma Track: dedup por youtubeId (já baixada antes? só
