@@ -1,57 +1,40 @@
 <template>
-  <div :style="{
-    height: '100vh', display: 'grid',
-    gridTemplateColumns: gameStore.sidebarOpen ? '256px 1fr' : '56px 1fr',
-    background: 'var(--bg-0)', overflow: 'hidden', transition: 'grid-template-columns 0.25s ease',
-  }">
+  <div class="gp-root" :class="{ 'gp-sidebar-open': gameStore.sidebarOpen }">
     <!-- Sidebar -->
-    <aside :style="{
-      background: 'var(--bg-2)', borderRight: '1px solid var(--border)',
-      display: 'flex', flexDirection: 'column', gap: '14px',
-      padding: gameStore.sidebarOpen ? '16px' : '8px', overflow: 'hidden',
-    }">
-      <div style="display:flex;align-items:center;justify-content:space-between;gap:10px">
+    <aside class="gp-sidebar" :class="{ 'gp-sidebar-open': gameStore.sidebarOpen }">
+      <div class="row items-center justify-between q-gutter-sm">
         <Logo v-if="gameStore.sidebarOpen" :id="'monogram'" size="sm" primary="var(--primary-hi)" accent="var(--accent)" />
-        <button @click="gameStore.sidebarOpen = !gameStore.sidebarOpen" :style="{
-          appearance: 'none', background: 'transparent', border: '1px solid var(--border)',
-          color: 'var(--text-2)', width: '28px', height: '28px', cursor: 'pointer',
-          display: 'grid', placeItems: 'center', fontSize: '14px', flexShrink: 0,
-        }">{{ gameStore.sidebarOpen ? '‹' : '›' }}</button>
+        <button class="gp-sidebar-toggle" @click="gameStore.sidebarOpen = !gameStore.sidebarOpen">{{ gameStore.sidebarOpen ? '‹' : '›' }}</button>
       </div>
 
       <template v-if="gameStore.sidebarOpen">
         <!-- User card -->
-        <div style="background:var(--bg-1);border:1px solid var(--border);padding:12px;display:flex;align-items:center;gap:10px">
-          <div style="width:36px;height:36px;background:var(--bg-3);display:grid;place-items:center">
+        <div class="gp-user-card row items-center q-gutter-sm">
+          <div class="gp-avatar-box">
             <PixelAvatar :scale="1.6" v-bind="look" :shadow="false" />
           </div>
-          <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ playerName }}</div>
-            <div style="font-size:10px;color:var(--ok);font-family:var(--f-mono);letter-spacing:0.1em;text-transform:uppercase">● online · {{ online }}</div>
+          <div class="gp-user-info">
+            <div class="ellipsis gp-user-name">{{ playerName }}</div>
+            <div class="gp-user-status">● online · {{ online }}</div>
           </div>
         </div>
 
         <!-- Mundos (vindos do banco) -->
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <div style="font-size:10px;letter-spacing:0.18em;color:var(--text-3);text-transform:uppercase;font-weight:600;padding:4px 6px">Mundos</div>
+        <div class="column q-gutter-xs">
+          <div class="gp-section-label">Mundos</div>
           <button
             v-for="m in maps" :key="m.id" @click="selectMap(m.id)"
-            :style="{
-              appearance: 'none', textAlign: 'left',
-              background: currentId === m.id ? 'rgba(124,58,237,0.12)' : 'transparent',
-              border: currentId === m.id ? '1px solid rgba(124,58,237,0.32)' : '1px solid transparent',
-              color: currentId === m.id ? 'var(--text)' : 'var(--text-2)',
-              padding: '8px 10px', fontSize: '13px', cursor: 'pointer',
-              display: 'flex', alignItems: 'center', gap: '10px', fontFamily: 'inherit',
-            }">
-            <span style="flex:1">{{ m.name }}</span>
-            <span v-if="currentId === m.id" style="font-size:9px;color:var(--accent);letter-spacing:0.16em;text-transform:uppercase;font-weight:700">atual</span>
+            class="gp-map-btn row items-center q-gutter-sm"
+            :class="{ 'gp-map-btn-active': currentId === m.id }"
+          >
+            <span class="col">{{ m.name }}</span>
+            <span v-if="currentId === m.id" class="gp-map-current">atual</span>
           </button>
         </div>
 
         <!-- Você -->
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <div style="font-size:10px;letter-spacing:0.18em;color:var(--text-3);text-transform:uppercase;font-weight:600;padding:4px 6px">Você</div>
+        <div class="column q-gutter-xs">
+          <div class="gp-section-label">Você</div>
           <button class="k-btn k-btn-ghost menu-act" @click="router.push('/character')">Editar avatar</button>
           <button v-if="!auth.isGuest" class="k-btn k-btn-ghost menu-act" @click="router.push('/editor/new')">Criar mundo</button>
           <button v-if="currentMap && currentMap.ownerId === auth.userId" class="k-btn k-btn-ghost menu-act" @click="router.push(`/editor/${currentId}`)">Editar este mundo</button>
@@ -63,98 +46,97 @@
     </aside>
 
     <!-- Stage (PixiJS) -->
-    <div style="position:relative;overflow:hidden;background:var(--bg-0)">
-      <div ref="host" :style="{ position:'absolute', inset:0, cursor: panMode ? (panDragging ? 'grabbing' : 'grab') : 'default' }"
+    <div class="gp-stage">
+      <div
+        ref="host" class="gp-canvas-host"
+        :class="panMode ? (panDragging ? 'gp-cursor-grabbing' : 'gp-cursor-grab') : 'gp-cursor-default'"
         @wheel.prevent="onWheel"
-        @pointerdown="onPanDown" @pointermove="onPanMove" @pointerup="onPanUp" @pointerleave="onPanUp"></div>
+        @pointerdown="onPanDown" @pointermove="onPanMove" @pointerup="onPanUp" @pointerleave="onPanUp"
+      ></div>
 
       <!-- Zoom -->
-      <div style="position:absolute;top:64px;right:16px;z-index:10;display:flex;flex-direction:column;gap:4px">
-        <button class="k-key" style="cursor:pointer;width:30px;height:30px;font-size:16px" @click="zoomBy(1.15)" title="Zoom +">+</button>
-        <button class="k-key" style="cursor:pointer;width:30px;height:30px;font-size:16px" @click="zoomBy(0.87)" title="Zoom −">−</button>
+      <div class="gp-zoom column q-gutter-xs">
+        <button class="k-key gp-zoom-btn" @click="zoomBy(1.15)" title="Zoom +">+</button>
+        <button class="k-key gp-zoom-btn" @click="zoomBy(0.87)" title="Zoom −">−</button>
       </div>
 
       <!-- HUD top-left -->
-      <div style="position:absolute;top:16px;left:16px;display:inline-flex;align-items:center;gap:10px;background:rgba(13,13,20,0.78);border:1px solid var(--border-strong);backdrop-filter:blur(10px);padding:8px 12px 8px 8px;z-index:10">
-        <div style="width:36px;height:36px;background:var(--bg-3);display:grid;place-items:center;overflow:hidden">
+      <div class="gp-hud gp-hud-topleft row items-center q-gutter-sm">
+        <div class="gp-avatar-box">
           <PixelAvatar :scale="1.6" v-bind="look" :shadow="false" />
         </div>
-        <div style="display:flex;flex-direction:column;line-height:1.1">
-          <span style="font-size:13px;font-weight:600">{{ playerName }}</span>
-          <span style="font-size:10px;color:var(--text-3);font-family:var(--f-mono);letter-spacing:0.12em;text-transform:uppercase">● {{ currentMap?.name || '…' }}</span>
+        <div class="column gp-hud-tight">
+          <span class="gp-hud-name">{{ playerName }}</span>
+          <span class="gp-hud-mapname">● {{ currentMap?.name || '…' }}</span>
         </div>
       </div>
 
       <!-- HUD top-right: online + lista -->
-      <div style="position:absolute;top:16px;right:16px;background:rgba(13,13,20,0.82);border:1px solid var(--border-strong);backdrop-filter:blur(10px);padding:8px 12px;z-index:10;min-width:140px">
-        <div style="color:var(--accent);font-weight:600;font-family:var(--f-mono);font-size:12px;letter-spacing:0.08em;margin-bottom:6px">{{ online }} online</div>
-        <div style="display:flex;flex-direction:column;gap:2px;font-size:12px">
-          <span style="color:var(--text)">● {{ playerName }} <span style="color:var(--text-4)">(você)</span> <span v-if="voiceOn">🎙</span></span>
-          <span v-for="p in roomPeers" :key="p.id" style="color:var(--text-2)">● {{ p.name }} <span v-if="voicePeers.includes(p.id)">🔊</span></span>
+      <div class="gp-hud gp-hud-topright">
+        <div class="gp-online-count">{{ online }} online</div>
+        <div class="column gp-online-list">
+          <span class="gp-peer-you">● {{ playerName }} <span class="gp-peer-you-tag">(você)</span> <span v-if="voiceOn">🎙</span></span>
+          <span v-for="p in roomPeers" :key="p.id" class="gp-peer">● {{ p.name }} <span v-if="voicePeers.includes(p.id)">🔊</span></span>
         </div>
       </div>
 
       <!-- Proximidade + voz -->
-      <div v-if="nearby" style="position:absolute;top:16px;left:50%;transform:translateX(-50%);background:rgba(124,58,237,0.18);border:1px solid var(--primary-hi);backdrop-filter:blur(10px);padding:6px 14px;font-size:12px;color:var(--text);z-index:10">
+      <div v-if="nearby" class="gp-hud gp-nearby">
         perto de <strong>{{ nearby }}</strong>
       </div>
 
       <!-- Botão de voz (claro: rótulo + estado) -->
-      <div style="position:absolute;bottom:16px;right:24px;z-index:20;display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+      <div class="gp-voice-wrap column items-end q-gutter-xs">
         <button
           :title="voiceOn ? 'Microfone ligado — clique pra desligar' : 'Clique pra falar por voz com quem está perto'"
+          class="gp-voice-btn"
+          :class="{ 'gp-voice-btn-on': voiceOn }"
           @click="toggleVoice"
-          :style="{
-            display: 'inline-flex', alignItems: 'center', gap: '8px', cursor: 'pointer',
-            padding: '9px 14px', borderRadius: '22px', fontSize: '13px', fontWeight: 600,
-            border: '1px solid ' + (voiceOn ? 'var(--ok)' : 'var(--border-strong)'),
-            background: voiceOn ? 'rgba(52,211,153,0.22)' : 'rgba(13,13,20,0.85)', color: 'var(--text)',
-          }"
         >{{ voiceOn ? '🎙 Microfone ligado' : '🔇 Falar por voz' }}</button>
-        <span v-if="!voiceOn" style="font-size:11px;color:var(--text-3);background:rgba(13,13,20,0.7);padding:2px 8px;border-radius:4px">aproxime-se de alguém pra conversar por voz</span>
-        <button v-else style="font-size:11px;color:var(--text-2);background:rgba(13,13,20,0.7);border:1px solid var(--border);padding:2px 8px;border-radius:4px;cursor:pointer" @click="voice.reconnect()">↻ reconectar (se a voz travar)</button>
+        <span v-if="!voiceOn" class="gp-voice-hint">aproxime-se de alguém pra conversar por voz</span>
+        <button v-else class="gp-voice-reconnect" @click="voice.reconnect()">↻ reconectar (se a voz travar)</button>
       </div>
 
       <!-- Chat -->
-      <div style="position:absolute;bottom:16px;left:16px;width:280px;z-index:10">
-        <div v-if="messages.length" style="max-height:180px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;margin-bottom:6px">
-          <div v-for="(m, i) in messages" :key="i" style="background:rgba(13,13,20,0.82);border:1px solid var(--border);padding:5px 9px;font-size:12px;line-height:1.4">
-            <span style="color:var(--accent);font-weight:600">{{ m.name }}:</span>
-            <span style="color:var(--text)"> {{ m.text }}</span>
+      <div class="gp-chat">
+        <div v-if="messages.length" class="column q-gutter-xs gp-chat-log">
+          <div v-for="(m, i) in messages" :key="i" class="gp-chat-msg">
+            <span class="gp-chat-name">{{ m.name }}:</span>
+            <span class="gp-chat-text"> {{ m.text }}</span>
           </div>
         </div>
         <input
           v-model="chatInput" maxlength="300" placeholder="Conversar… (Enter)"
-          style="width:100%;box-sizing:border-box;background:rgba(13,13,20,0.85);border:1px solid var(--border-strong);color:var(--text);padding:8px 10px;font-size:13px;font-family:inherit"
+          class="gp-chat-input"
           @keydown.enter="sendChat"
         />
       </div>
 
       <!-- HUD bottom -->
-      <div style="position:absolute;bottom:16px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:14px;background:rgba(13,13,20,0.78);border:1px solid var(--border-strong);backdrop-filter:blur(10px);padding:8px 14px;font-size:11px;color:var(--text-2);letter-spacing:0.06em;z-index:10">
-        <span style="display:inline-flex;gap:6px;align-items:center"><span class="k-key">W</span><span class="k-key">A</span><span class="k-key">S</span><span class="k-key">D</span><span style="color:var(--text-3)">mover</span></span>
-        <span style="color:var(--text-4)">·</span>
-        <span style="display:inline-flex;gap:6px;align-items:center"><span class="k-key">B</span><span style="color:var(--text-3)">dançar</span></span>
-        <span style="color:var(--text-4)">·</span>
-        <span style="display:inline-flex;gap:6px;align-items:center"><span class="k-key">G</span><span style="color:var(--text-3)">acenar</span></span>
+      <div class="gp-hud gp-hud-bottom row items-center q-gutter-md">
+        <span class="row items-center q-gutter-xs"><span class="k-key">W</span><span class="k-key">A</span><span class="k-key">S</span><span class="k-key">D</span><span class="gp-hud-hint">mover</span></span>
+        <span class="gp-hud-sep">·</span>
+        <span class="row items-center q-gutter-xs"><span class="k-key">B</span><span class="gp-hud-hint">dançar</span></span>
+        <span class="gp-hud-sep">·</span>
+        <span class="row items-center q-gutter-xs"><span class="k-key">G</span><span class="gp-hud-hint">acenar</span></span>
         <template v-if="activeZone">
-          <span style="color:var(--text-4)">·</span>
-          <span style="display:inline-flex;gap:6px;align-items:center"><span class="k-key">E</span><span style="color:var(--accent)">{{ activeZone.action }}</span></span>
+          <span class="gp-hud-sep">·</span>
+          <span class="row items-center q-gutter-xs"><span class="k-key">E</span><span class="gp-hud-action">{{ activeZone.action }}</span></span>
         </template>
       </div>
 
       <!-- Modal de interação -->
-      <div v-if="gameStore.isModalOpen && activeModal" style="position:absolute;inset:0;background:rgba(0,0,0,0.62);backdrop-filter:blur(6px);display:grid;place-items:center;z-index:50;padding:24px" @click="closeModal">
-        <div class="k-card" style="padding:28px;width:min(520px,100%);display:flex;flex-direction:column;gap:14px" @click.stop>
-          <div style="display:flex;align-items:center;justify-content:space-between">
+      <div v-if="gameStore.isModalOpen && activeModal" class="gp-modal-overlay" @click="closeModal">
+        <div class="k-card gp-modal-card column q-gutter-md" @click.stop>
+          <div class="row items-center justify-between">
             <span class="k-chip">interação</span>
-            <button class="k-btn k-btn-ghost" style="padding:6px 10px" @click="closeModal">esc ✕</button>
+            <button class="k-btn k-btn-ghost gp-modal-close" @click="closeModal">esc ✕</button>
           </div>
           <div>
-            <h2 style="margin:0 0 6px;font-size:24px;font-weight:600;letter-spacing:-0.02em">{{ activeModal.name }}</h2>
-            <p style="margin:0;color:var(--text-3);font-size:14px">{{ activeModal.action }}</p>
+            <h2 class="gp-modal-title">{{ activeModal.name }}</h2>
+            <p class="gp-modal-subtitle">{{ activeModal.action }}</p>
           </div>
-          <div style="background:var(--bg-1);border:1px solid var(--border);padding:16px;font-size:13px;color:var(--text-2);line-height:1.6">
+          <div class="gp-modal-body">
             Em breve. Esta estação será conectada à sua ferramenta ({{ activeModal.kind }}).
           </div>
         </div>
@@ -164,7 +146,7 @@
       <JukeboxPanel v-if="jukeboxOpen" @close="closeModal" />
 
       <!-- Controles touch (mobile) -->
-      <div class="touch-ctl" style="position:absolute;bottom:80px;right:24px;z-index:20;display:grid;grid-template-columns:repeat(3,44px);grid-template-rows:repeat(3,44px);gap:4px;touch-action:none;user-select:none">
+      <div class="touch-ctl gp-touch-ctl">
         <span></span>
         <button class="tbtn" @pointerdown.prevent="pressKey('w')" @pointerup="releaseKey('w')" @pointerleave="releaseKey('w')">▲</button>
         <span></span>
@@ -176,7 +158,7 @@
         <button class="tbtn" @pointerdown.prevent="emote()">👋</button>
       </div>
 
-      <div v-if="error" style="position:absolute;top:60px;left:50%;transform:translateX(-50%);color:#f87171;font-size:13px;z-index:10">{{ error }}</div>
+      <div v-if="error" class="gp-error">{{ error }}</div>
     </div>
   </div>
 </template>
@@ -575,6 +557,105 @@ onUnmounted(() => {
 </script>
 
 <style scoped>
+.gp-root {
+  height: 100vh;
+  display: grid;
+  grid-template-columns: 56px 1fr;
+  background: var(--bg-0);
+  overflow: hidden;
+  transition: grid-template-columns 0.25s ease;
+}
+.gp-root.gp-sidebar-open {
+  grid-template-columns: 256px 1fr;
+}
+
+.gp-sidebar {
+  background: var(--bg-2);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 8px;
+  overflow: hidden;
+}
+.gp-sidebar.gp-sidebar-open {
+  padding: 16px;
+}
+
+.gp-sidebar-toggle {
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.gp-user-card {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  padding: 12px;
+}
+
+.gp-avatar-box {
+  width: 36px;
+  height: 36px;
+  background: var(--bg-3);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.gp-user-info { flex: 1; min-width: 0; }
+.gp-user-name { font-size: 13px; font-weight: 600; }
+.gp-user-status {
+  font-size: 10px;
+  color: var(--ok);
+  font-family: var(--f-mono);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.gp-section-label {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--text-3);
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 4px 6px;
+}
+
+.gp-map-btn {
+  appearance: none;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--text-2);
+  padding: 8px 10px;
+  font-size: 13px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.gp-map-btn-active {
+  background: rgba(124, 58, 237, 0.12);
+  border-color: rgba(124, 58, 237, 0.32);
+  color: var(--text);
+}
+
+.gp-map-current {
+  font-size: 9px;
+  color: var(--accent);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
 /* botões do menu lateral: ocupam a largura toda e QUEBRAM linha em vez de estourar
    a sidebar (rótulos longos como "Feedback / Reportar" não vazam mais). */
 .menu-act {
@@ -586,6 +667,253 @@ onUnmounted(() => {
   line-height: 1.25;
   min-width: 0;
 }
+
+.gp-stage {
+  position: relative;
+  overflow: hidden;
+  background: var(--bg-0);
+}
+
+.gp-canvas-host {
+  position: absolute;
+  inset: 0;
+}
+.gp-cursor-default { cursor: default; }
+.gp-cursor-grab { cursor: grab; }
+.gp-cursor-grabbing { cursor: grabbing; }
+
+.gp-zoom {
+  position: absolute;
+  top: 64px;
+  right: 16px;
+  z-index: 10;
+}
+.gp-zoom-btn {
+  cursor: pointer;
+  width: 30px;
+  height: 30px;
+  font-size: 16px;
+}
+
+.gp-hud {
+  position: absolute;
+  z-index: 10;
+}
+
+.gp-hud-topleft {
+  top: 16px;
+  left: 16px;
+  display: inline-flex;
+  background: rgba(13, 13, 20, 0.78);
+  border: 1px solid var(--border-strong);
+  backdrop-filter: blur(10px);
+  padding: 8px 12px 8px 8px;
+}
+
+.gp-hud-tight { line-height: 1.1; }
+.gp-hud-name { font-size: 13px; font-weight: 600; }
+.gp-hud-mapname {
+  font-size: 10px;
+  color: var(--text-3);
+  font-family: var(--f-mono);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.gp-hud-topright {
+  top: 16px;
+  right: 16px;
+  background: rgba(13, 13, 20, 0.82);
+  border: 1px solid var(--border-strong);
+  backdrop-filter: blur(10px);
+  padding: 8px 12px;
+  min-width: 140px;
+}
+
+.gp-online-count {
+  color: var(--accent);
+  font-weight: 600;
+  font-family: var(--f-mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  margin-bottom: 6px;
+}
+
+.gp-online-list { gap: 2px; font-size: 12px; }
+.gp-peer-you { color: var(--text); }
+.gp-peer-you-tag { color: var(--text-4); }
+.gp-peer { color: var(--text-2); }
+
+.gp-nearby {
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(124, 58, 237, 0.18);
+  border: 1px solid var(--primary-hi);
+  backdrop-filter: blur(10px);
+  padding: 6px 14px;
+  font-size: 12px;
+  color: var(--text);
+}
+
+.gp-voice-wrap {
+  position: absolute;
+  bottom: 16px;
+  right: 24px;
+  z-index: 20;
+}
+
+.gp-voice-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  padding: 9px 14px;
+  border-radius: 22px;
+  font-size: 13px;
+  font-weight: 600;
+  border: 1px solid var(--border-strong);
+  background: rgba(13, 13, 20, 0.85);
+  color: var(--text);
+}
+.gp-voice-btn-on {
+  border-color: var(--ok);
+  background: rgba(52, 211, 153, 0.22);
+}
+
+.gp-voice-hint {
+  font-size: 11px;
+  color: var(--text-3);
+  background: rgba(13, 13, 20, 0.7);
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.gp-voice-reconnect {
+  font-size: 11px;
+  color: var(--text-2);
+  background: rgba(13, 13, 20, 0.7);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.gp-chat {
+  position: absolute;
+  bottom: 16px;
+  left: 16px;
+  width: 280px;
+  z-index: 10;
+}
+
+.gp-chat-log {
+  max-height: 180px;
+  overflow-y: auto;
+  margin-bottom: 6px;
+}
+
+.gp-chat-msg {
+  background: rgba(13, 13, 20, 0.82);
+  border: 1px solid var(--border);
+  padding: 5px 9px;
+  font-size: 12px;
+  line-height: 1.4;
+}
+.gp-chat-name { color: var(--accent); font-weight: 600; }
+.gp-chat-text { color: var(--text); }
+
+.gp-chat-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(13, 13, 20, 0.85);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 13px;
+  font-family: inherit;
+}
+
+.gp-hud-bottom {
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  background: rgba(13, 13, 20, 0.78);
+  border: 1px solid var(--border-strong);
+  backdrop-filter: blur(10px);
+  padding: 8px 14px;
+  font-size: 11px;
+  color: var(--text-2);
+  letter-spacing: 0.06em;
+}
+.gp-hud-hint { color: var(--text-3); }
+.gp-hud-sep { color: var(--text-4); }
+.gp-hud-action { color: var(--accent); }
+
+.gp-modal-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+  padding: 24px;
+}
+
+.gp-modal-card {
+  padding: 28px;
+  width: min(520px, 100%);
+}
+
+.gp-modal-close { padding: 6px 10px; }
+
+.gp-modal-title {
+  margin: 0 0 6px;
+  font-size: 24px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.gp-modal-subtitle {
+  margin: 0;
+  color: var(--text-3);
+  font-size: 14px;
+}
+
+.gp-modal-body {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  padding: 16px;
+  font-size: 13px;
+  color: var(--text-2);
+  line-height: 1.6;
+}
+
+.gp-touch-ctl {
+  position: absolute;
+  bottom: 80px;
+  right: 24px;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: repeat(3, 44px);
+  grid-template-rows: repeat(3, 44px);
+  gap: 4px;
+  touch-action: none;
+  user-select: none;
+}
+
+.gp-error {
+  position: absolute;
+  top: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  color: #f87171;
+  font-size: 13px;
+  z-index: 10;
+}
+
 .tbtn {
   background: rgba(13, 13, 20, 0.8);
   border: 1px solid var(--border-strong);
