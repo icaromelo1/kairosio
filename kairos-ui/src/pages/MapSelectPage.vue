@@ -213,4 +213,18 @@ onUnmounted(() => clearInterval(countTimer))
   color: var(--accent);
   font-weight: 600;
 }
+
+/* Telas estreitas (ou zoom alto): padding fixo de 32px + cards com mínimo de 280px
+   causavam overflow horizontal em telas bem pequenas (~320-360px). */
+@media (max-width: 480px) {
+  .ms-root {
+    padding: 16px;
+  }
+  .ms-title {
+    font-size: 26px;
+  }
+  .ms-grid {
+    grid-template-columns: 1fr;
+  }
+}
 </style>

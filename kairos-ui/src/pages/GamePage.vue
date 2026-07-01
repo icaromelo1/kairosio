@@ -803,7 +803,7 @@ onUnmounted(() => {
   position: absolute;
   bottom: 16px;
   left: 16px;
-  width: 280px;
+  width: min(280px, calc(100vw - 32px));
   z-index: 10;
 }
 
@@ -932,6 +932,61 @@ onUnmounted(() => {
 @media (hover: hover) and (pointer: fine) {
   .touch-ctl {
     display: none !important;
+  }
+}
+
+/* Telas estreitas (ou zoom alto do navegador, que reduz os mesmos px de CSS):
+   a sidebar aberta virava um grid-column de 256px e sobrava quase nada pro palco.
+   Vira overlay flutuante em vez de empurrar o grid — o palco sempre ocupa o resto. */
+@media (max-width: 768px) {
+  .gp-root.gp-sidebar-open {
+    grid-template-columns: 56px 1fr;
+  }
+  .gp-sidebar.gp-sidebar-open {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(256px, 80vw);
+    height: 100vh;
+    z-index: 100;
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.5);
+  }
+
+  /* HUD: lista de quem está online ocupava um card próprio no topo-direita —
+     em telas estreitas colide com o card do topo-esquerda. Esconde os nomes,
+     mantém só a contagem (mais compacta). */
+  .gp-online-list {
+    display: none;
+  }
+  .gp-hud-topright {
+    min-width: 0;
+    padding: 6px 10px;
+  }
+  .gp-online-count {
+    margin-bottom: 0;
+  }
+
+  /* Voz: rótulos auxiliares (dica/reconectar) ocupavam largura própria e
+     colidiam com o chat (bottom-left) em telas < ~500px. Fica só o botão. */
+  .gp-voice-hint,
+  .gp-voice-reconnect {
+    display: none;
+  }
+  .gp-voice-wrap {
+    bottom: 12px;
+    right: 12px;
+  }
+  .gp-chat {
+    bottom: 12px;
+    left: 12px;
+  }
+}
+
+/* Muito estreito (celular em pé): dica de teclas (WASD/B/G) é redundante com
+   os controles touch e brigava por espaço com chat/voz na mesma faixa vertical. */
+@media (max-width: 480px) {
+  .gp-hud-bottom {
+    display: none;
   }
 }
 </style>

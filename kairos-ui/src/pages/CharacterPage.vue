@@ -431,7 +431,7 @@ const ACCESSORIES = [
 }
 
 .name-input {
-  width: 260px;
+  width: min(260px, 100%);
   text-align: center;
   background: var(--bg-1);
   border: 3px solid var(--text-3);
@@ -673,6 +673,14 @@ const ACCESSORIES = [
     border-left: none;
     border-top: 1px solid var(--border);
     overflow-y: visible;
+  }
+}
+
+/* padding fixo de 32px do stage-col sobrava pouco espaço em telas bem estreitas
+   (name-input já é relativo, mas o padding em si ainda apertava o preview). */
+@media (max-width: 400px) {
+  .stage-col {
+    padding: 16px;
   }
 }
 </style>

@@ -1,7 +1,7 @@
 <template>
   <div class="ed-root">
     <!-- Toolbar -->
-    <aside class="ed-side">
+    <aside class="ed-side" :class="{ 'ed-side-open': sidebarOpen }">
       <div class="ed-head">
         <button class="ed-back" @click="router.push('/map-select')">‹ Mundos</button>
         <strong>Editor</strong>
@@ -67,7 +67,10 @@
     </aside>
 
     <!-- Stage -->
-    <div class="ed-stage" ref="host" @pointerdown="onClick" @pointermove="onMove" @pointerleave="scene?.clearGhost()"></div>
+    <div class="ed-stage" ref="host" @pointerdown="onClick" @pointermove="onMove" @pointerleave="scene?.clearGhost()">
+      <!-- só aparece em telas estreitas (a sidebar de 240px vira overlay) -->
+      <button class="ed-mobile-toggle" @click="sidebarOpen = !sidebarOpen">{{ sidebarOpen ? '✕' : '☰' }}</button>
+    </div>
   </div>
 </template>
 
@@ -87,6 +90,9 @@ const host = ref<HTMLElement | null>(null)
 const saving = ref(false)
 const msg = ref('')
 const tool = ref<'place' | 'erase' | 'spawn' | 'toggle'>('place')
+// sidebar de 240px vira overlay em telas estreitas — some por padrão pra não
+// tampar o canvas; irrelevante em telas largas (CSS sempre mostra .ed-side lá)
+const sidebarOpen = ref(false)
 
 const isNew = computed(() => route.params.id === 'new')
 
@@ -315,4 +321,45 @@ onUnmounted(() => scene?.destroy())
 .ed-swatch-active { border: 2px solid #fff; }
 .ed-pixel-grid { display: grid; grid-template-columns: repeat(8, 15px); gap: 1px; width: fit-content; }
 .ed-pixel-cell { width: 15px; height: 15px; cursor: crosshair; }
+
+.ed-mobile-toggle {
+  display: none;
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 110;
+  width: 36px;
+  height: 36px;
+  background: rgba(13, 13, 20, 0.85);
+  border: 1px solid #303045;
+  color: #e8e8f0;
+  cursor: pointer;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+/* Telas estreitas (ou zoom alto): 240px de sidebar fixa sobrava quase nada pro
+   canvas do editor. Vira overlay flutuante, escondida por padrão; o botão ☰
+   abre por cima do canvas em vez de dividir o grid. */
+@media (max-width: 768px) {
+  .ed-root {
+    grid-template-columns: 1fr;
+  }
+  .ed-side {
+    display: none;
+  }
+  .ed-side.ed-side-open {
+    display: flex;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: min(280px, 85vw);
+    height: 100vh;
+    z-index: 100;
+    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.5);
+  }
+  .ed-mobile-toggle {
+    display: block;
+  }
+}
 </style>
