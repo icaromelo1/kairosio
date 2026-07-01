@@ -6,15 +6,6 @@
     :viewBox="`0 0 16 20`"
     :style="{ display: 'block', animation: bobbing ? 'avatarBob 1.6s ease-in-out infinite' : undefined }"
   >
-    <defs>
-      <style>
-        @keyframes avatarBob {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-1px); }
-        }
-      </style>
-    </defs>
-
     <!-- shadow -->
     <ellipse v-if="shadow" cx="8" cy="19.5" rx="4" ry="0.6" fill="rgba(0,0,0,0.45)" />
 
@@ -101,3 +92,14 @@ const shadeSkin = (amt: number) => shade(props.skin, amt)
 const shadeTop = (amt: number) => shade(props.topColor, amt)
 const shadePants = (amt: number) => shade(props.pantsColor, amt)
 </script>
+
+<style scoped>
+/* precisa ficar fora do <svg><defs> — um <style> ali dentro do template é tratado
+   como "tag com efeito colateral" pelo compilador do Vue (o vite dev server bloqueia
+   com um overlay; o vite build silenciosamente deixava passar, por isso só quebrava
+   local, nunca em produção) */
+@keyframes avatarBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-1px); }
+}
+</style>
