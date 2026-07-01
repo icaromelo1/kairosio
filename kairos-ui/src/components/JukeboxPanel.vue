@@ -337,4 +337,22 @@ async function syncFromDrive() {
 .k-range::-moz-range-track {
   background: transparent;
 }
+
+/* Telas estreitas (ou zoom alto): as linhas "no-wrap" (input+add, biblioteca+sync,
+   aleatória+tocar todas) não cabiam lado a lado e estouravam o modal. Deixa quebrar
+   linha normalmente (comportamento padrão do .row do Quasar) abaixo do breakpoint. */
+@media (max-width: 420px) {
+  .jb-overlay {
+    padding: 10px;
+  }
+  .jb-card.q-pa-lg {
+    padding: 16px;
+  }
+  .row.no-wrap {
+    flex-wrap: wrap;
+  }
+  .row.no-wrap > .col-auto {
+    flex: 1 1 100%;
+  }
+}
 </style>
