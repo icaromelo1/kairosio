@@ -65,6 +65,8 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   private readonly players = new Map<string, Player>()
   // org de cada socket, derivada do JWT no handshake (fonte de verdade do isolamento)
   private readonly socketOrg = new Map<string, string | null>()
+  // uuid real do usuário (JWT sub) — socket.id não é uuid, não pode ir em colunas uuid (ex: Track.addedBy)
+  private readonly socketUserId = new Map<string, string | null>()
   // estado do jukebox por sala (org:map) — fila/faixa atual/modo, em memória
   private readonly jukebox = new Map<string, JukeboxRoomState>()
 
@@ -80,19 +82,23 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   }
 
   async handleConnection(socket: Socket) {
-    // valida o token do handshake e guarda a org do usuário
+    // valida o token do handshake e guarda a org + o uuid real do usuário
     let org: string | null = null
+    let userId: string | null = null
     try {
       const token = socket.handshake.auth?.token as string | undefined
       if (token) {
         const payload: any = this.jwt.verify(token, { secret: process.env.JWT_SECRET || 'kairos-secret' })
         const user = await this.users.findOne({ where: { id: payload.sub } })
         org = user?.organizationId ?? null
+        userId = user?.id ?? null
       }
     } catch {
       org = null
+      userId = null
     }
     this.socketOrg.set(socket.id, org)
+    this.socketUserId.set(socket.id, userId)
   }
 
   handleDisconnect(socket: Socket) {
@@ -102,6 +108,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       this.server.to(this.room(player.org, player.map)).emit('playerLeft', { id: socket.id })
     }
     this.socketOrg.delete(socket.id)
+    this.socketUserId.delete(socket.id)
   }
 
   @SubscribeMessage('join')
@@ -190,9 +197,14 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   async handleJukeboxAdd(socket: Socket, payload: { input: string }) {
     const player = this.players.get(socket.id)
     if (!player) return
+    const userId = this.socketUserId.get(socket.id)
+    if (!userId) {
+      socket.emit('jukeboxError', { message: 'Faça login para adicionar música' })
+      return
+    }
     const room = this.room(player.org, player.map)
     try {
-      const track = await this.jukeboxService.resolveTrack(payload?.input, player.id, player.name)
+      const track = await this.jukeboxService.resolveTrack(payload?.input, userId, player.name)
       const item: JukeboxQueueItem = {
         trackId: track.id,
         youtubeId: track.youtubeId,
