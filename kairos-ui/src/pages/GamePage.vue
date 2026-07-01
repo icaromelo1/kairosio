@@ -37,6 +37,7 @@
           :mode="voiceMode"
           :voice-on="voiceOn"
           :mic-muted="micMuted"
+          :mic-available="voice.hasMic()"
           :self-name="playerName"
           :peers="voicePanelPeers"
           @toggle-voice="toggleVoice"
@@ -101,11 +102,11 @@
       <!-- Botão de voz (claro: rótulo + estado) -->
       <div class="gp-voice-wrap column items-end q-gutter-xs">
         <button
-          :title="voiceOn ? 'Microfone ligado — clique pra desligar' : 'Clique pra falar por voz com quem está perto'"
+          :title="voiceOn ? 'Clique pra sair da voz' : 'Clique pra ouvir/falar por voz com quem está perto (mic começa desligado)'"
           class="gp-voice-btn"
           :class="{ 'gp-voice-btn-on': voiceOn }"
           @click="toggleVoice"
-        >{{ voiceOn ? '🎙 Microfone ligado' : '🔇 Falar por voz' }}</button>
+        >{{ voiceOn ? '🔊 Ouvindo a sala' : '🔈 Entrar na voz' }}</button>
         <span v-if="!voiceOn" class="gp-voice-hint">aproxime-se de alguém pra conversar por voz</span>
         <button v-else class="gp-voice-reconnect" @click="voice.reconnect()">↻ reconectar (se a voz travar)</button>
       </div>
@@ -254,17 +255,19 @@ async function toggleVoice() {
     voice.disable()
     voiceOn.value = false
     voicePeers.value = []
-    micMuted.value = false
+    micMuted.value = true
     mutedPeerIds.clear()
     return
   }
   voice.setSelf(socketId() || '')
-  const ok = await voice.enable()
-  voiceOn.value = ok
-  if (!ok) error.value = 'Microfone bloqueado. Permita o acesso para usar a voz.'
+  await voice.enable()
+  voiceOn.value = true
+  micMuted.value = true // entra só ouvindo — clique no seu nome pra ligar o microfone
+  if (!voice.hasMic()) error.value = 'Sem acesso ao microfone — você só vai conseguir ouvir.'
 }
 
 function toggleMic() {
+  if (!voice.hasMic()) return // sem permissão de microfone, não tem o que ligar
   if (micMuted.value) { voice.unmuteMic(); micMuted.value = false }
   else { voice.muteMic(); micMuted.value = true }
 }

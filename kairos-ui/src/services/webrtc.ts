@@ -24,17 +24,25 @@ export class VoiceChat {
     this.selfId = id
   }
 
-  /** Liga o microfone. Retorna false se o usuário negar a permissão. */
+  /** Entra na chamada (sempre dá pra ouvir). Pede o microfone, mas começa MUDO por
+   *  padrão — só liga o envio quem clicar em "falar" (ver muteMic/unmuteMic). Se a
+   *  permissão do microfone for negada, ainda assim entra em modo só-escuta. */
   async enable(): Promise<boolean> {
     try {
       this.localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-      this.enabled = true
-      setRtcHandler((from, signal) => this.onSignal(from, signal as Signal))
-      return true
+      this.micMuted = true
+      this.localStream.getAudioTracks().forEach((t) => (t.enabled = false))
     } catch {
-      this.enabled = false
-      return false
+      this.localStream = null // sem mic/permissão — segue só ouvindo quem estiver na sala
     }
+    this.enabled = true
+    setRtcHandler((from, signal) => this.onSignal(from, signal as Signal))
+    return true
+  }
+
+  /** Se o navegador não deu acesso ao microfone, só dá pra ouvir (nunca falar). */
+  hasMic(): boolean {
+    return !!this.localStream
   }
 
   disable() {
@@ -99,8 +107,12 @@ export class VoiceChat {
   private connect(peerId: string, initiator: boolean) {
     const pc = new RTCPeerConnection(RTC_CONFIG)
     this.pcs.set(peerId, pc)
-    if (this.micMuted) this.localStream?.getAudioTracks().forEach((t) => (t.enabled = false))
-    this.localStream?.getTracks().forEach((t) => pc.addTrack(t, this.localStream!))
+    if (this.localStream) {
+      this.localStream.getTracks().forEach((t) => pc.addTrack(t, this.localStream!))
+    } else {
+      // sem microfone (permissão negada) — ainda assim recebe áudio de quem falar
+      pc.addTransceiver('audio', { direction: 'recvonly' })
+    }
     pc.onicecandidate = (e) => {
       if (e.candidate) sendRtcSignal(peerId, { candidate: e.candidate.toJSON() })
     }

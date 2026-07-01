@@ -13,13 +13,18 @@
       class="vp-toggle"
       :class="{ 'vp-toggle-on': voiceOn }"
       @click="$emit('toggleVoice')"
-    >{{ voiceOn ? '🎙 Microfone ligado' : '🔇 Entrar na voz' }}</button>
+    >{{ voiceOn ? '🔊 Ouvindo a sala' : '🔈 Entrar na voz' }}</button>
 
     <template v-if="voiceOn">
-      <button class="vp-member row items-center q-gutter-xs" @click="$emit('toggleMic')">
+      <button
+        class="vp-member row items-center q-gutter-xs"
+        :class="{ 'vp-member-connected': micAvailable }"
+        :title="micAvailable ? (micMuted ? 'Clique pra ligar seu microfone' : 'Clique pra desligar seu microfone') : 'Sem acesso ao microfone — só dá pra ouvir'"
+        @click="micAvailable && $emit('toggleMic')"
+      >
         <span class="vp-dot vp-dot-me"></span>
         <span class="col ellipsis vp-member-name">{{ selfName }} <span class="vp-you-tag">(você)</span></span>
-        <span class="vp-member-ic">{{ micMuted ? '🔇' : '🎙' }}</span>
+        <span class="vp-member-ic">{{ !micAvailable ? '🚫' : micMuted ? '🔇' : '🎙' }}</span>
       </button>
       <button
         v-for="p in peers" :key="p.id" class="vp-member row items-center q-gutter-xs"
@@ -39,6 +44,7 @@ defineProps<{
   mode: 'proximity' | 'room'
   voiceOn: boolean
   micMuted: boolean
+  micAvailable: boolean
   selfName: string
   peers: { id: string; name: string; connected: boolean; muted: boolean }[]
 }>()
