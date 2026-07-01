@@ -38,7 +38,7 @@
         <input
           v-model="linkInput" placeholder="Cole o link do YouTube…" @keydown.enter="add"
           :disabled="!!jukeboxState.status"
-          style="flex:1;box-sizing:border-box;background:var(--bg-1);border:1px solid var(--border-strong);color:var(--text);padding:8px 10px;font-size:13px;font-family:inherit"
+          class="k-input" style="flex:1;padding:10px 12px;font-size:10px"
         />
         <button class="k-btn k-btn-primary" style="padding:8px 14px;font-size:11px" :disabled="adding || !!jukeboxState.status" @click="add">{{ adding || jukeboxState.status ? '...' : 'add' }}</button>
       </div>
@@ -58,7 +58,7 @@
       <div v-if="libraryOpen" style="display:flex;flex-direction:column;gap:6px">
         <input
           v-model="librarySearch" placeholder="buscar por título…"
-          style="box-sizing:border-box;background:var(--bg-1);border:1px solid var(--border-strong);color:var(--text);padding:6px 10px;font-size:12px;font-family:inherit"
+          class="k-input" style="padding:8px 12px;font-size:10px"
         />
         <div style="display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:140px;background:var(--bg-1);border:1px solid var(--border);padding:8px">
           <div v-if="libraryLoading" style="color:var(--text-4);font-size:12px">carregando...</div>
@@ -75,8 +75,8 @@
       <!-- volume pessoal -->
       <div style="display:flex;align-items:center;gap:8px;font-size:12px">
         <span style="color:var(--text-3)">seu volume:</span>
-        <input type="range" min="0" max="1" step="0.05" v-model.number="personalVolume" style="flex:1" />
-        <span style="color:var(--text-3);width:32px;text-align:right">{{ Math.round(personalVolume * 100) }}%</span>
+        <input type="range" min="0" max="1" step="0.05" v-model.number="personalVolume" class="k-range" />
+        <span style="color:var(--text-3);width:32px;text-align:right;font-family:var(--f-mono)">{{ Math.round(personalVolume * 100) }}%</span>
       </div>
 
       <!-- fila -->
@@ -169,3 +169,38 @@ async function syncFromDrive() {
   }
 }
 </script>
+
+<style scoped>
+.k-range {
+  flex: 1;
+  appearance: none;
+  -webkit-appearance: none;
+  height: 10px;
+  background: var(--bg-1);
+  border: 2px solid var(--border-strong);
+  outline: none;
+  cursor: pointer;
+}
+.k-range::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 14px;
+  height: 18px;
+  background: var(--primary);
+  border: 2px solid var(--primary-hi);
+  box-shadow: 2px 2px 0 var(--bg-0);
+  cursor: pointer;
+}
+.k-range::-moz-range-thumb {
+  width: 14px;
+  height: 18px;
+  background: var(--primary);
+  border: 2px solid var(--primary-hi);
+  box-shadow: 2px 2px 0 var(--bg-0);
+  cursor: pointer;
+  border-radius: 0;
+}
+.k-range::-moz-range-track {
+  background: transparent;
+}
+</style>
