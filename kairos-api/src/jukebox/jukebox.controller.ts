@@ -12,4 +12,11 @@ export class JukeboxController {
     const { path } = await this.jukebox.streamPath(id)
     res.sendFile(path, { headers: { 'Content-Type': 'audio/mpeg' } })
   }
+
+  // biblioteca de músicas já baixadas antes (qualquer sala) — pra reaproveitar sem
+  // colar o link de novo, já vem do cache/Drive sem precisar do yt-dlp
+  @Get('tracks')
+  async listTracks() {
+    return this.jukebox.listTracks()
+  }
 }

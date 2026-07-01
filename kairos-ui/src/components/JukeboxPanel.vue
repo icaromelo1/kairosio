@@ -45,6 +45,21 @@
       <p v-if="jukeboxState.status" style="color:var(--text-3);font-size:12px;margin:0">🔄 {{ jukeboxState.status }}</p>
       <p v-if="jukeboxError" style="color:var(--err);font-size:12px;margin:0">{{ jukeboxError }}</p>
 
+      <!-- biblioteca: músicas já baixadas antes, adiciona sem esperar download -->
+      <button class="k-btn k-btn-ghost" style="font-size:11px" @click="toggleLibrary">
+        {{ libraryOpen ? '▲ esconder biblioteca' : '▼ ver músicas já baixadas' }}
+      </button>
+      <div v-if="libraryOpen" style="display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:140px;background:var(--bg-1);border:1px solid var(--border);padding:8px">
+        <div v-if="libraryLoading" style="color:var(--text-4);font-size:12px">carregando...</div>
+        <div v-else-if="!library.length" style="color:var(--text-4);font-size:12px">nenhuma música baixada ainda</div>
+        <button
+          v-for="t in library" :key="t.id" class="k-btn k-btn-ghost"
+          style="font-size:12px;text-align:left;justify-content:flex-start;padding:6px 8px"
+          :disabled="!!jukeboxState.status"
+          @click="addFromLibrary(t.youtubeId)"
+        >{{ t.title }}</button>
+      </div>
+
       <!-- volume pessoal -->
       <div style="display:flex;align-items:center;gap:8px;font-size:12px">
         <span style="color:var(--text-3)">seu volume:</span>
@@ -71,6 +86,7 @@
 import { ref } from 'vue'
 import { jukeboxState, jukeboxError, emitJukeboxAdd, emitJukeboxSkip, emitJukeboxSetMode } from '@/services/presence'
 import { personalVolume } from '@/services/jukeboxAudio'
+import { apiFetch } from '@/services/http'
 
 defineEmits(['close'])
 
@@ -87,5 +103,28 @@ function add() {
   // sem confirmação de servidor por evento dedicado — destrava após um instante,
   // o estado da fila chega via jukeboxState assim que pronto
   setTimeout(() => { adding.value = false }, 800)
+}
+
+interface LibraryTrack { id: string; youtubeId: string; title: string; durationSec: number }
+const library = ref<LibraryTrack[]>([])
+const libraryOpen = ref(false)
+const libraryLoading = ref(false)
+
+async function toggleLibrary() {
+  libraryOpen.value = !libraryOpen.value
+  if (libraryOpen.value && !library.value.length) {
+    libraryLoading.value = true
+    try {
+      const res = await apiFetch('/jukebox/tracks')
+      library.value = await res.json()
+    } finally {
+      libraryLoading.value = false
+    }
+  }
+}
+
+function addFromLibrary(youtubeId: string) {
+  jukeboxError.value = ''
+  emitJukeboxAdd(youtubeId)
 }
 </script>
