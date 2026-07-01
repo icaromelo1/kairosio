@@ -15,12 +15,21 @@ export class JukeboxService {
     private readonly cache: CacheService,
   ) {}
 
+  extractYoutubeId(input: string): string {
+    return this.ytdlp.extractYoutubeId(input)
+  }
+
   // resolve um link/id pra uma Track: dedup por youtubeId (já baixada antes? só
   // garante que está quente no cache) ou baixa + sobe pro Drive pela primeira vez.
-  async resolveTrack(input: string, userId: string, userName: string): Promise<Track> {
-    const youtubeId = this.ytdlp.extractYoutubeId(input)
+  async resolveTrack(
+    youtubeId: string,
+    userId: string,
+    userName: string,
+    onProgress?: (label: string) => void,
+  ): Promise<Track> {
     const existing = await this.tracks.findOne({ where: { youtubeId } })
     if (existing) {
+      onProgress?.('preparando...')
       if (!this.cache.has(existing.driveFile)) {
         await this.drive.download(existing.driveFile, this.cache.localPath(existing.driveFile))
       }
@@ -29,9 +38,11 @@ export class JukeboxService {
       return existing
     }
 
+    onProgress?.('baixando áudio do YouTube...')
     const info = await this.ytdlp.fetchInfo(youtubeId)
     await this.ytdlp.downloadAudio(youtubeId, this.cache.dirPath())
     const fileName = `${youtubeId}.mp3`
+    onProgress?.('enviando pro armazenamento...')
     await this.drive.upload(this.cache.localPath(fileName), fileName)
 
     const track = this.tracks.create({
