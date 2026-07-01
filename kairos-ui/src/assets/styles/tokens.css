@@ -38,6 +38,15 @@
 
 * { box-sizing: border-box; }
 
+/* Quasar aplica flex-wrap:wrap por padrão em .row/.column. Num .column (main axis
+   vertical), isso deixa o conteúdo que excede a altura disponível "quebrar" pra uma
+   SEGUNDA COLUNA ao lado (em vez de simplesmente rolar/cortar) — em cards com
+   max-height + overflow-y:auto isso estoura a largura pra fora do card inteiro.
+   Como não usamos esse comportamento de wrap em lugar nenhum do app, desligamos
+   por padrão; onde algum grid de itens realmente precisar quebrar linha (ex:
+   paleta de cores), usa uma classe própria com flex-wrap:wrap explícito. */
+.row, .column { flex-wrap: nowrap; }
+
 html, body, #app {
   margin: 0;
   padding: 0;

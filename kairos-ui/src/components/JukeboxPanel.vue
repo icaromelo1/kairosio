@@ -218,6 +218,36 @@ async function syncFromDrive() {
   width: min(440px, 100%);
   max-height: 80vh;
   overflow-y: auto;
+  overflow-x: hidden;
+  /* causa raiz real do overflow: a classe global "column" do Quasar aplica
+     flex-wrap:wrap (regra combinada .row,.column,.flex{display:flex;flex-wrap:wrap}).
+     Num container column, isso faz o conteúdo que excede max-height "quebrar" pra
+     uma SEGUNDA COLUNA ao lado (em vez de simplesmente rolar), empurrando o card
+     inteiro pra ficar mais largo por dentro. Sem isso, single-column normal. */
+  flex-wrap: nowrap;
+}
+
+/* itens flex (row/column/col do Quasar) não encolhem abaixo do próprio conteúdo por
+   padrão (min-width:auto implícito) — com botões de white-space:nowrap (.k-btn)
+   isso empurrava a linha (e por causa do align-items:stretch da coluna externa,
+   TODAS as linhas junto) pra fora do card. Precisa em cada nível aninhado, não só
+   no .col mais interno. */
+.jb-card .row,
+.jb-card .column,
+.jb-card .col,
+.jb-card .col-auto {
+  min-width: 0;
+}
+
+/* botão com texto longo ("ver músicas já baixadas"): sem isso o ellipsis não tinha
+   nenhum limite de largura pra realmente cortar o texto — button é inline-flex,
+   então também precisa virar um flex item que aceita encolher (min-width:0 acima)
+   E ter overflow:hidden pra o text-overflow ellipsis funcionar de fato. */
+.jb-card .ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
 }
 
 .jb-btn-sm { font-size: 11px; }
