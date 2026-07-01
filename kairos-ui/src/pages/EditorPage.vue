@@ -22,10 +22,10 @@
       </div>
 
       <div class="ed-label">Objetos</div>
-      <label style="display:flex;gap:6px;align-items:center;font-size:12px;color:#c8c8d8;cursor:pointer">
+      <label class="ed-checkbox-label">
         <input type="checkbox" v-model="placeSolid" /> sólido (colisão)
       </label>
-      <button class="ed-tool" style="align-self:flex-start" @click="rotate">↻ Girar: {{ placeRotation }}°</button>
+      <button class="ed-tool ed-tool-start" @click="rotate">↻ Girar: {{ placeRotation }}°</button>
       <div class="ed-palette">
         <button
           v-for="p in PALETTE" :key="p.kind + p.label"
@@ -34,20 +34,26 @@
         >{{ p.label }}</button>
       </div>
 
-      <button class="ed-tool" style="align-self:flex-start;margin-top:8px" @click="showPixel = !showPixel">{{ showPixel ? '▾' : '▸' }} Criar objeto próprio</button>
-      <div v-if="showPixel" style="background:#1a1a26;border:1px solid #262636;padding:8px;border-radius:6px">
-        <div style="display:flex;gap:3px;flex-wrap:wrap;margin-bottom:6px">
-          <button v-for="col in PIXEL_COLORS" :key="col || 'none'" @click="pixelColor = col"
-            :style="{ width: '18px', height: '18px', borderRadius: '3px', cursor: 'pointer', border: pixelColor === col ? '2px solid #fff' : '1px solid #444', background: col || '#0d0d14' }">{{ col ? '' : '⌫' }}</button>
+      <button class="ed-tool ed-tool-start ed-tool-mt" @click="showPixel = !showPixel">{{ showPixel ? '▾' : '▸' }} Criar objeto próprio</button>
+      <div v-if="showPixel" class="ed-pixel-panel column q-gutter-xs">
+        <div class="row q-gutter-xs ed-swatch-row">
+          <button
+            v-for="col in PIXEL_COLORS" :key="col || 'none'" @click="pixelColor = col"
+            class="ed-swatch" :class="{ 'ed-swatch-active': pixelColor === col }"
+            :style="{ background: col || '#0d0d14' }"
+          >{{ col ? '' : '⌫' }}</button>
         </div>
-        <div style="display:grid;grid-template-columns:repeat(8,15px);gap:1px;width:fit-content">
+        <div class="ed-pixel-grid">
           <template v-for="(row, r) in pixelGrid">
-            <div v-for="(cell, c) in row" :key="r + '-' + c"
+            <div
+              v-for="(cell, c) in row" :key="r + '-' + c"
+              class="ed-pixel-cell"
+              :style="{ background: cell || '#1d1d2a' }"
               @pointerdown="paintCell(r, c)" @pointerenter="(e: any) => e.buttons && paintCell(r, c)"
-              :style="{ width: '15px', height: '15px', background: cell || '#1d1d2a', cursor: 'crosshair' }"></div>
+            ></div>
           </template>
         </div>
-        <div style="display:flex;gap:6px;margin-top:6px">
+        <div class="row q-gutter-xs">
           <button class="ed-tool" @click="useCustom">Usar como pincel</button>
           <button class="ed-tool" @click="clearPixels">Limpar</button>
         </div>
@@ -298,4 +304,15 @@ onUnmounted(() => scene?.destroy())
 .ed-del { background: transparent; border: 1px solid rgba(248,113,113,0.5); color: #f87171; padding: 8px; cursor: pointer; border-radius: 4px; margin-top: 6px; }
 .ed-msg { font-size: 12px; color: #34d399; text-align: center; }
 .ed-stage { position: relative; overflow: hidden; cursor: crosshair; }
+
+.ed-checkbox-label { display: flex; gap: 6px; align-items: center; font-size: 12px; color: #c8c8d8; cursor: pointer; }
+.ed-tool-start { align-self: flex-start; }
+.ed-tool-mt { margin-top: 8px; }
+
+.ed-pixel-panel { background: #1a1a26; border: 1px solid #262636; padding: 8px; border-radius: 6px; }
+.ed-swatch-row { flex-wrap: wrap; }
+.ed-swatch { width: 18px; height: 18px; border-radius: 3px; cursor: pointer; border: 1px solid #444; }
+.ed-swatch-active { border: 2px solid #fff; }
+.ed-pixel-grid { display: grid; grid-template-columns: repeat(8, 15px); gap: 1px; width: fit-content; }
+.ed-pixel-cell { width: 15px; height: 15px; cursor: crosshair; }
 </style>

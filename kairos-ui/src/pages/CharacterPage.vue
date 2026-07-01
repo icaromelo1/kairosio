@@ -19,17 +19,17 @@
 
       <!-- Columns flanking avatar -->
       <div class="column-left">
-        <PixelColumn :scale="4" color="var(--text-3)" :height="32" :style="{ opacity: 0.32 }" />
+        <PixelColumn :scale="4" color="var(--text-3)" :height="32" />
       </div>
       <div class="column-right">
-        <PixelColumn :scale="4" color="var(--text-3)" :height="32" :style="{ opacity: 0.32 }" />
+        <PixelColumn :scale="4" color="var(--text-3)" :height="32" />
       </div>
 
       <!-- Avatar center -->
       <div class="avatar-center">
         <span class="avatar-label-top">Crie seu avatar</span>
 
-        <div class="avatar-preview" style="width:240px;height:300px">
+        <div class="avatar-preview">
           <PixiAvatarPreview
             :hairStyle="characterStore.hairStyle"
             :hairColor="characterStore.hairColor"
@@ -105,7 +105,7 @@
         </div>
 
         <!-- Hair color swatches -->
-        <div class="section-label" style="margin-top: 16px">Cor do Cabelo</div>
+        <div class="section-label q-mt-md">Cor do Cabelo</div>
         <div class="swatches-wrap">
           <button
             v-for="color in HAIR_COLORS"
@@ -171,7 +171,7 @@
           </button>
         </div>
 
-        <div class="section-label" style="margin-top: 16px">Cor da Calça</div>
+        <div class="section-label q-mt-md">Cor da Calça</div>
         <div class="swatches-wrap">
           <button
             v-for="color in PANTS_COLORS"
@@ -191,7 +191,7 @@
           </button>
         </div>
 
-        <div class="section-label" style="margin-top: 16px">Acessório</div>
+        <div class="section-label q-mt-md">Acessório</div>
         <div class="swatches-wrap">
           <button
             v-for="a in ACCESSORIES"

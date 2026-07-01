@@ -1,107 +1,115 @@
 <template>
-  <div style="position:absolute;inset:0;background:rgba(0,0,0,0.62);backdrop-filter:blur(6px);display:grid;place-items:center;z-index:50;padding:24px" @click="$emit('close')">
-    <div class="k-card" style="padding:24px;width:min(440px,100%);display:flex;flex-direction:column;gap:14px;max-height:80vh" @click.stop>
-      <div style="display:flex;align-items:center;justify-content:space-between">
+  <div class="jb-overlay" @click="$emit('close')">
+    <div class="k-card jb-card q-pa-lg column q-gutter-md" @click.stop>
+      <div class="row items-center justify-between">
         <span class="k-chip">🎵 jukebox</span>
-        <button class="k-btn k-btn-ghost" style="padding:6px 10px" @click="$emit('close')">esc ✕</button>
+        <button class="k-btn k-btn-ghost jb-btn-sm" @click="$emit('close')">esc ✕</button>
       </div>
 
       <!-- tocando agora -->
-      <div style="background:var(--bg-1);border:1px solid var(--border);padding:12px;font-size:13px">
+      <div class="jb-now-playing">
         <template v-if="jukeboxState.current">
-          <div style="color:var(--text-3);font-size:10px;text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px">tocando agora</div>
-          <div style="color:var(--text);font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ jukeboxState.current.title }}</div>
-          <div style="color:var(--text-3);font-size:11px;margin-top:2px">adicionado por {{ jukeboxState.current.addedByName }}</div>
+          <div class="jb-label">tocando agora</div>
+          <div class="jb-title ellipsis">{{ jukeboxState.current.title }}</div>
+          <div class="jb-subtext">adicionado por {{ jukeboxState.current.addedByName }}</div>
         </template>
         <template v-else>
-          <div style="color:var(--text-3)">nada tocando — cole um link do YouTube abaixo</div>
+          <div class="jb-muted">nada tocando — cole um link do YouTube abaixo</div>
         </template>
       </div>
 
       <!-- modo sala/proximidade -->
-      <div style="display:flex;align-items:center;gap:8px;font-size:12px">
-        <span style="color:var(--text-3)">alcance:</span>
+      <div class="row items-center q-gutter-xs jb-text-sm">
+        <span class="jb-muted">alcance:</span>
         <button
-          class="k-btn k-btn-ghost" style="padding:6px 10px;font-size:10px"
-          :style="jukeboxState.mode === 'proximity' ? { borderColor: 'var(--primary-hi)', color: 'var(--text)' } : {}"
+          class="k-btn k-btn-ghost jb-btn-xs"
+          :class="{ 'jb-btn-active': jukeboxState.mode === 'proximity' }"
           @click="emitJukeboxSetMode('proximity')"
         >proximidade</button>
         <button
-          class="k-btn k-btn-ghost" style="padding:6px 10px;font-size:10px"
-          :style="jukeboxState.mode === 'room' ? { borderColor: 'var(--primary-hi)', color: 'var(--text)' } : {}"
+          class="k-btn k-btn-ghost jb-btn-xs"
+          :class="{ 'jb-btn-active': jukeboxState.mode === 'room' }"
           @click="emitJukeboxSetMode('room')"
         >sala inteira</button>
       </div>
 
       <!-- adicionar -->
-      <div style="display:flex;gap:8px">
-        <input
-          v-model="linkInput" placeholder="Cole o link do YouTube…" @keydown.enter="add"
-          :disabled="!!jukeboxState.status"
-          class="k-input" style="flex:1;padding:10px 12px;font-size:10px"
-        />
-        <button class="k-btn k-btn-primary" style="padding:8px 14px;font-size:11px" :disabled="adding || !!jukeboxState.status" @click="add">{{ adding || jukeboxState.status ? '...' : 'add' }}</button>
+      <div class="column q-gutter-xs">
+        <div class="row no-wrap q-gutter-xs">
+          <div class="col">
+            <input
+              v-model="linkInput" placeholder="Cole o link do YouTube…" @keydown.enter="add"
+              :disabled="!!jukeboxState.status"
+              class="k-input full-width jb-input"
+            />
+          </div>
+          <div class="col-auto">
+            <button class="k-btn k-btn-primary jb-btn-sm" :disabled="adding || !!jukeboxState.status" @click="add">{{ adding || jukeboxState.status ? '...' : 'add' }}</button>
+          </div>
+        </div>
+        <p v-if="jukeboxState.status" class="jb-status">🔄 {{ jukeboxState.status }}</p>
+        <p v-if="jukeboxError" class="jb-error">{{ jukeboxError }}</p>
       </div>
-      <p v-if="jukeboxState.status" style="color:var(--text-3);font-size:12px;margin:0">🔄 {{ jukeboxState.status }}</p>
-      <p v-if="jukeboxError" style="color:var(--err);font-size:12px;margin:0">{{ jukeboxError }}</p>
 
       <!-- biblioteca: músicas já baixadas antes, adiciona sem esperar download -->
-      <div class="row q-gutter-xs no-wrap">
-        <div class="col">
-          <button class="k-btn k-btn-ghost ellipsis full-width" style="font-size:11px" @click="toggleLibrary">
-            {{ libraryOpen ? '▲ esconder biblioteca' : '▼ ver músicas já baixadas' }}
-          </button>
-        </div>
-        <div class="col-auto">
-          <button class="k-btn k-btn-ghost" style="font-size:11px" :disabled="syncing" @click="syncFromDrive" title="rebaixar do Drive tudo que estiver faltando no cache local">
-            {{ syncing ? 'sincronizando...' : '⟲ sync' }}
-          </button>
-        </div>
-      </div>
-      <p v-if="syncMessage" style="color:var(--text-3);font-size:12px;margin:0">{{ syncMessage }}</p>
-      <div v-if="libraryOpen" style="display:flex;flex-direction:column;gap:6px">
-        <input
-          v-model="librarySearch" placeholder="buscar por título…"
-          class="k-input" style="padding:8px 12px;font-size:10px"
-        />
-        <div class="row q-gutter-xs no-wrap">
+      <div class="column q-gutter-xs">
+        <div class="row no-wrap q-gutter-xs">
           <div class="col">
-            <button class="k-btn k-btn-ghost full-width" style="font-size:11px" :disabled="!library.length || !!jukeboxState.status" @click="addRandom">🔀 aleatória</button>
+            <button class="k-btn k-btn-ghost full-width ellipsis jb-btn-sm" @click="toggleLibrary">
+              {{ libraryOpen ? '▲ esconder biblioteca' : '▼ ver músicas já baixadas' }}
+            </button>
           </div>
-          <div class="col">
-            <button class="k-btn k-btn-ghost full-width" style="font-size:11px" :disabled="!library.length || !!jukeboxState.status" @click="addAll">▶ tocar todas</button>
+          <div class="col-auto">
+            <button class="k-btn k-btn-ghost jb-btn-sm" :disabled="syncing" @click="syncFromDrive" title="rebaixar do Drive tudo que estiver faltando no cache local">
+              {{ syncing ? 'sincronizando...' : '⟲ sync' }}
+            </button>
           </div>
         </div>
-        <div style="display:flex;flex-direction:column;gap:4px;overflow-y:auto;max-height:140px;background:var(--bg-1);border:1px solid var(--border);padding:8px">
-          <div v-if="libraryLoading" style="color:var(--text-4);font-size:12px">carregando...</div>
-          <div v-else-if="!library.length" style="color:var(--text-4);font-size:12px">nenhuma música encontrada</div>
-          <button
-            v-for="t in library" :key="t.id" class="k-btn k-btn-ghost ellipsis"
-            style="font-size:12px;text-align:left;justify-content:flex-start;padding:6px 8px"
-            :disabled="!!jukeboxState.status"
-            @click="addFromLibrary(t.youtubeId)"
-          >{{ t.title }}</button>
+        <p v-if="syncMessage" class="jb-status">{{ syncMessage }}</p>
+
+        <div v-if="libraryOpen" class="column q-gutter-xs">
+          <input
+            v-model="librarySearch" placeholder="buscar por título…"
+            class="k-input full-width jb-input"
+          />
+          <div class="row no-wrap q-gutter-xs">
+            <div class="col">
+              <button class="k-btn k-btn-ghost full-width jb-btn-sm" :disabled="!library.length || !!jukeboxState.status" @click="addRandom">🔀 aleatória</button>
+            </div>
+            <div class="col">
+              <button class="k-btn k-btn-ghost full-width jb-btn-sm" :disabled="!library.length || !!jukeboxState.status" @click="addAll">▶ tocar todas</button>
+            </div>
+          </div>
+          <div class="jb-list">
+            <div v-if="libraryLoading" class="jb-muted-4 jb-text-sm">carregando...</div>
+            <div v-else-if="!library.length" class="jb-muted-4 jb-text-sm">nenhuma música encontrada</div>
+            <button
+              v-for="t in library" :key="t.id" class="k-btn k-btn-ghost ellipsis jb-list-item"
+              :disabled="!!jukeboxState.status"
+              @click="addFromLibrary(t.youtubeId)"
+            >{{ t.title }}</button>
+          </div>
         </div>
       </div>
 
       <!-- volume pessoal -->
-      <div style="display:flex;align-items:center;gap:8px;font-size:12px">
-        <span style="color:var(--text-3)">seu volume:</span>
-        <input type="range" min="0" max="1" step="0.05" v-model.number="personalVolume" class="k-range" />
-        <span style="color:var(--text-3);width:32px;text-align:right;font-family:var(--f-mono)">{{ Math.round(personalVolume * 100) }}%</span>
+      <div class="row items-center q-gutter-xs jb-text-sm">
+        <span class="jb-muted">seu volume:</span>
+        <input type="range" min="0" max="1" step="0.05" v-model.number="personalVolume" class="k-range col" />
+        <span class="jb-muted jb-volume-value">{{ Math.round(personalVolume * 100) }}%</span>
       </div>
 
       <!-- fila -->
-      <div style="display:flex;flex-direction:column;gap:6px;overflow-y:auto;max-height:160px">
-        <div style="color:var(--text-3);font-size:10px;text-transform:uppercase;letter-spacing:0.08em">fila ({{ jukeboxState.queue.length }})</div>
-        <div v-if="!jukeboxState.queue.length" style="color:var(--text-4);font-size:12px">vazia</div>
-        <div v-for="(t, i) in jukeboxState.queue" :key="t.trackId + i" style="font-size:12px;color:var(--text-2);display:flex;justify-content:space-between;gap:8px">
-          <span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ i + 1 }}. {{ t.title }}</span>
-          <span style="color:var(--text-4);flex-shrink:0">{{ t.addedByName }}</span>
+      <div class="column q-gutter-xs jb-queue">
+        <div class="jb-label">fila ({{ jukeboxState.queue.length }})</div>
+        <div v-if="!jukeboxState.queue.length" class="jb-muted-4 jb-text-sm">vazia</div>
+        <div v-for="(t, i) in jukeboxState.queue" :key="t.trackId + i" class="row items-center justify-between q-gutter-xs jb-queue-item">
+          <span class="ellipsis">{{ i + 1 }}. {{ t.title }}</span>
+          <span class="jb-muted-4 jb-queue-added">{{ t.addedByName }}</span>
         </div>
       </div>
 
-      <button class="k-btn k-btn-ghost" style="font-size:11px" :disabled="!jukeboxState.current" @click="emitJukeboxSkip()">⏭ pular</button>
+      <button class="k-btn k-btn-ghost full-width jb-btn-sm" :disabled="!jukeboxState.current" @click="emitJukeboxSkip()">⏭ pular</button>
     </div>
   </div>
 </template>
@@ -195,8 +203,110 @@ async function syncFromDrive() {
 </script>
 
 <style scoped>
+.jb-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.62);
+  backdrop-filter: blur(6px);
+  display: grid;
+  place-items: center;
+  z-index: 50;
+  padding: 24px;
+}
+
+.jb-card {
+  width: min(440px, 100%);
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.jb-btn-sm { font-size: 11px; }
+.jb-btn-xs { font-size: 10px; padding: 6px 10px; }
+.jb-btn-active { border-color: var(--primary-hi); color: var(--text); }
+
+.jb-now-playing {
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  padding: 12px;
+  font-size: 13px;
+}
+
+.jb-label {
+  color: var(--text-3);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 4px;
+}
+
+.jb-title {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.jb-subtext {
+  color: var(--text-3);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.jb-muted { color: var(--text-3); }
+.jb-muted-4 { color: var(--text-4); }
+.jb-text-sm { font-size: 12px; }
+
+.jb-input { font-size: 10px; }
+
+.jb-status {
+  color: var(--text-3);
+  font-size: 12px;
+  margin: 0;
+}
+
+.jb-error {
+  color: var(--err);
+  font-size: 12px;
+  margin: 0;
+}
+
+.jb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  overflow-y: auto;
+  max-height: 140px;
+  background: var(--bg-1);
+  border: 1px solid var(--border);
+  padding: 8px;
+}
+
+.jb-list-item {
+  font-size: 12px;
+  text-align: left;
+  justify-content: flex-start;
+  padding: 6px 8px;
+}
+
+.jb-volume-value {
+  width: 32px;
+  text-align: right;
+  font-family: var(--f-mono);
+}
+
+.jb-queue {
+  overflow-y: auto;
+  max-height: 160px;
+}
+
+.jb-queue-item {
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.jb-queue-added {
+  flex-shrink: 0;
+}
+
 .k-range {
-  flex: 1;
   appearance: none;
   -webkit-appearance: none;
   height: 10px;
