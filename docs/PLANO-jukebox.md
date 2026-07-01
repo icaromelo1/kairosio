@@ -33,7 +33,12 @@
 > 4416 interna) + plugin `bgutil-ytdlp-pot-provider` (pip) no `yt-dlp` da imagem +
 > `POT_PROVIDER_URL` no `YtDlpService`. Mount do cookies.txt trocado de `:ro` pra
 > leitura-escrita (o `yt-dlp` regrava o cookie jar sozinho quando os tokens rotacionam).
-> **Status: ✅ resolvido de vez** — cookies + PO token juntos contornam o anti-bot.
+> Ainda faltava fixar `--extractor-args youtube:player_client=web` junto do PO token —
+> sem isso o `yt-dlp` usa client `tv`/`android_vr` por padrão, que gera PO token
+> incompatível com a URL assinada do stream (dava 403 no download do segmento mesmo
+> passando o anti-bot). Com os dois combinados no mesmo `--extractor-args`
+> (`youtube:player_client=web;youtubepot-bgutilhttp:base_url=...`), download completo
+> testado com sucesso na VM (mp3 de 1.5MB baixado). **Status: ✅ resolvido de vez.**
 
 ---
 
