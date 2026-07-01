@@ -1,16 +1,16 @@
 <template>
-  <div style="height:100vh;display:flex;flex-direction:column;background:#0d0d14;color:#e8e8f0;font-family:system-ui">
-    <div style="padding:10px 16px;display:flex;gap:16px;align-items:center;flex-wrap:wrap;border-bottom:1px solid #252535">
-      <strong style="letter-spacing:0.04em">Lab · Mapa + Avatar (PixiJS)</strong>
-      <span style="font-size:12px;color:#8a8aa0">WASD/setas · mapas vindos da API</span>
-      <label style="font-size:12px;display:flex;gap:6px;align-items:center">Mundo
-        <select v-model="currentId" @change="loadMap" :style="sel" :disabled="!maps.length">
+  <div class="lab-root column no-wrap">
+    <div class="lab-toolbar row items-center q-gutter-md">
+      <strong class="lab-title">Lab · Mapa + Avatar (PixiJS)</strong>
+      <span class="lab-hint">WASD/setas · mapas vindos da API</span>
+      <label class="lab-field row items-center q-gutter-xs">Mundo
+        <select v-model="currentId" @change="loadMap" class="lab-select" :disabled="!maps.length">
           <option v-for="m in maps" :key="m.id" :value="m.id">{{ m.name }}</option>
         </select>
       </label>
-      <button @click="dancing = !dancing" :style="btn">{{ dancing ? 'Parar' : 'Dançar' }}</button>
-      <label style="font-size:12px;display:flex;gap:6px;align-items:center">Cabelo
-        <select v-model="look.hairStyle" @change="rebuild" :style="sel">
+      <button @click="dancing = !dancing" class="lab-btn">{{ dancing ? 'Parar' : 'Dançar' }}</button>
+      <label class="lab-field row items-center q-gutter-xs">Cabelo
+        <select v-model="look.hairStyle" @change="rebuild" class="lab-select">
           <option value="short">curto</option>
           <option value="curly">cacheado</option>
           <option value="ponytail">rabo</option>
@@ -18,13 +18,13 @@
           <option value="helmet">capacete</option>
         </select>
       </label>
-      <label v-for="c in colorFields" :key="c.key" style="font-size:12px;display:flex;gap:4px;align-items:center">
+      <label v-for="c in colorFields" :key="c.key" class="lab-field row items-center q-gutter-xs">
         {{ c.label }}
-        <input type="color" v-model="look[c.key]" @input="rebuild" style="width:26px;height:22px;border:none;background:none;cursor:pointer" />
+        <input type="color" v-model="look[c.key]" @input="rebuild" class="lab-color" />
       </label>
-      <span v-if="error" style="font-size:12px;color:#f87171">{{ error }}</span>
+      <span v-if="error" class="lab-error">{{ error }}</span>
     </div>
-    <div ref="host" style="flex:1;overflow:hidden"></div>
+    <div ref="host" class="lab-stage"></div>
   </div>
 </template>
 
@@ -55,9 +55,6 @@ const colorFields = [
   { key: 'hairColor' as const, label: 'Cabelo' },
   { key: 'skin' as const, label: 'Pele' },
 ]
-
-const btn = 'appearance:none;background:#7c3aed;border:none;color:#fff;padding:6px 14px;cursor:pointer;font-size:13px;border-radius:2px'
-const sel = 'background:#1d1d2a;color:#e8e8f0;border:1px solid #303045;padding:3px;border-radius:2px'
 
 let scene: MapScene | null = null
 const pos = reactive({ x: 11, y: 9 })
@@ -147,3 +144,55 @@ onUnmounted(() => {
   scene = null
 })
 </script>
+
+<style scoped>
+.lab-root {
+  height: 100vh;
+  background: #0d0d14;
+  color: #e8e8f0;
+  font-family: system-ui;
+}
+
+.lab-toolbar {
+  padding: 10px 16px;
+  flex-wrap: wrap;
+  border-bottom: 1px solid #252535;
+}
+
+.lab-title { letter-spacing: 0.04em; }
+.lab-hint { font-size: 12px; color: #8a8aa0; }
+.lab-field { font-size: 12px; }
+.lab-error { font-size: 12px; color: #f87171; }
+
+.lab-select {
+  background: #1d1d2a;
+  color: #e8e8f0;
+  border: 1px solid #303045;
+  padding: 3px;
+  border-radius: 2px;
+}
+
+.lab-btn {
+  appearance: none;
+  background: #7c3aed;
+  border: none;
+  color: #fff;
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 2px;
+}
+
+.lab-color {
+  width: 26px;
+  height: 22px;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.lab-stage {
+  flex: 1;
+  overflow: hidden;
+}
+</style>

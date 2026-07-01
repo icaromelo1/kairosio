@@ -1,41 +1,28 @@
 <template>
-  <div class="screen-enter" :style="{
-    height: '100vh', boxSizing: 'border-box', padding: '32px',
-    background: 'radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.18), transparent 50%), var(--bg-1)',
-    display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '24px', overflowY: 'auto',
-  }">
-    <div style="width:100%;display:flex;justify-content:space-between;align-items:center">
+  <div class="screen-enter ms-root column items-center q-gutter-lg">
+    <div class="row items-center justify-between ms-header">
       <Logo :id="gameStore.activeLogo" size="sm" primary="var(--primary-hi)" accent="var(--accent)" />
       <button class="k-btn k-btn-ghost" @click="router.push('/character')">← Voltar</button>
     </div>
 
-    <div style="display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
+    <div class="column items-center q-gutter-sm text-center">
       <span class="k-chip">{{ orgName ? orgName : 'escolha um mundo' }}</span>
-      <h1 :style="{ fontSize: '36px', margin: 0, fontWeight: 600, letterSpacing: '-0.03em' }">
-        Olá, <span style="color:var(--accent)">{{ characterStore.name || 'viajante' }}</span>. Em qual mundo você entra?
+      <h1 class="ms-title">
+        Olá, <span class="ms-accent-text">{{ characterStore.name || 'viajante' }}</span>. Em qual mundo você entra?
       </h1>
-      <p style="color:var(--text-3);margin:0;font-size:15px">
+      <p class="ms-subtitle">
         Você pode trocar de mundo a qualquer momento dentro do jogo.
       </p>
-      <button v-if="!auth.isGuest" class="k-btn k-btn-accent" style="margin-top:8px" @click="router.push('/editor/new')">+ Criar meu mundo</button>
-      <span v-else style="font-size:12px;color:var(--text-4)">Entre com uma conta para criar seus próprios mundos.</span>
+      <button v-if="!auth.isGuest" class="k-btn k-btn-accent q-mt-sm" @click="router.push('/editor/new')">+ Criar meu mundo</button>
+      <span v-else class="ms-guest-hint">Entre com uma conta para criar seus próprios mundos.</span>
     </div>
 
-    <p v-if="error" style="color:#f87171">{{ error }}</p>
-    <p v-else-if="!maps.length" style="color:var(--text-3)">Carregando mundos…</p>
+    <p v-if="error" class="ms-error">{{ error }}</p>
+    <p v-else-if="!maps.length" class="ms-muted">Carregando mundos…</p>
 
-    <div :style="{
-      display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-      gap: '20px', width: 'min(1000px, 100%)',
-    }">
-      <div
-        v-for="m in maps" :key="m.id" class="k-card"
-        :style="{ padding: '18px', display: 'flex', flexDirection: 'column', gap: '14px', cursor: 'pointer', transition: 'transform 0.18s ease' }"
-        @click="pickMap(m.id)"
-        @mouseenter="($event.currentTarget as HTMLElement).style.transform = 'translateY(-3px)'"
-        @mouseleave="($event.currentTarget as HTMLElement).style.transform = 'translateY(0)'"
-      >
-        <div :style="{ aspectRatio: '3/2', background: m.palette.floor[0], overflow: 'hidden', position: 'relative', border: '1px solid rgba(255,255,255,0.06)' }">
+    <div class="ms-grid">
+      <div v-for="m in maps" :key="m.id" class="k-card ms-card column q-gutter-sm" @click="pickMap(m.id)">
+        <div class="ms-preview" :style="{ background: m.palette.floor[0] }">
           <svg viewBox="0 0 120 80" width="100%" height="100%" preserveAspectRatio="none" class="pixelated">
             <rect v-for="tile in previewTiles" :key="`${tile.rx}-${tile.ry}`"
               :x="tile.rx * 8" :y="tile.ry * 8" width="8" height="8"
@@ -52,18 +39,18 @@
           </svg>
         </div>
 
-        <div style="display:flex;justify-content:space-between;align-items:baseline">
-          <h3 style="margin:0;font-size:18px;font-weight:600;letter-spacing:-0.02em">{{ m.name }}</h3>
-          <span :style="{ fontSize: '12px', fontWeight: 600, color: (counts[m.id] || 0) > 0 ? 'var(--ok)' : 'var(--text-4)' }">
+        <div class="row justify-between items-baseline">
+          <h3 class="ms-card-title">{{ m.name }}</h3>
+          <span class="ms-online" :class="{ 'ms-online-active': (counts[m.id] || 0) > 0 }">
             ● {{ counts[m.id] || 0 }} online
           </span>
         </div>
-        <p style="margin:0;font-size:13px;color:var(--text-3);line-height:1.5;min-height:36px">{{ m.blurb }}</p>
-        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px">
-          <span style="font-size:11px;color:var(--text-4);font-family:var(--f-mono)">{{ m.width }}×{{ m.height }} · {{ countZones(m) }} estações · {{ m.hours }}</span>
-          <span style="display:flex;gap:12px;align-items:center">
-            <a v-if="m.ownerId && m.ownerId === auth.userId" href="#" style="font-size:13px;color:var(--text-2);font-weight:600;text-decoration:none" @click.stop.prevent="router.push(`/editor/${m.id}`)">✎ Editar</a>
-            <span style="font-size:13px;color:var(--accent);font-weight:600">Entrar →</span>
+        <p class="ms-blurb">{{ m.blurb }}</p>
+        <div class="row justify-between items-center q-mt-xs">
+          <span class="ms-meta">{{ m.width }}×{{ m.height }} · {{ countZones(m) }} estações · {{ m.hours }}</span>
+          <span class="row items-center q-gutter-md">
+            <a v-if="m.ownerId && m.ownerId === auth.userId" href="#" class="ms-edit-link" @click.stop.prevent="router.push(`/editor/${m.id}`)">✎ Editar</a>
+            <span class="ms-enter-label">Entrar →</span>
           </span>
         </div>
       </div>
@@ -126,3 +113,104 @@ onMounted(async () => {
 
 onUnmounted(() => clearInterval(countTimer))
 </script>
+
+<style scoped>
+.ms-root {
+  height: 100vh;
+  box-sizing: border-box;
+  padding: 32px;
+  background: radial-gradient(ellipse at 50% 0%, rgba(124, 58, 237, 0.18), transparent 50%), var(--bg-1);
+  overflow-y: auto;
+}
+
+.ms-header { width: 100%; }
+
+.ms-title {
+  font-size: 36px;
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: -0.03em;
+}
+
+.ms-accent-text { color: var(--accent); }
+
+.ms-subtitle {
+  color: var(--text-3);
+  margin: 0;
+  font-size: 15px;
+}
+
+.ms-guest-hint {
+  font-size: 12px;
+  color: var(--text-4);
+}
+
+.ms-error { color: #f87171; }
+.ms-muted { color: var(--text-3); }
+
+.ms-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 20px;
+  width: min(1000px, 100%);
+}
+
+.ms-card {
+  padding: 18px;
+  cursor: pointer;
+  transition: transform 0.18s ease;
+}
+
+.ms-card:hover {
+  transform: translateY(-3px);
+}
+
+.ms-preview {
+  aspect-ratio: 3 / 2;
+  overflow: hidden;
+  position: relative;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.ms-card-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+}
+
+.ms-online {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-4);
+}
+
+.ms-online-active { color: var(--ok); }
+
+.ms-blurb {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-3);
+  line-height: 1.5;
+  min-height: 36px;
+}
+
+.ms-meta {
+  font-size: 11px;
+  color: var(--text-4);
+  font-family: var(--f-mono);
+}
+
+.ms-edit-link {
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.ms-enter-label {
+  font-size: 13px;
+  color: var(--accent);
+  font-weight: 600;
+}
+</style>
