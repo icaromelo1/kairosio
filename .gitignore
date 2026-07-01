@@ -5,6 +5,10 @@ dist-ssr/
 *.local
 *.log
 
+# Jukebox/avatar cache local (dev)
+kairos-api/music-cache/
+kairos-api/avatar-cache/
+
 # OS
 .DS_Store
 Thumbs.db
