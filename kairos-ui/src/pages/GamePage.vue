@@ -27,7 +27,7 @@
             class="gp-map-btn row items-center q-gutter-sm"
             :class="{ 'gp-map-btn-active': currentId === m.id }"
           >
-            <span class="col">{{ m.name }}</span>
+            <span class="col ellipsis">{{ m.name }}</span>
             <span v-if="currentId === m.id" class="gp-map-current">atual</span>
           </button>
         </div>
@@ -641,6 +641,12 @@ onUnmounted(() => {
   font-size: 13px;
   cursor: pointer;
   font-family: inherit;
+  min-width: 0;
+}
+/* flex item com classe "col" (Quasar) não encolhe abaixo do conteúdo por padrão —
+   sem isso, nome de mundo comprido estourava a largura da sidebar. */
+.gp-map-btn .col {
+  min-width: 0;
 }
 .gp-map-btn-active {
   background: rgba(124, 58, 237, 0.12);
