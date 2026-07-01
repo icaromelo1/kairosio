@@ -12,6 +12,7 @@ export interface ChatMessage {
 }
 
 export type JukeboxMode = 'proximity' | 'room'
+export type VoiceMode = 'proximity' | 'room'
 
 export interface JukeboxQueueItem {
   trackId: string
@@ -48,6 +49,8 @@ export interface AvatarProps {
   topColor?: string | null
   pantsColor?: string | null
   accessory?: string | null
+  // URL pública da foto de perfil — quando presente, o cliente mostra o círculo em vez do sprite
+  photoUrl?: string | null
 }
 
 interface JoinOptions {
@@ -72,6 +75,8 @@ export const chatMessages = reactive<ChatMessage[]>([])
 // Estado do jukebox da sala atual (fila/faixa tocando/modo)
 export const jukeboxState = reactive<JukeboxState>({ mode: 'proximity', queue: [], current: null, startedAt: null, status: null })
 export const jukeboxError = ref('')
+// Modo de voz da sala atual (proximidade ou sala inteira) — qualquer membro pode alternar
+export const voiceMode = ref<VoiceMode>('proximity')
 
 let socket: Socket | null = null
 let lastEmit = 0
@@ -129,6 +134,10 @@ export function connectPresence(opts: JoinOptions) {
     jukeboxError.value = message
   })
 
+  socket.on('voiceState', ({ mode }: { mode: VoiceMode }) => {
+    voiceMode.value = mode
+  })
+
   socket.on('disconnect', () => {
     remotePlayers.clear()
   })
@@ -143,6 +152,10 @@ export function emitJukeboxSkip() {
 }
 export function emitJukeboxSetMode(mode: JukeboxMode) {
   socket?.emit('jukeboxSetMode', { mode })
+}
+
+export function emitVoiceSetMode(mode: VoiceMode) {
+  socket?.emit('voiceSetMode', { mode })
 }
 
 export function emitChat(text: string) {

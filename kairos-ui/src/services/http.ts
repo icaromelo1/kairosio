@@ -8,6 +8,8 @@ export async function apiFetch(path: string, opts: RequestInit = {}): Promise<Re
   const auth = useAuthStore()
   const headers = new Headers(opts.headers)
   if (auth.token) headers.set('Authorization', `Bearer ${auth.token}`)
-  if (opts.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
+  // FormData (upload de arquivo) não pode ter Content-Type manual — o browser
+  // define o boundary do multipart sozinho; setar "application/json" quebraria o upload.
+  if (opts.body && !(opts.body instanceof FormData) && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
   return fetch(`${API_URL}/kairos-api${path}`, { ...opts, headers })
 }

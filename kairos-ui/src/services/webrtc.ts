@@ -16,6 +16,8 @@ export class VoiceChat {
   private audios = new Map<string, HTMLAudioElement>()
   private localStream: MediaStream | null = null
   private selfId = ''
+  private micMuted = false
+  private mutedPeers = new Set<string>()
   enabled = false
 
   setSelf(id: string) {
@@ -37,10 +39,40 @@ export class VoiceChat {
 
   disable() {
     this.enabled = false
+    this.micMuted = false
+    this.mutedPeers.clear()
     for (const id of [...this.pcs.keys()]) this.drop(id)
     this.localStream?.getTracks().forEach((t) => t.stop())
     this.localStream = null
     setRtcHandler(null)
+  }
+
+  /** Desliga só o envio do microfone (mantém as conexões vivas, sem renegociar). */
+  muteMic() {
+    this.micMuted = true
+    this.localStream?.getAudioTracks().forEach((t) => (t.enabled = false))
+  }
+  unmuteMic() {
+    this.micMuted = false
+    this.localStream?.getAudioTracks().forEach((t) => (t.enabled = true))
+  }
+  isMicMuted(): boolean {
+    return this.micMuted
+  }
+
+  /** Silencia localmente o áudio recebido de um peer específico (não afeta os outros). */
+  muteRemote(peerId: string) {
+    this.mutedPeers.add(peerId)
+    const a = this.audios.get(peerId)
+    if (a) a.muted = true
+  }
+  unmuteRemote(peerId: string) {
+    this.mutedPeers.delete(peerId)
+    const a = this.audios.get(peerId)
+    if (a) a.muted = false
+  }
+  isRemoteMuted(peerId: string): boolean {
+    return this.mutedPeers.has(peerId)
   }
 
   /** Reconcilia as conexões com a lista de quem está no alcance de voz. */
@@ -67,6 +99,7 @@ export class VoiceChat {
   private connect(peerId: string, initiator: boolean) {
     const pc = new RTCPeerConnection(RTC_CONFIG)
     this.pcs.set(peerId, pc)
+    if (this.micMuted) this.localStream?.getAudioTracks().forEach((t) => (t.enabled = false))
     this.localStream?.getTracks().forEach((t) => pc.addTrack(t, this.localStream!))
     pc.onicecandidate = (e) => {
       if (e.candidate) sendRtcSignal(peerId, { candidate: e.candidate.toJSON() })
@@ -111,6 +144,7 @@ export class VoiceChat {
     if (!a) {
       a = new Audio()
       a.autoplay = true
+      a.muted = this.mutedPeers.has(peerId)
       this.audios.set(peerId, a)
     }
     a.srcObject = stream
