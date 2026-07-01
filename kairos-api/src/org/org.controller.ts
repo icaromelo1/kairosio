@@ -19,6 +19,18 @@ export class OrgController {
     return this.org.me(req.user.sub)
   }
 
+  // todas as orgs de que o usuário é membro (pra tela de escolha no login)
+  @Get('mine')
+  mine(@Request() req: any) {
+    return this.org.listMine(req.user.sub)
+  }
+
+  // troca qual org está ativa nesta sessão
+  @Post('switch/:id')
+  switchActive(@Request() req: any, @Param('id') id: string) {
+    return this.org.switchActive(req.user.sub, id)
+  }
+
   @Post('join')
   join(@Request() req: any, @Body() dto: JoinOrgDto) {
     return this.org.join(req.user.sub, dto.code)
