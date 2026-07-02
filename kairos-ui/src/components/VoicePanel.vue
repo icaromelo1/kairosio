@@ -62,10 +62,10 @@ defineEmits<{
 .vp-mode-btn {
   appearance: none;
   background: rgba(124, 58, 237, 0.12);
-  border: 1px solid rgba(124, 58, 237, 0.32);
+  border: 0.0625rem solid rgba(124, 58, 237, 0.32);
   color: var(--text-2);
-  font-size: 10px;
-  padding: 3px 8px;
+  font-size: 0.625rem;
+  padding: 0.1875rem 0.5rem;
   cursor: pointer;
   white-space: nowrap;
 }
@@ -75,10 +75,10 @@ defineEmits<{
   width: 100%;
   text-align: left;
   background: var(--bg-1);
-  border: 1px solid var(--border-strong);
+  border: 0.0625rem solid var(--border-strong);
   color: var(--text);
-  padding: 8px 10px;
-  font-size: 12px;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.75rem;
   font-weight: 600;
   cursor: pointer;
 }
@@ -91,10 +91,10 @@ defineEmits<{
   appearance: none;
   width: 100%;
   background: transparent;
-  border: 1px solid transparent;
+  border: 0.0625rem solid transparent;
   color: var(--text-2);
-  padding: 6px 8px;
-  font-size: 12px;
+  padding: 0.375rem 0.5rem;
+  font-size: 0.75rem;
   cursor: default;
   min-width: 0;
   font-family: inherit;
@@ -107,13 +107,13 @@ defineEmits<{
   border-color: var(--border);
 }
 .vp-member-name { min-width: 0; }
-.vp-you-tag { color: var(--text-4); font-size: 10px; }
+.vp-you-tag { color: var(--text-4); font-size: 0.625rem; }
 .vp-member-ic { flex-shrink: 0; }
 
 .vp-dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
   flex-shrink: 0;
 }
 .vp-dot-me { background: var(--primary-hi); }

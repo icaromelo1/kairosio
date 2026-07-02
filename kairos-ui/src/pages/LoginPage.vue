@@ -107,8 +107,8 @@
 
         <!-- Submit -->
         <button class="k-btn k-btn-primary submit-btn" :disabled="loading" @click="handleLogin">{{ loading ? 'Entrando…' : 'Entrar →' }}</button>
-        <p v-if="error" style="color:#f87171;font-size:12px;margin:8px 0 0;text-align:center">{{ error }}</p>
-        <p style="font-size:12px;margin:10px 0 0;text-align:center;color:var(--text-3)">
+        <p v-if="error" style="color:#f87171;font-size:0.75rem;margin:0.5rem 0 0;text-align:center">{{ error }}</p>
+        <p style="font-size:0.75rem;margin:0.625rem 0 0;text-align:center;color:var(--text-3)">
           Não tem conta?
           <a href="#" style="color:var(--accent);font-weight:600;text-decoration:none" @click.prevent="goRegister">Criar conta →</a>
         </p>
@@ -255,7 +255,7 @@ onMounted(async () => {
   align-items: center;
   justify-content: center;
   /* B4: padding + box-sizing garante scroll da página quando o card não cabe (telas baixas) */
-  padding: 40px 16px;
+  padding: 2.5rem 1rem;
   box-sizing: border-box;
   background:
     radial-gradient(ellipse at 50% 60%, rgba(124, 58, 237, 0.18) 0%, transparent 55%),
@@ -293,11 +293,11 @@ onMounted(async () => {
 .login-center {
   position: relative;
   z-index: 2;
-  width: min(440px, 100%);
-  padding: 0 16px;
+  width: min(27.5rem, 100%);
+  padding: 0 1rem;
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 1.75rem;
   align-items: center;
 }
 
@@ -309,11 +309,11 @@ onMounted(async () => {
 .subtitle-row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
 }
 
 .subtitle-text {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-3);
   letter-spacing: 0.32em;
   text-transform: uppercase;
@@ -323,10 +323,10 @@ onMounted(async () => {
 
 .login-card {
   width: 100%;
-  padding: 28px;
+  padding: 1.75rem;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 1rem;
 }
 
 .card-toprow {
@@ -338,29 +338,29 @@ onMounted(async () => {
 .k-chip {
   display: inline-flex;
   align-items: center;
-  padding: 4px 10px;
+  padding: 0.25rem 0.625rem;
   background: var(--bg-3);
-  border: 2px solid var(--border-strong);
+  border: 0.125rem solid var(--border-strong);
   color: var(--text-3);
   font-family: var(--f-pixel);
-  font-size: 9px;
+  font-size: 0.5625rem;
   letter-spacing: 0.05em;
 }
 
 .logos-btn {
-  font-size: 11px;
-  padding: 6px 12px;
+  font-size: 0.6875rem;
+  padding: 0.375rem 0.75rem;
 }
 
 .field-group {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .k-label {
   font-family: var(--f-pixel);
-  font-size: 9px;
+  font-size: 0.5625rem;
   color: var(--text-3);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -369,11 +369,11 @@ onMounted(async () => {
 .k-input {
   width: 100%;
   background: var(--bg-1);
-  border: 3px solid var(--text-3);
+  border: 0.1875rem solid var(--text-3);
   color: var(--text);
   font-family: var(--f-sans);
-  font-size: 14px;
-  padding: 10px 12px;
+  font-size: 0.875rem;
+  padding: 0.625rem 0.75rem;
   outline: none;
   transition: border-color 0.15s;
 }
@@ -390,25 +390,25 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .remember-label {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   cursor: pointer;
   font-family: var(--f-sans);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-2);
   user-select: none;
 }
 
 .k-checkbox {
   appearance: none;
-  width: 16px;
-  height: 16px;
-  border: 3px solid var(--text-3);
+  width: 1rem;
+  height: 1rem;
+  border: 0.1875rem solid var(--text-3);
   background: var(--bg-1);
   cursor: pointer;
   flex-shrink: 0;
@@ -423,13 +423,13 @@ onMounted(async () => {
 .k-checkbox:checked::after {
   content: '';
   position: absolute;
-  inset: 2px;
+  inset: 0.125rem;
   background: var(--primary-hi);
 }
 
 .forgot-link {
   font-family: var(--f-sans);
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--primary-hi);
   text-decoration: none;
   white-space: nowrap;
@@ -441,56 +441,56 @@ onMounted(async () => {
 
 .submit-btn {
   width: 100%;
-  padding: 14px 18px;
+  padding: 0.875rem 1.125rem;
 }
 
 .k-divider {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 0.75rem;
   color: var(--text-4);
   font-family: var(--f-sans);
-  font-size: 12px;
+  font-size: 0.75rem;
 }
 
 .k-divider::before,
 .k-divider::after {
   content: '';
   flex: 1;
-  height: 1px;
+  height: 0.0625rem;
   background: var(--border);
 }
 
 .social-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 10px;
+  gap: 0.625rem;
 }
 
 .social-btn {
-  font-size: 11px;
-  padding: 10px 12px;
-  gap: 6px;
+  font-size: 0.6875rem;
+  padding: 0.625rem 0.75rem;
+  gap: 0.375rem;
 }
 
 .guest-btn {
   width: 100%;
-  font-size: 11px;
+  font-size: 0.6875rem;
 }
 
 .login-footer {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 16px;
-  font-size: 11px;
+  gap: 1rem;
+  font-size: 0.6875rem;
   color: var(--text-4);
   font-family: var(--f-sans);
 }
 
 .footer-links {
   display: flex;
-  gap: 4px;
+  gap: 0.25rem;
   align-items: center;
 }
 

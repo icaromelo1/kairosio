@@ -106,39 +106,39 @@ async function join() {
 </script>
 
 <style scoped>
-.ob-root { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 28px; padding: 24px; background: radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.18), transparent 50%), var(--bg-1); color: var(--text); font-family: system-ui; }
-.ob-head { text-align: center; max-width: 520px; }
-.ob-head h1 { font-size: 26px; margin: 14px 0 6px; }
-.ob-head p { color: var(--text-3); font-size: 14px; margin: 0; }
-.ob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: min(720px, 100%); }
-@media (max-width: 640px) { .ob-grid { grid-template-columns: 1fr; } }
-.ob-card { background: var(--bg-2); border: 1px solid var(--border-strong); padding: 22px; display: flex; flex-direction: column; gap: 10px; }
-.ob-card h2 { font-size: 16px; margin: 0; }
-.ob-sub { font-size: 13px; color: var(--text-3); margin: 0 0 6px; }
-.ob-input { background: var(--bg-1); border: 1px solid var(--border); color: var(--text); padding: 9px 11px; border-radius: 4px; font-size: 14px; }
-.ob-btn { background: var(--primary); border: none; color: #fff; padding: 10px; cursor: pointer; border-radius: 4px; font-weight: 600; }
-.ob-btn-ghost { background: transparent; border: 1px solid var(--border-strong); color: var(--text); }
+.ob-root { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.75rem; padding: 1.5rem; background: radial-gradient(ellipse at 50% 0%, rgba(124,58,237,0.18), transparent 50%), var(--bg-1); color: var(--text); font-family: system-ui; }
+.ob-head { text-align: center; max-width: 32.5rem; }
+.ob-head h1 { font-size: 1.625rem; margin: 0.875rem 0 0.375rem; }
+.ob-head p { color: var(--text-3); font-size: 0.875rem; margin: 0; }
+.ob-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; width: min(45rem, 100%); }
+@media (max-width: 40rem) { .ob-grid { grid-template-columns: 1fr; } }
+.ob-card { background: var(--bg-2); border: 0.0625rem solid var(--border-strong); padding: 1.375rem; display: flex; flex-direction: column; gap: 0.625rem; }
+.ob-card h2 { font-size: 1rem; margin: 0; }
+.ob-sub { font-size: 0.8125rem; color: var(--text-3); margin: 0 0 0.375rem; }
+.ob-input { background: var(--bg-1); border: 0.0625rem solid var(--border); color: var(--text); padding: 0.5625rem 0.6875rem; border-radius: 0.25rem; font-size: 0.875rem; }
+.ob-btn { background: var(--primary); border: none; color: #fff; padding: 0.625rem; cursor: pointer; border-radius: 0.25rem; font-weight: 600; }
+.ob-btn-ghost { background: transparent; border: 0.0625rem solid var(--border-strong); color: var(--text); }
 .ob-btn:disabled { opacity: 0.6; }
-.ob-error { color: #f87171; font-size: 13px; }
+.ob-error { color: #f87171; font-size: 0.8125rem; }
 
-.ob-orgs-card { width: min(720px, 100%); }
-.ob-org-list { display: flex; flex-direction: column; gap: 8px; }
+.ob-orgs-card { width: min(45rem, 100%); }
+.ob-org-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .ob-org-item {
   appearance: none;
   background: var(--bg-1);
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   color: var(--text);
-  padding: 12px 14px;
-  border-radius: 4px;
+  padding: 0.75rem 0.875rem;
+  border-radius: 0.25rem;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 14px;
+  font-size: 0.875rem;
   text-align: left;
 }
 .ob-org-item:disabled { opacity: 0.6; cursor: default; }
 .ob-org-item-active { border-color: var(--primary-hi); background: rgba(124, 58, 237, 0.1); }
 .ob-org-name { font-weight: 600; }
-.ob-org-role { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.ob-org-role { font-size: 0.6875rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; }
 </style>

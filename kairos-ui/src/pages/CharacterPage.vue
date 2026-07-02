@@ -14,7 +14,7 @@
 
       <!-- Back button -->
       <div class="back-wrap">
-        <button class="k-btn k-btn-ghost back-btn" @click="router.push('/login')">← Voltar</button>
+        <button class="k-btn k-btn-ghost k-btn-sm" @click="router.push('/login')">← Voltar</button>
       </div>
 
       <!-- Columns flanking avatar -->
@@ -87,7 +87,7 @@
             v-for="style in HAIR_STYLES"
             :key="style.id"
             class="hair-style-btn"
-            :class="{ active: characterStore.hairStyle === style.id }"
+            :class="{ active: characterStore.hairStyle === style.id, 'k-active': characterStore.hairStyle === style.id }"
             @click="characterStore.hairStyle = style.id as any"
           >
             <PixelAvatar
@@ -118,8 +118,8 @@
               :style="{
                 background: color,
                 boxShadow: characterStore.hairColor === color
-                  ? '0 0 0 2px var(--bg-2), 0 0 0 4px var(--primary-hi)'
-                  : 'inset 0 0 0 1px rgba(255,255,255,0.06)',
+                  ? '0 0 0 0.125rem var(--bg-2), 0 0 0 0.25rem var(--primary-hi)'
+                  : 'inset 0 0 0 0.0625rem rgba(255,255,255,0.06)',
               }"
             />
           </button>
@@ -141,8 +141,8 @@
               :style="{
                 background: color,
                 boxShadow: characterStore.skin === color
-                  ? '0 0 0 2px var(--bg-2), 0 0 0 4px var(--primary-hi)'
-                  : 'inset 0 0 0 1px rgba(255,255,255,0.06)',
+                  ? '0 0 0 0.125rem var(--bg-2), 0 0 0 0.25rem var(--primary-hi)'
+                  : 'inset 0 0 0 0.0625rem rgba(255,255,255,0.06)',
               }"
             />
           </button>
@@ -164,8 +164,8 @@
               :style="{
                 background: color,
                 boxShadow: characterStore.topColor === color
-                  ? '0 0 0 2px var(--bg-2), 0 0 0 4px var(--primary-hi)'
-                  : 'inset 0 0 0 1px rgba(255,255,255,0.06)',
+                  ? '0 0 0 0.125rem var(--bg-2), 0 0 0 0.25rem var(--primary-hi)'
+                  : 'inset 0 0 0 0.0625rem rgba(255,255,255,0.06)',
               }"
             />
           </button>
@@ -184,8 +184,8 @@
               :style="{
                 background: color,
                 boxShadow: characterStore.pantsColor === color
-                  ? '0 0 0 2px var(--bg-2), 0 0 0 4px var(--primary-hi)'
-                  : 'inset 0 0 0 1px rgba(255,255,255,0.06)',
+                  ? '0 0 0 0.125rem var(--bg-2), 0 0 0 0.25rem var(--primary-hi)'
+                  : 'inset 0 0 0 0.0625rem rgba(255,255,255,0.06)',
               }"
             />
           </button>
@@ -206,9 +206,9 @@
       <!-- Tab content: Foto de perfil -->
       <div v-if="activeTab === 'photo'" class="tab-content">
         <div class="section-label">Foto de perfil</div>
-        <p v-if="!auth.isAuthenticated" class="photo-hint">Faça login pra configurar uma foto de perfil.</p>
+        <p v-if="!auth.isAuthenticated" class="k-hint-text">Faça login pra configurar uma foto de perfil.</p>
         <template v-else>
-          <p class="photo-hint">
+          <p class="k-hint-text">
             Se você configurar uma foto, ela substitui o avatar pixel no jogo (todo mundo passa a te ver por ela). Sem foto, continua o sprite normal.
           </p>
           <div class="photo-row row items-center q-gutter-md">
@@ -218,10 +218,10 @@
             </div>
             <div class="column q-gutter-xs">
               <input ref="fileInput" type="file" accept="image/jpeg,image/png,image/webp" class="photo-file-input" @change="onPhotoPicked" />
-              <button class="k-btn k-btn-ghost photo-btn" :disabled="uploadingPhoto" @click="fileInput?.click()">
+              <button class="k-btn k-btn-ghost k-btn-sm" :disabled="uploadingPhoto" @click="fileInput?.click()">
                 {{ uploadingPhoto ? 'Enviando…' : (characterStore.photoFile ? 'Trocar foto' : 'Enviar foto') }}
               </button>
-              <button v-if="characterStore.photoFile" class="k-btn k-btn-ghost photo-btn" @click="onRemovePhoto">Remover foto</button>
+              <button v-if="characterStore.photoFile" class="k-btn k-btn-ghost k-btn-sm" @click="onRemovePhoto">Remover foto</button>
             </div>
           </div>
           <p v-if="photoError" class="photo-error">{{ photoError }}</p>
@@ -378,7 +378,7 @@ const ACCESSORIES = [
 <style scoped>
 .char-root {
   display: grid;
-  grid-template-columns: 1fr 380px;
+  grid-template-columns: 1fr 23.75rem;
   height: 100vh;
   background:
     radial-gradient(ellipse at 30% 30%, rgba(124, 58, 237, 0.15), transparent 50%),
@@ -393,7 +393,7 @@ const ACCESSORIES = [
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  padding: 32px;
+  padding: 2rem;
 }
 
 .stage-border-top {
@@ -413,22 +413,17 @@ const ACCESSORIES = [
 
 .stage-logo {
   position: absolute;
-  top: 20px;
-  left: 20px;
+  top: 1.25rem;
+  left: 1.25rem;
   z-index: 2;
 }
 
 .back-wrap {
   position: absolute;
-  top: 20px;
+  top: 1.25rem;
   left: 50%;
   transform: translateX(-50%);
   z-index: 2;
-}
-
-.back-btn {
-  font-size: 11px;
-  padding: 8px 14px;
 }
 
 .column-left {
@@ -451,20 +446,20 @@ const ACCESSORIES = [
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
+  gap: 1rem;
   z-index: 1;
 }
 
 .avatar-label-top {
   font-family: var(--f-pixel);
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-3);
   letter-spacing: 0.32em;
   text-transform: uppercase;
 }
 
 .avatar-preview {
-  padding: 40px;
+  padding: 2.5rem;
   background: radial-gradient(ellipse at center, rgba(124, 58, 237, 0.2) 0%, transparent 70%);
   display: flex;
   align-items: center;
@@ -473,21 +468,21 @@ const ACCESSORIES = [
 
 .avatar-label-bottom {
   font-family: var(--f-mono);
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.1em;
 }
 
 .name-input {
-  width: min(260px, 100%);
+  width: min(16.25rem, 100%);
   text-align: center;
   background: var(--bg-1);
-  border: 3px solid var(--text-3);
+  border: 0.1875rem solid var(--text-3);
   color: var(--text);
   font-family: var(--f-sans);
-  font-size: 15px;
-  padding: 10px 14px;
+  font-size: 0.9375rem;
+  padding: 0.625rem 0.875rem;
   outline: none;
 }
 
@@ -502,30 +497,30 @@ const ACCESSORIES = [
 /* ---- RIGHT / PANEL ---- */
 .panel-col {
   background: var(--bg-2);
-  border-left: 1px solid var(--border);
+  border-left: 0.0625rem solid var(--border);
   display: flex;
   flex-direction: column;
-  padding: 28px 24px 24px;
-  gap: 16px;
+  padding: 1.75rem 1.5rem 1.5rem;
+  gap: 1rem;
   overflow-y: auto;
 }
 
 .panel-header {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.25rem;
 }
 
 .panel-eyebrow {
   font-family: var(--f-pixel);
-  font-size: 9px;
+  font-size: 0.5625rem;
   color: var(--text-3);
   text-transform: uppercase;
   letter-spacing: 0.12em;
 }
 
 .panel-title {
-  font-size: 22px;
+  font-size: 1.375rem;
   font-weight: 600;
   color: var(--text);
   font-family: var(--f-sans);
@@ -536,7 +531,7 @@ const ACCESSORIES = [
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 0;
-  border: 3px solid var(--border-strong);
+  border: 0.1875rem solid var(--border-strong);
 }
 
 .tab-btn {
@@ -545,16 +540,16 @@ const ACCESSORIES = [
   background: transparent;
   color: var(--text-3);
   font-family: var(--f-pixel);
-  font-size: 9px;
+  font-size: 0.5625rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 10px 6px;
+  padding: 0.625rem 0.375rem;
   cursor: pointer;
   transition: background 0.1s, color 0.1s;
 }
 
 .tab-btn:not(:last-child) {
-  border-right: 2px solid var(--border-strong);
+  border-right: 0.125rem solid var(--border-strong);
 }
 
 .tab-btn.active {
@@ -566,12 +561,12 @@ const ACCESSORIES = [
 .tab-content {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .section-label {
   font-family: var(--f-pixel);
-  font-size: 9px;
+  font-size: 0.5625rem;
   color: var(--text-3);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -581,25 +576,20 @@ const ACCESSORIES = [
 .hair-style-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 6px;
+  gap: 0.375rem;
 }
 
 .hair-style-btn {
   appearance: none;
   background: var(--bg-3);
-  border: 2px solid transparent;
+  border: 0.125rem solid transparent;
   cursor: pointer;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  padding: 6px 4px;
+  gap: 0.25rem;
+  padding: 0.375rem 0.25rem;
   transition: border-color 0.1s, background 0.1s;
-}
-
-.hair-style-btn.active {
-  border-color: var(--primary-hi);
-  background: rgba(124, 58, 237, 0.12);
 }
 
 .hair-style-btn:hover:not(.active) {
@@ -608,7 +598,7 @@ const ACCESSORIES = [
 
 .hair-style-label {
   font-family: var(--f-pixel);
-  font-size: 7px;
+  font-size: 0.4375rem;
   color: var(--text-3);
   text-transform: lowercase;
   white-space: nowrap;
@@ -617,19 +607,15 @@ const ACCESSORIES = [
   max-width: 100%;
 }
 
-.photo-hint {
-  font-size: 12px;
-  color: var(--text-3);
-  line-height: 1.5;
-  margin: 0;
-}
+/* k-hint-text (tokens.css) cobre font-size/color/line-height; só falta o margin:0 */
+.k-hint-text { margin: 0; }
 .photo-preview {
-  width: 72px;
-  height: 72px;
-  border-radius: 999px;
+  width: 4.5rem;
+  height: 4.5rem;
+  border-radius: 50%;
   overflow: hidden;
   background: var(--bg-1);
-  border: 2px solid var(--border-strong);
+  border: 0.125rem solid var(--border-strong);
   display: grid;
   place-items: center;
   flex-shrink: 0;
@@ -640,7 +626,7 @@ const ACCESSORIES = [
   object-fit: cover;
 }
 .photo-empty {
-  font-size: 9px;
+  font-size: 0.5625rem;
   color: var(--text-4);
   text-transform: uppercase;
   letter-spacing: 0.06em;
@@ -648,13 +634,9 @@ const ACCESSORIES = [
 .photo-file-input {
   display: none;
 }
-.photo-btn {
-  font-size: 11px;
-  padding: 8px 12px;
-}
 .photo-error {
   color: var(--err);
-  font-size: 12px;
+  font-size: 0.75rem;
   margin: 0;
 }
 
@@ -662,30 +644,30 @@ const ACCESSORIES = [
 .swatches-wrap {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .acc-btn {
   appearance: none;
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   background: var(--bg-1);
   color: var(--text-2);
-  padding: 8px 14px;
-  border-radius: 8px;
+  padding: 0.5rem 0.875rem;
+  border-radius: 0.5rem;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 0.8125rem;
   font-weight: 600;
 }
 .acc-btn.on {
   border-color: var(--primary-hi);
   color: var(--text);
-  box-shadow: 0 0 0 2px var(--bg-2), 0 0 0 4px var(--primary-hi);
+  box-shadow: 0 0 0 0.125rem var(--bg-2), 0 0 0 0.25rem var(--primary-hi);
 }
 
 .swatch-btn {
   appearance: none;
-  border: 2px solid transparent;
-  padding: 2px;
+  border: 0.125rem solid transparent;
+  padding: 0.125rem;
   cursor: pointer;
   background: var(--bg-1);
   transition: border-color 0.1s;
@@ -693,21 +675,21 @@ const ACCESSORIES = [
 
 .swatch-inner {
   display: block;
-  width: 30px;
-  height: 30px;
+  width: 1.875rem;
+  height: 1.875rem;
 }
 
 .swatch-big {
-  width: 38px;
-  height: 38px;
+  width: 2.375rem;
+  height: 2.375rem;
 }
 
 /* Summary */
 .summary-card {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px 16px;
-  padding: 14px 16px;
+  gap: 0.5rem 1rem;
+  padding: 0.875rem 1rem;
   margin-top: auto;
 }
 
@@ -715,12 +697,12 @@ const ACCESSORIES = [
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  gap: 0.5rem;
 }
 
 .summary-key {
   font-family: var(--f-pixel);
-  font-size: 8px;
+  font-size: 0.5rem;
   color: var(--text-3);
   text-transform: uppercase;
   white-space: nowrap;
@@ -728,28 +710,28 @@ const ACCESSORIES = [
 
 .summary-val {
   font-family: var(--f-mono);
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-2);
   text-transform: capitalize;
 }
 
 .swatch-dot {
   display: inline-block;
-  width: 14px;
-  height: 14px;
+  width: 0.875rem;
+  height: 0.875rem;
   flex-shrink: 0;
 }
 
 /* Enter button */
 .enter-btn {
   width: 100%;
-  padding: 16px 18px;
+  padding: 1rem 1.125rem;
   margin-top: auto;
 }
 
 /* B4: em telas estreitas o grid de 2 colunas + 100vh fixo cortava o painel.
    Empilha (preview em cima, controles embaixo) e libera o scroll da página. */
-@media (max-width: 820px) {
+@media (max-width: 51.25rem) {
   .char-root {
     grid-template-columns: 1fr;
     height: auto;
@@ -761,16 +743,16 @@ const ACCESSORIES = [
   }
   .panel-col {
     border-left: none;
-    border-top: 1px solid var(--border);
+    border-top: 0.0625rem solid var(--border);
     overflow-y: visible;
   }
 }
 
-/* padding fixo de 32px do stage-col sobrava pouco espaço em telas bem estreitas
+/* padding fixo de 2rem do stage-col sobrava pouco espaço em telas bem estreitas
    (name-input já é relativo, mas o padding em si ainda apertava o preview). */
-@media (max-width: 400px) {
+@media (max-width: 25rem) {
   .stage-col {
-    padding: 16px;
+    padding: 1rem;
   }
 }
 </style>

@@ -1,22 +1,22 @@
 <template>
   <div :style="{
     fontFamily: 'var(--f-mono)',
-    fontSize: fs + 'px',
+    fontSize: (fs / 16) + 'rem',
     background: 'var(--bg-3)',
-    border: `2px solid ${primary}`,
-    padding: `${fs * 0.4}px ${fs * 0.7}px`,
+    border: `0.125rem solid ${primary}`,
+    padding: `${fs * 0.4 / 16}rem ${fs * 0.7 / 16}rem`,
     display: 'inline-flex',
     alignItems: 'center',
-    gap: (fs * 0.4) + 'px',
-    boxShadow: `4px 4px 0 ${primary}33`,
+    gap: (fs * 0.4 / 16) + 'rem',
+    boxShadow: `0.25rem 0.25rem 0 ${primary}33`,
   }">
     <span :style="{ color: accent }">$</span>
     <span style="color:var(--text);font-weight:600">kairos</span>
     <span :style="{
-      width: (fs * 0.5) + 'px',
-      height: (fs * 0.9) + 'px',
+      width: (fs * 0.5 / 16) + 'rem',
+      height: (fs * 0.9 / 16) + 'rem',
       background: accent,
-      marginLeft: (fs * 0.1) + 'px',
+      marginLeft: (fs * 0.1 / 16) + 'rem',
       animation: 'logoBlink 1s steps(2) infinite',
     }" />
   </div>

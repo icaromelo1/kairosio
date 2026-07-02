@@ -24,8 +24,8 @@
         <div class="fb-field">
           <label>Tipo</label>
           <div class="fb-kinds">
-            <button :class="['fb-kind', form.kind === 'bug' && 'on']" @click="form.kind = 'bug'">🐞 Bug</button>
-            <button :class="['fb-kind', form.kind === 'melhoria' && 'on']" @click="form.kind = 'melhoria'">✨ Melhoria</button>
+            <button :class="['fb-kind', form.kind === 'bug' && 'k-active']" @click="form.kind = 'bug'">🐞 Bug</button>
+            <button :class="['fb-kind', form.kind === 'melhoria' && 'k-active']" @click="form.kind = 'melhoria'">✨ Melhoria</button>
           </div>
         </div>
 
@@ -54,7 +54,7 @@
           <li v-for="f in list" :key="f.id" class="fb-item">
             <div class="fb-item-top">
               <span class="fb-tag">{{ f.kind === 'bug' ? '🐞 Bug' : '✨ Melhoria' }}</span>
-              <span :class="['fb-status', f.status]">{{ statusLabel[f.status] }}</span>
+              <span :class="['k-badge', statusBadgeClass[f.status]]">{{ statusLabel[f.status] }}</span>
             </div>
             <div class="fb-item-title">{{ f.title }}</div>
             <div class="fb-item-msg">{{ f.message }}</div>
@@ -92,6 +92,13 @@ const statusLabel: Record<FeedbackStatus, string> = {
   em_andamento: 'Em andamento',
   resolvido: 'Resolvido',
   recusado: 'Recusado',
+}
+
+const statusBadgeClass: Record<FeedbackStatus, string> = {
+  aberto: 'k-badge-dim',
+  em_andamento: 'k-badge-warning',
+  resolvido: 'k-badge-success',
+  recusado: 'k-badge-error',
 }
 
 function maskEmail(e: string): string {
@@ -153,40 +160,35 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.fb-root { min-height: 100vh; background: #0d0d14; color: #e8e8f0; font-family: system-ui; padding: 0 0 48px; }
-.fb-head { display: flex; align-items: baseline; gap: 14px; padding: 18px 24px; border-bottom: 1px solid #252535; }
-.fb-head h1 { font-size: 20px; margin: 0; }
-.fb-sub { font-size: 13px; color: #8a8aa0; }
-.fb-back { background: transparent; border: 1px solid #303045; color: #c8c8d8; padding: 5px 12px; cursor: pointer; border-radius: 3px; font-size: 13px; }
-.fb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 1080px; margin: 24px auto; padding: 0 24px; }
-@media (max-width: 820px) { .fb-grid { grid-template-columns: 1fr; } }
-.fb-card { background: #14141f; border: 1px solid #252535; border-radius: 8px; padding: 20px; min-width: 0; }
-.fb-card h2 { font-size: 15px; margin: 0 0 10px; }
-.fb-intro { font-size: 13px; color: #a0a0b8; line-height: 1.6; margin: 0 0 18px; }
-.fb-field { margin-bottom: 14px; }
-.fb-field label { display: block; font-size: 12px; color: #8a8aa0; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.06em; }
-.fb-field input, .fb-field textarea { width: 100%; box-sizing: border-box; background: #1d1d2a; border: 1px solid #303045; color: #e8e8f0; padding: 9px 11px; border-radius: 4px; font-size: 14px; font-family: inherit; }
+.fb-root { min-height: 100vh; background: #0d0d14; color: #e8e8f0; font-family: system-ui; padding: 0 0 3rem; }
+.fb-head { display: flex; align-items: baseline; gap: 0.875rem; padding: 1.125rem 1.5rem; border-bottom: 0.0625rem solid #252535; }
+.fb-head h1 { font-size: 1.25rem; margin: 0; }
+.fb-sub { font-size: 0.8125rem; color: #8a8aa0; }
+.fb-back { background: transparent; border: 0.0625rem solid #303045; color: #c8c8d8; padding: 0.3125rem 0.75rem; cursor: pointer; border-radius: 0.1875rem; font-size: 0.8125rem; }
+.fb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; max-width: 67.5rem; margin: 1.5rem auto; padding: 0 1.5rem; }
+@media (max-width: 51.25rem) { .fb-grid { grid-template-columns: 1fr; } }
+.fb-card { background: #14141f; border: 0.0625rem solid #252535; border-radius: 0.5rem; padding: 1.25rem; min-width: 0; }
+.fb-card h2 { font-size: 0.9375rem; margin: 0 0 0.625rem; }
+.fb-intro { font-size: 0.8125rem; color: #a0a0b8; line-height: 1.6; margin: 0 0 1.125rem; }
+.fb-field { margin-bottom: 0.875rem; }
+.fb-field label { display: block; font-size: 0.75rem; color: #8a8aa0; margin-bottom: 0.3125rem; text-transform: uppercase; letter-spacing: 0.06em; }
+.fb-field input, .fb-field textarea { width: 100%; box-sizing: border-box; background: #1d1d2a; border: 0.0625rem solid #303045; color: #e8e8f0; padding: 0.5625rem 0.6875rem; border-radius: 0.25rem; font-size: 0.875rem; font-family: inherit; }
 .fb-field textarea { resize: vertical; }
-.fb-kinds { display: flex; gap: 8px; }
-.fb-kind { flex: 1; background: #1d1d2a; border: 1px solid #303045; color: #c8c8d8; padding: 8px; cursor: pointer; border-radius: 4px; font-size: 13px; }
-.fb-kind.on { border-color: #7c3aed; background: rgba(124,58,237,0.16); color: #fff; }
-.fb-submit { background: #7c3aed; border: none; color: #fff; padding: 10px 20px; cursor: pointer; border-radius: 4px; font-size: 14px; font-weight: 600; }
+.fb-kinds { display: flex; gap: 0.5rem; }
+.fb-kind { flex: 1; background: #1d1d2a; border: 0.0625rem solid #303045; color: #c8c8d8; padding: 0.5rem; cursor: pointer; border-radius: 0.25rem; font-size: 0.8125rem; }
+.fb-kind.k-active { color: #fff; }
+.fb-submit { background: #7c3aed; border: none; color: #fff; padding: 0.625rem 1.25rem; cursor: pointer; border-radius: 0.25rem; font-size: 0.875rem; font-weight: 600; }
 .fb-submit:disabled { opacity: 0.6; cursor: default; }
-.fb-ok { color: #34d399; font-size: 13px; margin: 12px 0 0; }
-.fb-err { color: #f87171; font-size: 13px; margin: 12px 0 0; }
+.fb-ok { color: #34d399; font-size: 0.8125rem; margin: 0.75rem 0 0; }
+.fb-err { color: #f87171; font-size: 0.8125rem; margin: 0.75rem 0 0; }
 .fb-count { color: #8a8aa0; font-weight: 400; }
-.fb-empty { font-size: 13px; color: #8a8aa0; }
-.fb-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
-.fb-item { background: #1a1a26; border: 1px solid #262636; border-radius: 6px; padding: 12px 14px; overflow-wrap: anywhere; word-break: break-word; min-width: 0; }
-.fb-item-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 6px; }
-.fb-tag { font-size: 12px; color: #c8c8d8; }
-.fb-status { font-size: 11px; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.04em; }
-.fb-status.aberto { background: rgba(138,138,160,0.18); color: #b8b8c8; }
-.fb-status.em_andamento { background: rgba(251,191,36,0.18); color: #fbbf24; }
-.fb-status.resolvido { background: rgba(52,211,153,0.18); color: #34d399; }
-.fb-status.recusado { background: rgba(248,113,113,0.18); color: #f87171; }
-.fb-item-resolved { font-size: 11px; color: #34d399; margin-top: 4px; }
-.fb-item-title { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
-.fb-item-msg { font-size: 13px; color: #a0a0b8; line-height: 1.5; white-space: pre-wrap; }
-.fb-item-meta { font-size: 11px; color: #6a6a80; margin-top: 8px; }
+.fb-empty { font-size: 0.8125rem; color: #8a8aa0; }
+.fb-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
+.fb-item { background: #1a1a26; border: 0.0625rem solid #262636; border-radius: 0.375rem; padding: 0.75rem 0.875rem; overflow-wrap: anywhere; word-break: break-word; min-width: 0; }
+.fb-item-top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.375rem; }
+.fb-tag { font-size: 0.75rem; color: #c8c8d8; }
+.fb-item-resolved { font-size: 0.6875rem; color: #34d399; margin-top: 0.25rem; }
+.fb-item-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.1875rem; }
+.fb-item-msg { font-size: 0.8125rem; color: #a0a0b8; line-height: 1.5; white-space: pre-wrap; }
+.fb-item-meta { font-size: 0.6875rem; color: #6a6a80; margin-top: 0.5rem; }
 </style>

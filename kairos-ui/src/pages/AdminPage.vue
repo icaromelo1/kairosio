@@ -4,7 +4,7 @@
       <button class="ad-back" @click="router.push('/map-select')">‹ Voltar</button>
       <h1>Administração{{ org ? ' · ' + org.name : '' }}</h1>
       <nav class="ad-tabs">
-        <button v-for="t in tabs" :key="t" :class="['ad-tab', tab === t && 'on']" @click="tab = t">{{ t }}</button>
+        <button v-for="t in tabs" :key="t" :class="['ad-tab', tab === t && 'k-active']" @click="tab = t">{{ t }}</button>
       </nav>
     </header>
 
@@ -28,7 +28,7 @@
         <li v-for="m in members" :key="m.id" class="ad-item">
           <span class="ad-email">{{ m.email }} <span v-if="m.id === auth.userId" class="ad-you">(você)</span></span>
           <span class="ad-actions">
-            <span :class="['ad-role', m.orgRole]">{{ m.orgRole }}</span>
+            <span :class="['k-badge', m.orgRole === 'admin' ? 'k-badge-info' : 'k-badge-dim']">{{ m.orgRole }}</span>
             <button v-if="m.id !== auth.userId" class="ad-mini" @click="toggleRole(m)">{{ m.orgRole === 'admin' ? 'rebaixar' : 'promover' }}</button>
             <button v-if="m.id !== auth.userId" class="ad-mini ad-danger" @click="kick(m)">remover</button>
           </span>
@@ -126,36 +126,33 @@ onMounted(load)
 </script>
 
 <style scoped>
-.ad-root { min-height: 100vh; background: #0d0d14; color: #e8e8f0; font-family: system-ui; padding: 0 0 40px; }
-.ad-head { padding: 18px 24px; border-bottom: 1px solid #252535; display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.ad-head h1 { font-size: 18px; margin: 0; }
-.ad-back { background: transparent; border: 1px solid #303045; color: #c8c8d8; padding: 5px 12px; cursor: pointer; border-radius: 3px; }
-.ad-tabs { display: flex; gap: 6px; margin-left: auto; }
-.ad-tab { background: #1d1d2a; border: 1px solid #303045; color: #c8c8d8; padding: 6px 14px; cursor: pointer; border-radius: 4px; }
-.ad-tab.on { border-color: #7c3aed; background: rgba(124,58,237,0.18); color: #fff; }
-.ad-card { max-width: 760px; margin: 24px auto; padding: 20px; background: #14141f; border: 1px solid #252535; border-radius: 8px; }
-.ad-card h2 { font-size: 15px; margin: 0 0 12px; }
+.ad-root { min-height: 100vh; background: #0d0d14; color: #e8e8f0; font-family: system-ui; padding: 0 0 2.5rem; }
+.ad-head { padding: 1.125rem 1.5rem; border-bottom: 0.0625rem solid #252535; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
+.ad-head h1 { font-size: 1.125rem; margin: 0; }
+.ad-back { background: transparent; border: 0.0625rem solid #303045; color: #c8c8d8; padding: 0.3125rem 0.75rem; cursor: pointer; border-radius: 0.1875rem; }
+.ad-tabs { display: flex; gap: 0.375rem; margin-left: auto; }
+.ad-tab { background: #1d1d2a; border: 0.0625rem solid #303045; color: #c8c8d8; padding: 0.375rem 0.875rem; cursor: pointer; border-radius: 0.25rem; }
+.ad-tab.k-active { color: #fff; }
+.ad-card { max-width: 47.5rem; margin: 1.5rem auto; padding: 1.25rem; background: #14141f; border: 0.0625rem solid #252535; border-radius: 0.5rem; }
+.ad-card h2 { font-size: 0.9375rem; margin: 0 0 0.75rem; }
 .ad-row-between { display: flex; justify-content: space-between; align-items: center; }
-.ad-list { list-style: none; margin: 12px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
-.ad-item { display: flex; justify-content: space-between; align-items: center; background: #1a1a26; border: 1px solid #262636; padding: 9px 12px; border-radius: 6px; font-size: 14px; }
+.ad-list { list-style: none; margin: 0.75rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.5rem; }
+.ad-item { display: flex; justify-content: space-between; align-items: center; background: #1a1a26; border: 0.0625rem solid #262636; padding: 0.5625rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; }
 .ad-email { color: #e8e8f0; }
-.ad-you { color: #6a6a80; font-size: 12px; }
-.ad-actions { display: flex; gap: 8px; align-items: center; }
-.ad-role { font-size: 11px; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; }
-.ad-role.admin { background: rgba(124,58,237,0.2); color: #a78bfa; }
-.ad-role.member { background: rgba(138,138,160,0.18); color: #b8b8c8; }
-.ad-mini { background: transparent; border: 1px solid #303045; color: #c8c8d8; padding: 3px 8px; cursor: pointer; border-radius: 4px; font-size: 12px; }
+.ad-you { color: #6a6a80; font-size: 0.75rem; }
+.ad-actions { display: flex; gap: 0.5rem; align-items: center; }
+.ad-mini { background: transparent; border: 0.0625rem solid #303045; color: #c8c8d8; padding: 0.1875rem 0.5rem; cursor: pointer; border-radius: 0.25rem; font-size: 0.75rem; }
 .ad-danger { color: #f87171; border-color: rgba(248,113,113,0.4); }
-.ad-dim { color: #6a6a80; font-size: 12px; }
-.ad-empty { color: #8a8aa0; font-size: 13px; }
-.ad-btn { background: #7c3aed; border: none; color: #fff; padding: 8px 14px; cursor: pointer; border-radius: 4px; font-weight: 600; }
-.ad-invite { margin: 12px 0 0; display: flex; flex-direction: column; gap: 6px; }
-.ad-invite-label { font-size: 12px; color: #34d399; }
-.ad-invite-row { display: flex; gap: 8px; }
-.ad-invite-input { flex: 1; min-width: 0; background: #1d1d2a; border: 1px solid #303045; color: #e8e8f0; padding: 8px 10px; border-radius: 4px; font-size: 13px; font-family: var(--f-mono, monospace); }
-.ad-invite-hint { font-size: 11px; color: #6a6a80; }
-.ad-input { width: 100%; box-sizing: border-box; background: #1d1d2a; border: 1px solid #303045; color: #e8e8f0; padding: 9px; border-radius: 4px; margin-bottom: 12px; }
-.ad-label { font-size: 12px; color: #8a8aa0; display: block; margin-bottom: 5px; }
+.ad-dim { color: #6a6a80; font-size: 0.75rem; }
+.ad-empty { color: #8a8aa0; font-size: 0.8125rem; }
+.ad-btn { background: #7c3aed; border: none; color: #fff; padding: 0.5rem 0.875rem; cursor: pointer; border-radius: 0.25rem; font-weight: 600; }
+.ad-invite { margin: 0.75rem 0 0; display: flex; flex-direction: column; gap: 0.375rem; }
+.ad-invite-label { font-size: 0.75rem; color: #34d399; }
+.ad-invite-row { display: flex; gap: 0.5rem; }
+.ad-invite-input { flex: 1; min-width: 0; background: #1d1d2a; border: 0.0625rem solid #303045; color: #e8e8f0; padding: 0.5rem 0.625rem; border-radius: 0.25rem; font-size: 0.8125rem; font-family: var(--f-mono, monospace); }
+.ad-invite-hint { font-size: 0.6875rem; color: #6a6a80; }
+.ad-input { width: 100%; box-sizing: border-box; background: #1d1d2a; border: 0.0625rem solid #303045; color: #e8e8f0; padding: 0.5625rem; border-radius: 0.25rem; margin-bottom: 0.75rem; }
+.ad-label { font-size: 0.75rem; color: #8a8aa0; display: block; margin-bottom: 0.3125rem; }
 .ad-error { color: #f87171; text-align: center; }
-.ad-ok { color: #34d399; font-size: 13px; }
+.ad-ok { color: #34d399; font-size: 0.8125rem; }
 </style>

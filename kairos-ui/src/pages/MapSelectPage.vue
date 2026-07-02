@@ -118,7 +118,7 @@ onUnmounted(() => clearInterval(countTimer))
 .ms-root {
   height: 100vh;
   box-sizing: border-box;
-  padding: 32px;
+  padding: 2rem;
   background: radial-gradient(ellipse at 50% 0%, rgba(124, 58, 237, 0.18), transparent 50%), var(--bg-1);
   overflow-y: auto;
 }
@@ -126,7 +126,7 @@ onUnmounted(() => clearInterval(countTimer))
 .ms-header { width: 100%; }
 
 .ms-title {
-  font-size: 36px;
+  font-size: 2.25rem;
   margin: 0;
   font-weight: 600;
   letter-spacing: -0.03em;
@@ -137,11 +137,11 @@ onUnmounted(() => clearInterval(countTimer))
 .ms-subtitle {
   color: var(--text-3);
   margin: 0;
-  font-size: 15px;
+  font-size: 0.9375rem;
 }
 
 .ms-guest-hint {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-4);
 }
 
@@ -150,37 +150,37 @@ onUnmounted(() => clearInterval(countTimer))
 
 .ms-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 20px;
-  width: min(1000px, 100%);
+  grid-template-columns: repeat(auto-fit, minmax(17.5rem, 1fr));
+  gap: 1.25rem;
+  width: min(62.5rem, 100%);
 }
 
 .ms-card {
-  padding: 18px;
+  padding: 1.125rem;
   cursor: pointer;
   transition: transform 0.18s ease;
 }
 
 .ms-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-0.1875rem);
 }
 
 .ms-preview {
   aspect-ratio: 3 / 2;
   overflow: hidden;
   position: relative;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 0.0625rem solid rgba(255, 255, 255, 0.06);
 }
 
 .ms-card-title {
   margin: 0;
-  font-size: 18px;
+  font-size: 1.125rem;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 
 .ms-online {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
   color: var(--text-4);
 }
@@ -189,39 +189,39 @@ onUnmounted(() => clearInterval(countTimer))
 
 .ms-blurb {
   margin: 0;
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-3);
   line-height: 1.5;
-  min-height: 36px;
+  min-height: 2.25rem;
 }
 
 .ms-meta {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-4);
   font-family: var(--f-mono);
 }
 
 .ms-edit-link {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--text-2);
   font-weight: 600;
   text-decoration: none;
 }
 
 .ms-enter-label {
-  font-size: 13px;
+  font-size: 0.8125rem;
   color: var(--accent);
   font-weight: 600;
 }
 
-/* Telas estreitas (ou zoom alto): padding fixo de 32px + cards com mínimo de 280px
-   causavam overflow horizontal em telas bem pequenas (~320-360px). */
-@media (max-width: 480px) {
+/* Telas estreitas (ou zoom alto): padding fixo de 2rem + cards com mínimo de 17.5rem
+   causavam overflow horizontal em telas bem pequenas (~320-22.5rem). */
+@media (max-width: 30rem) {
   .ms-root {
-    padding: 16px;
+    padding: 1rem;
   }
   .ms-title {
-    font-size: 26px;
+    font-size: 1.625rem;
   }
   .ms-grid {
     grid-template-columns: 1fr;
