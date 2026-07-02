@@ -8,6 +8,7 @@ import { JwtStrategy } from './jwt.strategy'
 import { GoogleStrategy } from './google.strategy'
 import { GithubStrategy } from './github.strategy'
 import { User } from '../user/user.entity'
+import { OrgMembership } from '../org/org-membership.entity'
 
 // OAuth só entra quando as credenciais existem — sem creds, o login normal segue intacto
 const oauthStrategies: any[] = []
@@ -16,7 +17,7 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) oauthStrat
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    TypeOrmModule.forFeature([User, OrgMembership]),
     PassportModule,
     // registerAsync (em vez de register) lê process.env.JWT_SECRET só na hora de
     // instanciar, não na hora de importar o módulo — com register(), esse valor era

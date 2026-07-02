@@ -69,6 +69,10 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   private readonly socketOrg = new Map<string, string | null>()
   // uuid real do usuário (JWT sub) — socket.id não é uuid, não pode ir em colunas uuid (ex: Track.addedBy)
   private readonly socketUserId = new Map<string, string | null>()
+  // sessão única por usuário: userId -> socket.id ativo no momento. Mesma conta
+  // aberta em várias abas (localStorage compartilha o token) só fica com UM
+  // personagem visível — a aba nova derruba a antiga.
+  private readonly userSocket = new Map<string, string>()
   // estado do jukebox por sala (org:map) — fila/faixa atual/modo, em memória
   private readonly jukebox = new Map<string, JukeboxRoomState>()
   // modo de voz por sala (org:map) — qualquer membro pode alternar, vale pra todos
@@ -103,6 +107,20 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
     this.socketOrg.set(socket.id, org)
     this.socketUserId.set(socket.id, userId)
+
+    // sessão única: mesmo usuário já tem outra aba/dispositivo conectado?
+    // derruba a antiga (o cliente lá recebe 'sessionKicked' e NÃO reconecta
+    // sozinho — desconexão iniciada pelo servidor não dispara auto-reconnect
+    // do socket.io, evitando um looping de "kick mútuo" entre as abas).
+    if (userId) {
+      const previousSocketId = this.userSocket.get(userId)
+      if (previousSocketId && previousSocketId !== socket.id) {
+        const previousSocket = this.server.sockets.sockets.get(previousSocketId)
+        previousSocket?.emit('sessionKicked')
+        previousSocket?.disconnect(true)
+      }
+      this.userSocket.set(userId, socket.id)
+    }
   }
 
   handleDisconnect(socket: Socket) {
@@ -111,6 +129,10 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       this.players.delete(socket.id)
       this.server.to(this.room(player.org, player.map)).emit('playerLeft', { id: socket.id })
     }
+    const userId = this.socketUserId.get(socket.id)
+    // só remove se ESSE socket ainda for o "dono" da sessão — evita que o
+    // disconnect tardio de uma aba já kickada apague o registro da aba nova
+    if (userId && this.userSocket.get(userId) === socket.id) this.userSocket.delete(userId)
     this.socketOrg.delete(socket.id)
     this.socketUserId.delete(socket.id)
   }

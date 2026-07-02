@@ -167,6 +167,20 @@
       </div>
 
       <div v-if="error" class="gp-error">{{ error }}</div>
+
+      <!-- Sessão aberta em outra aba/dispositivo -->
+      <div v-if="sessionKicked" class="gp-modal-overlay">
+        <div class="k-card gp-modal-card column q-gutter-md">
+          <div class="row items-center justify-between">
+            <span class="k-chip">sessão encerrada</span>
+          </div>
+          <div>
+            <h2 class="gp-modal-title">Você entrou em outro lugar</h2>
+            <p class="gp-modal-subtitle">Sua conta só pode ficar ativa numa aba/dispositivo por vez.</p>
+          </div>
+          <button class="k-btn k-btn-primary full-width" @click="router.go(0)">Recarregar</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -177,12 +191,13 @@ import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/useGameStore'
 import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { logoutApi } from '@/services/auth.api'
 import { MapScene } from '@/game/pixi/scene'
 import { AvatarPuppet, type AvatarLook, type Facing } from '@/game/pixi/avatar'
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, socketId, jukeboxState, voiceMode, emitVoiceSetMode, type AvatarProps } from '@/services/presence'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, socketId, jukeboxState, voiceMode, emitVoiceSetMode, sessionKicked, type AvatarProps } from '@/services/presence'
 import { VoiceChat } from '@/services/webrtc'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
@@ -481,8 +496,10 @@ onMounted(async () => {
     let dx = 0, dy = 0
     // boost (M2): Shift acelera ~1.8x — carrinho aparece sob o boneco enquanto anda
     const boosting = keys.has('shift')
-    // Espaço (modo olhar/pan) congela o personagem — só a câmera se move
-    if (!gameStore.isModalOpen && !panMode.value) {
+    // Espaço (modo olhar/pan) congela o personagem — só a câmera se move.
+    // Sessão derrubada (aberta em outro lugar) também congela — não faz
+    // sentido continuar "andando" localmente já desconectado da sala.
+    if (!gameStore.isModalOpen && !panMode.value && !sessionKicked.value) {
       const sp = 5 * dt * (onWater(map, pos.x, pos.y) ? 0.5 : 1) * (boosting ? 1.8 : 1)
       if (keys.has('w') || keys.has('arrowup')) dy -= sp
       if (keys.has('s') || keys.has('arrowdown')) dy += sp
@@ -589,8 +606,12 @@ function syncRemotes(dt: number, map: MapDef) {
   }
 }
 
-function leave() {
+async function leave() {
   disconnectPresence()
+  // precisa vir ANTES do logout() local — esse ainda usa o token pra avisar o
+  // backend (se for convidado, apaga a conta inteira); depois de limpar o
+  // token não teria mais como autenticar essa chamada
+  await logoutApi()
   useAuthStore().logout()
   characterStore.$reset() // limpa nome/avatar em memória (não vaza pra próxima conta)
   jukeboxAudio.stop()

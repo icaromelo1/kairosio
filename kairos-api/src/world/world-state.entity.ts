@@ -6,7 +6,8 @@ export class WorldState {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @OneToOne(() => User)
+  // CASCADE: apagar um usuário (ex: convidado no logout) remove o estado salvo junto
+  @OneToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn()
   user: User
 

@@ -6,7 +6,8 @@ export class Character {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
-  @OneToOne(() => User)
+  // CASCADE: apagar um usuário (ex: convidado no logout) remove o personagem junto
+  @OneToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn()
   user: User
 
