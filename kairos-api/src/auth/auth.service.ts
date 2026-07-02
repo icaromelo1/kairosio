@@ -4,11 +4,13 @@ import { Repository } from 'typeorm'
 import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 import { User } from '../user/user.entity'
+import { OrgMembership } from '../org/org-membership.entity'
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectRepository(User) private userRepo: Repository<User>,
+    @InjectRepository(OrgMembership) private orgMembershipRepo: Repository<OrgMembership>,
     private jwtService: JwtService,
   ) {}
 
@@ -49,5 +51,16 @@ export class AuthService {
 
   async me(userId: string) {
     return this.userRepo.findOne({ where: { id: userId } })
+  }
+
+  // convidado nunca fica pra trás no banco: ao sair (botão "Sair"), se for
+  // isGuest, apaga a conta inteira. Character/WorldState vão junto via
+  // onDelete: CASCADE na FK; org_memberships é coluna solta (sem FK real),
+  // então limpa manualmente pra não deixar vínculo órfão.
+  async logout(userId: string): Promise<void> {
+    const user = await this.userRepo.findOne({ where: { id: userId } })
+    if (!user?.isGuest) return
+    await this.orgMembershipRepo.delete({ userId })
+    await this.userRepo.delete(userId)
   }
 }

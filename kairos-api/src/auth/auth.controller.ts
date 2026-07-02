@@ -57,4 +57,13 @@ export class AuthController {
   me(@Request() req: any) {
     return this.authService.me(req.user.sub)
   }
+
+  // chamado ao clicar em "Sair" — se for convidado, apaga a conta inteira
+  // (personagem/mundo salvo/vínculos de org); conta real não sofre nada
+  @UseGuards(AuthGuard('jwt'))
+  @Post('logout')
+  async logout(@Request() req: any) {
+    await this.authService.logout(req.user.sub)
+    return { ok: true }
+  }
 }

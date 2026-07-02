@@ -31,3 +31,14 @@ export async function guest(): Promise<TokenResponse> {
   if (!res.ok) throw new Error('guest-failed')
   return res.json()
 }
+
+// avisa o backend antes de limpar o token local — se for conta de convidado,
+// apaga tudo no servidor (personagem/mundo salvo/vínculos de org). Best-effort:
+// falha de rede aqui não deve impedir o usuário de sair da tela.
+export async function logoutApi(): Promise<void> {
+  try {
+    await apiFetch('/auth/logout', { method: 'POST' })
+  } catch {
+    // ignora — o logout local (limpar token) acontece de qualquer forma
+  }
+}

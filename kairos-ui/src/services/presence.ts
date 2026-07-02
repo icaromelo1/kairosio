@@ -77,6 +77,9 @@ export const jukeboxState = reactive<JukeboxState>({ mode: 'proximity', queue: [
 export const jukeboxError = ref('')
 // Modo de voz da sala atual (proximidade ou sala inteira) — qualquer membro pode alternar
 export const voiceMode = ref<VoiceMode>('proximity')
+// true quando esta aba foi derrubada por outra sessão da MESMA conta (login em
+// outro lugar) — a tela mostra um aviso em vez de deixar a conexão travada
+export const sessionKicked = ref(false)
 
 let socket: Socket | null = null
 let lastEmit = 0
@@ -84,6 +87,7 @@ let pending: { x: number; y: number; facing: Facing; pose: Pose; boost: boolean 
 
 export function connectPresence(opts: JoinOptions) {
   if (socket) return
+  sessionKicked.value = false
 
   // o token vai no handshake → o gateway deriva a org (isolamento de salas por org)
   const token = localStorage.getItem('kairos_token') || undefined
@@ -136,6 +140,13 @@ export function connectPresence(opts: JoinOptions) {
 
   socket.on('voiceState', ({ mode }: { mode: VoiceMode }) => {
     voiceMode.value = mode
+  })
+
+  // servidor derrubou esta aba pq a mesma conta conectou em outro lugar —
+  // desconexão iniciada pelo servidor não reconecta sozinha (comportamento
+  // padrão do socket.io), então só precisamos avisar a tela
+  socket.on('sessionKicked', () => {
+    sessionKicked.value = true
   })
 
   socket.on('disconnect', () => {
