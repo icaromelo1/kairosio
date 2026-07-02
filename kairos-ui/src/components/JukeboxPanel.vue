@@ -3,7 +3,7 @@
     <div class="k-card jb-card q-pa-lg column q-gutter-md" @click.stop>
       <div class="row items-center justify-between">
         <span class="k-chip">🎵 jukebox</span>
-        <button class="k-btn k-btn-ghost jb-btn-sm" @click="$emit('close')">esc ✕</button>
+        <button class="k-btn k-btn-ghost k-btn-sm" @click="$emit('close')">esc ✕</button>
       </div>
 
       <!-- tocando agora -->
@@ -22,13 +22,13 @@
       <div class="row items-center q-gutter-xs jb-text-sm">
         <span class="jb-muted">alcance:</span>
         <button
-          class="k-btn k-btn-ghost jb-btn-xs"
-          :class="{ 'jb-btn-active': jukeboxState.mode === 'proximity' }"
+          class="k-btn k-btn-ghost k-btn-xs"
+          :class="{ 'k-active': jukeboxState.mode === 'proximity' }"
           @click="emitJukeboxSetMode('proximity')"
         >proximidade</button>
         <button
-          class="k-btn k-btn-ghost jb-btn-xs"
-          :class="{ 'jb-btn-active': jukeboxState.mode === 'room' }"
+          class="k-btn k-btn-ghost k-btn-xs"
+          :class="{ 'k-active': jukeboxState.mode === 'room' }"
           @click="emitJukeboxSetMode('room')"
         >sala inteira</button>
       </div>
@@ -40,14 +40,14 @@
             <input
               v-model="linkInput" placeholder="Cole o link do YouTube…" @keydown.enter="add"
               :disabled="!!jukeboxState.status"
-              class="k-input full-width jb-input"
+              class="k-input full-width k-input-xs"
             />
           </div>
           <div class="col-auto">
-            <button class="k-btn k-btn-primary jb-btn-sm" :disabled="adding || !!jukeboxState.status" @click="add">{{ adding || jukeboxState.status ? '...' : 'add' }}</button>
+            <button class="k-btn k-btn-primary k-btn-sm" :disabled="adding || !!jukeboxState.status" @click="add">{{ adding || jukeboxState.status ? '...' : 'add' }}</button>
           </div>
         </div>
-        <p v-if="jukeboxState.status" class="jb-status">🔄 {{ jukeboxState.status }}</p>
+        <p v-if="jukeboxState.status" class="k-hint-text">🔄 {{ jukeboxState.status }}</p>
         <p v-if="jukeboxError" class="jb-error">{{ jukeboxError }}</p>
       </div>
 
@@ -55,36 +55,36 @@
       <div class="column q-gutter-xs">
         <div class="row no-wrap q-gutter-xs">
           <div class="col">
-            <button class="k-btn k-btn-ghost full-width ellipsis jb-btn-sm" @click="toggleLibrary">
+            <button class="k-btn k-btn-ghost full-width ellipsis k-btn-sm" @click="toggleLibrary">
               {{ libraryOpen ? '▲ esconder biblioteca' : '▼ ver músicas já baixadas' }}
             </button>
           </div>
           <div class="col-auto">
-            <button class="k-btn k-btn-ghost jb-btn-sm" :disabled="syncing" @click="syncFromDrive" title="rebaixar do Drive tudo que estiver faltando no cache local">
+            <button class="k-btn k-btn-ghost k-btn-sm" :disabled="syncing" @click="syncFromDrive" title="rebaixar do Drive tudo que estiver faltando no cache local">
               {{ syncing ? 'sincronizando...' : '⟲ sync' }}
             </button>
           </div>
         </div>
-        <p v-if="syncMessage" class="jb-status">{{ syncMessage }}</p>
+        <p v-if="syncMessage" class="k-hint-text">{{ syncMessage }}</p>
 
         <div v-if="libraryOpen" class="column q-gutter-xs">
           <input
             v-model="librarySearch" placeholder="buscar por título…"
-            class="k-input full-width jb-input"
+            class="k-input full-width k-input-xs"
           />
           <div class="row no-wrap q-gutter-xs">
             <div class="col">
-              <button class="k-btn k-btn-ghost full-width jb-btn-sm" :disabled="!library.length || !!jukeboxState.status" @click="addRandom">🔀 aleatória</button>
+              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!jukeboxState.status" @click="addRandom">🔀 aleatória</button>
             </div>
             <div class="col">
-              <button class="k-btn k-btn-ghost full-width jb-btn-sm" :disabled="!library.length || !!jukeboxState.status" @click="addAll">▶ tocar todas</button>
+              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!jukeboxState.status" @click="addAll">▶ tocar todas</button>
             </div>
           </div>
           <div class="jb-list">
             <div v-if="libraryLoading" class="jb-muted-4 jb-text-sm">carregando...</div>
             <div v-else-if="!library.length" class="jb-muted-4 jb-text-sm">nenhuma música encontrada</div>
             <button
-              v-for="t in library" :key="t.id" class="k-btn k-btn-ghost ellipsis jb-list-item"
+              v-for="t in library" :key="t.id" class="k-btn k-btn-ghost ellipsis q-py-md"
               :disabled="!!jukeboxState.status"
               @click="addFromLibrary(t.youtubeId)"
             >{{ t.title }}</button>
@@ -109,7 +109,7 @@
         </div>
       </div>
 
-      <button class="k-btn k-btn-ghost full-width jb-btn-sm" :disabled="!jukeboxState.current" @click="emitJukeboxSkip()">⏭ pular</button>
+      <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!jukeboxState.current" @click="emitJukeboxSkip()">⏭ pular</button>
     </div>
   </div>
 </template>
@@ -207,15 +207,15 @@ async function syncFromDrive() {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.62);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(0.375rem);
   display: grid;
   place-items: center;
   z-index: 50;
-  padding: 24px;
+  padding: 1.5rem;
 }
 
 .jb-card {
-  width: min(440px, 100%);
+  width: min(27.5rem, 100%);
   max-height: 80vh;
   overflow-y: auto;
   overflow-x: hidden;
@@ -250,23 +250,19 @@ async function syncFromDrive() {
   display: block;
 }
 
-.jb-btn-sm { font-size: 11px; }
-.jb-btn-xs { font-size: 10px; padding: 6px 10px; }
-.jb-btn-active { border-color: var(--primary-hi); color: var(--text); }
-
 .jb-now-playing {
   background: var(--bg-1);
-  border: 1px solid var(--border);
-  padding: 12px;
-  font-size: 13px;
+  border: 0.0625rem solid var(--border);
+  padding: 0.75rem;
+  font-size: 0.8125rem;
 }
 
 .jb-label {
   color: var(--text-3);
-  font-size: 10px;
+  font-size: 0.625rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-bottom: 4px;
+  margin-bottom: 0.25rem;
 }
 
 .jb-title {
@@ -276,59 +272,51 @@ async function syncFromDrive() {
 
 .jb-subtext {
   color: var(--text-3);
-  font-size: 11px;
-  margin-top: 2px;
+  font-size: 0.6875rem;
+  margin-top: 0.125rem;
 }
 
 .jb-muted { color: var(--text-3); }
 .jb-muted-4 { color: var(--text-4); }
-.jb-text-sm { font-size: 12px; }
-
-.jb-input { font-size: 10px; }
-
-.jb-status {
-  color: var(--text-3);
-  font-size: 12px;
-  margin: 0;
-}
+.jb-text-sm { font-size: 0.75rem; }
 
 .jb-error {
   color: var(--err);
-  font-size: 12px;
+  font-size: 0.75rem;
   margin: 0;
 }
 
 .jb-list {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0.25rem;
   overflow-y: auto;
-  max-height: 140px;
+  max-height: 50%;
   background: var(--bg-1);
-  border: 1px solid var(--border);
-  padding: 8px;
+  border: 0.0625rem solid var(--border);
+  padding: 0.5rem;
 }
 
 .jb-list-item {
-  font-size: 12px;
+  font-size: 0.75rem;
   text-align: left;
   justify-content: flex-start;
-  padding: 6px 8px;
+  padding: 0.375rem 0.5rem;
 }
 
 .jb-volume-value {
-  width: 32px;
+  width: 2rem;
   text-align: right;
   font-family: var(--f-mono);
 }
 
 .jb-queue {
   overflow-y: auto;
-  max-height: 160px;
+  max-height: 10rem;
 }
 
 .jb-queue-item {
-  font-size: 12px;
+  font-size: 0.75rem;
   color: var(--text-2);
 }
 
@@ -339,28 +327,28 @@ async function syncFromDrive() {
 .k-range {
   appearance: none;
   -webkit-appearance: none;
-  height: 10px;
+  height: 0.625rem;
   background: var(--bg-1);
-  border: 2px solid var(--border-strong);
+  border: 0.125rem solid var(--border-strong);
   outline: none;
   cursor: pointer;
 }
 .k-range::-webkit-slider-thumb {
   appearance: none;
   -webkit-appearance: none;
-  width: 14px;
-  height: 18px;
+  width: 0.875rem;
+  height: 1.125rem;
   background: var(--primary);
-  border: 2px solid var(--primary-hi);
-  box-shadow: 2px 2px 0 var(--bg-0);
+  border: 0.125rem solid var(--primary-hi);
+  box-shadow: 0.125rem 0.125rem 0 var(--bg-0);
   cursor: pointer;
 }
 .k-range::-moz-range-thumb {
-  width: 14px;
-  height: 18px;
+  width: 0.875rem;
+  height: 1.125rem;
   background: var(--primary);
-  border: 2px solid var(--primary-hi);
-  box-shadow: 2px 2px 0 var(--bg-0);
+  border: 0.125rem solid var(--primary-hi);
+  box-shadow: 0.125rem 0.125rem 0 var(--bg-0);
   cursor: pointer;
   border-radius: 0;
 }
@@ -371,12 +359,12 @@ async function syncFromDrive() {
 /* Telas estreitas (ou zoom alto): as linhas "no-wrap" (input+add, biblioteca+sync,
    aleatória+tocar todas) não cabiam lado a lado e estouravam o modal. Deixa quebrar
    linha normalmente (comportamento padrão do .row do Quasar) abaixo do breakpoint. */
-@media (max-width: 420px) {
+@media (max-width: 26.25rem) {
   .jb-overlay {
-    padding: 10px;
+    padding: 0.625rem;
   }
   .jb-card.q-pa-lg {
-    padding: 16px;
+    padding: 1rem;
   }
   .row.no-wrap {
     flex-wrap: wrap;

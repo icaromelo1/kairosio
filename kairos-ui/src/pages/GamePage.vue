@@ -25,7 +25,7 @@
           <button
             v-for="m in maps" :key="m.id" @click="selectMap(m.id)"
             class="gp-map-btn row items-center q-gutter-sm"
-            :class="{ 'gp-map-btn-active': currentId === m.id }"
+            :class="{ 'k-active': currentId === m.id }"
           >
             <span class="col ellipsis">{{ m.name }}</span>
             <span v-if="currentId === m.id" class="gp-map-current">atual</span>
@@ -66,14 +66,8 @@
         :class="panMode ? (panDragging ? 'gp-cursor-grabbing' : 'gp-cursor-grab') : 'gp-cursor-default'"
         @wheel.prevent="onWheel"
         @pointerdown="onPanDown" @pointermove="onPanMove" @pointerup="onPanUp" @pointerleave="onPanUp"
-      ></div>
-
-      <!-- Zoom -->
-      <div class="gp-zoom column q-gutter-xs">
-        <button class="k-key gp-zoom-btn" @click="zoomBy(1.15)" title="Zoom +">+</button>
-        <button class="k-key gp-zoom-btn" @click="zoomBy(0.87)" title="Zoom −">−</button>
-      </div>
-
+        @contextmenu.prevent
+      />
       <!-- HUD top-left -->
       <div class="gp-hud gp-hud-topleft row items-center q-gutter-sm">
         <div class="gp-avatar-box">
@@ -306,6 +300,16 @@ function onKeyDown(e: KeyboardEvent) {
   keys.add(k)
 }
 
+// zera todas as teclas de movimento seguras — evita "andar sozinho pra sempre"
+// quando o keyup nunca chega (janela perde foco: clique direito abrindo o menu
+// de contexto do navegador, alt-tab, devtools, etc.)
+function clearKeys() {
+  keys.clear()
+  panMode.value = false
+  panDragging = false
+  scene?.resetPan()
+}
+
 function emote() {
   emoteUntil = Date.now() + 2500
 }
@@ -464,6 +468,7 @@ onMounted(async () => {
 
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
+  window.addEventListener('blur', clearKeys)
   stateTimer = window.setInterval(persistState, 15000)
 
   scene.app.ticker.add((ticker) => {
@@ -595,6 +600,7 @@ function leave() {
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown)
   window.removeEventListener('keyup', onKeyUp)
+  window.removeEventListener('blur', clearKeys)
   clearInterval(stateTimer)
   persistState()
   voice.disable()
@@ -609,51 +615,51 @@ onUnmounted(() => {
 .gp-root {
   height: 100vh;
   display: grid;
-  grid-template-columns: 56px 1fr;
+  grid-template-columns: 3.5rem 1fr;
   background: var(--bg-0);
   overflow: hidden;
   transition: grid-template-columns 0.25s ease;
 }
 .gp-root.gp-sidebar-open {
-  grid-template-columns: 256px 1fr;
+  grid-template-columns: 16rem 1fr;
 }
 
 .gp-sidebar {
   background: var(--bg-2);
-  border-right: 1px solid var(--border);
+  border-right: 0.0625rem solid var(--border);
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 8px;
+  gap: 0.875rem;
+  padding: 0.5rem;
   overflow: hidden;
 }
 .gp-sidebar.gp-sidebar-open {
-  padding: 16px;
+  padding: 1rem;
 }
 
 .gp-sidebar-toggle {
   appearance: none;
   background: transparent;
-  border: 1px solid var(--border);
+  border: 0.0625rem solid var(--border);
   color: var(--text-2);
-  width: 28px;
-  height: 28px;
+  width: 1.75rem;
+  height: 1.75rem;
   cursor: pointer;
   display: grid;
   place-items: center;
-  font-size: 14px;
+  font-size: 0.875rem;
   flex-shrink: 0;
 }
 
 .gp-user-card {
   background: var(--bg-1);
-  border: 1px solid var(--border);
-  padding: 12px;
+  border: 0.0625rem solid var(--border);
+  padding: 0.75rem;
 }
 
 .gp-avatar-box {
-  width: 36px;
-  height: 36px;
+  width: 2.25rem;
+  height: 2.25rem;
   background: var(--bg-3);
   display: grid;
   place-items: center;
@@ -662,9 +668,9 @@ onUnmounted(() => {
 }
 
 .gp-user-info { flex: 1; min-width: 0; }
-.gp-user-name { font-size: 13px; font-weight: 600; }
+.gp-user-name { font-size: 0.8125rem; font-weight: 600; }
 .gp-user-status {
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--ok);
   font-family: var(--f-mono);
   letter-spacing: 0.1em;
@@ -672,22 +678,22 @@ onUnmounted(() => {
 }
 
 .gp-section-label {
-  font-size: 10px;
+  font-size: 0.625rem;
   letter-spacing: 0.18em;
   color: var(--text-3);
   text-transform: uppercase;
   font-weight: 600;
-  padding: 4px 6px;
+  padding: 0.25rem 0.375rem;
 }
 
 .gp-map-btn {
   appearance: none;
   text-align: left;
   background: transparent;
-  border: 1px solid transparent;
+  border: 0.0625rem solid transparent;
   color: var(--text-2);
-  padding: 8px 10px;
-  font-size: 13px;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8125rem;
   cursor: pointer;
   font-family: inherit;
   min-width: 0;
@@ -697,14 +703,8 @@ onUnmounted(() => {
 .gp-map-btn .col {
   min-width: 0;
 }
-.gp-map-btn-active {
-  background: rgba(124, 58, 237, 0.12);
-  border-color: rgba(124, 58, 237, 0.32);
-  color: var(--text);
-}
-
 .gp-map-current {
-  font-size: 9px;
+  font-size: 0.5625rem;
   color: var(--accent);
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -739,15 +739,15 @@ onUnmounted(() => {
 
 .gp-zoom {
   position: absolute;
-  top: 64px;
-  right: 16px;
+  top: 4rem;
+  right: 1rem;
   z-index: 10;
 }
 .gp-zoom-btn {
   cursor: pointer;
-  width: 30px;
-  height: 30px;
-  font-size: 16px;
+  width: 1.875rem;
+  height: 1.875rem;
+  font-size: 1rem;
 }
 
 .gp-hud {
@@ -756,19 +756,19 @@ onUnmounted(() => {
 }
 
 .gp-hud-topleft {
-  top: 16px;
-  left: 16px;
+  top: 1rem;
+  left: 1rem;
   display: inline-flex;
   background: rgba(13, 13, 20, 0.78);
-  border: 1px solid var(--border-strong);
-  backdrop-filter: blur(10px);
-  padding: 8px 12px 8px 8px;
+  border: 0.0625rem solid var(--border-strong);
+  backdrop-filter: blur(0.625rem);
+  padding: 0.5rem 0.75rem 0.5rem 0.5rem;
 }
 
 .gp-hud-tight { line-height: 1.1; }
-.gp-hud-name { font-size: 13px; font-weight: 600; }
+.gp-hud-name { font-size: 0.8125rem; font-weight: 600; }
 .gp-hud-mapname {
-  font-size: 10px;
+  font-size: 0.625rem;
   color: var(--text-3);
   font-family: var(--f-mono);
   letter-spacing: 0.12em;
@@ -776,58 +776,58 @@ onUnmounted(() => {
 }
 
 .gp-hud-topright {
-  top: 16px;
-  right: 16px;
+  top: 1rem;
+  right: 1rem;
   background: rgba(13, 13, 20, 0.82);
-  border: 1px solid var(--border-strong);
-  backdrop-filter: blur(10px);
-  padding: 8px 12px;
-  min-width: 140px;
+  border: 0.0625rem solid var(--border-strong);
+  backdrop-filter: blur(0.625rem);
+  padding: 0.5rem 0.75rem;
+  min-width: 8.75rem;
 }
 
 .gp-online-count {
   color: var(--accent);
   font-weight: 600;
   font-family: var(--f-mono);
-  font-size: 12px;
+  font-size: 0.75rem;
   letter-spacing: 0.08em;
-  margin-bottom: 6px;
+  margin-bottom: 0.375rem;
 }
 
-.gp-online-list { gap: 2px; font-size: 12px; }
+.gp-online-list { gap: 0.125rem; font-size: 0.75rem; }
 .gp-peer-you { color: var(--text); }
 .gp-peer-you-tag { color: var(--text-4); }
 .gp-peer { color: var(--text-2); }
 
 .gp-nearby {
-  top: 16px;
+  top: 1rem;
   left: 50%;
   transform: translateX(-50%);
   background: rgba(124, 58, 237, 0.18);
-  border: 1px solid var(--primary-hi);
-  backdrop-filter: blur(10px);
-  padding: 6px 14px;
-  font-size: 12px;
+  border: 0.0625rem solid var(--primary-hi);
+  backdrop-filter: blur(0.625rem);
+  padding: 0.375rem 0.875rem;
+  font-size: 0.75rem;
   color: var(--text);
 }
 
 .gp-voice-wrap {
   position: absolute;
-  bottom: 16px;
-  right: 24px;
+  bottom: 1rem;
+  right: 1.5rem;
   z-index: 20;
 }
 
 .gp-voice-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 0.5rem;
   cursor: pointer;
-  padding: 9px 14px;
-  border-radius: 22px;
-  font-size: 13px;
+  padding: 0.5625rem 0.875rem;
+  border-radius: 1.375rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  border: 1px solid var(--border-strong);
+  border: 0.0625rem solid var(--border-strong);
   background: rgba(13, 13, 20, 0.85);
   color: var(--text);
 }
@@ -837,42 +837,42 @@ onUnmounted(() => {
 }
 
 .gp-voice-hint {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-3);
   background: rgba(13, 13, 20, 0.7);
-  padding: 2px 8px;
-  border-radius: 4px;
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
 }
 
 .gp-voice-reconnect {
-  font-size: 11px;
+  font-size: 0.6875rem;
   color: var(--text-2);
   background: rgba(13, 13, 20, 0.7);
-  border: 1px solid var(--border);
-  padding: 2px 8px;
-  border-radius: 4px;
+  border: 0.0625rem solid var(--border);
+  padding: 0.125rem 0.5rem;
+  border-radius: 0.25rem;
   cursor: pointer;
 }
 
 .gp-chat {
   position: absolute;
-  bottom: 16px;
-  left: 16px;
-  width: min(280px, calc(100vw - 32px));
+  bottom: 1rem;
+  left: 1rem;
+  width: min(17.5rem, calc(100vw - 2rem));
   z-index: 10;
 }
 
 .gp-chat-log {
-  max-height: 180px;
+  max-height: 11.25rem;
   overflow-y: auto;
-  margin-bottom: 6px;
+  margin-bottom: 0.375rem;
 }
 
 .gp-chat-msg {
   background: rgba(13, 13, 20, 0.82);
-  border: 1px solid var(--border);
-  padding: 5px 9px;
-  font-size: 12px;
+  border: 0.0625rem solid var(--border);
+  padding: 0.3125rem 0.5625rem;
+  font-size: 0.75rem;
   line-height: 1.4;
 }
 .gp-chat-name { color: var(--accent); font-weight: 600; }
@@ -882,23 +882,23 @@ onUnmounted(() => {
   width: 100%;
   box-sizing: border-box;
   background: rgba(13, 13, 20, 0.85);
-  border: 1px solid var(--border-strong);
+  border: 0.0625rem solid var(--border-strong);
   color: var(--text);
-  padding: 8px 10px;
-  font-size: 13px;
+  padding: 0.5rem 0.625rem;
+  font-size: 0.8125rem;
   font-family: inherit;
 }
 
 .gp-hud-bottom {
-  bottom: 16px;
+  bottom: 1rem;
   left: 50%;
   transform: translateX(-50%);
   display: inline-flex;
   background: rgba(13, 13, 20, 0.78);
-  border: 1px solid var(--border-strong);
-  backdrop-filter: blur(10px);
-  padding: 8px 14px;
-  font-size: 11px;
+  border: 0.0625rem solid var(--border-strong);
+  backdrop-filter: blur(0.625rem);
+  padding: 0.5rem 0.875rem;
+  font-size: 0.6875rem;
   color: var(--text-2);
   letter-spacing: 0.06em;
 }
@@ -910,23 +910,23 @@ onUnmounted(() => {
   position: absolute;
   inset: 0;
   background: rgba(0, 0, 0, 0.62);
-  backdrop-filter: blur(6px);
+  backdrop-filter: blur(0.375rem);
   display: grid;
   place-items: center;
   z-index: 50;
-  padding: 24px;
+  padding: 1.5rem;
 }
 
 .gp-modal-card {
-  padding: 28px;
-  width: min(520px, 100%);
+  padding: 1.75rem;
+  width: min(32.5rem, 100%);
 }
 
-.gp-modal-close { padding: 6px 10px; }
+.gp-modal-close { padding: 0.375rem 0.625rem; }
 
 .gp-modal-title {
-  margin: 0 0 6px;
-  font-size: 24px;
+  margin: 0 0 0.375rem;
+  font-size: 1.5rem;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
@@ -934,50 +934,50 @@ onUnmounted(() => {
 .gp-modal-subtitle {
   margin: 0;
   color: var(--text-3);
-  font-size: 14px;
+  font-size: 0.875rem;
 }
 
 .gp-modal-body {
   background: var(--bg-1);
-  border: 1px solid var(--border);
-  padding: 16px;
-  font-size: 13px;
+  border: 0.0625rem solid var(--border);
+  padding: 1rem;
+  font-size: 0.8125rem;
   color: var(--text-2);
   line-height: 1.6;
 }
 
 .gp-touch-ctl {
   position: absolute;
-  bottom: 80px;
-  right: 24px;
+  bottom: 5rem;
+  right: 1.5rem;
   z-index: 20;
   display: grid;
-  grid-template-columns: repeat(3, 44px);
-  grid-template-rows: repeat(3, 44px);
-  gap: 4px;
+  grid-template-columns: repeat(3, 2.75rem);
+  grid-template-rows: repeat(3, 2.75rem);
+  gap: 0.25rem;
   touch-action: none;
   user-select: none;
 }
 
 .gp-error {
   position: absolute;
-  top: 60px;
+  top: 3.75rem;
   left: 50%;
   transform: translateX(-50%);
   color: #f87171;
-  font-size: 13px;
+  font-size: 0.8125rem;
   z-index: 10;
 }
 
 .tbtn {
   background: rgba(13, 13, 20, 0.8);
-  border: 1px solid var(--border-strong);
+  border: 0.0625rem solid var(--border-strong);
   color: var(--text);
-  font-size: 18px;
+  font-size: 1.125rem;
   display: grid;
   place-items: center;
   cursor: pointer;
-  border-radius: 6px;
+  border-radius: 0.375rem;
   touch-action: none;
 }
 .tbtn:active {
@@ -991,20 +991,20 @@ onUnmounted(() => {
 }
 
 /* Telas estreitas (ou zoom alto do navegador, que reduz os mesmos px de CSS):
-   a sidebar aberta virava um grid-column de 256px e sobrava quase nada pro palco.
+   a sidebar aberta virava um grid-column de 16rem e sobrava quase nada pro palco.
    Vira overlay flutuante em vez de empurrar o grid — o palco sempre ocupa o resto. */
-@media (max-width: 768px) {
+@media (max-width: 48rem) {
   .gp-root.gp-sidebar-open {
-    grid-template-columns: 56px 1fr;
+    grid-template-columns: 3.5rem 1fr;
   }
   .gp-sidebar.gp-sidebar-open {
     position: fixed;
     top: 0;
     left: 0;
-    width: min(256px, 80vw);
+    width: min(16rem, 80vw);
     height: 100vh;
     z-index: 100;
-    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.5);
+    box-shadow: 0.5rem 0 1.5rem rgba(0, 0, 0, 0.5);
   }
 
   /* HUD: lista de quem está online ocupava um card próprio no topo-direita —
@@ -1015,31 +1015,31 @@ onUnmounted(() => {
   }
   .gp-hud-topright {
     min-width: 0;
-    padding: 6px 10px;
+    padding: 0.375rem 0.625rem;
   }
   .gp-online-count {
     margin-bottom: 0;
   }
 
   /* Voz: rótulos auxiliares (dica/reconectar) ocupavam largura própria e
-     colidiam com o chat (bottom-left) em telas < ~500px. Fica só o botão. */
+     colidiam com o chat (bottom-left) em telas < ~31.25rem. Fica só o botão. */
   .gp-voice-hint,
   .gp-voice-reconnect {
     display: none;
   }
   .gp-voice-wrap {
-    bottom: 12px;
-    right: 12px;
+    bottom: 0.75rem;
+    right: 0.75rem;
   }
   .gp-chat {
-    bottom: 12px;
-    left: 12px;
+    bottom: 0.75rem;
+    left: 0.75rem;
   }
 }
 
 /* Muito estreito (celular em pé): dica de teclas (WASD/B/G) é redundante com
    os controles touch e brigava por espaço com chat/voz na mesma faixa vertical. */
-@media (max-width: 480px) {
+@media (max-width: 30rem) {
   .gp-hud-bottom {
     display: none;
   }

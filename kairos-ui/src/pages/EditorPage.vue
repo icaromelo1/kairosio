@@ -16,9 +16,9 @@
 
       <div class="ed-label">Ferramenta</div>
       <div class="ed-tools">
-        <button :class="['ed-tool', tool === 'spawn' && 'on']" @click="tool = 'spawn'">⌖ Spawn</button>
-        <button :class="['ed-tool', tool === 'erase' && 'on']" @click="tool = 'erase'">⌫ Apagar</button>
-        <button :class="['ed-tool', tool === 'toggle' && 'on']" @click="tool = 'toggle'">⊟ Colisão</button>
+        <button :class="['ed-tool', tool === 'spawn' && 'k-active']" @click="tool = 'spawn'">⌖ Spawn</button>
+        <button :class="['ed-tool', tool === 'erase' && 'k-active']" @click="tool = 'erase'">⌫ Apagar</button>
+        <button :class="['ed-tool', tool === 'toggle' && 'k-active']" @click="tool = 'toggle'">⊟ Colisão</button>
       </div>
 
       <div class="ed-label">Objetos</div>
@@ -29,7 +29,7 @@
       <div class="ed-palette">
         <button
           v-for="p in PALETTE" :key="p.kind + p.label"
-          :class="['ed-obj', tool === 'place' && current?.label === p.label && 'on']"
+          :class="['ed-obj', tool === 'place' && current?.label === p.label && 'k-active']"
           @click="selectObj(p)"
         >{{ p.label }}</button>
       </div>
@@ -290,58 +290,58 @@ onUnmounted(() => scene?.destroy())
 </script>
 
 <style scoped>
-.ed-root { height: 100vh; display: grid; grid-template-columns: 240px 1fr; background: #0a0a10; color: #e8e8f0; font-family: system-ui; }
-.ed-side { background: #14141f; border-right: 1px solid #252535; padding: 14px; display: flex; flex-direction: column; gap: 10px; overflow-y: auto; }
+.ed-root { height: 100vh; display: grid; grid-template-columns: 15rem 1fr; background: #0a0a10; color: #e8e8f0; font-family: system-ui; }
+.ed-side { background: #14141f; border-right: 0.0625rem solid #252535; padding: 0.875rem; display: flex; flex-direction: column; gap: 0.625rem; overflow-y: auto; }
 .ed-head { display: flex; align-items: center; justify-content: space-between; }
-.ed-back { background: transparent; border: 1px solid #303045; color: #c8c8d8; padding: 4px 10px; cursor: pointer; border-radius: 3px; font-size: 12px; }
-.ed-input { background: #1d1d2a; border: 1px solid #303045; color: #e8e8f0; padding: 8px; border-radius: 4px; font-size: 14px; }
-.ed-row { display: flex; gap: 8px; }
-.ed-row label { flex: 1; font-size: 11px; color: #8a8aa0; display: flex; flex-direction: column; gap: 3px; }
-.ed-num { background: #1d1d2a; border: 1px solid #303045; color: #e8e8f0; padding: 6px; border-radius: 4px; width: 100%; box-sizing: border-box; }
-.ed-label { font-size: 10px; letter-spacing: 0.16em; color: #6a6a80; text-transform: uppercase; margin-top: 6px; }
-.ed-tools { display: flex; gap: 6px; }
-.ed-tool, .ed-obj { background: #1d1d2a; border: 1px solid #303045; color: #c8c8d8; padding: 6px 8px; cursor: pointer; border-radius: 4px; font-size: 12px; }
-.ed-tool.on, .ed-obj.on { border-color: #7c3aed; background: rgba(124,58,237,0.18); color: #fff; }
-.ed-palette { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ed-back { background: transparent; border: 0.0625rem solid #303045; color: #c8c8d8; padding: 0.25rem 0.625rem; cursor: pointer; border-radius: 0.1875rem; font-size: 0.75rem; }
+.ed-input { background: #1d1d2a; border: 0.0625rem solid #303045; color: #e8e8f0; padding: 0.5rem; border-radius: 0.25rem; font-size: 0.875rem; }
+.ed-row { display: flex; gap: 0.5rem; }
+.ed-row label { flex: 1; font-size: 0.6875rem; color: #8a8aa0; display: flex; flex-direction: column; gap: 0.1875rem; }
+.ed-num { background: #1d1d2a; border: 0.0625rem solid #303045; color: #e8e8f0; padding: 0.375rem; border-radius: 0.25rem; width: 100%; box-sizing: border-box; }
+.ed-label { font-size: 0.625rem; letter-spacing: 0.16em; color: #6a6a80; text-transform: uppercase; margin-top: 0.375rem; }
+.ed-tools { display: flex; gap: 0.375rem; }
+.ed-tool, .ed-obj { background: #1d1d2a; border: 0.0625rem solid #303045; color: #c8c8d8; padding: 0.375rem 0.5rem; cursor: pointer; border-radius: 0.25rem; font-size: 0.75rem; }
+.ed-tool.k-active, .ed-obj.k-active { color: #fff; }
+.ed-palette { display: grid; grid-template-columns: 1fr 1fr; gap: 0.375rem; }
 .ed-spacer { flex: 1; }
-.ed-note { font-size: 11px; color: #fbbf24; }
-.ed-save { background: #7c3aed; border: none; color: #fff; padding: 10px; cursor: pointer; border-radius: 4px; font-weight: 600; }
+.ed-note { font-size: 0.6875rem; color: #fbbf24; }
+.ed-save { background: #7c3aed; border: none; color: #fff; padding: 0.625rem; cursor: pointer; border-radius: 0.25rem; font-weight: 600; }
 .ed-save:disabled { opacity: 0.5; cursor: default; }
-.ed-del { background: transparent; border: 1px solid rgba(248,113,113,0.5); color: #f87171; padding: 8px; cursor: pointer; border-radius: 4px; margin-top: 6px; }
-.ed-msg { font-size: 12px; color: #34d399; text-align: center; }
+.ed-del { background: transparent; border: 0.0625rem solid rgba(248,113,113,0.5); color: #f87171; padding: 0.5rem; cursor: pointer; border-radius: 0.25rem; margin-top: 0.375rem; }
+.ed-msg { font-size: 0.75rem; color: #34d399; text-align: center; }
 .ed-stage { position: relative; overflow: hidden; cursor: crosshair; }
 
-.ed-checkbox-label { display: flex; gap: 6px; align-items: center; font-size: 12px; color: #c8c8d8; cursor: pointer; }
+.ed-checkbox-label { display: flex; gap: 0.375rem; align-items: center; font-size: 0.75rem; color: #c8c8d8; cursor: pointer; }
 .ed-tool-start { align-self: flex-start; }
-.ed-tool-mt { margin-top: 8px; }
+.ed-tool-mt { margin-top: 0.5rem; }
 
-.ed-pixel-panel { background: #1a1a26; border: 1px solid #262636; padding: 8px; border-radius: 6px; }
+.ed-pixel-panel { background: #1a1a26; border: 0.0625rem solid #262636; padding: 0.5rem; border-radius: 0.375rem; }
 .ed-swatch-row { flex-wrap: wrap; }
-.ed-swatch { width: 18px; height: 18px; border-radius: 3px; cursor: pointer; border: 1px solid #444; }
-.ed-swatch-active { border: 2px solid #fff; }
-.ed-pixel-grid { display: grid; grid-template-columns: repeat(8, 15px); gap: 1px; width: fit-content; }
-.ed-pixel-cell { width: 15px; height: 15px; cursor: crosshair; }
+.ed-swatch { width: 1.125rem; height: 1.125rem; border-radius: 0.1875rem; cursor: pointer; border: 0.0625rem solid #444; }
+.ed-swatch-active { border: 0.125rem solid #fff; }
+.ed-pixel-grid { display: grid; grid-template-columns: repeat(8, 0.9375rem); gap: 0.0625rem; width: fit-content; }
+.ed-pixel-cell { width: 0.9375rem; height: 0.9375rem; cursor: crosshair; }
 
 .ed-mobile-toggle {
   display: none;
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 0.75rem;
+  left: 0.75rem;
   z-index: 110;
-  width: 36px;
-  height: 36px;
+  width: 2.25rem;
+  height: 2.25rem;
   background: rgba(13, 13, 20, 0.85);
-  border: 1px solid #303045;
+  border: 0.0625rem solid #303045;
   color: #e8e8f0;
   cursor: pointer;
-  border-radius: 4px;
-  font-size: 16px;
+  border-radius: 0.25rem;
+  font-size: 1rem;
 }
 
-/* Telas estreitas (ou zoom alto): 240px de sidebar fixa sobrava quase nada pro
+/* Telas estreitas (ou zoom alto): 15rem de sidebar fixa sobrava quase nada pro
    canvas do editor. Vira overlay flutuante, escondida por padrão; o botão ☰
    abre por cima do canvas em vez de dividir o grid. */
-@media (max-width: 768px) {
+@media (max-width: 48rem) {
   .ed-root {
     grid-template-columns: 1fr;
   }
@@ -353,10 +353,10 @@ onUnmounted(() => scene?.destroy())
     position: fixed;
     top: 0;
     left: 0;
-    width: min(280px, 85vw);
+    width: min(17.5rem, 85vw);
     height: 100vh;
     z-index: 100;
-    box-shadow: 8px 0 24px rgba(0, 0, 0, 0.5);
+    box-shadow: 0.5rem 0 1.5rem rgba(0, 0, 0, 0.5);
   }
   .ed-mobile-toggle {
     display: block;

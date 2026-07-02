@@ -95,22 +95,22 @@ const useCases = [
 
 <style scoped>
 .lp { min-height: 100vh; background: radial-gradient(ellipse at 50% -10%, rgba(124,58,237,0.18), transparent 55%), var(--bg-0); color: var(--text); font-family: system-ui; }
-.lp-hero { max-width: 760px; margin: 0 auto; padding: 64px 24px 40px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 18px; }
-.lp-hero h1 { font-size: 38px; line-height: 1.1; letter-spacing: -0.03em; margin: 8px 0 0; }
-.lp-sub { color: var(--text-2); font-size: 17px; line-height: 1.6; margin: 0; max-width: 640px; }
-.lp-cta { display: flex; flex-direction: column; align-items: center; gap: 8px; margin-top: 8px; }
-.lp-btn { background: var(--primary); border: none; color: #fff; padding: 13px 26px; font-size: 16px; font-weight: 600; border-radius: 6px; cursor: pointer; }
-.lp-free { font-size: 13px; color: var(--text-3); }
-.lp-sec { max-width: 880px; margin: 0 auto; padding: 32px 24px; }
-.lp-sec h2 { font-size: 22px; margin: 0 0 14px; letter-spacing: -0.02em; }
-.lp-sec p { color: var(--text-2); font-size: 16px; line-height: 1.7; margin: 0; }
-.lp-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; color: var(--text-2); font-size: 16px; line-height: 1.5; }
+.lp-hero { max-width: 47.5rem; margin: 0 auto; padding: 4rem 1.5rem 2.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1.125rem; }
+.lp-hero h1 { font-size: 2.375rem; line-height: 1.1; letter-spacing: -0.03em; margin: 0.5rem 0 0; }
+.lp-sub { color: var(--text-2); font-size: 1.0625rem; line-height: 1.6; margin: 0; max-width: 40rem; }
+.lp-cta { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+.lp-btn { background: var(--primary); border: none; color: #fff; padding: 0.8125rem 1.625rem; font-size: 1rem; font-weight: 600; border-radius: 0.375rem; cursor: pointer; }
+.lp-free { font-size: 0.8125rem; color: var(--text-3); }
+.lp-sec { max-width: 55rem; margin: 0 auto; padding: 2rem 1.5rem; }
+.lp-sec h2 { font-size: 1.375rem; margin: 0 0 0.875rem; letter-spacing: -0.02em; }
+.lp-sec p { color: var(--text-2); font-size: 1rem; line-height: 1.7; margin: 0; }
+.lp-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.625rem; color: var(--text-2); font-size: 1rem; line-height: 1.5; }
 .lp-steps b { color: var(--accent); }
-.lp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
-.lp-card { background: var(--bg-2); border: 1px solid var(--border); border-radius: 8px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
-.lp-card strong { font-size: 15px; }
-.lp-card span { color: var(--text-3); font-size: 14px; line-height: 1.5; }
-.lp-final { max-width: 760px; margin: 24px auto; padding: 48px 24px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 18px; }
-.lp-final h2 { font-size: 26px; margin: 0; letter-spacing: -0.02em; }
-.lp-foot { text-align: center; color: var(--text-4); font-size: 12px; padding: 24px; }
+.lp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(13.75rem, 1fr)); gap: 0.875rem; }
+.lp-card { background: var(--bg-2); border: 0.0625rem solid var(--border); border-radius: 0.5rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.375rem; }
+.lp-card strong { font-size: 0.9375rem; }
+.lp-card span { color: var(--text-3); font-size: 0.875rem; line-height: 1.5; }
+.lp-final { max-width: 47.5rem; margin: 1.5rem auto; padding: 3rem 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1.125rem; }
+.lp-final h2 { font-size: 1.625rem; margin: 0; letter-spacing: -0.02em; }
+.lp-foot { text-align: center; color: var(--text-4); font-size: 0.75rem; padding: 1.5rem; }
 </style>

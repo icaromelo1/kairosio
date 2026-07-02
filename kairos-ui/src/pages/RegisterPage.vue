@@ -87,50 +87,50 @@ async function submit() {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 24px;
+  padding: 1.5rem;
   background: radial-gradient(ellipse at 50% 0%, rgba(124, 58, 237, 0.18), transparent 50%), var(--bg-1);
 }
 .reg-card {
-  width: min(420px, 100%);
+  width: min(26.25rem, 100%);
   background: var(--bg-2);
-  border: 1px solid var(--border-strong);
-  padding: 28px;
+  border: 0.0625rem solid var(--border-strong);
+  padding: 1.75rem;
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
 }
 .reg-card h1 {
-  font-size: 24px;
-  margin: 14px 0 0;
+  font-size: 1.5rem;
+  margin: 0.875rem 0 0;
   font-weight: 600;
   letter-spacing: -0.02em;
 }
 .reg-sub {
   color: var(--text-3);
-  font-size: 14px;
-  margin: 0 0 12px;
+  font-size: 0.875rem;
+  margin: 0 0 0.75rem;
 }
 .reg-label {
-  font-size: 11px;
+  font-size: 0.6875rem;
   letter-spacing: 0.14em;
   color: var(--text-3);
   text-transform: uppercase;
-  margin-top: 8px;
+  margin-top: 0.5rem;
 }
 .reg-submit {
-  margin-top: 18px;
+  margin-top: 1.125rem;
 }
 .reg-error {
   color: #f87171;
-  font-size: 12px;
-  margin: 10px 0 0;
+  font-size: 0.75rem;
+  margin: 0.625rem 0 0;
   text-align: center;
 }
 .reg-foot {
-  font-size: 12px;
+  font-size: 0.75rem;
   text-align: center;
   color: var(--text-3);
-  margin: 14px 0 0;
+  margin: 0.875rem 0 0;
 }
 .reg-foot a {
   color: var(--accent);

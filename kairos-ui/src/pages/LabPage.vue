@@ -24,7 +24,7 @@
       </label>
       <span v-if="error" class="lab-error">{{ error }}</span>
     </div>
-    <div ref="host" class="lab-stage"></div>
+    <div ref="host" class="lab-stage" @contextmenu.prevent></div>
   </div>
 </template>
 
@@ -71,6 +71,9 @@ function onKeyDown(e: KeyboardEvent) {
   keys.add(k)
 }
 function onKeyUp(e: KeyboardEvent) { keys.delete(e.key.toLowerCase()) }
+// mesma proteção do GamePage: se a janela perde o foco (menu de contexto do
+// botão direito, alt-tab, etc.) o keyup nunca chega e o boneco anda pra sempre
+function clearKeys() { keys.clear() }
 
 function loadMap() {
   const map = currentMap()
@@ -105,6 +108,7 @@ onMounted(async () => {
 
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
+  window.addEventListener('blur', clearKeys)
 
   scene.app.ticker.add((ticker) => {
     if (!scene) return
@@ -140,6 +144,7 @@ onMounted(async () => {
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown)
   window.removeEventListener('keyup', onKeyUp)
+  window.removeEventListener('blur', clearKeys)
   scene?.destroy()
   scene = null
 })
@@ -154,22 +159,22 @@ onUnmounted(() => {
 }
 
 .lab-toolbar {
-  padding: 10px 16px;
+  padding: 0.625rem 1rem;
   flex-wrap: wrap;
-  border-bottom: 1px solid #252535;
+  border-bottom: 0.0625rem solid #252535;
 }
 
 .lab-title { letter-spacing: 0.04em; }
-.lab-hint { font-size: 12px; color: #8a8aa0; }
-.lab-field { font-size: 12px; }
-.lab-error { font-size: 12px; color: #f87171; }
+.lab-hint { font-size: 0.75rem; color: #8a8aa0; }
+.lab-field { font-size: 0.75rem; }
+.lab-error { font-size: 0.75rem; color: #f87171; }
 
 .lab-select {
   background: #1d1d2a;
   color: #e8e8f0;
-  border: 1px solid #303045;
-  padding: 3px;
-  border-radius: 2px;
+  border: 0.0625rem solid #303045;
+  padding: 0.1875rem;
+  border-radius: 0.125rem;
 }
 
 .lab-btn {
@@ -177,15 +182,15 @@ onUnmounted(() => {
   background: #7c3aed;
   border: none;
   color: #fff;
-  padding: 6px 14px;
+  padding: 0.375rem 0.875rem;
   cursor: pointer;
-  font-size: 13px;
-  border-radius: 2px;
+  font-size: 0.8125rem;
+  border-radius: 0.125rem;
 }
 
 .lab-color {
-  width: 26px;
-  height: 22px;
+  width: 1.625rem;
+  height: 1.375rem;
   border: none;
   background: none;
   cursor: pointer;
