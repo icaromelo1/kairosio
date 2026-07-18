@@ -14,6 +14,12 @@
         <label>Altura<input v-model.number="map.height" type="number" min="8" max="120" class="ed-num" :disabled="!canEdit" @change="render" /></label>
       </div>
 
+      <div class="ed-label">Histórico</div>
+      <div class="ed-tools">
+        <button class="ed-tool" :disabled="!canUndo" @click="undo">↶ Desfazer</button>
+        <button class="ed-tool" :disabled="!canRedo" @click="redo">↷ Refazer</button>
+      </div>
+
       <div class="ed-label">Ferramenta</div>
       <div class="ed-tools">
         <button :class="['ed-tool', tool === 'spawn' && 'k-active']" @click="tool = 'spawn'">⌖ Spawn</button>
@@ -24,6 +30,9 @@
       <div class="ed-label">Objetos</div>
       <label class="ed-checkbox-label">
         <input type="checkbox" v-model="placeSolid" /> sólido (colisão)
+      </label>
+      <label class="ed-checkbox-label">
+        <input type="checkbox" v-model="placeSittable" /> sentável
       </label>
       <button class="ed-tool ed-tool-start" @click="rotate">↻ Girar: {{ placeRotation }}°</button>
       <div class="ed-palette">
@@ -79,6 +88,7 @@ import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { MapScene } from '@/game/pixi/scene'
 import type { MapDef, MapObject, ObjectKind } from '@/game/maps'
+import { isSolid } from '@/game/maps'
 import { fetchMap, createMap, saveMap, deleteMap } from '@/services/maps.api'
 import { useAuthStore } from '@/stores/useAuthStore'
 
@@ -136,8 +146,64 @@ const PALETTE: PaletteItem[] = [
 ]
 const current = ref<PaletteItem>(PALETTE[0])
 const placeSolid = ref<boolean>(!!PALETTE[0].solid)
+const placeSittable = ref<boolean>(false)
 const placeRotation = ref<number>(0)
 function rotate() { placeRotation.value = (placeRotation.value + 90) % 360 }
+
+const HISTORY_LIMIT = 50
+const historyStack = ref<string[]>([])
+const historyIndex = ref<number>(-1)
+const canUndo = computed(() => historyIndex.value > 0)
+const canRedo = computed(() => historyIndex.value < historyStack.value.length - 1)
+
+function snapshot() {
+  if (historyIndex.value < historyStack.value.length - 1) {
+    historyStack.value.splice(historyIndex.value + 1)
+  }
+  historyStack.value.push(JSON.stringify({ objects: map.objects, spawn: map.spawn }))
+  if (historyStack.value.length > HISTORY_LIMIT) {
+    historyStack.value.shift()
+  }
+  historyIndex.value = historyStack.value.length - 1
+}
+
+function applySnapshot(raw: string) {
+  const parsed = JSON.parse(raw) as { objects: MapObject[]; spawn: { x: number; y: number } }
+  map.objects.splice(0, map.objects.length, ...parsed.objects)
+  map.spawn = parsed.spawn
+  render()
+}
+
+function undo() {
+  if (!canUndo.value) return
+  historyIndex.value--
+  applySnapshot(historyStack.value[historyIndex.value])
+}
+
+function redo() {
+  if (!canRedo.value) return
+  historyIndex.value++
+  applySnapshot(historyStack.value[historyIndex.value])
+}
+
+function isTextInputTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false
+  const tag = target.tagName
+  return tag === 'INPUT' || tag === 'TEXTAREA' || target.isContentEditable
+}
+
+function onKeydown(e: KeyboardEvent) {
+  if (isTextInputTarget(e.target)) return
+  if (!(e.ctrlKey || e.metaKey)) return
+  const key = e.key.toLowerCase()
+  if (key === 'z' && !e.shiftKey) {
+    e.preventDefault()
+    undo()
+  } else if ((key === 'z' && e.shiftKey) || key === 'y') {
+    e.preventDefault()
+    redo()
+  }
+}
 
 // --- criador de objeto próprio (pixel + paleta) ---
 const PIXEL_N = 8
@@ -182,21 +248,33 @@ function onMove(e: PointerEvent) {
   scene.showGhost(x, y, Math.min(p.w, map.width - 1 - x), Math.min(p.h, map.height - 1 - y), p.color || 0x7c3aed, p.shape === 'circle')
 }
 
+function rectsOverlap(
+  a: { x: number; y: number; w: number; h: number },
+  b: { x: number; y: number; w: number; h: number },
+): boolean {
+  return a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y
+}
+
 function onClick(e: PointerEvent) {
   if (!scene || !canEdit.value) return
   const { x, y } = scene.screenToTile(e.clientX, e.clientY)
   if (x < 1 || y < 1 || x > map.width - 2 || y > map.height - 2) return
 
   if (tool.value === 'spawn') {
+    if (isSolid(map, x, y)) {
+      msg.value = 'Não é possível colocar o spawn numa posição sólida.'
+      return
+    }
     map.spawn = { x, y }
+    snapshot()
     return
   }
   if (tool.value === 'erase') {
-    // remove o último objeto que cobre o tile (topo)
     for (let i = map.objects.length - 1; i >= 0; i--) {
       const o = map.objects[i]
       if (x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h) {
         map.objects.splice(i, 1)
+        snapshot()
         render()
         return
       }
@@ -204,11 +282,11 @@ function onClick(e: PointerEvent) {
     return
   }
   if (tool.value === 'toggle') {
-    // alterna a colisão do objeto no topo do tile
     for (let i = map.objects.length - 1; i >= 0; i--) {
       const o = map.objects[i]
       if (x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h) {
         o.solid = !o.solid
+        snapshot()
         render()
         return
       }
@@ -219,14 +297,21 @@ function onClick(e: PointerEvent) {
   const p = current.value
   const w = Math.min(p.w, map.width - 1 - x)
   const h = Math.min(p.h, map.height - 1 - y)
+  const rect = { x, y, w: Math.max(1, w), h: Math.max(1, h) }
+  if (placeSolid.value && map.objects.some((o) => o.solid && rectsOverlap(rect, o))) {
+    msg.value = 'Objeto colide com um obstáculo sólido existente.'
+    return
+  }
   const obj: MapObject = {
     id: `${p.kind}-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    kind: p.kind, x, y, w: Math.max(1, w), h: Math.max(1, h),
+    kind: p.kind, x, y, w: rect.w, h: rect.h,
     solid: placeSolid.value, shape: p.shape, color: p.color, glow: p.glow, name: p.name, action: p.action,
     rotation: placeRotation.value || undefined,
+    sittable: placeSittable.value || undefined,
   }
   if (p.kind === 'custom' && customPixels) obj.pixels = customPixels
   map.objects.push(obj)
+  snapshot()
   render()
 }
 
@@ -283,10 +368,15 @@ onMounted(async () => {
       msg.value = 'Mundo não encontrado.'
     }
   }
+  snapshot()
   render()
+  window.addEventListener('keydown', onKeydown)
 })
 
-onUnmounted(() => scene?.destroy())
+onUnmounted(() => {
+  scene?.destroy()
+  window.removeEventListener('keydown', onKeydown)
+})
 </script>
 
 <style scoped>
@@ -302,6 +392,7 @@ onUnmounted(() => scene?.destroy())
 .ed-tools { display: flex; gap: 0.375rem; }
 .ed-tool, .ed-obj { background: #1d1d2a; border: 0.0625rem solid #303045; color: #c8c8d8; padding: 0.375rem 0.5rem; cursor: pointer; border-radius: 0.25rem; font-size: 0.75rem; }
 .ed-tool.k-active, .ed-obj.k-active { color: #fff; }
+.ed-tool:disabled { opacity: 0.4; cursor: default; }
 .ed-palette { display: grid; grid-template-columns: 1fr 1fr; gap: 0.375rem; }
 .ed-spacer { flex: 1; }
 .ed-note { font-size: 0.6875rem; color: #fbbf24; }
