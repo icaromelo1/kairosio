@@ -167,7 +167,8 @@ export class MapScene {
     if (upright) {
       // sombra elíptica no chão, na base (fica na shadowLayer, não gira/sobe)
       const sh = new Graphics()
-      sh.ellipse(cx, y + h, w * 0.42, Math.max(4, h * 0.14)).fill({ color: 0x000000, alpha: 0.22 })
+      const shadowRx = o.kind === 'tree' ? r * 1.05 : w * 0.42
+      sh.ellipse(cx, y + h, shadowRx, Math.max(4, h * 0.14)).fill({ color: 0x000000, alpha: 0.22 })
       this.shadowLayer.addChild(sh)
       // billboard ancorado na BASE; vai pra entityLayer ordenada por Y
       const oc = new Container()
@@ -196,14 +197,20 @@ export class MapScene {
   ) {
     const { x, y, w, h, cx, cy, r } = b
     switch (o.kind) {
-      case 'tree':
-        // copa com luz + tronco saindo embaixo
-        g.circle(cx, cy, r).fill({ color: 0x000000, alpha: 0.18 })
-        g.circle(cx - r * 0.25, cy - r * 0.25, r * 0.55).fill({ color: 0xffffff, alpha: 0.12 })
-        g.rect(cx - 3, cy + r * 0.7, 6, r * 0.6).fill({ color: 0x3a2a18 })
+      case 'tree': {
+        const trunkW = Math.max(3, r * 0.28)
+        const trunkH = h * 0.5
+        const trunkTop = y + h - trunkH
+        g.rect(cx - trunkW / 2, trunkTop, trunkW, trunkH).fill({ color: 0x3a2a18 })
+        g.rect(cx - trunkW / 2, trunkTop, trunkW * 0.45, trunkH).fill({ color: 0xffffff, alpha: 0.08 })
+        const canopyCy = trunkTop + r * 0.35
+        g.circle(cx, canopyCy, r).fill({ color: 0x000000, alpha: 0.18 })
+        g.circle(cx, canopyCy, r * 0.9).fill({ color: 0x2f6b3a, alpha: 0.95 })
+        g.circle(cx - r * 0.25, canopyCy - r * 0.25, r * 0.5).fill({ color: 0xffffff, alpha: 0.14 })
         break
+      }
       case 'fountain':
-        // anéis de água
+        g.circle(cx, cy, r * 0.95).fill({ color: 0x000000, alpha: 0.15 })
         g.circle(cx, cy, r * 0.66).fill({ color: 0x3b82c4, alpha: 0.9 })
         g.circle(cx, cy, r * 0.32).fill({ color: 0x7cc4f0, alpha: 0.9 })
         g.circle(cx - r * 0.2, cy - r * 0.2, r * 0.12).fill({ color: 0xffffff, alpha: 0.5 })
@@ -242,12 +249,40 @@ export class MapScene {
         g.circle(x + w * 0.7, y + h * 0.6, 3).fill({ color: 0xffffff, alpha: 0.5 })
         break
       case 'bench':
-        g.rect(x, y, w, Math.max(3, h * 0.4)).fill({ color: 0xffffff, alpha: 0.1 })
+        g.rect(x, y + h * 0.25, w, Math.max(3, h * 0.22)).fill({ color: 0xffffff, alpha: 0.12 })
+        g.rect(x + 3, y + h - 6, 4, 6).fill({ color: 0x000000, alpha: 0.4 })
+        g.rect(x + w - 7, y + h - 6, 4, 6).fill({ color: 0x000000, alpha: 0.4 })
         break
-      case 'lamp':
-        g.circle(cx, cy, r * 1.6).fill({ color: 0xfbbf24, alpha: 0.12 })
-        g.circle(cx, cy, Math.max(2, r * 0.4)).fill({ color: 0xfde68a })
+      case 'lamp': {
+        const poleW = Math.max(2, w * 0.12)
+        const poleH = h * 0.65
+        const poleTop = y + h - poleH
+        g.rect(cx - poleW / 2, poleTop, poleW, poleH).fill({ color: 0x3a3a42 })
+        const headR = Math.max(4, r * 0.55)
+        const headCy = poleTop - headR * 0.3
+        g.circle(cx, headCy, headR * 2.2).fill({ color: 0xfbbf24, alpha: 0.12 })
+        g.rect(cx - headR * 0.6, poleTop - headR * 0.4, headR * 1.2, headR * 0.5).fill({ color: 0x3a3a42 })
+        g.circle(cx, headCy, headR).fill({ color: 0xfde68a })
         break
+      }
+      case 'column': {
+        const shaftW = Math.max(4, w * 0.45)
+        const capH = Math.max(3, h * 0.08)
+        const baseH = Math.max(3, h * 0.1)
+        g.rect(x, y, w, capH).fill({ color: 0xffffff, alpha: 0.15 })
+        g.rect(cx - shaftW / 2, y + capH, shaftW, h - capH - baseH).fill({ color: 0xffffff, alpha: 0.06 })
+        g.rect(x, y + h - baseH, w, baseH).fill({ color: 0x000000, alpha: 0.25 })
+        break
+      }
+      case 'hedge': {
+        const bumps = Math.max(3, Math.floor(w / 14))
+        for (let i = 0; i < bumps; i++) {
+          const bx = x + (i + 0.5) * (w / bumps)
+          g.circle(bx, y + h * 0.3, (w / bumps) * 0.62).fill({ color: 0x2f6b3a, alpha: 0.9 })
+        }
+        g.rect(x, y + h * 0.55, w, h * 0.45).fill({ color: 0x1f4a28, alpha: 0.9 })
+        break
+      }
       case 'chair':
       case 'sofa':
         // encosto no topo + assento
