@@ -153,6 +153,9 @@
       <!-- Painel do jukebox -->
       <JukeboxPanel v-if="jukeboxOpen" @close="closeModal" />
 
+      <TaskPanel v-if="taskOpen" :map-id="currentId" :object-id="taskObjectId" @close="closeModal" />
+      <NotePanel v-if="noteOpen" :map-id="currentId" :object-id="noteObjectId" @close="closeModal" />
+
       <!-- Controles touch (mobile) -->
       <div class="touch-ctl gp-touch-ctl">
         <span></span>
@@ -205,6 +208,8 @@ import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import Logo from '@/components/logos/Logo.vue'
 import JukeboxPanel from '@/components/JukeboxPanel.vue'
 import VoicePanel from '@/components/VoicePanel.vue'
+import TaskPanel from '@/components/TaskPanel.vue'
+import NotePanel from '@/components/NotePanel.vue'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -225,6 +230,10 @@ const error = ref('')
 const activeZone = ref<MapObject | null>(null)
 const activeModal = ref<MapObject | null>(null)
 const jukeboxOpen = ref(false)
+const taskOpen = ref(false)
+const taskObjectId = ref('')
+const noteOpen = ref(false)
+const noteObjectId = ref('')
 const JUKEBOX_RADIUS = 6 // tiles — alcance do modo "proximidade"
 
 const look = computed<AvatarLook>(() => ({
@@ -397,6 +406,18 @@ function tryInteract() {
     gameStore.isModalOpen = true
     return
   }
+  if (z.kind === 'desk') {
+    taskObjectId.value = z.id
+    taskOpen.value = true
+    gameStore.isModalOpen = true
+    return
+  }
+  if (z.kind === 'shelf') {
+    noteObjectId.value = z.id
+    noteOpen.value = true
+    gameStore.isModalOpen = true
+    return
+  }
   activeModal.value = z
   gameStore.isModalOpen = true
 }
@@ -404,6 +425,8 @@ function closeModal() {
   gameStore.isModalOpen = false
   activeModal.value = null
   jukeboxOpen.value = false
+  taskOpen.value = false
+  noteOpen.value = false
 }
 
 function selectMap(id: string) {
