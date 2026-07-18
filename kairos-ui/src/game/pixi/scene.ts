@@ -358,6 +358,22 @@ export class MapScene {
     this.world.position.set(Math.round(cx), Math.round(cy))
   }
 
+  cull(marginTiles = 2) {
+    const z = this.zoom
+    const vw = this.app.renderer.width
+    const vh = this.app.renderer.height
+    const marginPx = marginTiles * TILE_PX
+    const left = -this.world.position.x / z - marginPx
+    const top = -this.world.position.y / z - marginPx
+    const right = (vw - this.world.position.x) / z + marginPx
+    const bottom = (vh - this.world.position.y) / z + marginPx
+    for (const p of this.avatars.values()) {
+      const x = p.root.position.x
+      const y = p.root.position.y
+      p.root.visible = x >= left && x <= right && y >= top && y <= bottom
+    }
+  }
+
   /** Mostra/esconde a nota ♪ sobre todo objeto jukebox do mapa atual. */
   setJukeboxPlaying(playing: boolean) {
     for (const icon of this.jukeboxIcons) icon.visible = playing

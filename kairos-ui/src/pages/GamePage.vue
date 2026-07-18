@@ -611,6 +611,7 @@ onMounted(async () => {
     }
     scene.placeAvatar('me', pos.x, pos.y)
     scene.follow(pos.x, pos.y)
+    scene.cull()
 
     // ---- avatares remotos ----
     syncRemotes(dt, map)
