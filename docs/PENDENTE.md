@@ -48,7 +48,7 @@
 
 ## 🧹 6. Polimento / débitos técnicos
 - [ ] **Performance**: culling + throttle de rede (muitos jogadores). *médio*
-- [ ] **Hardening XSS completo**: auditar render de conteúdo de usuário (garantir zero `v-html`). *quick-win*
+- [x] **Hardening XSS completo**: auditado (02/07/2026) — `grep -rn "v-html\|innerHTML" kairos-ui/src` retorna vazio; chat, nomes de jogadores e feedback já passam por interpolação Vue padrão (`{{ }}`), que escapa HTML automaticamente. Nenhuma remoção necessária.
 - [ ] Decisões em aberto da multi-tenancy (1 org/usuário vs multi-org; clonar templates). *futuro*
 
 ## 💡 7. Backlog / não agendado
