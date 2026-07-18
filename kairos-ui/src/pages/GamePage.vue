@@ -40,10 +40,16 @@
           :mic-available="voice.hasMic()"
           :self-name="playerName"
           :peers="voicePanelPeers"
+          :self-speaking="selfSpeaking"
+          :speaking-peer-ids="speakingPeerIds"
+          :camera-on="camOn"
+          :video-peer-ids="videoPeerIds"
+          :video-elements="videoElementsMap"
           @toggle-voice="toggleVoice"
           @toggle-mic="toggleMic"
           @toggle-peer-mute="togglePeerMute"
           @set-mode="setVoiceModeUi"
+          @toggle-camera="toggleCamera"
         />
 
         <!-- Você -->
@@ -271,6 +277,34 @@ const voiceOn = ref(false)
 const voicePeers = ref<string[]>([])
 const micMuted = ref(false)
 const mutedPeerIds = reactive(new Set<string>())
+const camOn = ref(false)
+const videoPeerIds = ref<string[]>([])
+const videoElementsMap = ref(new Map<string, HTMLVideoElement>())
+const speakingPeerIds = ref<string[]>([])
+const selfSpeaking = ref(false)
+let voiceUiTimer = 0
+
+function refreshVoiceUi() {
+  if (!voiceOn.value) return
+  videoPeerIds.value = voice.activeVideoPeerIds()
+  const nextVideos = new Map<string, HTMLVideoElement>()
+  for (const id of videoPeerIds.value) {
+    const el = voice.getRemoteVideoElement(id)
+    if (el) nextVideos.set(id, el)
+  }
+  videoElementsMap.value = nextVideos
+  speakingPeerIds.value = voice.speakingPeerIds()
+  selfSpeaking.value = voice.isSelfSpeaking()
+}
+
+async function toggleCamera() {
+  if (camOn.value) {
+    voice.disableCamera()
+    camOn.value = false
+    return
+  }
+  camOn.value = await voice.enableCamera()
+}
 
 async function toggleVoice() {
   if (voiceOn.value) {
@@ -279,6 +313,11 @@ async function toggleVoice() {
     voicePeers.value = []
     micMuted.value = true
     mutedPeerIds.clear()
+    camOn.value = false
+    videoPeerIds.value = []
+    videoElementsMap.value = new Map()
+    speakingPeerIds.value = []
+    selfSpeaking.value = false
     return
   }
   voice.setSelf(socketId() || '')
@@ -520,6 +559,7 @@ onMounted(async () => {
   window.addEventListener('keyup', onKeyUp)
   window.addEventListener('blur', clearKeys)
   stateTimer = window.setInterval(persistState, 15000)
+  voiceUiTimer = window.setInterval(refreshVoiceUi, 250)
 
   scene.app.ticker.add((ticker) => {
     if (!scene) return
@@ -658,6 +698,7 @@ onUnmounted(() => {
   window.removeEventListener('keyup', onKeyUp)
   window.removeEventListener('blur', clearKeys)
   clearInterval(stateTimer)
+  clearInterval(voiceUiTimer)
   persistState()
   voice.disable()
   disconnectPresence()
