@@ -155,6 +155,7 @@
 
       <TaskPanel v-if="taskOpen" :map-id="currentId" :object-id="taskObjectId" @close="closeModal" />
       <NotePanel v-if="noteOpen" :map-id="currentId" :object-id="noteObjectId" @close="closeModal" />
+      <WhiteboardPanel v-if="boardOpen" :object-id="boardObjectId" @close="closeModal" />
 
       <!-- Controles touch (mobile) -->
       <div class="touch-ctl gp-touch-ctl">
@@ -200,7 +201,7 @@ import { AvatarPuppet, type AvatarLook, type Facing } from '@/game/pixi/avatar'
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, socketId, jukeboxState, voiceMode, emitVoiceSetMode, sessionKicked, type AvatarProps } from '@/services/presence'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, socketId, jukeboxState, voiceMode, emitVoiceSetMode, sessionKicked, joinBoard, type AvatarProps } from '@/services/presence'
 import { VoiceChat } from '@/services/webrtc'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
@@ -210,6 +211,7 @@ import JukeboxPanel from '@/components/JukeboxPanel.vue'
 import VoicePanel from '@/components/VoicePanel.vue'
 import TaskPanel from '@/components/TaskPanel.vue'
 import NotePanel from '@/components/NotePanel.vue'
+import WhiteboardPanel from '@/components/WhiteboardPanel.vue'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -234,6 +236,8 @@ const taskOpen = ref(false)
 const taskObjectId = ref('')
 const noteOpen = ref(false)
 const noteObjectId = ref('')
+const boardOpen = ref(false)
+const boardObjectId = ref('')
 const JUKEBOX_RADIUS = 6 // tiles — alcance do modo "proximidade"
 
 const look = computed<AvatarLook>(() => ({
@@ -418,6 +422,13 @@ function tryInteract() {
     gameStore.isModalOpen = true
     return
   }
+  if (z.kind === 'board') {
+    boardObjectId.value = z.id
+    boardOpen.value = true
+    gameStore.isModalOpen = true
+    joinBoard(z.id)
+    return
+  }
   activeModal.value = z
   gameStore.isModalOpen = true
 }
@@ -427,6 +438,7 @@ function closeModal() {
   jukeboxOpen.value = false
   taskOpen.value = false
   noteOpen.value = false
+  boardOpen.value = false
 }
 
 function selectMap(id: string) {
