@@ -14,6 +14,12 @@ export interface ChatMessage {
 export type JukeboxMode = 'proximity' | 'room'
 export type VoiceMode = 'proximity' | 'room'
 
+export interface Stroke {
+  id: string
+  color: string
+  points: { x: number; y: number }[]
+}
+
 export interface JukeboxQueueItem {
   trackId: string
   youtubeId: string
@@ -85,6 +91,11 @@ let socket: Socket | null = null
 let lastEmit = 0
 let pending: { x: number; y: number; facing: Facing; pose: Pose; boost: boolean } | null = null
 
+let currentBoardId: string | null = null
+const boardStateListeners = new Set<(strokes: Stroke[]) => void>()
+const boardStrokeListeners = new Set<(stroke: Stroke) => void>()
+const boardClearListeners = new Set<() => void>()
+
 export function connectPresence(opts: JoinOptions) {
   if (socket) return
   sessionKicked.value = false
@@ -140,6 +151,18 @@ export function connectPresence(opts: JoinOptions) {
 
   socket.on('voiceState', ({ mode }: { mode: VoiceMode }) => {
     voiceMode.value = mode
+  })
+
+  socket.on('boardState', (strokes: Stroke[]) => {
+    for (const cb of boardStateListeners) cb(strokes)
+  })
+  socket.on('boardStroke', ({ objectId, stroke }: { objectId: string; stroke: Stroke }) => {
+    if (objectId !== currentBoardId) return
+    for (const cb of boardStrokeListeners) cb(stroke)
+  })
+  socket.on('boardClear', ({ objectId }: { objectId: string }) => {
+    if (objectId !== currentBoardId) return
+    for (const cb of boardClearListeners) cb()
   })
 
   // servidor derrubou esta aba pq a mesma conta conectou em outro lugar —
@@ -208,6 +231,29 @@ function flushPending() {
     socket.emit('move', pending)
     pending = null
   }
+}
+
+export function joinBoard(objectId: string) {
+  currentBoardId = objectId
+  socket?.emit('boardJoin', { objectId })
+}
+export function sendStroke(objectId: string, stroke: Stroke) {
+  socket?.emit('boardStroke', { objectId, stroke })
+}
+export function clearBoard(objectId: string) {
+  socket?.emit('boardClear', { objectId })
+}
+export function onBoardState(cb: (strokes: Stroke[]) => void) {
+  boardStateListeners.add(cb)
+  return () => boardStateListeners.delete(cb)
+}
+export function onBoardStroke(cb: (stroke: Stroke) => void) {
+  boardStrokeListeners.add(cb)
+  return () => boardStrokeListeners.delete(cb)
+}
+export function onBoardClear(cb: () => void) {
+  boardClearListeners.add(cb)
+  return () => boardClearListeners.delete(cb)
 }
 
 export function switchMap(map: string) {
