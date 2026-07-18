@@ -56,6 +56,7 @@ export interface MapObject {
   color?: string
   /** Arte de pixel do objeto customizado (matriz de cores; null = transparente). */
   pixels?: (string | null)[][]
+  sittable?: boolean
   // Campos de interativo (quando o objeto abre algo ao apertar [E]):
   name?: string
   action?: string

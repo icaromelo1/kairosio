@@ -386,7 +386,7 @@ function tryInteract() {
   const z = activeZone.value
   if (!z || gameStore.isModalOpen) return
   // cadeira/sofá → sentar (em vez de modal)
-  if (z.kind === 'chair' || z.kind === 'sofa') {
+  if (z.sittable || z.kind === 'chair' || z.kind === 'sofa') {
     sitting = true
     pos.x = z.x + z.w / 2
     pos.y = z.y + z.h / 2
