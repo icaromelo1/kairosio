@@ -56,6 +56,22 @@ interface JoinPayload {
   y: number
 }
 
+interface Stroke {
+  id: string
+  color: string
+  points: { x: number; y: number }[]
+}
+
+interface WhiteboardState {
+  strokes: Stroke[]
+}
+
+const MOVE_MIN_INTERVAL_MS = 50
+const BOARD_MAX_POINTS_PER_STROKE = 500
+const BOARD_MAX_STROKES = 300
+const FACING_VALUES: Facing[] = ['down', 'up', 'left', 'right']
+const POSE_VALUES: Pose[] = ['idle', 'walk', 'dance', 'wave', 'sit']
+
 @WebSocketGateway({
   cors: { origin: true, credentials: true },
   pingInterval: 10000,
@@ -77,6 +93,8 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   private readonly jukebox = new Map<string, JukeboxRoomState>()
   // modo de voz por sala (org:map) — qualquer membro pode alternar, vale pra todos
   private readonly voiceMode = new Map<string, VoiceMode>()
+  private readonly whiteboards = new Map<string, WhiteboardState>()
+  private readonly lastMoveAt = new Map<string, number>()
 
   constructor(
     private readonly jwt: JwtService,
@@ -135,6 +153,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     if (userId && this.userSocket.get(userId) === socket.id) this.userSocket.delete(userId)
     this.socketOrg.delete(socket.id)
     this.socketUserId.delete(socket.id)
+    this.lastMoveAt.delete(socket.id)
   }
 
   @SubscribeMessage('join')
@@ -165,10 +184,17 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   handleMove(socket: Socket, payload: { x: number; y: number; facing?: Facing; pose?: Pose; boost?: boolean }) {
     const player = this.players.get(socket.id)
     if (!player) return
+    const now = Date.now()
+    if (now - (this.lastMoveAt.get(socket.id) ?? 0) < MOVE_MIN_INTERVAL_MS) return
+    this.lastMoveAt.set(socket.id, now)
+    if (typeof payload?.x !== 'number' || !Number.isFinite(payload.x)) return
+    if (typeof payload?.y !== 'number' || !Number.isFinite(payload.y)) return
+    const facing = FACING_VALUES.includes(payload.facing as Facing) ? (payload.facing as Facing) : undefined
+    const pose = POSE_VALUES.includes(payload.pose as Pose) ? (payload.pose as Pose) : undefined
     player.x = payload.x
     player.y = payload.y
-    if (payload.facing) player.facing = payload.facing
-    if (payload.pose) player.pose = payload.pose
+    if (facing) player.facing = facing
+    if (pose) player.pose = pose
     player.boost = !!payload.boost
     socket.to(this.room(player.org, player.map)).emit('playerMoved', {
       id: socket.id,
@@ -228,6 +254,61 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     const room = this.room(player.org, player.map)
     this.voiceMode.set(room, payload.mode)
     this.server.to(room).emit('voiceState', { mode: payload.mode })
+  }
+
+  // ---- lousa: strokes por chave `${room}:${objectId}`, em memória ----
+
+  @SubscribeMessage('boardJoin')
+  handleBoardJoin(socket: Socket, payload: { objectId: string }) {
+    const player = this.players.get(socket.id)
+    if (!player) return
+    const key = this.boardKey(this.room(player.org, player.map), payload.objectId)
+    socket.emit('boardState', this.whiteboardStateFor(key).strokes)
+  }
+
+  @SubscribeMessage('boardStroke')
+  handleBoardStroke(socket: Socket, payload: { objectId: string; stroke: Stroke }) {
+    const player = this.players.get(socket.id)
+    if (!player) return
+    const stroke = payload?.stroke
+    if (!stroke || typeof stroke.id !== 'string' || !Array.isArray(stroke.points)) return
+    if (stroke.points.length > BOARD_MAX_POINTS_PER_STROKE) {
+      stroke.points = stroke.points.slice(0, BOARD_MAX_POINTS_PER_STROKE)
+    }
+    const room = this.room(player.org, player.map)
+    const key = this.boardKey(room, payload.objectId)
+    const state = this.whiteboardStateFor(key)
+    const existingIndex = state.strokes.findIndex((s) => s.id === stroke.id)
+    if (existingIndex >= 0) {
+      state.strokes[existingIndex] = stroke
+    } else {
+      state.strokes.push(stroke)
+      if (state.strokes.length > BOARD_MAX_STROKES) state.strokes.shift()
+    }
+    socket.to(room).emit('boardStroke', { objectId: payload.objectId, stroke })
+  }
+
+  @SubscribeMessage('boardClear')
+  handleBoardClear(socket: Socket, payload: { objectId: string }) {
+    const player = this.players.get(socket.id)
+    if (!player) return
+    const room = this.room(player.org, player.map)
+    const key = this.boardKey(room, payload.objectId)
+    this.whiteboardStateFor(key).strokes = []
+    socket.to(room).emit('boardClear', { objectId: payload.objectId })
+  }
+
+  private boardKey(room: string, objectId: string): string {
+    return `${room}:${objectId}`
+  }
+
+  private whiteboardStateFor(key: string): WhiteboardState {
+    let state = this.whiteboards.get(key)
+    if (!state) {
+      state = { strokes: [] }
+      this.whiteboards.set(key, state)
+    }
+    return state
   }
 
   // ---- jukebox: fila por sala (org:map), sincronizada por startedAt ----
