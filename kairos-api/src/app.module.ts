@@ -20,6 +20,10 @@ import { OrgInvite } from './org/org-invite.entity'
 import { OrgMembership } from './org/org-membership.entity'
 import { JukeboxModule } from './jukebox/jukebox.module'
 import { Track } from './jukebox/track.entity'
+import { TaskModule } from './task/task.module'
+import { Task } from './task/task.entity'
+import { NoteModule } from './note/note.module'
+import { Note } from './note/note.entity'
 
 @Module({
   imports: [
@@ -28,7 +32,7 @@ import { Track } from './jukebox/track.entity'
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL || 'postgres://kairos:kairos@localhost:5432/kairosio',
-      entities: [User, Character, WorldState, GameMap, Feedback, Organization, OrgInvite, OrgMembership, Track],
+      entities: [User, Character, WorldState, GameMap, Feedback, Organization, OrgInvite, OrgMembership, Track, Task, Note],
       synchronize: true,
     }),
     AuthModule,
@@ -39,6 +43,8 @@ import { Track } from './jukebox/track.entity'
     FeedbackModule,
     OrgModule,
     JukeboxModule,
+    TaskModule,
+    NoteModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
