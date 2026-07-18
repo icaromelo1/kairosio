@@ -18,7 +18,7 @@
     <template v-if="voiceOn">
       <button
         class="vp-member row items-center q-gutter-xs"
-        :class="{ 'vp-member-connected': micAvailable }"
+        :class="{ 'vp-member-connected': micAvailable, 'vp-member-speaking': selfSpeaking }"
         :title="micAvailable ? (micMuted ? 'Clique pra ligar seu microfone' : 'Clique pra desligar seu microfone') : 'Sem acesso ao microfone — só dá pra ouvir'"
         @click="micAvailable && $emit('toggleMic')"
       >
@@ -27,32 +27,57 @@
         <span class="vp-member-ic">{{ !micAvailable ? '🚫' : micMuted ? '🔇' : '🎙' }}</span>
       </button>
       <button
+        class="vp-cam-btn"
+        :class="{ 'vp-cam-btn-on': cameraOn }"
+        :disabled="!cameraAvailable"
+        :title="cameraOn ? 'Clique pra desligar sua câmera' : 'Clique pra ligar sua câmera'"
+        @click="$emit('toggleCamera')"
+      >{{ cameraOn ? '📹 câmera ligada' : '📷 ligar câmera' }}</button>
+      <button
         v-for="p in peers" :key="p.id" class="vp-member row items-center q-gutter-xs"
-        :class="{ 'vp-member-connected': p.connected }"
+        :class="{ 'vp-member-connected': p.connected, 'vp-member-speaking': speakingPeerIds.includes(p.id) }"
         @click="p.connected && $emit('togglePeerMute', p.id)"
       >
         <span class="vp-dot" :class="p.connected ? 'vp-dot-on' : 'vp-dot-off'"></span>
         <span class="col ellipsis vp-member-name">{{ p.name }}</span>
+        <span v-if="p.connected && videoPeerIds.includes(p.id)" class="vp-member-ic">📹</span>
         <span v-if="p.connected" class="vp-member-ic">{{ p.muted ? '🔇' : '🔊' }}</span>
       </button>
+      <VideoGrid v-if="videoPeerIds.length" :video-elements="videoElements" :peer-ids="videoPeerIds" />
     </template>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{
+import VideoGrid from './VideoGrid.vue'
+
+withDefaults(defineProps<{
   mode: 'proximity' | 'room'
   voiceOn: boolean
   micMuted: boolean
   micAvailable: boolean
   selfName: string
   peers: { id: string; name: string; connected: boolean; muted: boolean }[]
-}>()
+  selfSpeaking?: boolean
+  speakingPeerIds?: string[]
+  cameraOn?: boolean
+  cameraAvailable?: boolean
+  videoPeerIds?: string[]
+  videoElements?: Map<string, HTMLVideoElement>
+}>(), {
+  selfSpeaking: false,
+  speakingPeerIds: () => [],
+  cameraOn: false,
+  cameraAvailable: true,
+  videoPeerIds: () => [],
+  videoElements: () => new Map(),
+})
 defineEmits<{
   toggleVoice: []
   toggleMic: []
   togglePeerMute: [id: string]
   setMode: [mode: 'proximity' | 'room']
+  toggleCamera: []
 }>()
 </script>
 
@@ -87,6 +112,27 @@ defineEmits<{
   background: rgba(52, 211, 153, 0.14);
 }
 
+.vp-cam-btn {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  background: var(--bg-1);
+  border: 0.0625rem solid var(--border-strong);
+  color: var(--text);
+  padding: 0.375rem 0.625rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.vp-cam-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.vp-cam-btn-on {
+  border-color: var(--ok);
+  background: rgba(52, 211, 153, 0.14);
+}
+
 .vp-member {
   appearance: none;
   width: 100%;
@@ -105,6 +151,10 @@ defineEmits<{
 .vp-member-connected:hover {
   background: var(--bg-3);
   border-color: var(--border);
+}
+.vp-member-speaking {
+  border-color: var(--primary-hi);
+  box-shadow: 0 0 0 0.0625rem var(--primary-hi);
 }
 .vp-member-name { min-width: 0; }
 .vp-you-tag { color: var(--text-4); font-size: 0.625rem; }
