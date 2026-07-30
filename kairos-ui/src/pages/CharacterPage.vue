@@ -312,7 +312,7 @@ const TABS = [
   { id: 'skin', label: 'Pele' },
   { id: 'outfit', label: 'Roupa' },
   { id: 'photo', label: 'Foto' },
-]
+] as const
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploadingPhoto = ref(false)

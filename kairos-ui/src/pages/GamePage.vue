@@ -265,7 +265,7 @@ const online = computed(() => roomPeers.value.length + 1)
 let scene: MapScene | null = null
 const pos = reactive({ x: 11, y: 9 })
 let facing: Facing = 'down'
-let dancing = false
+let dancing = false as boolean
 let sitting = false
 const keys = new Set<string>()
 const chatInput = ref('')

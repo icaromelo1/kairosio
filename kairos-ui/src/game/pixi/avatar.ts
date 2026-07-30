@@ -72,7 +72,6 @@ export class AvatarPuppet {
   private photoLayer: Container
   private photoSprite: Sprite | null = null
   private photoUrl: string | null = null
-  private usingPhoto = false
 
   constructor(look: AvatarLook) {
     this.root = new Container()
@@ -332,7 +331,6 @@ export class AvatarPuppet {
     if (this.photoUrl === url) return
     this.photoUrl = url
     if (!url) {
-      this.usingPhoto = false
       this.photoLayer.visible = false
       this.setBodyVisible(true)
       return
@@ -353,12 +351,10 @@ export class AvatarPuppet {
       } else {
         this.photoSprite.texture = texture
       }
-      this.usingPhoto = true
       this.photoLayer.visible = true
       this.setBodyVisible(false)
     } catch {
       // falha ao carregar a foto (ex: removida no meio do caminho) → mantém o sprite
-      this.usingPhoto = false
       this.photoLayer.visible = false
       this.setBodyVisible(true)
     }
