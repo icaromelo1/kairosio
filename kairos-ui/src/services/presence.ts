@@ -51,6 +51,15 @@ export interface RemotePlayer {
   boost?: boolean
 }
 
+// Aviso de transmissão de tela — vem pelo socket, não pelo LiveKit, porque
+// alcança TODO MUNDO do mapa, inclusive quem nunca entrou na voz
+export interface ScreenShareState {
+  id: string
+  userId: string
+  name: string
+  on: boolean
+}
+
 export interface AvatarProps {
   hairStyle?: string | null
   hairColor?: string | null
@@ -102,6 +111,7 @@ let currentBoardId: string | null = null
 const boardStateListeners = new Set<(strokes: Stroke[]) => void>()
 const boardStrokeListeners = new Set<(stroke: Stroke) => void>()
 const boardClearListeners = new Set<() => void>()
+const screenShareListeners = new Set<(state: ScreenShareState) => void>()
 
 export function connectPresence(opts: JoinOptions) {
   if (socket) return
@@ -157,6 +167,10 @@ export function connectPresence(opts: JoinOptions) {
     voiceMode.value = mode
   })
 
+  socket.on('screenShareState', (state: ScreenShareState) => {
+    for (const cb of screenShareListeners) cb(state)
+  })
+
   socket.on('boardState', ({ objectId, strokes }: { objectId: string; strokes: Stroke[] }) => {
     if (objectId !== currentBoardId) return
     for (const cb of boardStateListeners) cb(strokes)
@@ -195,6 +209,14 @@ export function emitJukeboxSetMode(mode: JukeboxMode) {
 
 export function emitVoiceSetMode(mode: VoiceMode) {
   socket?.emit('voiceSetMode', { mode })
+}
+
+export function emitScreenShare(on: boolean) {
+  socket?.emit('screenShare', { on })
+}
+export function onScreenShare(cb: (state: ScreenShareState) => void) {
+  screenShareListeners.add(cb)
+  return () => screenShareListeners.delete(cb)
 }
 
 export function emitChat(text: string) {

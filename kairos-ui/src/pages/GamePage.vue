@@ -89,6 +89,16 @@
         perto de <strong>{{ nearby }}</strong>
       </div>
 
+      <!-- Aviso de transmissão: vive AQUI e não no MediaStage porque alcança
+           todo mundo do mapa, inclusive quem nunca abriu a janela de voz. Sem
+           pointer-events e sem nada focável — o WASD segue respondendo. -->
+      <div v-if="screenNotices.length" class="gp-screen-notices" aria-live="polite">
+        <span v-for="notice in screenNotices" :key="notice.id" class="gp-screen-notice">
+          <PixelIcon name="monitor" size="0.75rem" />
+          <b>{{ notice.name }}</b> começou a compartilhar a tela
+        </span>
+      </div>
+
       <!-- Chat -->
       <div class="gp-chat">
         <div v-if="messages.length" ref="chatLog" class="gp-chat-log" @scroll="onChatScroll">
@@ -214,7 +224,7 @@ import { AvatarPuppet, sanitizeLook, type AvatarLook, type Facing } from '@/game
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, jukeboxState, voiceMode, emitVoiceSetMode, sessionKicked, type AvatarProps } from '@/services/presence'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, jukeboxState, voiceMode, emitVoiceSetMode, emitScreenShare, onScreenShare, sessionKicked, type AvatarProps, type ScreenShareState } from '@/services/presence'
 import { media } from '@/services/media'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
@@ -305,6 +315,39 @@ const peerLooks = computed(() => {
   }
   return out
 })
+
+// ---- aviso de transmissão de tela (socket, não LiveKit) ----
+const SCREEN_NOTICE_MS = 6000
+const screenNotices = ref<{ id: number; userId: string; name: string }[]>([])
+const screenNoticeTimers = new Set<number>()
+let screenNoticeSeq = 0
+let offScreenShare: (() => void) | null = null
+
+function dropScreenNotice(id: number) {
+  const index = screenNotices.value.findIndex((n) => n.id === id)
+  if (index >= 0) screenNotices.value.splice(index, 1)
+}
+
+function onScreenShareState(state: ScreenShareState) {
+  // o próprio anúncio volta pelo broadcast da sala: quem compartilhou já sabe
+  if (state.userId && state.userId === auth.userId) return
+  if (!state.on) {
+    // parou antes do aviso expirar — some agora em vez de seguir mentindo
+    for (const notice of screenNotices.value.filter((n) => n.userId === state.userId)) dropScreenNotice(notice.id)
+    return
+  }
+  const id = ++screenNoticeSeq
+  screenNotices.value.push({ id, userId: state.userId, name: state.name || 'alguém' })
+  const timer = window.setTimeout(() => {
+    screenNoticeTimers.delete(timer)
+    dropScreenNotice(id)
+  }, SCREEN_NOTICE_MS)
+  screenNoticeTimers.add(timer)
+}
+
+// uma fonte só pro anúncio: a transição de screenOn cobre parar pela UI, parar
+// pela barra do navegador e cair a conexão
+watch(() => media.state.screenOn, (on) => emitScreenShare(on))
 
 function openMediaStage() {
   mediaStageOpen.value = true
@@ -607,6 +650,7 @@ onMounted(async () => {
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
   window.addEventListener('blur', clearKeys)
+  offScreenShare = onScreenShare(onScreenShareState)
   stateTimer = window.setInterval(persistState, 15000)
 
   scene.app.ticker.add((ticker) => {
@@ -762,6 +806,10 @@ onUnmounted(() => {
   window.removeEventListener('blur', clearKeys)
   clearInterval(stateTimer)
   clearTimeout(chatCooldownTimer)
+  offScreenShare?.()
+  offScreenShare = null
+  for (const timer of screenNoticeTimers) clearTimeout(timer)
+  screenNoticeTimers.clear()
   persistState()
   // Room vazada = microfone continua ligado depois de sair da tela
   void media.disconnect()
@@ -970,6 +1018,44 @@ onUnmounted(() => {
   padding: 0.375rem 0.875rem;
   font-size: 0.75rem;
   color: var(--text);
+}
+
+/* abaixo do "perto de X" pra não brigar pelo topo-centro */
+.gp-screen-notices {
+  position: absolute;
+  top: 3.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  max-width: min(26rem, calc(100% - 2rem));
+  /* não captura clique nem foco: o jogo segue respondendo ao teclado embaixo */
+  pointer-events: none;
+}
+
+.gp-screen-notice {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  background: var(--bg-2);
+  border: 0.125rem solid var(--accent-lo);
+  box-shadow: var(--ui-shadow);
+  font-size: 0.75rem;
+  color: var(--text-2);
+}
+.gp-screen-notice b { color: var(--accent); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .gp-screen-notice {
+    animation: gpScreenNotice 0.18s steps(3, jump-none) both;
+  }
+  @keyframes gpScreenNotice {
+    from { opacity: 0; transform: translateY(-0.5rem); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 }
 
 .gp-voice-live {

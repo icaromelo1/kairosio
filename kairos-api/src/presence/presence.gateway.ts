@@ -73,6 +73,7 @@ interface WhiteboardState {
 
 const MOVE_MIN_INTERVAL_MS = 50
 const CHAT_MIN_INTERVAL_MS = 500
+const SCREEN_MIN_INTERVAL_MS = 1000
 const BOARD_MAX_POINTS_PER_STROKE = 500
 const BOARD_MAX_STROKES = 300
 const BOARD_MAX_PER_ROOM = 50
@@ -139,8 +140,12 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   // modo de voz por sala (org:map) — qualquer membro pode alternar, vale pra todos
   private readonly voiceMode = new Map<string, VoiceMode>()
   private readonly whiteboards = new Map<string, WhiteboardState>()
+  // quem está transmitindo a tela (socket.id) — só pra saber se a transição é
+  // real e pra desfazer o aviso quando a aba cai sem mandar o 'off'
+  private readonly sharingScreen = new Set<string>()
   private readonly lastMoveAt = new Map<string, number>()
   private readonly lastChatAt = new Map<string, number>()
+  private readonly lastScreenAt = new Map<string, number>()
   private readonly lastJukeboxAddAt = new Map<string, number>()
 
   constructor(
@@ -197,6 +202,9 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   handleDisconnect(socket: Socket) {
     const player = this.players.get(socket.id)
     if (player) {
+      // antes do playerLeft e antes de sair do mapa: o broadcast usa a sala que
+      // o player ainda ocupa
+      this.stopScreenShareFor(player)
       this.players.delete(socket.id)
       this.server.to(this.room(player.org, player.map)).emit('playerLeft', { id: socket.id })
       this.cleanupRoomIfEmpty(player.org, player.map)
@@ -207,8 +215,10 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     if (userId && this.userSocket.get(userId) === socket.id) this.userSocket.delete(userId)
     this.socketOrg.delete(socket.id)
     this.socketUserId.delete(socket.id)
+    this.sharingScreen.delete(socket.id)
     this.lastMoveAt.delete(socket.id)
     this.lastChatAt.delete(socket.id)
+    this.lastScreenAt.delete(socket.id)
     this.lastJukeboxAddAt.delete(socket.id)
   }
 
@@ -221,6 +231,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     // senão o socket fica nas duas e o avatar vira fantasma pra quem ficou
     const existing = this.players.get(socket.id)
     if (existing && existing.map !== map) {
+      this.stopScreenShareFor(existing)
       const oldRoom = this.room(existing.org, existing.map)
       socket.leave(oldRoom)
       this.server.to(oldRoom).emit('playerLeft', { id: socket.id })
@@ -309,6 +320,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     const player = this.players.get(socket.id)
     const map = String(payload?.map ?? '').slice(0, 64)
     if (!player || !map || player.map === map) return
+    this.stopScreenShareFor(player)
     const oldOrg = player.org
     const oldMap = player.map
     socket.leave(this.room(oldOrg, oldMap))
@@ -332,6 +344,47 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     const room = this.room(player.org, player.map)
     this.voiceMode.set(room, payload.mode)
     this.server.to(room).emit('voiceState', { mode: payload.mode })
+  }
+
+  // ---- transmissão de tela: aviso pra sala inteira do MAPA ----
+  //
+  // Mora aqui, e não no LiveKit, porque quem ainda não entrou na voz não recebe
+  // evento nenhum do SFU — e é justamente essa pessoa que precisa descobrir que
+  // tem algo acontecendo. O socket é onde todo mundo do mapa está.
+
+  @SubscribeMessage('screenShare')
+  handleScreenShare(socket: Socket, payload: { on: boolean }) {
+    const player = this.players.get(socket.id)
+    if (!player || typeof payload?.on !== 'boolean') return
+    // o aviso é sobre a TRANSIÇÃO: repetir o mesmo estado não vira notificação
+    if (this.sharingScreen.has(socket.id) === payload.on) return
+    // mesma rede do handleChat: o cliente só emite na virada, isto segura quem
+    // chama o socket direto pelo console e inunda a sala de avisos
+    const now = Date.now()
+    if (now - (this.lastScreenAt.get(socket.id) ?? 0) < SCREEN_MIN_INTERVAL_MS) return
+    this.lastScreenAt.set(socket.id, now)
+    if (payload.on) this.sharingScreen.add(socket.id)
+    else this.sharingScreen.delete(socket.id)
+    this.broadcastScreenShare(player, payload.on)
+  }
+
+  // o nome sai do player do servidor (já capado em NAME_MAX no join), nunca do
+  // payload — o cliente não escolhe como é anunciado pra sala
+  private broadcastScreenShare(player: Player, on: boolean) {
+    this.server.to(this.room(player.org, player.map)).emit('screenShareState', {
+      id: player.id,
+      userId: player.userId,
+      name: player.name,
+      on,
+    })
+  }
+
+  // saiu da sala (troca de mapa, remount ou queda) transmitindo: sem isto o
+  // aviso ficaria mentindo até expirar, e a flag presa impediria o próximo
+  // 'on' de virar notificação
+  private stopScreenShareFor(player: Player) {
+    if (!this.sharingScreen.delete(player.id)) return
+    this.broadcastScreenShare(player, false)
   }
 
   // ---- lousa: strokes por chave `${room}:${objectId}`, em memória ----
