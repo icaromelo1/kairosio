@@ -73,12 +73,23 @@ export class MapScene {
     this.app.stage.addChild(this.world)
   }
 
+  // removeChildren no Pixi 8 NÃO destrói — sem destroy explícito, cada troca de
+  // mapa (e cada ghost do editor) vazava Graphics/geometria na GPU
+  private clearLayer(layer: Container) {
+    for (const child of layer.removeChildren()) child.destroy({ children: true })
+  }
+
   setMap(map: MapDef) {
     this.map = map
-    this.floorLayer.removeChildren()
-    this.objectLayer.removeChildren()
-    this.shadowLayer.removeChildren()
-    this.entityLayer.removeChildren()
+    this.clearLayer(this.floorLayer)
+    this.clearLayer(this.objectLayer)
+    this.clearLayer(this.shadowLayer)
+    // a entityLayer mistura objetos do mapa (descartáveis) com os avatares (vivos)
+    const avatarRoots = new Set<Container>()
+    for (const p of this.avatars.values()) avatarRoots.add(p.root)
+    for (const child of this.entityLayer.removeChildren()) {
+      if (!avatarRoots.has(child as Container)) child.destroy({ children: true })
+    }
     this.jukeboxIcons = []
     // re-adiciona os avatares (ficam na entityLayer junto com objetos em pé)
     for (const p of this.avatars.values()) this.entityLayer.addChild(p.root)
@@ -401,7 +412,7 @@ export class MapScene {
 
   /** Mostra um preview translúcido do objeto no tile (editor). */
   showGhost(tileX: number, tileY: number, w: number, h: number, color: string | number = 0x7c3aed, circle = false) {
-    this.ghostLayer.removeChildren()
+    this.clearGhost()
     const g = new Graphics()
     const x = tileX * TILE_PX
     const y = tileY * TILE_PX
@@ -413,7 +424,7 @@ export class MapScene {
     this.ghostLayer.addChild(g)
   }
   clearGhost() {
-    this.ghostLayer.removeChildren()
+    this.clearLayer(this.ghostLayer)
   }
 
   /** Converte coordenadas de clique (clientX/Y) em coordenadas de TILE. */
@@ -429,6 +440,6 @@ export class MapScene {
   destroy() {
     for (const p of this.avatars.values()) p.destroy()
     this.avatars.clear()
-    this.app.destroy(true)
+    this.app.destroy(true, { children: true })
   }
 }

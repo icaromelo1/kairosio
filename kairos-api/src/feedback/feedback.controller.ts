@@ -2,30 +2,30 @@ import { Body, Controller, ForbiddenException, Get, Param, Post, Put, Request, U
 import { AuthGuard } from '@nestjs/passport'
 import { FeedbackService } from './feedback.service'
 import { CreateFeedbackDto, UpdateFeedbackStatusDto } from './feedback.dto'
-
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'icarodmelof@gmail.com')
-  .split(',')
-  .map((e) => e.trim().toLowerCase())
+import { isAdminEmail } from '../auth/admin'
 
 @Controller('feedback')
 export class FeedbackController {
   constructor(private readonly feedback: FeedbackService) {}
 
+  // email vem do TOKEN, não do corpo: sem isso qualquer visitante postava em
+  // nome de outra pessoa cadastrada (o gate só checava se o email existia)
+  @UseGuards(AuthGuard('jwt'))
   @Post()
-  create(@Body() body: CreateFeedbackDto) {
-    return this.feedback.create({ ...body, kind: body.kind ?? 'bug' })
+  create(@Request() req: any, @Body() body: CreateFeedbackDto) {
+    return this.feedback.create({ ...body, email: req.user.email, kind: body.kind ?? 'bug' })
   }
 
   @Get()
   findAll() {
-    return this.feedback.findAll()
+    return this.feedback.findAllPublic()
   }
 
   // mudar o status da correção — só admin (email na allowlist)
   @UseGuards(AuthGuard('jwt'))
   @Put(':id/status')
   updateStatus(@Request() req: any, @Param('id') id: string, @Body() body: UpdateFeedbackStatusDto) {
-    if (!ADMIN_EMAILS.includes((req.user.email || '').toLowerCase())) {
+    if (!isAdminEmail(req.user.email)) {
       throw new ForbiddenException('Apenas administradores podem alterar o status')
     }
     return this.feedback.updateStatus(id, body.status)

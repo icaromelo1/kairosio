@@ -88,13 +88,13 @@
             :key="style.id"
             class="hair-style-btn"
             :class="{ active: characterStore.hairStyle === style.id, 'k-active': characterStore.hairStyle === style.id }"
-            @click="characterStore.hairStyle = style.id as any"
+            @click="characterStore.hairStyle = style.id"
           >
             <PixelAvatar
               :scale="2"
               :bobbing="false"
               :shadow="false"
-              :hairStyle="style.id as any"
+              :hairStyle="style.id"
               :hairColor="characterStore.hairColor"
               :skin="characterStore.skin"
               :topColor="characterStore.topColor"
@@ -272,7 +272,7 @@ import PixelColumn from '@/components/pixel/PixelColumn.vue'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import PixiAvatarPreview from '@/components/PixiAvatarPreview.vue'
 import Logo from '@/components/logos/Logo.vue'
-import { useCharacterStore } from '@/stores/useCharacterStore'
+import { useCharacterStore, type HairStyle } from '@/stores/useCharacterStore'
 import { useGameStore } from '@/stores/useGameStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { getCharacter, saveCharacter, uploadPhoto, removePhoto, photoUrl } from '@/services/character.api'
@@ -312,7 +312,7 @@ const TABS = [
   { id: 'skin', label: 'Pele' },
   { id: 'outfit', label: 'Roupa' },
   { id: 'photo', label: 'Foto' },
-]
+] as const
 
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploadingPhoto = ref(false)
@@ -337,7 +337,7 @@ async function onRemovePhoto() {
   else photoError.value = 'Falha ao remover a foto'
 }
 
-const HAIR_STYLES = [
+const HAIR_STYLES: { id: HairStyle; label: string }[] = [
   { id: 'short', label: 'short' },
   { id: 'curly', label: 'curly' },
   { id: 'ponytail', label: 'ponytail' },

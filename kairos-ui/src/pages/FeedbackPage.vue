@@ -13,12 +13,12 @@
         <p class="fb-intro">
           Encontrou um problema ou tem uma ideia? Conte pra gente. Seja específico:
           o que aconteceu, o que você esperava, e como reproduzir (no caso de bug).
-          <strong>É preciso ter um email cadastrado para enviar.</strong>
+          <strong>É preciso estar logado com uma conta para enviar.</strong>
         </p>
 
         <div class="fb-field">
-          <label>Seu email (cadastrado)</label>
-          <input v-model="form.email" type="email" placeholder="voce@email.com" />
+          <label>Enviando como</label>
+          <input :value="auth.email || 'você não está logado'" type="text" disabled />
         </div>
 
         <div class="fb-field">
@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { createFeedback, fetchFeedback, type Feedback, type FeedbackKind, type FeedbackStatus } from '@/services/feedback.api'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -85,7 +85,7 @@ const ok = ref(false)
 const err = ref('')
 
 // já vem com o email do usuário logado (o gate exige email cadastrado)
-const form = reactive({ email: auth.email || '', kind: 'bug' as FeedbackKind, title: '', message: '' })
+const form = reactive({ kind: 'bug' as FeedbackKind, title: '', message: '' })
 
 const statusLabel: Record<FeedbackStatus, string> = {
   aberto: 'Aberto',
@@ -135,13 +135,17 @@ async function load() {
 async function submit() {
   ok.value = false
   err.value = ''
-  if (!form.email || !form.title || !form.message) {
-    err.value = 'Preencha email, título e descrição.'
+  if (!auth.email) {
+    err.value = 'Entre com sua conta para enviar feedback.'
+    return
+  }
+  if (!form.title || !form.message) {
+    err.value = 'Preencha título e descrição.'
     return
   }
   sending.value = true
   try {
-    await createFeedback({ ...form })
+    await createFeedback({ kind: form.kind, title: form.title, message: form.message })
     ok.value = true
     form.title = ''
     form.message = ''
@@ -153,10 +157,12 @@ async function submit() {
   }
 }
 
+let nowTimer = 0
 onMounted(() => {
   load()
-  setInterval(() => (now.value = Date.now()), 60000)
+  nowTimer = window.setInterval(() => (now.value = Date.now()), 60000)
 })
+onUnmounted(() => clearInterval(nowTimer))
 </script>
 
 <style scoped>

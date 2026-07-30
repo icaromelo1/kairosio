@@ -1,6 +1,7 @@
 import { Controller, Get, Put, Body, Request, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { WorldService } from './world.service'
+import { SaveWorldStateDto } from './world-state.dto'
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('world')
@@ -13,7 +14,7 @@ export class WorldController {
   }
 
   @Put('state')
-  save(@Request() req: any, @Body() body: any) {
+  save(@Request() req: any, @Body() body: SaveWorldStateDto) {
     return this.worldService.save(req.user.sub, body)
   }
 }

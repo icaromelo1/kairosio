@@ -44,6 +44,30 @@ function px(g: Graphics, x: number, y: number, w: number, h: number, color: numb
   g.rect(x * UNIT, y * UNIT, w * UNIT, h * UNIT).fill({ color })
 }
 
+const HAIR_STYLES: AvatarLook['hairStyle'][] = ['short', 'curly', 'ponytail', 'mohawk', 'helmet', 'buzz', 'long']
+const ACCESSORIES: NonNullable<AvatarLook['accessory']>[] = ['none', 'glasses', 'hat']
+const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/
+
+/** Look remoto vem da rede — qualquer campo fora do esperado cai no default em
+ *  vez de derrubar o puppet (HAIR[x] undefined explodia o ticker da sala inteira). */
+export function sanitizeLook(raw: unknown): AvatarLook {
+  const a = (raw && typeof raw === 'object' ? raw : {}) as Record<string, unknown>
+  const color = (v: unknown, fallback: string) =>
+    typeof v === 'string' && HEX_COLOR.test(v) ? v : fallback
+  return {
+    hairStyle: HAIR_STYLES.includes(a.hairStyle as AvatarLook['hairStyle'])
+      ? (a.hairStyle as AvatarLook['hairStyle'])
+      : 'short',
+    hairColor: color(a.hairColor, '#3d2817'),
+    skin: color(a.skin, '#e8b894'),
+    topColor: color(a.topColor, '#7c3aed'),
+    pantsColor: color(a.pantsColor, '#1f2937'),
+    accessory: ACCESSORIES.includes(a.accessory as NonNullable<AvatarLook['accessory']>)
+      ? (a.accessory as AvatarLook['accessory'])
+      : 'none',
+  }
+}
+
 const HAIR: Record<AvatarLook['hairStyle'], [number, number, number, number][]> = {
   short:    [[4, 1, 8, 2], [3, 2, 1, 2], [12, 2, 1, 2]],
   curly:    [[3, 1, 10, 2], [3, 3, 1, 1], [12, 3, 1, 1], [4, 0, 8, 1]],
@@ -72,7 +96,6 @@ export class AvatarPuppet {
   private photoLayer: Container
   private photoSprite: Sprite | null = null
   private photoUrl: string | null = null
-  private usingPhoto = false
 
   constructor(look: AvatarLook) {
     this.root = new Container()
@@ -332,7 +355,6 @@ export class AvatarPuppet {
     if (this.photoUrl === url) return
     this.photoUrl = url
     if (!url) {
-      this.usingPhoto = false
       this.photoLayer.visible = false
       this.setBodyVisible(true)
       return
@@ -353,12 +375,10 @@ export class AvatarPuppet {
       } else {
         this.photoSprite.texture = texture
       }
-      this.usingPhoto = true
       this.photoLayer.visible = true
       this.setBodyVisible(false)
     } catch {
       // falha ao carregar a foto (ex: removida no meio do caminho) → mantém o sprite
-      this.usingPhoto = false
       this.photoLayer.visible = false
       this.setBodyVisible(true)
     }
