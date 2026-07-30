@@ -8,9 +8,12 @@ import { isAdminEmail } from '../auth/admin'
 export class FeedbackController {
   constructor(private readonly feedback: FeedbackService) {}
 
+  // email vem do TOKEN, não do corpo: sem isso qualquer visitante postava em
+  // nome de outra pessoa cadastrada (o gate só checava se o email existia)
+  @UseGuards(AuthGuard('jwt'))
   @Post()
-  create(@Body() body: CreateFeedbackDto) {
-    return this.feedback.create({ ...body, kind: body.kind ?? 'bug' })
+  create(@Request() req: any, @Body() body: CreateFeedbackDto) {
+    return this.feedback.create({ ...body, email: req.user.email, kind: body.kind ?? 'bug' })
   }
 
   @Get()

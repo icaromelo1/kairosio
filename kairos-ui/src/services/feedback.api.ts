@@ -1,4 +1,6 @@
 // Canal de feedback (bugs / melhorias) — fala com o kairos-api.
+import { apiFetch } from './http'
+
 const API_URL = import.meta.env.VITE_API_URL || window.location.origin
 
 export type FeedbackKind = 'bug' | 'melhoria'
@@ -17,16 +19,15 @@ export interface Feedback {
 }
 
 export interface NewFeedback {
-  email: string
   kind: FeedbackKind
   title: string
   message: string
 }
 
+// o autor sai do JWT no servidor — mandar email no corpo não teria efeito
 export async function createFeedback(data: NewFeedback): Promise<Feedback> {
-  const res = await fetch(`${API_URL}/kairos-api/feedback`, {
+  const res = await apiFetch('/feedback', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   })
   if (!res.ok) {
