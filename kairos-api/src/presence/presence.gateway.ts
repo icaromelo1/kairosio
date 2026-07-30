@@ -217,6 +217,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       const oldRoom = this.room(existing.org, existing.map)
       socket.leave(oldRoom)
       this.server.to(oldRoom).emit('playerLeft', { id: socket.id })
+      this.players.delete(socket.id)
       this.cleanupRoomIfEmpty(existing.org, existing.map)
     }
     const player: Player = {
@@ -368,7 +369,8 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   private sanitizeObjectId(raw: unknown): string | null {
     const id = String(raw ?? '').trim()
-    return id && id.length <= 64 ? id : null
+    // sem ':' — é o separador das chaves de sala/lousa
+    return id && id.length <= 64 && !id.includes(':') ? id : null
   }
 
   private boardKey(room: string, objectId: string): string {
@@ -509,6 +511,14 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   // toca a próxima da fila (chamado ao terminar a atual, pular, ou ao chegar a 1ª música)
   private advanceJukebox(room: string) {
+    // sala vazia (ex: download terminou depois de todo mundo sair) → descarta o
+    // estado em vez de agendar timer tocando pra ninguém
+    if (!(this.server.sockets.adapter.rooms.get(room)?.size ?? 0)) {
+      const stale = this.jukebox.get(room)
+      if (stale?.timer) clearTimeout(stale.timer)
+      this.jukebox.delete(room)
+      return
+    }
     const state = this.jukeboxStateFor(room)
     if (state.timer) {
       clearTimeout(state.timer)
