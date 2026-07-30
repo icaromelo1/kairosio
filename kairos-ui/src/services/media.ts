@@ -15,6 +15,7 @@ import {
   type RemoteParticipant,
   type RemoteTrack,
   type RemoteTrackPublication,
+  type TrackPublication,
 } from 'livekit-client'
 import { apiFetch } from './http'
 
@@ -22,9 +23,19 @@ export interface MediaPeer {
   identity: string
   name: string
   subscribed: boolean
+  // "eu silenciei" — local, só afeta o meu volume
   mutedByMe: boolean
+  // "ele está mudo" — o participante mutou o próprio microfone (ou nem publicou).
+  // Chega pela sinalização do LiveKit mesmo sem assinatura, então vale pra quem
+  // está fora do raio de proximidade também.
+  micOff: boolean
   hasCamera: boolean
   speaking: boolean
+}
+
+function micOffOf(participant: RemoteParticipant): boolean {
+  const publication = participant.getTrackPublication(Track.Source.Microphone)
+  return !publication || !!publication.isMuted
 }
 
 interface MediaToken {
@@ -57,6 +68,8 @@ class MediaRoom {
   readonly peers = reactive(new Map<string, MediaPeer>())
 
   readonly videoElements = shallowRef(new Map<string, HTMLVideoElement>())
+
+  readonly selfVideoElement = shallowRef<HTMLVideoElement | null>(null)
 
   async connect(mapId: string): Promise<boolean> {
     // espera uma tentativa anterior terminar de se desfazer antes de abrir outra —
@@ -189,15 +202,23 @@ class MediaRoom {
     const room = this.room
     if (!room) return false
     try {
-      await room.localParticipant.setCameraEnabled(on)
+      const publication = await room.localParticipant.setCameraEnabled(on)
       // mesma corrida do microfone: a câmera só abre de fato depois do await
       if (this.room !== room) {
         for (const publication of room.localParticipant.trackPublications.values()) publication.track?.stop()
+        this.releaseSelfVideo()
         return false
       }
       this.state.cameraOn = on
+      this.releaseSelfVideo()
+      if (on && publication?.videoTrack) {
+        const element = publication.videoTrack.attach() as HTMLVideoElement
+        element.muted = true
+        this.selfVideoElement.value = element
+      }
     } catch {
       this.state.cameraOn = false
+      this.releaseSelfVideo()
     }
     return this.state.cameraOn
   }
@@ -234,6 +255,8 @@ class MediaRoom {
     room.on(RoomEvent.TrackUnpublished, this.onTrackUnpublished)
     room.on(RoomEvent.TrackSubscribed, this.onTrackSubscribed)
     room.on(RoomEvent.TrackUnsubscribed, this.onTrackUnsubscribed)
+    room.on(RoomEvent.TrackMuted, this.onTrackMuteChanged)
+    room.on(RoomEvent.TrackUnmuted, this.onTrackMuteChanged)
     room.on(RoomEvent.ActiveSpeakersChanged, this.onActiveSpeakers)
     room.on(RoomEvent.Disconnected, this.onDisconnected)
   }
@@ -245,6 +268,8 @@ class MediaRoom {
     room.off(RoomEvent.TrackUnpublished, this.onTrackUnpublished)
     room.off(RoomEvent.TrackSubscribed, this.onTrackSubscribed)
     room.off(RoomEvent.TrackUnsubscribed, this.onTrackUnsubscribed)
+    room.off(RoomEvent.TrackMuted, this.onTrackMuteChanged)
+    room.off(RoomEvent.TrackUnmuted, this.onTrackMuteChanged)
     room.off(RoomEvent.ActiveSpeakersChanged, this.onActiveSpeakers)
     room.off(RoomEvent.Disconnected, this.onDisconnected)
   }
@@ -261,6 +286,7 @@ class MediaRoom {
     const peer = this.peers.get(participant.identity)
     if (!peer) return
     if (publication.source === Track.Source.Camera) peer.hasCamera = true
+    if (publication.source === Track.Source.Microphone) peer.micOff = !!publication.isMuted
     // publicação nova de quem já está no raio precisa ser assinada na hora — o
     // syncSubscriptions só reage a mudança de distância, não a mudança de track
     if (peer.subscribed) publication.setSubscribed(true)
@@ -268,7 +294,18 @@ class MediaRoom {
 
   private onTrackUnpublished = (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
     const peer = this.peers.get(participant.identity)
-    if (peer && publication.source === Track.Source.Camera) peer.hasCamera = false
+    if (!peer) return
+    if (publication.source === Track.Source.Camera) peer.hasCamera = false
+    // despublicar o microfone é o que o setMicEnabled(false) faz: sem track não
+    // há como ser ouvido, então conta como mudo
+    if (publication.source === Track.Source.Microphone) peer.micOff = true
+  }
+
+  private onTrackMuteChanged = (publication: TrackPublication, participant: Participant) => {
+    if (publication.source !== Track.Source.Microphone) return
+    const peer = this.peers.get(participant.identity)
+    if (!peer) return
+    peer.micOff = !!publication.isMuted
   }
 
   private onTrackSubscribed = (
@@ -330,6 +367,7 @@ class MediaRoom {
     const existing = this.peers.get(participant.identity)
     if (existing) {
       existing.hasCamera = !!participant.getTrackPublication(Track.Source.Camera)
+      existing.micOff = micOffOf(participant)
       return
     }
     this.peers.set(participant.identity, {
@@ -337,6 +375,7 @@ class MediaRoom {
       name: participant.name || '',
       subscribed: false,
       mutedByMe: false,
+      micOff: micOffOf(participant),
       hasCamera: !!participant.getTrackPublication(Track.Source.Camera),
       speaking: false,
     })
@@ -347,6 +386,14 @@ class MediaRoom {
     this.releaseElement(this.videoEls, identity)
     this.releaseElement(this.audioEls, identity)
     this.refreshVideoElements()
+  }
+
+  private releaseSelfVideo() {
+    const element = this.selfVideoElement.value
+    if (!element) return
+    element.srcObject = null
+    element.remove()
+    this.selfVideoElement.value = null
   }
 
   private releaseElement(store: Map<string, HTMLMediaElement>, identity: string) {
@@ -365,6 +412,7 @@ class MediaRoom {
   private reset() {
     for (const identity of [...this.videoEls.keys()]) this.releaseElement(this.videoEls, identity)
     for (const identity of [...this.audioEls.keys()]) this.releaseElement(this.audioEls, identity)
+    this.releaseSelfVideo()
     this.videoElements.value = new Map()
     this.peers.clear()
     this.state.connected = false
