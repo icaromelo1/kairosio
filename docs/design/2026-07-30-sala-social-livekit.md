@@ -245,7 +245,7 @@ botão ("Criar →") e não vira ícone.
 | 60fps não é preset do SDK | Configurar `maxFramerate`/`maxBitrate` manualmente e **medir com `getStats()`**; se não sustentar, entregar 720p30 no modo nitidez e reservar 60fps ao modo fluidez |
 | Portas UDP bloqueadas na Oracle | Liberar na security list **e** no iptables da instância; validar forçando ICE via relay antes de considerar pronto |
 | LiveKit fora do ar derruba a voz | O mundo degrada com elegância: movimento, chat, lousa e jukebox seguem no socket.io; só mídia fica indisponível, com aviso explícito |
-| Egress da VM | Uma reunião de 15 pessoas com uma tela gasta na ordem de 20 GB/hora. **Confirmar a franquia da conta Oracle antes de liberar para a organização** |
+| ~~Egress da VM~~ **resolvido** | Verificado em 30/07 na API de preços da Oracle (SKU `B93455`, zona América do Sul) e na conta real: **10.240 GB/mês grátis**, uso atual de **26,95 GB (0,26%)**. Mesmo com a sala aberta 8h por dia útil, o consumo bate ~4.981 GB — **49% da franquia, custo zero**. Só passaria a custar acima de 10 TB/mês, a R$ 0,13/GB |
 | Regressão na voz durante a migração | A troca é atômica por natureza (a malha sai, o LiveKit entra); validar com 3 clientes reais antes do merge |
 | Sala de mídia vazando entre orgs | O token é emitido pelo backend com a sala fixa em `${orgId}:${mapId}`; o cliente não escolhe sala |
 
@@ -253,6 +253,10 @@ botão ("Criar →") e não vira ícone.
 
 ## Como validar
 
+0. **Orçamento (antes de liberar):** criar um alerta de budget na Oracle em ~7 TB
+   de egress mensal. A franquia é de 10 TB e a projeção de uso intenso fica em
+   metade disso, mas um alerta transforma "não deve custar" em "não vai custar
+   sem eu saber".
 1. **Conexão:** três navegadores em redes diferentes (incluindo um em 4G, que é o
    caso que hoje falha) entram na mesma sala e se ouvem.
 2. **TURN:** forçar `iceTransportPolicy: 'relay'` e confirmar que a chamada ainda
