@@ -37,14 +37,14 @@
           :mode="voiceMode"
           :voice-on="voiceOn"
           :mic-muted="micMuted"
-          :mic-available="voice.hasMic()"
+          :mic-available="micAvailable"
           :self-name="playerName"
           :peers="voicePanelPeers"
           :self-speaking="selfSpeaking"
           :speaking-peer-ids="speakingPeerIds"
           :camera-on="camOn"
           :video-peer-ids="videoPeerIds"
-          :video-elements="videoElementsMap"
+          :video-elements="videoElements"
           @toggle-voice="toggleVoice"
           @toggle-mic="toggleMic"
           @toggle-peer-mute="togglePeerMute"
@@ -90,7 +90,7 @@
         <div class="gp-online-count">{{ online }} online</div>
         <div class="column gp-online-list">
           <span class="gp-peer-you">● {{ playerName }} <span class="gp-peer-you-tag">(você)</span> <span v-if="voiceOn">🎙</span></span>
-          <span v-for="p in roomPeers" :key="p.id" class="gp-peer">● {{ p.name }} <span v-if="voicePeers.includes(p.id)">🔊</span></span>
+          <span v-for="p in roomPeers" :key="p.id" class="gp-peer">● {{ p.name }} <span v-if="voiceIdentities.includes(p.userId)">🔊</span></span>
         </div>
       </div>
 
@@ -105,10 +105,11 @@
           :title="voiceOn ? 'Clique pra sair da voz' : 'Clique pra ouvir/falar por voz com quem está perto (mic começa desligado)'"
           class="gp-voice-btn"
           :class="{ 'gp-voice-btn-on': voiceOn }"
+          :disabled="voiceConnecting"
           @click="toggleVoice"
-        >{{ voiceOn ? '🔊 Ouvindo a sala' : '🔈 Entrar na voz' }}</button>
+        >{{ voiceConnecting ? '⏳ conectando…' : voiceOn ? '🔊 Ouvindo a sala' : '🔈 Entrar na voz' }}</button>
         <span v-if="!voiceOn" class="gp-voice-hint">aproxime-se de alguém pra conversar por voz</span>
-        <button v-else class="gp-voice-reconnect" @click="voice.reconnect()">↻ reconectar (se a voz travar)</button>
+        <button v-else class="gp-voice-reconnect" @click="reconnectVoice">↻ reconectar (se a voz travar)</button>
       </div>
 
       <!-- Chat -->
@@ -218,8 +219,8 @@ import { AvatarPuppet, sanitizeLook, type AvatarLook, type Facing } from '@/game
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, socketId, jukeboxState, voiceMode, emitVoiceSetMode, sessionKicked, type AvatarProps } from '@/services/presence'
-import { VoiceChat } from '@/services/webrtc'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, jukeboxState, voiceMode, emitVoiceSetMode, sessionKicked, type AvatarProps } from '@/services/presence'
+import { media } from '@/services/media'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
@@ -292,79 +293,59 @@ const chatLog = ref<HTMLElement | null>(null)
 const chatCooldown = ref(false)
 const chatUnread = ref(false)
 let chatCooldownTimer = 0
-const voice = new VoiceChat()
-const voiceOn = ref(false)
-const voicePeers = ref<string[]>([])
-const micMuted = ref(false)
-const mutedPeerIds = reactive(new Set<string>())
-const camOn = ref(false)
-const videoPeerIds = ref<string[]>([])
-const videoElementsMap = ref(new Map<string, HTMLVideoElement>())
-const speakingPeerIds = ref<string[]>([])
-const selfSpeaking = ref(false)
-let voiceUiTimer = 0
-
-function refreshVoiceUi() {
-  if (!voiceOn.value) return
-  videoPeerIds.value = voice.activeVideoPeerIds()
-  const nextVideos = new Map<string, HTMLVideoElement>()
-  for (const id of videoPeerIds.value) {
-    const el = voice.getRemoteVideoElement(id)
-    if (el) nextVideos.set(id, el)
-  }
-  videoElementsMap.value = nextVideos
-  speakingPeerIds.value = voice.speakingPeerIds()
-  selfSpeaking.value = voice.isSelfSpeaking()
-}
+const voiceOn = computed(() => media.state.connected)
+const voiceConnecting = computed(() => media.state.connecting)
+const micMuted = computed(() => media.state.micMuted)
+const micAvailable = computed(() => media.state.micAvailable)
+const camOn = computed(() => media.state.cameraOn)
+const selfSpeaking = computed(() => media.state.selfSpeaking)
+// tudo daqui pra baixo que fala com a mídia é chaveado por userId (identity do
+// LiveKit), nunca por socket.id — este continua sendo a chave de avatar/posição
+const videoElements = media.videoElements
+const videoPeerIds = computed(() => [...media.videoElements.value.keys()])
+const voiceIdentities = computed(() => [...media.peers.values()].filter((p) => p.subscribed).map((p) => p.identity))
+const speakingPeerIds = computed(() => [...media.peers.values()].filter((p) => p.speaking).map((p) => p.identity))
 
 async function toggleCamera() {
-  if (camOn.value) {
-    voice.disableCamera()
-    camOn.value = false
-    return
-  }
-  camOn.value = await voice.enableCamera()
+  await media.setCameraEnabled(!media.state.cameraOn)
 }
 
 async function toggleVoice() {
+  if (voiceConnecting.value) return
   if (voiceOn.value) {
-    voice.disable()
-    voiceOn.value = false
-    voicePeers.value = []
-    micMuted.value = true
-    mutedPeerIds.clear()
-    camOn.value = false
-    videoPeerIds.value = []
-    videoElementsMap.value = new Map()
-    speakingPeerIds.value = []
-    selfSpeaking.value = false
+    await media.disconnect()
     return
   }
-  voice.setSelf(socketId() || '')
-  await voice.enable()
-  voiceOn.value = true
-  micMuted.value = true // entra só ouvindo — clique no seu nome pra ligar o microfone
-  if (!voice.hasMic()) error.value = 'Sem acesso ao microfone — você só vai conseguir ouvir.'
+  error.value = ''
+  if (!(await media.connect(currentId.value))) {
+    error.value = media.state.error || 'Não foi possível entrar na voz.'
+    return
+  }
+  // entra só ouvindo — clique no seu nome pra ligar o microfone
+  if (!media.state.micAvailable) error.value = 'Sem acesso ao microfone — você só vai conseguir ouvir.'
+}
+
+async function reconnectVoice() {
+  if (voiceConnecting.value) return
+  if (!(await media.reconnect(currentId.value))) error.value = media.state.error || 'Não foi possível reconectar à voz.'
 }
 
 function toggleMic() {
-  if (!voice.hasMic()) return // sem permissão de microfone, não tem o que ligar
-  if (micMuted.value) { voice.unmuteMic(); micMuted.value = false }
-  else { voice.muteMic(); micMuted.value = true }
+  if (!media.state.micAvailable) return // sem permissão de microfone, não tem o que ligar
+  void media.setMicMuted(!media.state.micMuted)
 }
-function togglePeerMute(id: string) {
-  if (mutedPeerIds.has(id)) { voice.unmuteRemote(id); mutedPeerIds.delete(id) }
-  else { voice.muteRemote(id); mutedPeerIds.add(id) }
+function togglePeerMute(identity: string) {
+  media.setPeerMuted(identity, !media.peers.get(identity)?.mutedByMe)
 }
 function setVoiceModeUi(mode: 'proximity' | 'room') {
   emitVoiceSetMode(mode)
 }
-const voicePanelPeers = computed(() => roomPeers.value.map((p) => ({
-  id: p.id,
-  name: p.name,
-  connected: voicePeers.value.includes(p.id),
-  muted: mutedPeerIds.has(p.id),
-})))
+// o id que sai daqui volta no togglePeerMute e é comparado com speakingPeerIds/
+// videoPeerIds — todos em espaço de identity, então aqui vai userId
+const voicePanelPeers = computed(() => roomPeers.value.map((p) => {
+  const peer = media.peers.get(p.userId)
+  return { id: p.userId, name: p.name, connected: !!peer?.subscribed, muted: !!peer?.mutedByMe }
+}))
 const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' | 'wave' | 'sit', boost: false }
 // ids dos avatares remotos presentes na cena
 const peerIds = new Set<string>()
@@ -543,6 +524,9 @@ function selectMap(id: string) {
   pos.x = map.spawn.x
   pos.y = map.spawn.y
   switchMap(id)
+  // a sala do LiveKit é `${org}:${mapId}` — sem reconectar, continuaríamos ouvindo
+  // a sala do mundo anterior
+  if (media.state.connected) void media.reconnect(id)
 }
 
 // foto de peer vem da rede — só carrega se for o caminho canônico da nossa API,
@@ -619,7 +603,6 @@ onMounted(async () => {
   window.addEventListener('keyup', onKeyUp)
   window.addEventListener('blur', clearKeys)
   stateTimer = window.setInterval(persistState, 15000)
-  voiceUiTimer = window.setInterval(refreshVoiceUi, 250)
 
   scene.app.ticker.add((ticker) => {
     if (!scene) return
@@ -692,24 +675,23 @@ onMounted(async () => {
     let near: string | null = null
     let best = 3
     const voiceIds: string[] = []
-    const voiceConnected = voiceOn.value ? new Set(voice.activePeers()) : null
+    const voiceLive = media.state.connected
     for (const peer of remotePlayers.values()) {
       if (peer.map && peer.map !== map.id) continue
       const d = Math.hypot(peer.x - pos.x, peer.y - pos.y)
       if (d < best) { best = d; near = peer.name }
       const inRange = d <= 4 // raio de comunicação — mesmo alcance usado pra voz por proximidade
-      // histerese na voz: conecta a ≤4, mas quem já está conectado só cai a >5 —
-      // sem isso, dançar na borda do raio derruba/reconecta o WebRTC em loop
-      const keepConnected = !!voiceConnected?.has(peer.id) && d <= 5
-      // no modo "sala", a voz conecta com todo mundo — o raio some, só regula nomes flutuantes
-      if (voiceMode.value === 'room' || inRange || keepConnected) voiceIds.push(peer.id)
+      // histerese na voz: assina a ≤4, mas quem já está assinado só cai a >5 —
+      // sem isso, dançar na borda do raio gera assina/desassina em loop
+      const keepConnected = voiceLive && media.isSubscribed(peer.userId) && d <= 5
+      // no modo "sala", a voz alcança todo mundo — o raio some, só regula nomes flutuantes
+      // (userId vazio não deveria acontecer — o gateway recusa socket sem usuário —
+      // mas se acontecer o peer só fica sem mídia, sem quebrar o frame)
+      if (peer.userId && (voiceMode.value === 'room' || inRange || keepConnected)) voiceIds.push(peer.userId)
       scene.avatar(peer.id)?.setNameVisible(inRange)
     }
     nearby.value = near
-    if (voiceOn.value) {
-      voice.sync(voiceIds)
-      voicePeers.value = voice.activePeers()
-    }
+    if (voiceLive) media.syncSubscriptions(voiceIds)
 
     // ---- jukebox: toca sincronizado, volume por distância (modo proximidade) ----
     jukeboxAudio.sync()
@@ -774,10 +756,10 @@ onUnmounted(() => {
   window.removeEventListener('keyup', onKeyUp)
   window.removeEventListener('blur', clearKeys)
   clearInterval(stateTimer)
-  clearInterval(voiceUiTimer)
   clearTimeout(chatCooldownTimer)
   persistState()
-  voice.disable()
+  // Room vazada = microfone continua ligado depois de sair da tela
+  void media.disconnect()
   disconnectPresence()
   jukeboxAudio.stop()
   scene?.destroy()

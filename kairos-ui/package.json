@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@quasar/extras": "^1.18.0",
+    "livekit-client": "^2.21.0",
     "pinia": "^3.0.4",
     "pixelarticons": "^2.2.0",
     "pixi.js": "^8.18.1",

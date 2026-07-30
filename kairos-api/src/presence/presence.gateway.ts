@@ -38,6 +38,10 @@ interface JukeboxRoomState {
 
 interface Player {
   id: string
+  // uuid do usuário, derivado do TOKEN. É a mesma identity usada no LiveKit,
+  // então o cliente casa o avatar (identificado por socket.id) com o participante
+  // de mídia sem precisar de handshake próprio
+  userId: string
   name: string
   avatar: unknown
   map: MapId
@@ -225,6 +229,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
     const player: Player = {
       id: socket.id,
+      userId: this.socketUserId.get(socket.id) ?? '',
       name: sanitizeName(payload?.name),
       avatar: sanitizeAvatar(payload?.avatar),
       map,
