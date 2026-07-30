@@ -37,6 +37,12 @@ export class JukeboxService implements OnModuleInit {
     return this.ytdlp.extractYoutubeId(input)
   }
 
+  // já baixada antes? (caminho barato — sem yt-dlp; usado pro cooldown do gateway
+  // valer só pra download novo, sem travar o "tocar tudo" da biblioteca)
+  async isKnown(youtubeId: string): Promise<boolean> {
+    return (await this.tracks.countBy({ youtubeId })) > 0
+  }
+
   // biblioteca de faixas já baixadas (qualquer sala), mais tocadas recentemente primeiro,
   // opcionalmente filtrada por texto no título
   async listTracks(search?: string): Promise<Pick<Track, 'id' | 'youtubeId' | 'title' | 'durationSec'>[]> {
