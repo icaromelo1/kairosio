@@ -10,7 +10,7 @@ const TOKEN_TTL = '2h'
 
 export interface MediaUser {
   sub: string
-  organizationId: string | null
+  serverId: string | null
 }
 
 export interface MediaToken {
@@ -27,8 +27,8 @@ export class MediaService {
 
   async issueToken(user: MediaUser, mapId: string): Promise<MediaToken> {
     // o mapa do corpo é do cliente: findOneForUser derruba com 404 o que não for
-    // template nem da org do usuário, antes de qualquer token ser assinado
-    const map = await this.maps.findOneForUser(mapId, user.organizationId ?? null)
+    // template nem do servidor do usuário, antes de qualquer token ser assinado
+    const map = await this.maps.findOneForUser(mapId, user.serverId ?? null)
     const { apiKey, apiSecret, url } = livekitConfig()
 
     const at = new AccessToken(apiKey, apiSecret, {
@@ -38,7 +38,7 @@ export class MediaService {
     })
     at.addGrant({
       roomJoin: true,
-      room: this.room(user.organizationId ?? null, map.id),
+      room: this.room(user.serverId ?? null, map.id),
       canPublish: true,
       canSubscribe: true,
     })
@@ -48,8 +48,8 @@ export class MediaService {
 
   // MESMO esquema do PresenceGateway.room() — se divergir, a sala de mídia deixa
   // de bater com a de presença e os avatares ficam sem áudio/vídeo dos vizinhos
-  private room(org: string | null, mapId: string): string {
-    return `${org || 'public'}:${mapId}`
+  private room(serverId: string | null, mapId: string): string {
+    return `${serverId || 'public'}:${mapId}`
   }
 
   private async displayName(userId: string): Promise<string> {

@@ -577,7 +577,7 @@ function selectMap(id: string) {
   pos.x = map.spawn.x
   pos.y = map.spawn.y
   switchMap(id)
-  // a sala do LiveKit é `${org}:${mapId}` — sem reconectar, continuaríamos ouvindo
+  // a sala do LiveKit é `${serverId}:${mapId}` — sem reconectar, continuaríamos ouvindo
   // a sala do mundo anterior
   if (media.state.connected) void media.reconnect(id)
 }

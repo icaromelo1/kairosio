@@ -118,7 +118,7 @@ export function connectPresence(opts: JoinOptions) {
   sessionKicked.value = false
   currentJoin = { ...opts }
 
-  // o token vai no handshake → o gateway deriva a org (isolamento de salas por org)
+  // o token vai no handshake → o gateway deriva o servidor (isolamento de salas por servidor)
   const token = localStorage.getItem('kairos_token') || undefined
   socket = io(API_URL, { path: SOCKET_PATH, transports: ['websocket'], auth: { token } })
 

@@ -6,7 +6,7 @@
     </div>
 
     <div class="column items-center q-gutter-sm text-center">
-      <span class="k-chip">{{ orgName ? orgName : 'escolha um mundo' }}</span>
+      <span class="k-chip">{{ serverName ? serverName : 'escolha um mundo' }}</span>
       <h1 class="ms-title">
         Olá, <span class="ms-accent-text">{{ characterStore.name || 'viajante' }}</span>. Em qual mundo você entra?
       </h1>
@@ -66,7 +66,7 @@ import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { interactableObjects, type MapDef } from '@/game/maps'
 import { fetchMaps, fetchOnlineCounts } from '@/services/maps.api'
-import { getMyOrg } from '@/services/org.api'
+import { getMyServer } from '@/services/server.api'
 import Logo from '@/components/logos/Logo.vue'
 import PixelIcon from '@/components/PixelIcon.vue'
 
@@ -78,7 +78,7 @@ const auth = useAuthStore()
 const maps = ref<MapDef[]>([])
 const error = ref('')
 const counts = ref<Record<string, number>>({})
-const orgName = ref('')
+const serverName = ref('')
 let countTimer = 0
 
 const previewTiles = Array.from({ length: 10 }, (_, ry) =>
@@ -109,7 +109,7 @@ onMounted(async () => {
   }
   loadCounts()
   countTimer = window.setInterval(loadCounts, 8000)
-  getMyOrg().then((o) => { if (o) orgName.value = o.name })
+  getMyServer().then((s) => { if (s) serverName.value = s.name })
 })
 
 onUnmounted(() => clearInterval(countTimer))

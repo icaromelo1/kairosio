@@ -2,7 +2,7 @@
   <div class="ad-root">
     <header class="ad-head">
       <button class="ad-back" @click="router.push('/map-select')">‹ Voltar</button>
-      <h1>Administração{{ org ? ' · ' + org.name : '' }}</h1>
+      <h1>Administração{{ server ? ' · ' + server.name : '' }}</h1>
       <nav class="ad-tabs">
         <button v-for="t in tabs" :key="t" :class="['ad-tab', tab === t && 'k-active']" @click="tab = t">{{ t }}</button>
       </nav>
@@ -22,14 +22,14 @@
           <input class="ad-invite-input" :value="inviteUrl" readonly @focus="($event.target as HTMLInputElement).select()" />
           <button class="ad-btn" @click="copyInvite"><PixelIcon v-if="copied" name="check" size="0.875rem" />{{ copied ? 'Copiado' : 'Copiar' }}</button>
         </div>
-        <span class="ad-invite-hint">Quem abrir o link entra direto na sua organização (cria conta ou faz login e já cai no convite).</span>
+        <span class="ad-invite-hint">Quem abrir o link entra direto no seu servidor (cria conta ou faz login e já cai no convite).</span>
       </div>
       <ul class="ad-list">
         <li v-for="m in members" :key="m.id" class="ad-item">
           <span class="ad-email">{{ m.email }} <span v-if="m.id === auth.userId" class="ad-you">(você)</span></span>
           <span class="ad-actions">
-            <span :class="['k-badge', m.orgRole === 'admin' ? 'k-badge-info' : 'k-badge-dim']">{{ m.orgRole }}</span>
-            <button v-if="m.id !== auth.userId" class="ad-mini" @click="toggleRole(m)">{{ m.orgRole === 'admin' ? 'rebaixar' : 'promover' }}</button>
+            <span :class="['k-badge', m.serverRole === 'admin' ? 'k-badge-info' : 'k-badge-dim']">{{ m.serverRole }}</span>
+            <button v-if="m.id !== auth.userId" class="ad-mini" @click="toggleRole(m)">{{ m.serverRole === 'admin' ? 'rebaixar' : 'promover' }}</button>
             <button v-if="m.id !== auth.userId" class="ad-mini ad-danger" @click="kick(m)">remover</button>
           </span>
         </li>
@@ -38,21 +38,21 @@
 
     <!-- Mundos -->
     <section v-if="tab === 'Mundos'" class="ad-card">
-      <h2>Mundos da organização ({{ orgMaps.length }})</h2>
+      <h2>Mundos do servidor ({{ serverMaps.length }})</h2>
       <ul class="ad-list">
-        <li v-for="w in orgMaps" :key="w.id" class="ad-item">
+        <li v-for="w in serverMaps" :key="w.id" class="ad-item">
           <span>{{ w.name }} <span class="ad-dim">· {{ w.width }}×{{ w.height }}</span></span>
           <button class="ad-mini ad-danger" @click="del(w)">apagar</button>
         </li>
-        <li v-if="!orgMaps.length" class="ad-empty">Nenhum mundo criado ainda.</li>
+        <li v-if="!serverMaps.length" class="ad-empty">Nenhum mundo criado ainda.</li>
       </ul>
     </section>
 
     <!-- Config -->
     <section v-if="tab === 'Config'" class="ad-card">
       <h2>Configurações</h2>
-      <label class="ad-label">Nome da organização</label>
-      <input v-model.trim="orgNameEdit" maxlength="40" class="ad-input" />
+      <label class="ad-label">Nome do servidor</label>
+      <input v-model.trim="serverNameEdit" maxlength="40" class="ad-input" />
       <button class="ad-btn" @click="saveConfig">Salvar</button>
       <p v-if="saved" class="ad-ok"><PixelIcon name="check" size="0.875rem" />Salvo</p>
     </section>
@@ -63,7 +63,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { getMyOrg, createInvite, inviteLink, setMemberRole, removeMember, updateOrg, type Org, type OrgMember } from '@/services/org.api'
+import { getMyServer, createInvite, inviteLink, setMemberRole, removeMember, updateServer, type Server, type ServerMember } from '@/services/server.api'
 import { fetchMaps, deleteMap } from '@/services/maps.api'
 import type { MapDef } from '@/game/maps'
 import PixelIcon from '@/components/PixelIcon.vue'
@@ -73,25 +73,25 @@ const auth = useAuthStore()
 const tabs = ['Membros', 'Mundos', 'Config'] as const
 const tab = ref<(typeof tabs)[number]>('Membros')
 
-const org = ref<Org | null>(null)
-const members = ref<OrgMember[]>([])
-const orgMaps = ref<MapDef[]>([])
+const server = ref<Server | null>(null)
+const members = ref<ServerMember[]>([])
+const serverMaps = ref<MapDef[]>([])
 const inviteCode = ref('')
 const inviteUrl = computed(() => (inviteCode.value ? inviteLink(inviteCode.value) : ''))
 const copied = ref(false)
-const orgNameEdit = ref('')
+const serverNameEdit = ref('')
 const error = ref('')
 const saved = ref(false)
 
-const isAdmin = computed(() => members.value.find((m) => m.id === auth.userId)?.orgRole === 'admin')
+const isAdmin = computed(() => members.value.find((m) => m.id === auth.userId)?.serverRole === 'admin')
 
 async function load() {
-  org.value = await getMyOrg()
-  if (!org.value) { router.replace('/onboarding'); return }
-  members.value = org.value.members || []
-  orgNameEdit.value = org.value.name
+  server.value = await getMyServer()
+  if (!server.value) { router.replace('/onboarding'); return }
+  members.value = server.value.members || []
+  serverNameEdit.value = server.value.name
   if (!isAdmin.value) { router.replace('/map-select'); return }
-  orgMaps.value = (await fetchMaps()).filter((m) => !m.isTemplate)
+  serverMaps.value = (await fetchMaps()).filter((m) => !m.isTemplate)
 }
 
 async function invite() {
@@ -105,22 +105,22 @@ async function copyInvite() {
     setTimeout(() => (copied.value = false), 2000)
   } catch { /* navegador sem clipboard: o input fica selecionável pra cópia manual */ }
 }
-async function toggleRole(m: OrgMember) {
-  await setMemberRole(m.id, m.orgRole === 'admin' ? 'member' : 'admin')
+async function toggleRole(m: ServerMember) {
+  await setMemberRole(m.id, m.serverRole === 'admin' ? 'member' : 'admin')
   await load()
 }
-async function kick(m: OrgMember) {
-  if (!confirm(`Remover ${m.email} da organização?`)) return
+async function kick(m: ServerMember) {
+  if (!confirm(`Remover ${m.email} do servidor?`)) return
   await removeMember(m.id)
   await load()
 }
 async function del(w: MapDef) {
   if (!confirm(`Apagar o mundo "${w.name}"? Não dá pra desfazer.`)) return
   await deleteMap(w.id)
-  orgMaps.value = orgMaps.value.filter((m) => m.id !== w.id)
+  serverMaps.value = serverMaps.value.filter((m) => m.id !== w.id)
 }
 async function saveConfig() {
-  await updateOrg(orgNameEdit.value)
+  await updateServer(serverNameEdit.value)
   saved.value = true
   setTimeout(() => (saved.value = false), 2000)
 }

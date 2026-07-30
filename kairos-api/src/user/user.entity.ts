@@ -14,12 +14,12 @@ export class User {
   @Column({ default: false })
   isGuest: boolean
 
-  // multi-tenancy: org atual do usuário e papel dentro dela
+  // multi-tenancy: servidor atual do usuário e papel dentro dele
   @Column({ type: 'uuid', nullable: true })
-  organizationId: string | null
+  serverId: string | null
 
   @Column({ default: 'member' })
-  orgRole: 'admin' | 'member'
+  serverRole: 'admin' | 'member'
 
   @CreateDateColumn()
   createdAt: Date

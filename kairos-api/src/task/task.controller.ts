@@ -8,29 +8,29 @@ import { CreateTaskDto, UpdateTaskDto } from './task.dto'
 export class TaskController {
   constructor(private readonly tasks: TaskService) {}
 
-  // tarefas são escopadas por org — sem org (convidado num mundo template) a
+  // tarefas são escopadas por servidor — sem servidor (convidado num mundo template) a
   // lista é vazia e criar explica o motivo em vez de estourar 500 no NOT NULL
   @Get()
   list(@Request() req: any, @Query('mapId') mapId: string, @Query('objectId') objectId: string) {
-    if (!req.user.organizationId) return []
-    return this.tasks.list(req.user.organizationId, mapId, objectId)
+    if (!req.user.serverId) return []
+    return this.tasks.list(req.user.serverId, mapId, objectId)
   }
 
   @Post()
   create(@Request() req: any, @Body() dto: CreateTaskDto) {
-    if (!req.user.organizationId) {
-      throw new ForbiddenException('Entre numa organização para usar as tarefas da mesa.')
+    if (!req.user.serverId) {
+      throw new ForbiddenException('Entre num servidor para usar as tarefas da mesa.')
     }
-    return this.tasks.create(req.user.organizationId, req.user.sub, dto)
+    return this.tasks.create(req.user.serverId, req.user.sub, dto)
   }
 
   @Patch(':id')
   update(@Request() req: any, @Param('id') id: string, @Body() patch: UpdateTaskDto) {
-    return this.tasks.update(req.user.organizationId, id, patch)
+    return this.tasks.update(req.user.serverId, id, patch)
   }
 
   @Delete(':id')
   remove(@Request() req: any, @Param('id') id: string) {
-    return this.tasks.remove(req.user.organizationId, id)
+    return this.tasks.remove(req.user.serverId, id)
   }
 }

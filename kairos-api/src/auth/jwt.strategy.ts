@@ -15,7 +15,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     })
   }
 
-  // injeta org/papel SEMPRE frescos do banco (não dependem do que está no token);
+  // injeta servidor/papel SEMPRE frescos do banco (não dependem do que está no token);
   // usuário apagado (ex: convidado pós-logout) invalida o token na hora
   async validate(payload: any) {
     const user = await this.users.findOne({ where: { id: payload.sub } })
@@ -24,8 +24,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       sub: payload.sub,
       email: payload.email ?? user.email ?? null,
       isGuest: payload.isGuest ?? user.isGuest ?? false,
-      organizationId: user.organizationId ?? null,
-      orgRole: user.orgRole ?? 'member',
+      serverId: user.serverId ?? null,
+      serverRole: user.serverRole ?? 'member',
     }
   }
 }
