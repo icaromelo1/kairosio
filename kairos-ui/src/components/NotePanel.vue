@@ -65,8 +65,8 @@ async function add() {
     const created = await createNote(props.mapId, props.objectId, body)
     notes.value.push(created)
     bodyInput.value = ''
-  } catch {
-    error.value = 'falha ao criar nota'
+  } catch (e) {
+    error.value = (e as Error).message || 'falha ao criar nota'
   } finally {
     adding.value = false
   }

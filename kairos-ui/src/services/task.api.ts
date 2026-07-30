@@ -24,7 +24,10 @@ export async function listTasks(mapId: string, objectId: string): Promise<TaskIt
 
 export async function createTask(mapId: string, objectId: string, title: string): Promise<TaskItem> {
   const res = await apiFetch('/task', { method: 'POST', body: JSON.stringify({ mapId, objectId, title }) })
-  if (!res.ok) throw new Error(`Falha ao criar tarefa (${res.status})`)
+  if (!res.ok) {
+    const body = await res.json().catch(() => null)
+    throw new Error(body?.message || `Falha ao criar tarefa (${res.status})`)
+  }
   return res.json()
 }
 

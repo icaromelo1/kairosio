@@ -90,6 +90,10 @@ export const sessionKicked = ref(false)
 let socket: Socket | null = null
 let lastEmit = 0
 let pending: { x: number; y: number; facing: Facing; pose: Pose; boost: boolean } | null = null
+// estado ATUAL do join — atualizado em switchMap/emitMove; a reconexão automática
+// do socket.io re-emite este (re-join com os opts originais devolvia o player
+// pro mapa antigo depois de um blip de rede)
+let currentJoin: JoinOptions | null = null
 
 let currentBoardId: string | null = null
 const boardStateListeners = new Set<(strokes: Stroke[]) => void>()
@@ -99,6 +103,7 @@ const boardClearListeners = new Set<() => void>()
 export function connectPresence(opts: JoinOptions) {
   if (socket) return
   sessionKicked.value = false
+  currentJoin = { ...opts }
 
   // o token vai no handshake → o gateway deriva a org (isolamento de salas por org)
   const token = localStorage.getItem('kairos_token') || undefined
@@ -108,7 +113,7 @@ export function connectPresence(opts: JoinOptions) {
   window.addEventListener('beforeunload', disconnectPresence, { once: true })
 
   socket.on('connect', () => {
-    socket?.emit('join', opts)
+    if (currentJoin) socket?.emit('join', currentJoin)
   })
 
   socket.on('players', (peers: RemotePlayer[]) => {
@@ -212,6 +217,10 @@ export function setRtcHandler(cb: ((from: string, signal: unknown) => void) | nu
 
 export function emitMove(x: number, y: number, facing: Facing, pose: Pose, boost = false) {
   if (!socket) return
+  if (currentJoin) {
+    currentJoin.x = x
+    currentJoin.y = y
+  }
   const now = Date.now()
   if (now - lastEmit >= MOVE_INTERVAL) {
     lastEmit = now
@@ -258,12 +267,14 @@ export function onBoardClear(cb: () => void) {
 }
 
 export function switchMap(map: string) {
+  if (currentJoin) currentJoin.map = map
   socket?.emit('switchMap', { map })
   remotePlayers.clear()
   chatMessages.splice(0)
 }
 
 export function disconnectPresence() {
+  currentJoin = null
   socket?.disconnect()
   socket = null
   remotePlayers.clear()

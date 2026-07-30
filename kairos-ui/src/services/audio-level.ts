@@ -1,5 +1,14 @@
+// AudioContext ÚNICO compartilhado entre todos os medidores — Safari limita a
+// ~4 contexts por página; um por peer matava o indicador de fala em sala cheia
+let sharedCtx: AudioContext | null = null
+function audioCtx(): AudioContext {
+  if (!sharedCtx) sharedCtx = new AudioContext()
+  if (sharedCtx.state === 'suspended') void sharedCtx.resume().catch(() => {})
+  return sharedCtx
+}
+
 export function attachLevelMeter(stream: MediaStream, onLevel: (level: number) => void): () => void {
-  const ctx = new AudioContext()
+  const ctx = audioCtx()
   const source = ctx.createMediaStreamSource(stream)
   const analyser = ctx.createAnalyser()
   analyser.fftSize = 512
@@ -16,6 +25,5 @@ export function attachLevelMeter(stream: MediaStream, onLevel: (level: number) =
     clearInterval(timer)
     source.disconnect()
     analyser.disconnect()
-    void ctx.close().catch(() => {})
   }
 }

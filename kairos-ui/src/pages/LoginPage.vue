@@ -236,13 +236,14 @@ function socialSoon() {
   error.value = 'Login com Google/GitHub em breve. Use email e senha ou entre como convidado.'
 }
 
-// callback de OAuth: /login?token=... → guarda a sessão e entra
+// callback de OAuth: /login?token=... → guarda a sessão e entra.
+// replace (não push): a URL com o token não pode sobrar no histórico do navegador
 const route = useRoute()
 onMounted(async () => {
   const token = route.query.token
   if (typeof token === 'string' && token) {
     authStore.setToken(token)
-    router.push(await postAuthDest())
+    router.replace(await postAuthDest())
   }
 })
 </script>

@@ -72,7 +72,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { createFeedback, fetchFeedback, type Feedback, type FeedbackKind, type FeedbackStatus } from '@/services/feedback.api'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -153,10 +153,12 @@ async function submit() {
   }
 }
 
+let nowTimer = 0
 onMounted(() => {
   load()
-  setInterval(() => (now.value = Date.now()), 60000)
+  nowTimer = window.setInterval(() => (now.value = Date.now()), 60000)
 })
+onUnmounted(() => clearInterval(nowTimer))
 </script>
 
 <style scoped>

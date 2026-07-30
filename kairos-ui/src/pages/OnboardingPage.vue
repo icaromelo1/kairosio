@@ -24,7 +24,7 @@
     </section>
 
     <div class="ob-grid">
-      <section class="ob-card">
+      <section v-if="!auth.isGuest" class="ob-card">
         <h2>Criar organização</h2>
         <p class="ob-sub">Você vira o admin. Depois pode convidar a galera.</p>
         <input v-model.trim="orgName" maxlength="40" class="ob-input" placeholder="Nome da org / equipe" @keyup.enter="create" />
@@ -48,9 +48,11 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { createOrg, joinOrg, getMyOrgs, switchOrg, type MyOrgSummary } from '@/services/org.api'
 import Logo from '@/components/logos/Logo.vue'
+import { useAuthStore } from '@/stores/useAuthStore'
 
 const router = useRouter()
 const route = useRoute()
+const auth = useAuthStore()
 const orgName = ref('')
 const code = ref('')
 const error = ref('')
