@@ -12,6 +12,7 @@
   "dependencies": {
     "@quasar/extras": "^1.18.0",
     "pinia": "^3.0.4",
+    "pixelarticons": "^2.2.0",
     "pixi.js": "^8.18.1",
     "quasar": "^2.19.3",
     "socket.io-client": "^4.8.3",
