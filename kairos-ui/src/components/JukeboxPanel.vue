@@ -191,6 +191,14 @@ async function syncFromDrive() {
   syncMessage.value = ''
   try {
     const res = await apiFetch('/jukebox/sync', { method: 'POST' })
+    if (res.status === 403) {
+      syncMessage.value = 'apenas administradores podem sincronizar'
+      return
+    }
+    if (!res.ok) {
+      syncMessage.value = 'falha ao sincronizar'
+      return
+    }
     const r = await res.json()
     syncMessage.value = `${r.downloaded} baixadas, ${r.skipped} já no cache, ${r.recovered} recuperadas no banco (${r.total} no total)`
     if (libraryOpen.value) fetchLibrary()

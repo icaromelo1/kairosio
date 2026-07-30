@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Patch, Post, Query, Request, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { TaskService } from './task.service'
 import { CreateTaskDto, UpdateTaskDto } from './task.dto'
@@ -8,13 +8,19 @@ import { CreateTaskDto, UpdateTaskDto } from './task.dto'
 export class TaskController {
   constructor(private readonly tasks: TaskService) {}
 
+  // tarefas são escopadas por org — sem org (convidado num mundo template) a
+  // lista é vazia e criar explica o motivo em vez de estourar 500 no NOT NULL
   @Get()
   list(@Request() req: any, @Query('mapId') mapId: string, @Query('objectId') objectId: string) {
+    if (!req.user.organizationId) return []
     return this.tasks.list(req.user.organizationId, mapId, objectId)
   }
 
   @Post()
   create(@Request() req: any, @Body() dto: CreateTaskDto) {
+    if (!req.user.organizationId) {
+      throw new ForbiddenException('Entre numa organização para usar as tarefas da mesa.')
+    }
     return this.tasks.create(req.user.organizationId, req.user.sub, dto)
   }
 

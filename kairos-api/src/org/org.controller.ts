@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Request, UseGuards } from '@nestjs/common'
+import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Put, Request, UseGuards } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { OrgService } from './org.service'
 import { OrgAdminGuard } from './org-admin.guard'
@@ -11,6 +11,10 @@ export class OrgController {
 
   @Post()
   create(@Request() req: any, @Body() dto: CreateOrgDto) {
+    // convidado some no logout (conta apagada) — a org dele ficaria órfã
+    if (req.user.isGuest) {
+      throw new ForbiddenException('Convidados não podem criar organizações. Crie uma conta.')
+    }
     return this.org.create(req.user.sub, dto.name)
   }
 
@@ -46,13 +50,13 @@ export class OrgController {
   @UseGuards(OrgAdminGuard)
   @Put()
   update(@Request() req: any, @Body() dto: UpdateOrgDto) {
-    return this.org.updateOrg(req.user.organizationId, dto.name!)
+    return this.org.updateOrg(req.user.organizationId, dto.name)
   }
 
   @UseGuards(OrgAdminGuard)
   @Put('member/:id/role')
   setRole(@Request() req: any, @Param('id') id: string, @Body() dto: SetRoleDto) {
-    return this.org.setRole(req.user.organizationId, id, dto.role)
+    return this.org.setRole(req.user.organizationId, id, dto.role, req.user.sub)
   }
 
   @UseGuards(OrgAdminGuard)

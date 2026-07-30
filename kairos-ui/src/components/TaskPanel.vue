@@ -71,8 +71,8 @@ async function add() {
     const created = await createTask(props.mapId, props.objectId, title)
     tasks.value.push(created)
     titleInput.value = ''
-  } catch {
-    error.value = 'falha ao criar tarefa'
+  } catch (e) {
+    error.value = (e as Error).message || 'falha ao criar tarefa'
   } finally {
     adding.value = false
   }

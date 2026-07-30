@@ -1,13 +1,15 @@
 // Persistência da customização do personagem no banco (cross-device). JWT via apiFetch.
 import { apiFetch } from './http'
+import type { HairStyle, Accessory } from '@/stores/useCharacterStore'
 
 export interface CharacterData {
   name: string
-  hairStyle: string
+  hairStyle: HairStyle
   hairColor: string
   skin: string
   topColor: string
   pantsColor: string
+  accessory: Accessory
   photoFile?: string | null
 }
 

@@ -9,6 +9,7 @@ import { GoogleStrategy } from './google.strategy'
 import { GithubStrategy } from './github.strategy'
 import { User } from '../user/user.entity'
 import { OrgMembership } from '../org/org-membership.entity'
+import { jwtSecret } from './jwt-secret'
 
 // OAuth só entra quando as credenciais existem — sem creds, o login normal segue intacto
 const oauthStrategies: any[] = []
@@ -27,7 +28,7 @@ if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) oauthStrat
     // que o JWT_SECRET só existisse via .env (não como variável de ambiente real).
     JwtModule.registerAsync({
       useFactory: () => ({
-        secret: process.env.JWT_SECRET || 'kairos-secret',
+        secret: jwtSecret(),
         signOptions: { expiresIn: '7d' },
       }),
     }),

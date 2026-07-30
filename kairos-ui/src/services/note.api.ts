@@ -19,7 +19,10 @@ export async function listNotes(mapId: string, objectId: string): Promise<NoteIt
 
 export async function createNote(mapId: string, objectId: string, body: string): Promise<NoteItem> {
   const res = await apiFetch('/note', { method: 'POST', body: JSON.stringify({ mapId, objectId, body }) })
-  if (!res.ok) throw new Error(`Falha ao criar nota (${res.status})`)
+  if (!res.ok) {
+    const parsed = await res.json().catch(() => null)
+    throw new Error(parsed?.message || `Falha ao criar nota (${res.status})`)
+  }
   return res.json()
 }
 

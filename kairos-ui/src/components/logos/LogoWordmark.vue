@@ -16,5 +16,4 @@ const props = withDefaults(defineProps<{
 }>(), { size: 'md', primary: '#a78bfa', accent: '#fbbf24' })
 
 const fs = computed(() => ({ sm: 18, md: 28, lg: 56 }[props.size]))
-const tag = computed(() => ({ sm: 9, md: 12, lg: 22 }[props.size]))
 </script>

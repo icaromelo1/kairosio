@@ -11,6 +11,12 @@ interface CreateFeedbackDto {
   message: string
 }
 
+function maskEmail(email: string): string {
+  const [user, domain] = (email || '').split('@')
+  if (!domain) return email
+  return `${user.slice(0, 2)}***@${domain}`
+}
+
 @Injectable()
 export class FeedbackService {
   constructor(
@@ -41,8 +47,14 @@ export class FeedbackService {
     return this.repo.save(fb)
   }
 
-  findAll(): Promise<Feedback[]> {
-    return this.repo.find({ order: { createdAt: 'DESC' } })
+  // listagem pública: email do autor mascarado e sem authorId — a página de
+  // feedback é aberta, PII inteira aqui era enumerável por qualquer visitante
+  async findAllPublic() {
+    const items = await this.repo.find({ order: { createdAt: 'DESC' } })
+    return items.map(({ authorId: _authorId, ...fb }) => ({
+      ...fb,
+      authorEmail: maskEmail(fb.authorEmail),
+    }))
   }
 
   async updateStatus(id: string, status: FeedbackStatus): Promise<Feedback> {

@@ -5,11 +5,13 @@ import { PresenceGateway } from './presence.gateway'
 import { PresenceController } from './presence.controller'
 import { User } from '../user/user.entity'
 import { JukeboxModule } from '../jukebox/jukebox.module'
+import { jwtSecret } from '../auth/jwt-secret'
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
-    JwtModule.register({ secret: process.env.JWT_SECRET || 'kairos-secret' }),
+    // registerAsync: lê o segredo na instanciação, depois do ConfigModule
+    JwtModule.registerAsync({ useFactory: () => ({ secret: jwtSecret() }) }),
     JukeboxModule,
   ],
   providers: [PresenceGateway],

@@ -1,66 +1,49 @@
 # Kairos — O que ainda falta
 
-> Lista enxuta e organizada do que está **pendente** (a maior parte do roadmap já foi feita).
-> Atualizado: 2026-06-22. Specs detalhados nos outros `docs/PLANO-*.md`.
+> Lista enxuta do que está **pendente**. O grosso do roadmap já foi entregue.
+> Atualizado: 2026-07-30. Specs detalhados nos outros `docs/PLANO-*.md`.
 
 ---
 
-## 🐞 0. Bugs + UX/movimento (novo, 22/06) — ✅ *lote concluído 22/06*
-> Detalhe + abordagem: `docs/PLANO-bugs-ux-movimento.md`.
-- [x] **B1** Botões ficam focados após clique → Enter reaciona. FEITO 22/06 (blur global em `main.ts`).
-- [x] **B2** Selecionar o mundo atual cria outra sessão. FEITO 22/06 (guard `id === currentId` no `selectMap`).
-- [x] **B3** Câmera: rotação removida + zoom centralizado no personagem + pan com Espaço+arrastar. FEITO 22/06.
-- [x] **B4** Scroll — login e personagem responsivos/scrolláveis (MapSelect/Register já ok). FEITO 22/06.
-- [~] **M1** Virar de **lado** (perfil) no A/D — tentado e **revertido** 22/06 (ficou estranho; A/D volta a espelhar o rosto de frente). *requer spritesheet real do avatar pra ficar bom*
-- [x] **M2** **Boost no Shift** + carrinho sob o avatar (sincronizado na rede). FEITO 22/06.
+## 🎨 1. Arte / visual 2.5D (estilo Stardew)
+> Billboards, avatar fofo, y-sort, sombras, customização e objetos com volume já feitos.
+> `docs/PLANO-arte-2.5d.md`.
+- [ ] **Avatar art completa** — spritesheets desenhadas (4 direções, walk frames).
+      *grande, precisa decisão + arte.* Destrava também o **virar de perfil no A/D**
+      (tentado e revertido em 22/06: sem spritesheet real fica estranho).
 
----
+## 🔐 2. OAuth Google/GitHub — *código pronto, BLOQUEADO no Icaro*
+- [ ] Criar os apps OAuth (Google Cloud + GitHub) e pôr as creds no `.env` do servidor
+      (`GOOGLE_CLIENT_ID/SECRET`, `GITHUB_CLIENT_ID/SECRET`). Aí trocar os botões
+      "em breve" por reais. O backend já registra as strategies quando as envs existem.
 
-## 🎨 1. Arte / visual 2.5D (estilo Stardew) — *quase tudo feito*
-> Billboards, avatar fofo, y-sort, sombras e customização já feitos. `docs/PLANO-arte-2.5d.md`.
-- [x] **Y-sort + sombras** — profundidade (avatar passa atrás/na frente; sombra na base). FEITO 22/06.
-- [x] **Hint de volume** nos objetos em pé (topo claro/base escura). FEITO 22/06 (1ª passada).
-- [x] **Mais customização** — acessório (óculos/chapéu) + +tons de pele e cores. FEITO 22/06.
-- [ ] **Objetos com base+altura "real"** (árvore tronco+copa subindo, etc.) — redesenho por tipo. *grande, precisa iteração visual*
-- [ ] **Avatar art completa** — spritesheets desenhadas (4 direções, walk frames). *grande, precisa decisão+arte*
+## 🧹 3. Débitos técnicos conhecidos
+- [ ] **`synchronize: true` em produção** (TypeORM). Funciona hoje, mas uma mudança
+      de entity mal feita altera o schema sozinha. Trocar por migrations quando o
+      schema estabilizar.
+- [ ] **Estado do jogo em memória no gateway** (presença, fila do jukebox, lousas).
+      Reiniciar a API zera lousas e filas; e não escala pra 2+ instâncias. Só vale
+      resolver (Redis adapter) se houver mais de uma instância.
+- [ ] **Bundle único grande** (aviso de chunk >500KB no build). Code-split por rota
+      quando incomodar o carregamento.
+- [ ] Decisões em aberto da multi-tenancy (1 org/usuário vs multi-org; clonar
+      templates ao entrar numa org). *futuro*
 
-## 🛠️ 2. Editor — refinos
-> `docs/PLANO-editor-melhorias.md`.
-- [ ] **Undo/redo** + validações (spawn válido, sem sobreposição). *médio*
-- [ ] Alternar colisão de objeto já colocado já existe; falta **poltrona** como sentável. *quick-win*
-
-## 🔌 3. Estações funcionais — *ligar objetos a ferramentas reais*
-> Hoje abrem modal genérico "em breve".
-- [x] **Jukebox** = música. FEITO 30/06 — fila dinâmica via link do YouTube (`yt-dlp`), storage
-      permanente no Google Drive (`rclone`, remote `gdrive:kairos-music`, reaproveitado dos backups
-      do Minecraft), cache local quente com limite de 10GB/LRU, toggle sala/proximidade, sincronizado
-      por timestamp entre quem ouve. Detalhe: `docs/PLANO-jukebox.md`.
-- [ ] **Lousa** = whiteboard · **Mesa** = workspace/tarefas · **Estante** = notas. *médio cada*
-
-## 🎙️ 4. Voz / vídeo (WebRTC) — *só áudio existe hoje*
-- [ ] **Vídeo** por proximidade (além do áudio). *grande*
-- [ ] **Indicador de "quem está falando"** (nível de áudio). *médio*
-- [ ] Aprofundar confiabilidade do mic (já tem botão reconectar). *médio* — `docs/PLANO-hardening-e-login.md`
-
-## 🔐 5. OAuth Google/GitHub — *código pronto, BLOQUEADO no Icaro*
-- [ ] Criar os apps OAuth (Google Cloud + GitHub) e por as creds no `.env` do servidor
-      (`GOOGLE_CLIENT_ID/SECRET`, `GITHUB_CLIENT_ID/SECRET`). Aí trocar os botões "em breve" por reais.
-
-## 🧹 6. Polimento / débitos técnicos
-- [ ] **Performance**: culling + throttle de rede (muitos jogadores). *médio*
-- [x] **Hardening XSS completo**: auditado (02/07/2026) — `grep -rn "v-html\|innerHTML" kairos-ui/src` retorna vazio; chat, nomes de jogadores e feedback já passam por interpolação Vue padrão (`{{ }}`), que escapa HTML automaticamente. Nenhuma remoção necessária.
-- [ ] Decisões em aberto da multi-tenancy (1 org/usuário vs multi-org; clonar templates). *futuro*
-
-## 💡 7. Backlog / não agendado
+## 💡 4. Backlog / não agendado
 - **NPCs com LLM** — só ideia, fora do plano atual.
 - **Economia / dinheiro** — ❌ recusado.
 
 ---
 
-## Ordem sugerida
-**Bugs/UX/movimento:** ✅ concluído (B1, B2, B4, B3, M2, M1 — 22/06).
+## ✅ Concluído desde a última revisão (jul/2026)
 
-**Agora (features):** `Estações funcionais` → `Vídeo + indicador de fala` → `Editor undo/redo`
-→ `Objetos com volume real` → `Performance`. → `Spritesheets do avatar` quando decidir a arte.
-
-**Bloqueado em você:** OAuth (criar apps + creds).
+- **Estações funcionais**: jukebox (fila via YouTube + Drive), lousa colaborativa,
+  mesa (tarefas), estante (notas) — todas ligadas ao `[E]` no GamePage.
+- **Voz/vídeo**: vídeo por proximidade opt-in + indicador de quem está falando.
+- **Editor**: undo/redo, validação de spawn/overlap, flag `sittable` genérica.
+- **Performance**: culling de avatares fora do viewport.
+- **Hardening XSS**: auditado (02/07) — zero `v-html`/`innerHTML` no front.
+- **Code review geral (30/07)** — ver `docs/REVIEW-2026-07-30.md`:
+  gate de typecheck consertado, mass assignment fechado, socket exige token,
+  autoria do feedback pelo JWT, PII mascarada, sentar não trava mais o personagem,
+  leaks de Pixi/AudioContext/timers corrigidos.

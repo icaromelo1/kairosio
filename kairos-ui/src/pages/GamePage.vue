@@ -203,11 +203,11 @@ import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { logoutApi } from '@/services/auth.api'
 import { MapScene } from '@/game/pixi/scene'
-import { AvatarPuppet, type AvatarLook, type Facing } from '@/game/pixi/avatar'
+import { AvatarPuppet, sanitizeLook, type AvatarLook, type Facing } from '@/game/pixi/avatar'
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, socketId, jukeboxState, voiceMode, emitVoiceSetMode, sessionKicked, joinBoard, type AvatarProps } from '@/services/presence'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, socketId, jukeboxState, voiceMode, emitVoiceSetMode, sessionKicked, type AvatarProps } from '@/services/presence'
 import { VoiceChat } from '@/services/webrtc'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
@@ -265,8 +265,9 @@ const online = computed(() => roomPeers.value.length + 1)
 let scene: MapScene | null = null
 const pos = reactive({ x: 11, y: 9 })
 let facing: Facing = 'down'
-let dancing = false
+let dancing = false as boolean
 let sitting = false
+let preSit: { x: number; y: number } | null = null
 const keys = new Set<string>()
 const chatInput = ref('')
 const nearby = ref<string | null>(null)
@@ -437,8 +438,10 @@ function onPanUp() {
 function tryInteract() {
   const z = activeZone.value
   if (!z || gameStore.isModalOpen) return
-  // cadeira/sofá → sentar (em vez de modal)
+  // cadeira/sofá → sentar (em vez de modal); guarda de onde veio pra voltar
+  // ao levantar — o objeto costuma ser sólido, levantar "dentro" dele travava
   if (z.sittable || z.kind === 'chair' || z.kind === 'sofa') {
+    if (!sitting) preSit = { x: pos.x, y: pos.y }
     sitting = true
     pos.x = z.x + z.w / 2
     pos.y = z.y + z.h / 2
@@ -465,7 +468,6 @@ function tryInteract() {
     boardObjectId.value = z.id
     boardOpen.value = true
     gameStore.isModalOpen = true
-    joinBoard(z.id)
     return
   }
   activeModal.value = z
@@ -492,6 +494,15 @@ function selectMap(id: string) {
   pos.x = map.spawn.x
   pos.y = map.spawn.y
   switchMap(id)
+}
+
+// foto de peer vem da rede — só carrega se for o caminho canônico da nossa API,
+// nunca uma URL externa arbitrária
+const PEER_PHOTO_RE = /\/kairos-api\/character\/photo\/([a-f0-9-]+\.(?:jpg|png|webp))$/
+function safePeerPhotoUrl(raw: string | null | undefined): string | null {
+  if (typeof raw !== 'string' || raw.length > 300) return null
+  const m = PEER_PHOTO_RE.exec(raw)
+  return m ? photoUrl(m[1]) : null
 }
 
 // colisão entre personagens: bloqueia só se o movimento APROXIMA de quem já está perto
@@ -582,13 +593,24 @@ onMounted(async () => {
       if (keys.has('d') || keys.has('arrowright')) dx += sp
     }
     const moving = dx !== 0 || dy !== 0
-    if (moving) sitting = false // mover levanta
+    if (moving && sitting) {
+      // levantar devolve pra onde estava antes de sentar (senão fica dentro do sólido)
+      sitting = false
+      if (preSit) {
+        pos.x = preSit.x
+        pos.y = preSit.y
+        preSit = null
+      }
+    }
     if (moving) {
       facing = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down')
       const nx = pos.x + dx
       const ny = pos.y + dy
-      if (!isSolid(map, Math.floor(nx), Math.floor(pos.y)) && !peerBlocks(nx, pos.y, pos.x, pos.y)) pos.x = nx
-      if (!isSolid(map, Math.floor(pos.x), Math.floor(ny)) && !peerBlocks(pos.x, ny, pos.x, pos.y)) pos.y = ny
+      // escape: se o tile ATUAL já é sólido (sentou/spawnou dentro), libera o
+      // movimento — regra anti-travamento, nunca deixa o personagem preso
+      const stuck = isSolid(map, Math.floor(pos.x), Math.floor(pos.y))
+      if ((stuck || !isSolid(map, Math.floor(nx), Math.floor(pos.y))) && !peerBlocks(nx, pos.y, pos.x, pos.y)) pos.x = nx
+      if ((stuck || !isSolid(map, Math.floor(pos.x), Math.floor(ny))) && !peerBlocks(pos.x, ny, pos.x, pos.y)) pos.y = ny
     }
     const onCart = boosting && moving
     const emoting = Date.now() < emoteUntil
@@ -621,13 +643,17 @@ onMounted(async () => {
     let near: string | null = null
     let best = 3
     const voiceIds: string[] = []
+    const voiceConnected = voiceOn.value ? new Set(voice.activePeers()) : null
     for (const peer of remotePlayers.values()) {
       if (peer.map && peer.map !== map.id) continue
       const d = Math.hypot(peer.x - pos.x, peer.y - pos.y)
       if (d < best) { best = d; near = peer.name }
       const inRange = d <= 4 // raio de comunicação — mesmo alcance usado pra voz por proximidade
+      // histerese na voz: conecta a ≤4, mas quem já está conectado só cai a >5 —
+      // sem isso, dançar na borda do raio derruba/reconecta o WebRTC em loop
+      const keepConnected = !!voiceConnected?.has(peer.id) && d <= 5
       // no modo "sala", a voz conecta com todo mundo — o raio some, só regula nomes flutuantes
-      if (voiceMode.value === 'room' || inRange) voiceIds.push(peer.id)
+      if (voiceMode.value === 'room' || inRange || keepConnected) voiceIds.push(peer.id)
       scene.avatar(peer.id)?.setNameVisible(inRange)
     }
     nearby.value = near
@@ -663,9 +689,9 @@ function syncRemotes(dt: number, map: MapDef) {
     seen.add(peer.id)
     let p = scene.avatar(peer.id)
     if (!p) {
-      p = new AvatarPuppet(peer.avatar as AvatarLook)
+      p = new AvatarPuppet(sanitizeLook(peer.avatar))
       p.setName(peer.name)
-      p.setPhoto((peer.avatar as AvatarProps)?.photoUrl || null)
+      p.setPhoto(safePeerPhotoUrl((peer.avatar as AvatarProps)?.photoUrl))
       scene.addAvatar(peer.id, p)
       peerIds.add(peer.id)
     }
