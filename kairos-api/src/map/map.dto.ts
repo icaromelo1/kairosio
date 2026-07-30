@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer'
 import {
   IsArray,
   IsInt,
@@ -8,7 +9,20 @@ import {
   MaxLength,
   Min,
   MinLength,
+  ValidateNested,
 } from 'class-validator'
+
+export class SpawnDto {
+  @IsInt()
+  @Min(0)
+  @Max(119)
+  x: number
+
+  @IsInt()
+  @Min(0)
+  @Max(119)
+  y: number
+}
 
 export class CreateMapDto {
   @IsString()
@@ -36,8 +50,9 @@ export class CreateMapDto {
   palette?: Record<string, unknown>
 
   @IsOptional()
-  @IsObject()
-  spawn?: { x: number; y: number }
+  @ValidateNested()
+  @Type(() => SpawnDto)
+  spawn?: SpawnDto
 
   @IsOptional()
   @IsArray()
@@ -82,8 +97,9 @@ export class UpdateMapDto {
   palette?: Record<string, unknown>
 
   @IsOptional()
-  @IsObject()
-  spawn?: { x: number; y: number }
+  @ValidateNested()
+  @Type(() => SpawnDto)
+  spawn?: SpawnDto
 
   @IsOptional()
   @IsArray()
