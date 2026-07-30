@@ -24,6 +24,9 @@ export class AuthService {
 
   async register(email: string, password: string) {
     const normalized = email.trim().toLowerCase()
+    // sufixo reservado pro fallback do OAuth GitHub (contas sem email público) —
+    // registrar um @github.local por senha permitiria sequestrar essa conta
+    if (normalized.endsWith('@github.local')) throw new ConflictException('Email não permitido')
     const existing = await this.userRepo.findOne({ where: { email: normalized } })
     if (existing) throw new ConflictException('Email já cadastrado')
     const hashed = await bcrypt.hash(password, 10)
@@ -50,7 +53,10 @@ export class AuthService {
   }
 
   async me(userId: string) {
-    return this.userRepo.findOne({ where: { id: userId } })
+    return this.userRepo.findOne({
+      where: { id: userId },
+      select: ['id', 'email', 'isGuest', 'organizationId', 'orgRole', 'createdAt'],
+    })
   }
 
   // convidado nunca fica pra trás no banco: ao sair (botão "Sair"), se for
