@@ -43,10 +43,10 @@ problema (era ela que gerava as órfãs), mas não seguiu o fluxo até o fim.
 |---|---|---|
 | Modelo mental | **Servidor**, no lugar de organização/empresa | O produto é social, não corporativo |
 | Vocabulário do mapa | Continua **mundo** | "Canal" descreve mal um mapa pixel art por onde se anda |
-| Escopo do renome | Interface **e código**; banco intacto | Coerência entre tela e código sem arriscar dado — `synchronize: true` transformaria renome de entidade em perda silenciosa |
+| Escopo do renome | **Tudo**: interface, código e banco | O produto é pré-beta, sem usuário real — decisão do Icaro. Coerência total vale mais que preservar dado de teste |
 | Convite | **Link fixo** por servidor, sem expirar, com revogar | Os sete códigos mortos são o sintoma; o que se quer é um link que se possa mandar hoje e continuar valendo |
 | Apagar servidor | **Arquivar** | Escolha do Icaro: dado recuperável |
-| Órfãs atuais | **Apagar de vez** | Sem dono, sem membros, sem mundos: não há quem restaure |
+| Dados atuais | **Base zerada** | Só há conta de teste; começar o beta limpo evita arrastar resíduo. Os 9 feedbacks foram exportados para `docs/historico/` antes |
 | Convidado sem servidor | Vai **direto ao jogo** | Ele já enxerga os mundos abertos; a tela de servidor não deveria aparecer |
 
 ---
@@ -69,21 +69,27 @@ bloqueado é **criar**.
 
 ## Parte 2 — Renome
 
-Interface e código passam a dizer **servidor**; o banco não muda.
-
-No TypeORM isso se faz mantendo o nome físico no decorator:
-
-```ts
-@Entity('organizations')      // tabela intacta
-export class Server { … }
-
-@Column({ name: 'organizationId' })
-serverId: string
-```
+Interface, código **e banco** passam a dizer servidor. Entidades, tabelas e
+colunas — sem mapeamento histórico, sem nome legado em lugar nenhum.
 
 Alcance: 279 ocorrências em 38 arquivos. Rotas da API passam de `/org` para
 `/server`. Como não há consumidor externo além do próprio front — que é
 deployado junto — não é preciso manter as rotas antigas.
+
+**A base é zerada junto.** O produto é pré-beta e só tem conta de teste; começar
+o beta limpo evita arrastar resíduo de seis meses de experimento. Isso torna o
+renome do banco trivial: as tabelas antigas são derrubadas, o `synchronize: true`
+recria o schema novo no boot, e o `MapService` re-semeia os três mundos oficiais
+sozinho, como já faz.
+
+Antes de zerar, duas salvaguardas:
+
+1. **Backup do banco** (`pg_dump`), guardado fora do repositório. Leva segundos
+   na escala atual e é a única volta possível.
+2. **Os 9 feedbacks já foram exportados** para `docs/historico/feedback-testadores-2026-06.md`.
+   Eram o registro de como os testadores guiaram o produto — proporções dos
+   objetos, sentar em cadeira, ghost preview, o problema do microfone — e é a
+   única coisa ali que não se reconstrói.
 
 **Regra para não errar:** o renome é mecânico e o risco está em trocar algo por
 engano. Nenhuma mudança de comportamento entra no mesmo commit do renome; quem
@@ -118,9 +124,9 @@ lateral, mas os dados permanecem. Para o arquivamento não virar a mesma sujeira
 com outro nome, o painel tem uma seção de arquivados com opção de **restaurar** —
 o que estiver lá está lá por decisão de alguém, e é visível.
 
-**As duas órfãs atuais** são caso distinto: sem dono, sem membros e sem mundos,
-não há quem as restaure nem o que preservar. São apagadas por script, uma vez —
-junto com os sete convites vencidos, na mesma passada de limpeza.
+**As órfãs e os convites vencidos** deixam de ser um problema a resolver: a base
+começa zerada (Parte 2), então nascem apenas servidores criados pelo fluxo novo,
+já com o bloqueio a convidados que impede a órfã de aparecer.
 
 ## Parte 5 — Painel do servidor
 
@@ -174,8 +180,6 @@ renomeado junto.
 
 ## Fora de escopo
 
-- **Renomear tabelas e colunas no banco.** Registrado como débito; exigiria
-  migração escrita à mão e janela de deploy.
 - **Servidores públicos / descoberta.** Entrar continua sendo só por link.
 - **Papéis além de admin e membro.** Nada de permissões granulares por enquanto.
 - **Ícone/avatar de servidor.** A barra lateral vai usar as iniciais do nome; arte
@@ -190,9 +194,9 @@ renomeado junto.
 | Risco | Mitigação |
 |---|---|
 | Renome mecânico quebrar algo por engano | Renome sem mudança de comportamento no mesmo commit; typecheck dos dois lados e teste do fluxo completo antes do merge |
-| Divergência entre nome de código e de banco confundir depois | Um comentário no topo de cada entidade renomeada explica que o nome físico é histórico |
+| Zerar a base sem volta | `pg_dump` antes de qualquer comando, guardado fora do repositório; feedbacks já exportados para `docs/historico/` |
 | Arquivar virar acúmulo invisível | Seção de arquivados visível no painel, com restaurar |
-| Apagar as órfãs erradas | O script seleciona por critério estrito (sem membros **e** sem mundos **e** dono inexistente) e imprime o que vai apagar antes de apagar |
+| Schema novo não subir sozinho | Validar em banco descartável local antes de tocar no servidor: derrubar schema, subir a API e conferir que as tabelas e os três mundos oficiais nascem |
 | Convidado entrar por convite e criar sujeira nova | Convidado entra, mas não cria; ao sair, a conta é apagada e a membership junto (comportamento que já existe) |
 
 ## Como validar
@@ -207,5 +211,6 @@ renomeado junto.
    `/server/mine`; restaurar traz de volta com membros e mundos intactos.
 5. **Isolamento:** membro de um servidor não enxerga mundos, membros nem convite
    de outro — repetir os testes de isolamento que já passaram no review de 30/07.
-6. **Órfãs:** rodar o script em modo simulação primeiro e conferir que ele lista
-   exatamente `teste` e `gabs`.
+6. **Base zerada:** após o deploy, criar conta, servidor e mundo do zero e
+   percorrer o fluxo inteiro — é o caminho que todo mundo do beta vai fazer, e
+   nunca foi exercitado numa base limpa.
