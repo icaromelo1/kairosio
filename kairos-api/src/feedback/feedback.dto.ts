@@ -1,9 +1,6 @@
-import { IsEmail, IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator'
+import { IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator'
 
 export class CreateFeedbackDto {
-  @IsEmail()
-  email: string
-
   @IsOptional()
   @IsIn(['bug', 'melhoria'])
   kind?: 'bug' | 'melhoria'
