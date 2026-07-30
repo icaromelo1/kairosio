@@ -90,7 +90,7 @@ async function load() {
   members.value = org.value.members || []
   orgNameEdit.value = org.value.name
   if (!isAdmin.value) { router.replace('/map-select'); return }
-  orgMaps.value = (await fetchMaps()).filter((m) => !(m as any).isTemplate)
+  orgMaps.value = (await fetchMaps()).filter((m) => !m.isTemplate)
 }
 
 async function invite() {
