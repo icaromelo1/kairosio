@@ -76,7 +76,7 @@
     </aside>
 
     <!-- Stage -->
-    <div class="ed-stage" ref="host" @pointerdown="onClick" @pointermove="onMove" @pointerleave="scene?.clearGhost()">
+    <div class="ed-stage" ref="host" @pointerdown="onClick" @pointermove="onMove" @pointerleave="onLeave">
       <!-- só aparece em telas estreitas (a sidebar de 240px vira overlay) -->
       <button class="ed-mobile-toggle" @click="sidebarOpen = !sidebarOpen">{{ sidebarOpen ? '✕' : '☰' }}</button>
     </div>
@@ -238,6 +238,10 @@ function render() {
   map.height = Math.max(8, Math.min(120, map.height))
   scene.setMap(map)
   scene.fit()
+}
+
+function onLeave() {
+  scene?.clearGhost()
 }
 
 function onMove(e: PointerEvent) {
