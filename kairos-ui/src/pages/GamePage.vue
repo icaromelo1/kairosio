@@ -32,25 +32,15 @@
           </button>
         </div>
 
-        <!-- Voz (estilo Discord: quem está na chamada + mute individual) -->
-        <VoicePanel
-          :mode="voiceMode"
-          :voice-on="voiceOn"
-          :mic-muted="micMuted"
-          :mic-available="micAvailable"
-          :self-name="playerName"
-          :peers="voicePanelPeers"
-          :self-speaking="selfSpeaking"
-          :speaking-peer-ids="speakingPeerIds"
-          :camera-on="camOn"
-          :video-peer-ids="videoPeerIds"
-          :video-elements="videoElements"
-          @toggle-voice="toggleVoice"
-          @toggle-mic="toggleMic"
-          @toggle-peer-mute="togglePeerMute"
-          @set-mode="setVoiceModeUi"
-          @toggle-camera="toggleCamera"
-        />
+        <!-- Voz: único ponto de entrada — todo o controle vive dentro do MediaStage -->
+        <div class="column q-gutter-xs">
+          <div class="gp-section-label">Voz</div>
+          <button class="k-btn k-btn-ghost menu-act" @click="openMediaStage">
+            <PixelIcon :name="voiceOn ? 'mic' : 'headphone'" size="0.875rem" />
+            <span class="col">Sala de voz</span>
+            <span v-if="voiceOn" class="gp-voice-live">no ar</span>
+          </button>
+        </div>
 
         <!-- Você -->
         <div class="column q-gutter-xs">
@@ -99,19 +89,6 @@
         perto de <strong>{{ nearby }}</strong>
       </div>
 
-      <!-- Botão de voz (claro: rótulo + estado) -->
-      <div class="gp-voice-wrap column items-end q-gutter-xs">
-        <button
-          :title="voiceOn ? 'Clique pra sair da voz' : 'Clique pra ouvir/falar por voz com quem está perto (mic começa desligado)'"
-          class="gp-voice-btn"
-          :class="{ 'gp-voice-btn-on': voiceOn }"
-          :disabled="voiceConnecting"
-          @click="toggleVoice"
-        >{{ voiceConnecting ? '⏳ conectando…' : voiceOn ? '🔊 Ouvindo a sala' : '🔈 Entrar na voz' }}</button>
-        <span v-if="!voiceOn" class="gp-voice-hint">aproxime-se de alguém pra conversar por voz</span>
-        <button v-else class="gp-voice-reconnect" @click="reconnectVoice">↻ reconectar (se a voz travar)</button>
-      </div>
-
       <!-- Chat -->
       <div class="gp-chat">
         <div v-if="messages.length" ref="chatLog" class="gp-chat-log" @scroll="onChatScroll">
@@ -145,6 +122,8 @@
         <span class="row items-center q-gutter-xs"><span class="k-key">B</span><span class="gp-hud-hint">dançar</span></span>
         <span class="gp-hud-sep">·</span>
         <span class="row items-center q-gutter-xs"><span class="k-key">G</span><span class="gp-hud-hint">acenar</span></span>
+        <span class="gp-hud-sep">·</span>
+        <span class="row items-center q-gutter-xs"><span class="k-key">V</span><span class="gp-hud-hint">voz</span></span>
         <template v-if="activeZone">
           <span class="gp-hud-sep">·</span>
           <span class="row items-center q-gutter-xs"><span class="k-key">E</span><span class="gp-hud-action">{{ activeZone.action }}</span></span>
@@ -167,6 +146,22 @@
           </div>
         </div>
       </div>
+
+      <!-- Sala de voz/vídeo (janela flutuante sobre o mapa) -->
+      <MediaStage
+        v-if="mediaStageOpen"
+        ref="mediaStage"
+        :self-name="playerName"
+        :self-look="look"
+        :peer-looks="peerLooks"
+        :mode="voiceMode"
+        :connecting="voiceConnecting"
+        @close="mediaStageOpen = false"
+        @connect="joinVoice"
+        @leave="leaveVoice"
+        @reconnect="reconnectVoice"
+        @set-mode="setVoiceModeUi"
+      />
 
       <!-- Painel do jukebox -->
       <JukeboxPanel v-if="jukeboxOpen" @close="closeModal" />
@@ -226,7 +221,8 @@ import { photoUrl } from '@/services/character.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import Logo from '@/components/logos/Logo.vue'
 import JukeboxPanel from '@/components/JukeboxPanel.vue'
-import VoicePanel from '@/components/VoicePanel.vue'
+import MediaStage from '@/components/MediaStage.vue'
+import PixelIcon from '@/components/PixelIcon.vue'
 import TaskPanel from '@/components/TaskPanel.vue'
 import NotePanel from '@/components/NotePanel.vue'
 import WhiteboardPanel from '@/components/WhiteboardPanel.vue'
@@ -295,34 +291,53 @@ const chatUnread = ref(false)
 let chatCooldownTimer = 0
 const voiceOn = computed(() => media.state.connected)
 const voiceConnecting = computed(() => media.state.connecting)
-const micMuted = computed(() => media.state.micMuted)
-const micAvailable = computed(() => media.state.micAvailable)
-const camOn = computed(() => media.state.cameraOn)
-const selfSpeaking = computed(() => media.state.selfSpeaking)
+const mediaStageOpen = ref(false)
+const mediaStage = ref<InstanceType<typeof MediaStage> | null>(null)
 // tudo daqui pra baixo que fala com a mídia é chaveado por userId (identity do
 // LiveKit), nunca por socket.id — este continua sendo a chave de avatar/posição
-const videoElements = media.videoElements
-const videoPeerIds = computed(() => [...media.videoElements.value.keys()])
 const voiceIdentities = computed(() => [...media.peers.values()].filter((p) => p.subscribed).map((p) => p.identity))
-const speakingPeerIds = computed(() => [...media.peers.values()].filter((p) => p.speaking).map((p) => p.identity))
+// look dos participantes vem da presença (o LiveKit só conhece identity e nome)
+const peerLooks = computed(() => {
+  const out: Record<string, { name: string; look: AvatarLook }> = {}
+  for (const p of roomPeers.value) {
+    if (!p.userId) continue
+    out[p.userId] = { name: p.name, look: sanitizeLook(p.avatar) }
+  }
+  return out
+})
 
-async function toggleCamera() {
-  await media.setCameraEnabled(!media.state.cameraOn)
+function openMediaStage() {
+  mediaStageOpen.value = true
+  void nextTick(() => mediaStage.value?.restore())
 }
 
-async function toggleVoice() {
-  if (voiceConnecting.value) return
-  if (voiceOn.value) {
-    await media.disconnect()
+// fechar a janela em chamada esconderia um microfone aberto: com voz ativa o
+// atalho minimiza (a tira segue mostrando quem fala) e só fecha desconectado
+function toggleMediaStage() {
+  if (!mediaStageOpen.value) {
+    openMediaStage()
     return
   }
+  if (voiceOn.value) {
+    mediaStage.value?.toggleMinimized()
+    return
+  }
+  mediaStageOpen.value = false
+}
+
+async function joinVoice() {
+  if (voiceConnecting.value || voiceOn.value) return
   error.value = ''
   if (!(await media.connect(currentId.value))) {
     error.value = media.state.error || 'Não foi possível entrar na voz.'
     return
   }
-  // entra só ouvindo — clique no seu nome pra ligar o microfone
+  // entra só ouvindo — o microfone liga na barra de controles do MediaStage
   if (!media.state.micAvailable) error.value = 'Sem acesso ao microfone — você só vai conseguir ouvir.'
+}
+
+async function leaveVoice() {
+  await media.disconnect()
 }
 
 async function reconnectVoice() {
@@ -330,22 +345,9 @@ async function reconnectVoice() {
   if (!(await media.reconnect(currentId.value))) error.value = media.state.error || 'Não foi possível reconectar à voz.'
 }
 
-function toggleMic() {
-  if (!media.state.micAvailable) return // sem permissão de microfone, não tem o que ligar
-  void media.setMicMuted(!media.state.micMuted)
-}
-function togglePeerMute(identity: string) {
-  media.setPeerMuted(identity, !media.peers.get(identity)?.mutedByMe)
-}
 function setVoiceModeUi(mode: 'proximity' | 'room') {
   emitVoiceSetMode(mode)
 }
-// o id que sai daqui volta no togglePeerMute e é comparado com speakingPeerIds/
-// videoPeerIds — todos em espaço de identity, então aqui vai userId
-const voicePanelPeers = computed(() => roomPeers.value.map((p) => {
-  const peer = media.peers.get(p.userId)
-  return { id: p.userId, name: p.name, connected: !!peer?.subscribed, muted: !!peer?.mutedByMe }
-}))
 const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' | 'wave' | 'sit', boost: false }
 // ids dos avatares remotos presentes na cena
 const peerIds = new Set<string>()
@@ -360,10 +362,13 @@ function onKeyDown(e: KeyboardEvent) {
     panMode.value = true
     return
   }
-  if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'e', 'b', 'g', 'escape'].includes(k)) e.preventDefault()
+  // atalho da sala de voz não pode engolir Cmd/Ctrl+V (colar) nem Alt+V
+  const voiceKey = k === 'v' && !e.ctrlKey && !e.metaKey && !e.altKey
+  if (voiceKey || ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'e', 'b', 'g', 'escape'].includes(k)) e.preventDefault()
   if (k === 'e') { tryInteract(); return }
   if (k === 'b') { dancing = !dancing; return }
   if (k === 'g') { emote(); return }
+  if (voiceKey) { toggleMediaStage(); return }
   if (k === 'escape') { closeModal(); return }
   keys.add(k)
 }
@@ -967,47 +972,12 @@ onUnmounted(() => {
   color: var(--text);
 }
 
-.gp-voice-wrap {
-  position: absolute;
-  bottom: 1rem;
-  right: 1.5rem;
-  z-index: 20;
-}
-
-.gp-voice-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  padding: 0.5625rem 0.875rem;
-  border-radius: 1.375rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  border: 0.0625rem solid var(--border-strong);
-  background: rgba(13, 13, 20, 0.85);
-  color: var(--text);
-}
-.gp-voice-btn-on {
-  border-color: var(--ok);
-  background: rgba(52, 211, 153, 0.22);
-}
-
-.gp-voice-hint {
-  font-size: 0.6875rem;
-  color: var(--text-3);
-  background: rgba(13, 13, 20, 0.7);
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
-}
-
-.gp-voice-reconnect {
-  font-size: 0.6875rem;
-  color: var(--text-2);
-  background: rgba(13, 13, 20, 0.7);
-  border: 0.0625rem solid var(--border);
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
-  cursor: pointer;
+.gp-voice-live {
+  flex: none;
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  color: var(--ok);
 }
 
 .gp-chat {
@@ -1254,16 +1224,6 @@ onUnmounted(() => {
     margin-bottom: 0;
   }
 
-  /* Voz: rótulos auxiliares (dica/reconectar) ocupavam largura própria e
-     colidiam com o chat (bottom-left) em telas < ~31.25rem. Fica só o botão. */
-  .gp-voice-hint,
-  .gp-voice-reconnect {
-    display: none;
-  }
-  .gp-voice-wrap {
-    bottom: 0.75rem;
-    right: 0.75rem;
-  }
   .gp-chat {
     bottom: 0.75rem;
     left: 0.75rem;
