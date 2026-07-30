@@ -24,8 +24,11 @@
 - [ ] **Estado do jogo em memória no gateway** (presença, fila do jukebox, lousas).
       Reiniciar a API zera lousas e filas; e não escala pra 2+ instâncias. Só vale
       resolver (Redis adapter) se houver mais de uma instância.
-- [ ] **Bundle único grande** (aviso de chunk >500KB no build). Code-split por rota
-      quando incomodar o carregamento.
+- [ ] **Code-split por rota.** O `livekit-client` já sai do bundle inicial (carga
+      sob demanda, −38%), mas as 11 páginas ainda são importadas estaticamente no
+      router. Trocar por `component: () => import(...)` tiraria também o PixiJS
+      (~250 KB) da landing, login e feedback — telas que não renderizam mapa.
+      ~6 linhas, sem risco. *quick-win*
 - [ ] Decisões em aberto da multi-tenancy (1 org/usuário vs multi-org; clonar
       templates ao entrar numa org). *futuro*
 
