@@ -1,4 +1,4 @@
-import { IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validator'
+import { IsIn, IsString, MaxLength, MinLength } from 'class-validator'
 
 export class CreateOrgDto {
   @IsString()
@@ -15,11 +15,10 @@ export class JoinOrgDto {
 }
 
 export class UpdateOrgDto {
-  @IsOptional()
   @IsString()
   @MinLength(2)
   @MaxLength(40)
-  name?: string
+  name: string
 }
 
 export class SetRoleDto {

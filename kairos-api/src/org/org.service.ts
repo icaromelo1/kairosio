@@ -133,7 +133,9 @@ export class OrgService implements OnModuleInit {
     return this.orgs.findOne({ where: { id: orgId } })
   }
 
-  async setRole(orgId: string, targetId: string, role: 'admin' | 'member') {
+  async setRole(orgId: string, targetId: string, role: 'admin' | 'member', requesterId: string) {
+    // mudar o próprio papel permitiria o último admin se rebaixar e travar a org
+    if (targetId === requesterId) throw new BadRequestException('Você não pode alterar seu próprio papel')
     const target = await this.users.findOne({ where: { id: targetId } })
     if (!target || target.organizationId !== orgId) throw new NotFoundException('Membro não encontrado')
     await this.users.update(targetId, { orgRole: role })
