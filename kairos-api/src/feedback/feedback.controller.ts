@@ -2,10 +2,7 @@ import { Body, Controller, ForbiddenException, Get, Param, Post, Put, Request, U
 import { AuthGuard } from '@nestjs/passport'
 import { FeedbackService } from './feedback.service'
 import { CreateFeedbackDto, UpdateFeedbackStatusDto } from './feedback.dto'
-
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || 'icarodmelof@gmail.com')
-  .split(',')
-  .map((e) => e.trim().toLowerCase())
+import { isAdminEmail } from '../auth/admin'
 
 @Controller('feedback')
 export class FeedbackController {
@@ -18,14 +15,14 @@ export class FeedbackController {
 
   @Get()
   findAll() {
-    return this.feedback.findAll()
+    return this.feedback.findAllPublic()
   }
 
   // mudar o status da correção — só admin (email na allowlist)
   @UseGuards(AuthGuard('jwt'))
   @Put(':id/status')
   updateStatus(@Request() req: any, @Param('id') id: string, @Body() body: UpdateFeedbackStatusDto) {
-    if (!ADMIN_EMAILS.includes((req.user.email || '').toLowerCase())) {
+    if (!isAdminEmail(req.user.email)) {
       throw new ForbiddenException('Apenas administradores podem alterar o status')
     }
     return this.feedback.updateStatus(id, body.status)
