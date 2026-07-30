@@ -2,8 +2,8 @@
   <div class="jb-overlay" @click="$emit('close')">
     <div class="k-card jb-card q-pa-lg column q-gutter-md" @click.stop>
       <div class="row items-center justify-between">
-        <span class="k-chip">📖 notas</span>
-        <button class="k-btn k-btn-ghost k-btn-sm" @click="$emit('close')">esc ✕</button>
+        <span class="k-chip"><PixelIcon name="notes" size="0.6875rem" />notas</span>
+        <button class="k-btn k-btn-ghost k-btn-sm" @click="$emit('close')">esc<PixelIcon name="close" size="0.75rem" /></button>
       </div>
 
       <p v-if="error" class="jb-error">{{ error }}</p>
@@ -24,7 +24,7 @@
         <div v-else-if="!notes.length" class="jb-muted-4 jb-text-sm">nenhuma nota</div>
         <div v-for="n in notes" :key="n.id" class="row items-start justify-between q-gutter-xs jb-queue-item jb-note-item">
           <span class="jb-note-body">{{ n.body }}</span>
-          <button class="k-btn k-btn-ghost k-btn-xs" @click="remove(n)" title="apagar">✕</button>
+          <button class="k-btn k-btn-ghost k-btn-xs" title="apagar nota" aria-label="apagar nota" @click="remove(n)"><PixelIcon name="close" size="0.6875rem" /></button>
         </div>
       </div>
     </div>
@@ -34,6 +34,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { listNotes, createNote, deleteNote, type NoteItem } from '@/services/note.api'
+import PixelIcon from '@/components/PixelIcon.vue'
 
 const props = defineProps<{ mapId: string; objectId: string }>()
 defineEmits(['close'])

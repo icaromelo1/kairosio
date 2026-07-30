@@ -20,7 +20,7 @@
         <span class="ad-invite-label">Link de convite (válido 7 dias):</span>
         <div class="ad-invite-row">
           <input class="ad-invite-input" :value="inviteUrl" readonly @focus="($event.target as HTMLInputElement).select()" />
-          <button class="ad-btn" @click="copyInvite">{{ copied ? '✓ Copiado' : 'Copiar' }}</button>
+          <button class="ad-btn" @click="copyInvite"><PixelIcon v-if="copied" name="check" size="0.875rem" />{{ copied ? 'Copiado' : 'Copiar' }}</button>
         </div>
         <span class="ad-invite-hint">Quem abrir o link entra direto na sua organização (cria conta ou faz login e já cai no convite).</span>
       </div>
@@ -54,7 +54,7 @@
       <label class="ad-label">Nome da organização</label>
       <input v-model.trim="orgNameEdit" maxlength="40" class="ad-input" />
       <button class="ad-btn" @click="saveConfig">Salvar</button>
-      <p v-if="saved" class="ad-ok">✓ Salvo</p>
+      <p v-if="saved" class="ad-ok"><PixelIcon name="check" size="0.875rem" />Salvo</p>
     </section>
   </div>
 </template>
@@ -66,6 +66,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { getMyOrg, createInvite, inviteLink, setMemberRole, removeMember, updateOrg, type Org, type OrgMember } from '@/services/org.api'
 import { fetchMaps, deleteMap } from '@/services/maps.api'
 import type { MapDef } from '@/game/maps'
+import PixelIcon from '@/components/PixelIcon.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -147,7 +148,7 @@ onMounted(load)
 .ad-danger { color: #f87171; border-color: rgba(248,113,113,0.4); }
 .ad-dim { color: #6a6a80; font-size: 0.75rem; }
 .ad-empty { color: #8a8aa0; font-size: 0.8125rem; }
-.ad-btn { background: #7c3aed; border: none; color: #fff; padding: 0.5rem 0.875rem; cursor: pointer; border-radius: 0.25rem; font-weight: 600; }
+.ad-btn { background: #7c3aed; border: none; color: #fff; padding: 0.5rem 0.875rem; cursor: pointer; border-radius: 0.25rem; font-weight: 600; display: inline-flex; align-items: center; gap: 0.375rem; }
 .ad-invite { margin: 0.75rem 0 0; display: flex; flex-direction: column; gap: 0.375rem; }
 .ad-invite-label { font-size: 0.75rem; color: #34d399; }
 .ad-invite-row { display: flex; gap: 0.5rem; }
@@ -156,5 +157,5 @@ onMounted(load)
 .ad-input { width: 100%; box-sizing: border-box; background: #1d1d2a; border: 0.0625rem solid #303045; color: #e8e8f0; padding: 0.5625rem; border-radius: 0.25rem; margin-bottom: 0.75rem; }
 .ad-label { font-size: 0.75rem; color: #8a8aa0; display: block; margin-bottom: 0.3125rem; }
 .ad-error { color: #f87171; text-align: center; }
-.ad-ok { color: #34d399; font-size: 0.8125rem; }
+.ad-ok { color: #34d399; font-size: 0.8125rem; display: flex; align-items: center; gap: 0.375rem; }
 </style>

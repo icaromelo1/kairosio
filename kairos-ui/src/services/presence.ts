@@ -38,6 +38,9 @@ export interface JukeboxState {
 
 export interface RemotePlayer {
   id: string
+  // uuid do usuário — é a identity do participante no LiveKit, o que liga o
+  // avatar (identificado por socket.id) à mídia sem handshake próprio
+  userId: string
   name: string
   avatar: AvatarProps
   map: string
@@ -46,6 +49,15 @@ export interface RemotePlayer {
   facing: Facing
   pose: Pose
   boost?: boolean
+}
+
+// Aviso de transmissão de tela — vem pelo socket, não pelo LiveKit, porque
+// alcança TODO MUNDO do mapa, inclusive quem nunca entrou na voz
+export interface ScreenShareState {
+  id: string
+  userId: string
+  name: string
+  on: boolean
 }
 
 export interface AvatarProps {
@@ -99,6 +111,7 @@ let currentBoardId: string | null = null
 const boardStateListeners = new Set<(strokes: Stroke[]) => void>()
 const boardStrokeListeners = new Set<(stroke: Stroke) => void>()
 const boardClearListeners = new Set<() => void>()
+const screenShareListeners = new Set<(state: ScreenShareState) => void>()
 
 export function connectPresence(opts: JoinOptions) {
   if (socket) return
@@ -139,10 +152,6 @@ export function connectPresence(opts: JoinOptions) {
     if (chatMessages.length > 50) chatMessages.splice(0, chatMessages.length - 50)
   })
 
-  socket.on('rtc-signal', ({ from, signal }: { from: string; signal: unknown }) => {
-    rtcHandler?.(from, signal)
-  })
-
   socket.on('jukeboxState', (s: JukeboxState) => {
     jukeboxState.mode = s.mode
     jukeboxState.queue = s.queue
@@ -156,6 +165,10 @@ export function connectPresence(opts: JoinOptions) {
 
   socket.on('voiceState', ({ mode }: { mode: VoiceMode }) => {
     voiceMode.value = mode
+  })
+
+  socket.on('screenShareState', (state: ScreenShareState) => {
+    for (const cb of screenShareListeners) cb(state)
   })
 
   socket.on('boardState', ({ objectId, strokes }: { objectId: string; strokes: Stroke[] }) => {
@@ -198,21 +211,16 @@ export function emitVoiceSetMode(mode: VoiceMode) {
   socket?.emit('voiceSetMode', { mode })
 }
 
+export function emitScreenShare(on: boolean) {
+  socket?.emit('screenShare', { on })
+}
+export function onScreenShare(cb: (state: ScreenShareState) => void) {
+  screenShareListeners.add(cb)
+  return () => screenShareListeners.delete(cb)
+}
+
 export function emitChat(text: string) {
   socket?.emit('chat', { text })
-}
-
-// ---- sinalização WebRTC (voz por proximidade) ----
-let rtcHandler: ((from: string, signal: unknown) => void) | null = null
-
-export function socketId(): string | undefined {
-  return socket?.id
-}
-export function sendRtcSignal(to: string, signal: unknown) {
-  socket?.emit('rtc-signal', { to, signal })
-}
-export function setRtcHandler(cb: ((from: string, signal: unknown) => void) | null) {
-  rtcHandler = cb
 }
 
 export function emitMove(x: number, y: number, facing: Facing, pose: Pose, boost = false) {

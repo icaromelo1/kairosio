@@ -8,5 +8,6 @@ import { MapController } from './map.controller'
   imports: [TypeOrmModule.forFeature([GameMap])],
   providers: [MapService],
   controllers: [MapController],
+  exports: [MapService],
 })
 export class MapModule {}
