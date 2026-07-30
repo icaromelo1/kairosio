@@ -16,15 +16,15 @@
 
       <div class="ed-label">Histórico</div>
       <div class="ed-tools">
-        <button class="ed-tool" :disabled="!canUndo" @click="undo">↶ Desfazer</button>
-        <button class="ed-tool" :disabled="!canRedo" @click="redo">↷ Refazer</button>
+        <button class="ed-tool" :disabled="!canUndo" @click="undo"><PixelIcon name="undo" size="0.875rem" />Desfazer</button>
+        <button class="ed-tool" :disabled="!canRedo" @click="redo"><PixelIcon name="redo" size="0.875rem" />Refazer</button>
       </div>
 
       <div class="ed-label">Ferramenta</div>
       <div class="ed-tools">
-        <button :class="['ed-tool', tool === 'spawn' && 'k-active']" @click="tool = 'spawn'">⌖ Spawn</button>
-        <button :class="['ed-tool', tool === 'erase' && 'k-active']" @click="tool = 'erase'">⌫ Apagar</button>
-        <button :class="['ed-tool', tool === 'toggle' && 'k-active']" @click="tool = 'toggle'">⊟ Colisão</button>
+        <button :class="['ed-tool', tool === 'spawn' && 'k-active']" @click="tool = 'spawn'"><PixelIcon name="target" size="0.875rem" />Spawn</button>
+        <button :class="['ed-tool', tool === 'erase' && 'k-active']" @click="tool = 'erase'"><PixelIcon name="delete" size="0.875rem" />Apagar</button>
+        <button :class="['ed-tool', tool === 'toggle' && 'k-active']" @click="tool = 'toggle'"><PixelIcon name="wall" size="0.875rem" />Colisão</button>
       </div>
 
       <div class="ed-label">Objetos</div>
@@ -34,7 +34,7 @@
       <label class="ed-checkbox-label">
         <input type="checkbox" v-model="placeSittable" /> sentável
       </label>
-      <button class="ed-tool ed-tool-start" @click="rotate">↻ Girar: {{ placeRotation }}°</button>
+      <button class="ed-tool ed-tool-start" @click="rotate"><PixelIcon name="reload" size="0.875rem" />Girar: {{ placeRotation }}°</button>
       <div class="ed-palette">
         <button
           v-for="p in PALETTE" :key="p.kind + p.label"
@@ -43,14 +43,16 @@
         >{{ p.label }}</button>
       </div>
 
-      <button class="ed-tool ed-tool-start ed-tool-mt" @click="showPixel = !showPixel">{{ showPixel ? '▾' : '▸' }} Criar objeto próprio</button>
+      <button class="ed-tool ed-tool-start ed-tool-mt" @click="showPixel = !showPixel"><PixelIcon :name="showPixel ? 'chevron-down' : 'chevron-right'" size="0.875rem" />Criar objeto próprio</button>
       <div v-if="showPixel" class="ed-pixel-panel column q-gutter-xs">
         <div class="row q-gutter-xs ed-swatch-row">
           <button
             v-for="col in PIXEL_COLORS" :key="col || 'none'" @click="pixelColor = col"
             class="ed-swatch" :class="{ 'ed-swatch-active': pixelColor === col }"
             :style="{ background: col || '#0d0d14' }"
-          >{{ col ? '' : '⌫' }}</button>
+            :title="col ? `pintar com ${col}` : 'apagar o pixel'"
+            :aria-label="col ? `pintar com ${col}` : 'apagar o pixel'"
+          ><PixelIcon v-if="!col" name="delete" size="0.75rem" /></button>
         </div>
         <div class="ed-pixel-grid">
           <template v-for="(row, r) in pixelGrid">
@@ -78,7 +80,12 @@
     <!-- Stage -->
     <div class="ed-stage" ref="host" @pointerdown="onClick" @pointermove="onMove" @pointerleave="onLeave">
       <!-- só aparece em telas estreitas (a sidebar de 240px vira overlay) -->
-      <button class="ed-mobile-toggle" @click="sidebarOpen = !sidebarOpen">{{ sidebarOpen ? '✕' : '☰' }}</button>
+      <button
+        class="ed-mobile-toggle"
+        :title="sidebarOpen ? 'Fechar ferramentas' : 'Abrir ferramentas'"
+        :aria-label="sidebarOpen ? 'Fechar ferramentas' : 'Abrir ferramentas'"
+        @click="sidebarOpen = !sidebarOpen"
+      ><PixelIcon :name="sidebarOpen ? 'close' : 'menu'" size="1.125rem" /></button>
     </div>
   </div>
 </template>
@@ -91,6 +98,7 @@ import type { MapDef, MapObject, ObjectKind } from '@/game/maps'
 import { isSolid } from '@/game/maps'
 import { fetchMap, createMap, saveMap, deleteMap } from '@/services/maps.api'
 import { useAuthStore } from '@/stores/useAuthStore'
+import PixelIcon from '@/components/PixelIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -393,8 +401,12 @@ onUnmounted(() => {
 .ed-row label { flex: 1; font-size: 0.6875rem; color: #8a8aa0; display: flex; flex-direction: column; gap: 0.1875rem; }
 .ed-num { background: #1d1d2a; border: 0.0625rem solid #303045; color: #e8e8f0; padding: 0.375rem; border-radius: 0.25rem; width: 100%; box-sizing: border-box; }
 .ed-label { font-size: 0.625rem; letter-spacing: 0.16em; color: #6a6a80; text-transform: uppercase; margin-top: 0.375rem; }
-.ed-tools { display: flex; gap: 0.375rem; }
+/* o ícone + gap deixa cada botão ~8px mais largo que o glifo de texto que havia
+   antes: os 3 de "Ferramenta" não cabem mais na sidebar de 15rem numa linha só */
+.ed-tools { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+.ed-tools .ed-tool { flex: 1 1 auto; }
 .ed-tool, .ed-obj { background: #1d1d2a; border: 0.0625rem solid #303045; color: #c8c8d8; padding: 0.375rem 0.5rem; cursor: pointer; border-radius: 0.25rem; font-size: 0.75rem; }
+.ed-tool { display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; }
 .ed-tool.k-active, .ed-obj.k-active { color: #fff; }
 .ed-tool:disabled { opacity: 0.4; cursor: default; }
 .ed-palette { display: grid; grid-template-columns: 1fr 1fr; gap: 0.375rem; }
@@ -412,7 +424,7 @@ onUnmounted(() => {
 
 .ed-pixel-panel { background: #1a1a26; border: 0.0625rem solid #262636; padding: 0.5rem; border-radius: 0.375rem; }
 .ed-swatch-row { flex-wrap: wrap; }
-.ed-swatch { width: 1.125rem; height: 1.125rem; border-radius: 0.1875rem; cursor: pointer; border: 0.0625rem solid #444; }
+.ed-swatch { width: 1.125rem; height: 1.125rem; border-radius: 0.1875rem; cursor: pointer; border: 0.0625rem solid #444; display: grid; place-items: center; padding: 0; color: var(--text); }
 .ed-swatch-active { border: 0.125rem solid #fff; }
 .ed-pixel-grid { display: grid; grid-template-columns: repeat(8, 0.9375rem); gap: 0.0625rem; width: fit-content; }
 .ed-pixel-cell { width: 0.9375rem; height: 0.9375rem; cursor: crosshair; }
@@ -431,11 +443,13 @@ onUnmounted(() => {
   cursor: pointer;
   border-radius: 0.25rem;
   font-size: 1rem;
+  place-items: center;
+  padding: 0;
 }
 
 /* Telas estreitas (ou zoom alto): 15rem de sidebar fixa sobrava quase nada pro
-   canvas do editor. Vira overlay flutuante, escondida por padrão; o botão ☰
-   abre por cima do canvas em vez de dividir o grid. */
+   canvas do editor. Vira overlay flutuante, escondida por padrão; o botão de
+   menu abre por cima do canvas em vez de dividir o grid. */
 @media (max-width: 48rem) {
   .ed-root {
     grid-template-columns: 1fr;
@@ -454,7 +468,7 @@ onUnmounted(() => {
     box-shadow: 0.5rem 0 1.5rem rgba(0, 0, 0, 0.5);
   }
   .ed-mobile-toggle {
-    display: block;
+    display: grid;
   }
 }
 </style>
