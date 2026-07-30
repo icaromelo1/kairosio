@@ -11,6 +11,7 @@ import { Repository } from 'typeorm'
 import { Server, Socket } from 'socket.io'
 import { User } from '../user/user.entity'
 import { JukeboxService } from '../jukebox/jukebox.service'
+import { jwtSecret } from '../auth/jwt-secret'
 
 type MapId = string
 type Facing = 'down' | 'up' | 'left' | 'right'
@@ -69,8 +70,47 @@ interface WhiteboardState {
 const MOVE_MIN_INTERVAL_MS = 50
 const BOARD_MAX_POINTS_PER_STROKE = 500
 const BOARD_MAX_STROKES = 300
+const BOARD_MAX_PER_ROOM = 50
+const NAME_MAX = 40
+const AVATAR_MAX_JSON = 2048
+const COORD_LIMIT = 100000
+const JUKEBOX_ADD_COOLDOWN_MS = 5000
+const JUKEBOX_MAX_QUEUE = 50
 const FACING_VALUES: Facing[] = ['down', 'up', 'left', 'right']
 const POSE_VALUES: Pose[] = ['idle', 'walk', 'dance', 'wave', 'sit']
+const HAIR_STYLES = new Set(['short', 'curly', 'ponytail', 'mohawk', 'helmet', 'buzz', 'long'])
+const ACCESSORIES = new Set(['none', 'glasses', 'hat'])
+const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/
+const PHOTO_PATH = /\/kairos-api\/character\/photo\/([a-f0-9-]+\.(?:jpg|png|webp))$/
+
+function sanitizeName(raw: unknown): string {
+  const name = String(raw ?? '').trim().slice(0, NAME_MAX)
+  return name || 'Convidado'
+}
+
+function sanitizeCoord(raw: unknown, fallback: number): number {
+  const n = Number(raw)
+  return Number.isFinite(n) && Math.abs(n) <= COORD_LIMIT ? n : fallback
+}
+
+// só os campos conhecidos do look, cada um validado — e a foto vira o caminho
+// CANÔNICO relativo (/kairos-api/character/photo/<arquivo>), nunca uma URL
+// externa arbitrária repassada pra todo mundo carregar
+function sanitizeAvatar(raw: unknown): Record<string, string | null> {
+  if (!raw || typeof raw !== 'object' || JSON.stringify(raw).length > AVATAR_MAX_JSON) return {}
+  const a = raw as Record<string, unknown>
+  const out: Record<string, string | null> = {}
+  if (HAIR_STYLES.has(String(a.hairStyle))) out.hairStyle = String(a.hairStyle)
+  if (ACCESSORIES.has(String(a.accessory))) out.accessory = String(a.accessory)
+  for (const key of ['hairColor', 'skin', 'topColor', 'pantsColor'] as const) {
+    if (typeof a[key] === 'string' && HEX_COLOR.test(a[key] as string)) out[key] = a[key] as string
+  }
+  if (typeof a.photoUrl === 'string' && a.photoUrl.length <= 300) {
+    const m = PHOTO_PATH.exec(a.photoUrl)
+    if (m) out.photoUrl = `/kairos-api/character/photo/${m[1]}`
+  }
+  return out
+}
 
 @WebSocketGateway({
   cors: { origin: true, credentials: true },
@@ -95,6 +135,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   private readonly voiceMode = new Map<string, VoiceMode>()
   private readonly whiteboards = new Map<string, WhiteboardState>()
   private readonly lastMoveAt = new Map<string, number>()
+  private readonly lastJukeboxAddAt = new Map<string, number>()
 
   constructor(
     private readonly jwt: JwtService,
@@ -114,7 +155,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     try {
       const token = socket.handshake.auth?.token as string | undefined
       if (token) {
-        const payload: any = this.jwt.verify(token, { secret: process.env.JWT_SECRET || 'kairos-secret' })
+        const payload: any = this.jwt.verify(token, { secret: jwtSecret() })
         const user = await this.users.findOne({ where: { id: payload.sub } })
         org = user?.organizationId ?? null
         userId = user?.id ?? null
@@ -122,6 +163,12 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     } catch {
       org = null
       userId = null
+    }
+    // sem usuário válido não entra — todo cliente legítimo tem token (login,
+    // registro ou convidado); socket anônimo era spam/DoS de graça nas salas
+    if (!userId) {
+      socket.disconnect(true)
+      return
     }
     this.socketOrg.set(socket.id, org)
     this.socketUserId.set(socket.id, userId)
@@ -146,6 +193,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     if (player) {
       this.players.delete(socket.id)
       this.server.to(this.room(player.org, player.map)).emit('playerLeft', { id: socket.id })
+      this.cleanupRoomIfEmpty(player.org, player.map)
     }
     const userId = this.socketUserId.get(socket.id)
     // só remove se ESSE socket ainda for o "dono" da sessão — evita que o
@@ -154,19 +202,31 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     this.socketOrg.delete(socket.id)
     this.socketUserId.delete(socket.id)
     this.lastMoveAt.delete(socket.id)
+    this.lastJukeboxAddAt.delete(socket.id)
   }
 
   @SubscribeMessage('join')
   handleJoin(socket: Socket, payload: JoinPayload) {
     const org = this.socketOrg.get(socket.id) ?? null
+    const map = String(payload?.map ?? '').slice(0, 64)
+    if (!map) return
+    // join repetido (ex: remount sem switchMap) — sai da sala velha antes,
+    // senão o socket fica nas duas e o avatar vira fantasma pra quem ficou
+    const existing = this.players.get(socket.id)
+    if (existing && existing.map !== map) {
+      const oldRoom = this.room(existing.org, existing.map)
+      socket.leave(oldRoom)
+      this.server.to(oldRoom).emit('playerLeft', { id: socket.id })
+      this.cleanupRoomIfEmpty(existing.org, existing.map)
+    }
     const player: Player = {
       id: socket.id,
-      name: payload.name,
-      avatar: payload.avatar,
-      map: payload.map,
+      name: sanitizeName(payload?.name),
+      avatar: sanitizeAvatar(payload?.avatar),
+      map,
       org,
-      x: payload.x,
-      y: payload.y,
+      x: sanitizeCoord(payload?.x, 0),
+      y: sanitizeCoord(payload?.y, 0),
       facing: 'down',
       pose: 'idle',
       boost: false,
@@ -187,8 +247,8 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     const now = Date.now()
     if (now - (this.lastMoveAt.get(socket.id) ?? 0) < MOVE_MIN_INTERVAL_MS) return
     this.lastMoveAt.set(socket.id, now)
-    if (typeof payload?.x !== 'number' || !Number.isFinite(payload.x)) return
-    if (typeof payload?.y !== 'number' || !Number.isFinite(payload.y)) return
+    if (typeof payload?.x !== 'number' || !Number.isFinite(payload.x) || Math.abs(payload.x) > COORD_LIMIT) return
+    if (typeof payload?.y !== 'number' || !Number.isFinite(payload.y) || Math.abs(payload.y) > COORD_LIMIT) return
     const facing = FACING_VALUES.includes(payload.facing as Facing) ? (payload.facing as Facing) : undefined
     const pose = POSE_VALUES.includes(payload.pose as Pose) ? (payload.pose as Pose) : undefined
     player.x = payload.x
@@ -233,10 +293,14 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   @SubscribeMessage('switchMap')
   handleSwitchMap(socket: Socket, payload: { map: MapId }) {
     const player = this.players.get(socket.id)
-    if (!player || player.map === payload.map) return
-    socket.leave(this.room(player.org, player.map))
-    this.server.to(this.room(player.org, player.map)).emit('playerLeft', { id: socket.id })
-    player.map = payload.map
+    const map = String(payload?.map ?? '').slice(0, 64)
+    if (!player || !map || player.map === map) return
+    const oldOrg = player.org
+    const oldMap = player.map
+    socket.leave(this.room(oldOrg, oldMap))
+    this.server.to(this.room(oldOrg, oldMap)).emit('playerLeft', { id: socket.id })
+    player.map = map
+    this.cleanupRoomIfEmpty(oldOrg, oldMap)
     const room = this.room(player.org, player.map)
     socket.join(room)
     socket.emit('players', this.peersInRoom(player.org, player.map, socket.id))
@@ -261,22 +325,25 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   @SubscribeMessage('boardJoin')
   handleBoardJoin(socket: Socket, payload: { objectId: string }) {
     const player = this.players.get(socket.id)
-    if (!player) return
-    const key = this.boardKey(this.room(player.org, player.map), payload.objectId)
-    socket.emit('boardState', this.whiteboardStateFor(key).strokes)
+    const objectId = this.sanitizeObjectId(payload?.objectId)
+    if (!player || !objectId) return
+    const key = this.boardKey(this.room(player.org, player.map), objectId)
+    socket.emit('boardState', { objectId, strokes: this.whiteboardStateFor(key).strokes })
   }
 
   @SubscribeMessage('boardStroke')
   handleBoardStroke(socket: Socket, payload: { objectId: string; stroke: Stroke }) {
     const player = this.players.get(socket.id)
-    if (!player) return
+    const objectId = this.sanitizeObjectId(payload?.objectId)
+    if (!player || !objectId) return
     const stroke = payload?.stroke
-    if (!stroke || typeof stroke.id !== 'string' || !Array.isArray(stroke.points)) return
-    if (stroke.points.length > BOARD_MAX_POINTS_PER_STROKE) {
-      stroke.points = stroke.points.slice(0, BOARD_MAX_POINTS_PER_STROKE)
-    }
+    if (!stroke || typeof stroke.id !== 'string' || stroke.id.length > 64 || !Array.isArray(stroke.points)) return
+    if (typeof stroke.color !== 'string' || stroke.color.length > 32) stroke.color = '#111111'
+    stroke.points = stroke.points
+      .filter((p) => p && Number.isFinite(Number(p.x)) && Number.isFinite(Number(p.y)))
+      .slice(0, BOARD_MAX_POINTS_PER_STROKE)
     const room = this.room(player.org, player.map)
-    const key = this.boardKey(room, payload.objectId)
+    const key = this.boardKey(room, objectId)
     const state = this.whiteboardStateFor(key)
     const existingIndex = state.strokes.findIndex((s) => s.id === stroke.id)
     if (existingIndex >= 0) {
@@ -285,17 +352,23 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       state.strokes.push(stroke)
       if (state.strokes.length > BOARD_MAX_STROKES) state.strokes.shift()
     }
-    socket.to(room).emit('boardStroke', { objectId: payload.objectId, stroke })
+    socket.to(room).emit('boardStroke', { objectId, stroke })
   }
 
   @SubscribeMessage('boardClear')
   handleBoardClear(socket: Socket, payload: { objectId: string }) {
     const player = this.players.get(socket.id)
-    if (!player) return
+    const objectId = this.sanitizeObjectId(payload?.objectId)
+    if (!player || !objectId) return
     const room = this.room(player.org, player.map)
-    const key = this.boardKey(room, payload.objectId)
+    const key = this.boardKey(room, objectId)
     this.whiteboardStateFor(key).strokes = []
-    socket.to(room).emit('boardClear', { objectId: payload.objectId })
+    socket.to(room).emit('boardClear', { objectId })
+  }
+
+  private sanitizeObjectId(raw: unknown): string | null {
+    const id = String(raw ?? '').trim()
+    return id && id.length <= 64 ? id : null
   }
 
   private boardKey(room: string, objectId: string): string {
@@ -305,10 +378,35 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   private whiteboardStateFor(key: string): WhiteboardState {
     let state = this.whiteboards.get(key)
     if (!state) {
+      // cap por sala: objectId vem do cliente — sem limite, ids inventados
+      // criariam lousas infinitas na memória
+      const room = key.slice(0, key.lastIndexOf(':'))
+      let count = 0
+      for (const k of this.whiteboards.keys()) {
+        if (k.startsWith(`${room}:`)) count++
+      }
+      if (count >= BOARD_MAX_PER_ROOM) {
+        const oldest = [...this.whiteboards.keys()].find((k) => k.startsWith(`${room}:`))
+        if (oldest) this.whiteboards.delete(oldest)
+      }
       state = { strokes: [] }
       this.whiteboards.set(key, state)
     }
     return state
+  }
+
+  // sala esvaziou → para o timer do jukebox e descarta fila/modo de voz (música
+  // tocando pra ninguém e estado acumulando pra sempre); as lousas ficam — são o
+  // "conteúdo" da sala e já têm cap próprio
+  private cleanupRoomIfEmpty(org: string | null, map: MapId) {
+    for (const p of this.players.values()) {
+      if (p.org === org && p.map === map) return
+    }
+    const room = this.room(org, map)
+    const juke = this.jukebox.get(room)
+    if (juke?.timer) clearTimeout(juke.timer)
+    this.jukebox.delete(room)
+    this.voiceMode.delete(room)
   }
 
   // ---- jukebox: fila por sala (org:map), sincronizada por startedAt ----
@@ -331,6 +429,20 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     } catch (e) {
       socket.emit('jukeboxError', { message: (e as Error).message || 'Link inválido' })
       return
+    }
+    if (state.queue.length >= JUKEBOX_MAX_QUEUE) {
+      socket.emit('jukeboxError', { message: `Fila cheia (máximo ${JUKEBOX_MAX_QUEUE} músicas)` })
+      return
+    }
+    // cooldown por socket SÓ pra música nova (dispara yt-dlp) — re-adicionar da
+    // biblioteca é barato e o "tocar tudo" manda várias de uma vez de propósito
+    if (!(await this.jukeboxService.isKnown(youtubeId))) {
+      const last = this.lastJukeboxAddAt.get(socket.id) ?? 0
+      if (Date.now() - last < JUKEBOX_ADD_COOLDOWN_MS) {
+        socket.emit('jukeboxError', { message: 'Calma — espere alguns segundos entre downloads' })
+        return
+      }
+      this.lastJukeboxAddAt.set(socket.id, Date.now())
     }
     // fila de TOCAR e fila de BAIXAR são coisas diferentes: a mesma música pode
     // entrar quantas vezes quiser na fila de tocar — o download em si é dedupado

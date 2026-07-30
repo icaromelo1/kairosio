@@ -153,7 +153,8 @@ export function connectPresence(opts: JoinOptions) {
     voiceMode.value = mode
   })
 
-  socket.on('boardState', (strokes: Stroke[]) => {
+  socket.on('boardState', ({ objectId, strokes }: { objectId: string; strokes: Stroke[] }) => {
+    if (objectId !== currentBoardId) return
     for (const cb of boardStateListeners) cb(strokes)
   })
   socket.on('boardStroke', ({ objectId, stroke }: { objectId: string; stroke: Stroke }) => {
