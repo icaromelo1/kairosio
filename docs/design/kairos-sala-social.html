@@ -1,0 +1,852 @@
+<title>Kairos — Sala Social</title>
+
+<style>
+@font-face {
+  font-family: 'PressStart';
+  src: url(data:font/woff2;base64,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) format('woff2');
+  font-display: block;
+}
+
+:root {
+  --void: #0a0a10;
+  --panel: #15151f;
+  --raised: #1d1d2a;
+  --line: rgba(255,255,255,.10);
+  --line-hi: rgba(255,255,255,.22);
+  --ink: #e8e8f0;
+  --ink-2: #b6b6c8;
+  --ink-3: #7a7a92;
+  --roxo: #7c3aed;
+  --roxo-hi: #a78bfa;
+  --ambar: #fbbf24;
+  --ok: #34d399;
+  --risco: #f87171;
+  --page: #0d0d14;
+  --card: #15151f;
+
+  --pixel: 'PressStart', ui-monospace, monospace;
+  --sans: ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --mono: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --page: #efedf5;
+    --card: #ffffff;
+    --ink: #16121f;
+    --ink-2: #443c58;
+    --ink-3: #6b6280;
+    --line: rgba(20,12,40,.14);
+    --line-hi: rgba(20,12,40,.30);
+    --roxo: #6d28d9;
+    --roxo-hi: #5b21b6;
+    --ambar: #a45c07;
+    --ok: #067a53;
+    --risco: #b91c1c;
+  }
+}
+:root[data-theme="light"] {
+  --page: #efedf5;
+  --card: #ffffff;
+  --ink: #16121f;
+  --ink-2: #443c58;
+  --ink-3: #6b6280;
+  --line: rgba(20,12,40,.14);
+  --line-hi: rgba(20,12,40,.30);
+  --roxo: #6d28d9;
+  --roxo-hi: #5b21b6;
+  --ambar: #a45c07;
+  --ok: #067a53;
+  --risco: #b91c1c;
+}
+:root[data-theme="dark"] {
+  --page: #0d0d14;
+  --card: #15151f;
+  --ink: #e8e8f0;
+  --ink-2: #b6b6c8;
+  --ink-3: #7a7a92;
+  --line: rgba(255,255,255,.10);
+  --line-hi: rgba(255,255,255,.22);
+  --roxo: #7c3aed;
+  --roxo-hi: #a78bfa;
+  --ambar: #fbbf24;
+  --ok: #34d399;
+  --risco: #f87171;
+}
+
+body {
+  margin: 0;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+.wrap {
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 0 1.5rem 6rem;
+}
+.col {
+  max-width: 40rem;
+}
+.col p { margin: 0 0 1rem; }
+.col p:last-child { margin-bottom: 0; }
+
+/* ---------- cabeçalho ---------- */
+.top {
+  padding: 4rem 0 3rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.eyebrow {
+  font-family: var(--pixel);
+  font-size: .5rem;
+  letter-spacing: .12em;
+  color: var(--roxo-hi);
+  text-transform: uppercase;
+}
+h1 {
+  font-family: var(--pixel);
+  font-size: clamp(1.05rem, 3.6vw, 1.9rem);
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.lede {
+  font-size: 1.15rem;
+  color: var(--ink-2);
+  max-width: 34rem;
+  margin: 0;
+}
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+}
+.tag {
+  font-family: var(--mono);
+  font-size: .75rem;
+  padding: .3rem .6rem;
+  border: 1px solid var(--line-hi);
+  color: var(--ink-2);
+}
+.tag-ok { border-color: var(--ok); color: var(--ok); }
+
+/* ---------- seções ---------- */
+section { padding: 2.5rem 0; border-top: 1px solid var(--line); }
+h2 {
+  font-family: var(--pixel);
+  font-size: .8rem;
+  line-height: 1.6;
+  letter-spacing: .04em;
+  margin: 0 0 1.5rem;
+  color: var(--ink);
+}
+h3 {
+  font-family: var(--mono);
+  font-size: .8rem;
+  text-transform: uppercase;
+  letter-spacing: .1em;
+  color: var(--roxo-hi);
+  margin: 2rem 0 .75rem;
+  font-weight: 600;
+}
+
+/* ---------- problema ---------- */
+.probs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  margin-bottom: 1.5rem;
+}
+.prob { background: var(--card); padding: 1.25rem; }
+.prob-n {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--ambar);
+  display: block;
+  line-height: 1.2;
+}
+.prob-t {
+  font-weight: 600;
+  font-size: .95rem;
+  margin: .4rem 0 .3rem;
+}
+.prob-d { font-size: .875rem; color: var(--ink-3); line-height: 1.5; }
+
+/* ---------- mockup: sempre no mundo escuro do jogo ---------- */
+.screen {
+  background: #0d0d14;
+  border: 3px solid #2a2a3a;
+  box-shadow: 6px 6px 0 rgba(0,0,0,.5);
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  min-height: 22rem;
+  background-image:
+    linear-gradient(rgba(255,255,255,.022) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.022) 1px, transparent 1px);
+  background-size: 2.5rem 2.5rem;
+  color: #e8e8f0;
+}
+.screen-cap {
+  font-family: var(--mono);
+  font-size: .75rem;
+  color: var(--ink-3);
+  margin-top: .75rem;
+}
+
+/* avatares no "mapa" */
+.on-map { position: absolute; display: flex; flex-direction: column; align-items: center; gap: .25rem; }
+.on-map .nm {
+  font-family: var(--mono); font-size: .6rem; color: #cfcfe0;
+  background: rgba(10,10,16,.8); padding: .1rem .3rem; white-space: nowrap;
+}
+
+/* janela flutuante do MediaStage */
+.stage {
+  position: absolute;
+  left: 4%; top: 6%;
+  width: 66%;
+  background: #15151f;
+  border: 2px solid #3a3a4e;
+  box-shadow: 5px 5px 0 rgba(0,0,0,.55);
+  display: flex;
+  flex-direction: column;
+}
+.stage-bar {
+  display: flex; align-items: center; gap: .5rem;
+  padding: .35rem .5rem;
+  border-bottom: 1px solid #2a2a3a;
+  background: #1d1d2a;
+}
+.stage-ttl {
+  font-family: var(--pixel); font-size: .4rem; color: #a78bfa;
+  letter-spacing: .06em;
+}
+.stage-acts { margin-left: auto; display: flex; gap: .35rem; }
+.wbtn { width: .9rem; height: .9rem; border: 1px solid #4a4a60; display: block; }
+
+.tiles {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  padding: 3px;
+}
+.tile {
+  background: #0f0f18;
+  border: 2px solid #2a2a3a;
+  aspect-ratio: 16 / 10;
+  position: relative;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden;
+}
+.tile-speaking { border-color: #34d399; }
+.tile-lbl {
+  position: absolute; left: .25rem; bottom: .25rem;
+  font-family: var(--mono); font-size: .55rem;
+  background: rgba(10,10,16,.85); padding: .1rem .3rem;
+  display: flex; align-items: center; gap: .2rem;
+  color: #e8e8f0;
+}
+.badges { position: absolute; right: .25rem; top: .25rem; display: flex; gap: .2rem; }
+.bdg {
+  font-family: var(--mono); font-size: .5rem; font-weight: 700;
+  padding: .1rem .25rem; background: rgba(10,10,16,.9); color: #cfcfe0;
+  border: 1px solid #3a3a4e;
+}
+.bdg-live { background: #b91c1c; color: #fff; border-color: #b91c1c; }
+
+/* conteúdo simulado da tela compartilhada */
+.shared-code { width: 100%; height: 100%; padding: .4rem; display: flex; flex-direction: column; gap: .18rem; background: #101820; }
+.cl { height: .28rem; background: #2b3f52; }
+.cl.a { width: 62%; background: #3d6a8f; }
+.cl.b { width: 45%; }
+.cl.c { width: 78%; background: #4a7a5c; }
+.cl.d { width: 30%; }
+.cl.e { width: 55%; background: #6a5a8f; }
+.cl.f { width: 70%; }
+
+/* tile não assinado */
+.tile-off { background: #0c0c14; flex-direction: column; gap: .3rem; }
+.watch-btn {
+  font-family: var(--mono); font-size: .55rem;
+  border: 1px solid #7c3aed; color: #a78bfa; padding: .15rem .4rem;
+  background: rgba(124,58,237,.12);
+}
+.tile-far { opacity: .38; }
+
+/* barra de controles */
+.ctrls {
+  display: flex; justify-content: center; gap: .35rem;
+  padding: .45rem; border-top: 1px solid #2a2a3a; background: #1d1d2a;
+}
+.ctrl {
+  width: 1.7rem; height: 1.7rem;
+  display: flex; align-items: center; justify-content: center;
+  background: #2a2a3a; border: 1px solid #3a3a4e; color: #e8e8f0;
+  position: relative;
+}
+.ctrl svg { width: .9rem; height: .9rem; }
+.ctrl-on { background: #7c3aed; border-color: #a78bfa; }
+.ctrl-off::after {
+  content: ""; position: absolute; left: 12%; top: 46%;
+  width: 76%; height: 2px; background: #f87171;
+  transform: rotate(-45deg);
+}
+.ctrl-leave { background: #b91c1c; border-color: #ef4444; }
+
+/* chat sobreposto */
+.chat-ov {
+  position: absolute; left: 4%; bottom: 5%; width: 40%;
+  background: rgba(13,13,20,.72);
+  border: 1px solid rgba(255,255,255,.14);
+  padding: .35rem;
+  display: flex; flex-direction: column; gap: .2rem;
+  font-family: var(--mono); font-size: .58rem;
+}
+.chat-ln { color: #cfcfe0; }
+.chat-who { color: #a78bfa; }
+.chat-in {
+  margin-top: .2rem; border-top: 1px solid rgba(255,255,255,.12);
+  padding-top: .25rem; color: #6a6a80; display: flex; justify-content: space-between;
+}
+.chat-cnt { color: #4a4a60; }
+
+/* toast de notificação */
+.toast {
+  position: absolute; right: 3%; top: 5%;
+  background: #1d1d2a; border: 2px solid #7c3aed;
+  box-shadow: 3px 3px 0 rgba(0,0,0,.5);
+  padding: .35rem .5rem;
+  font-family: var(--mono); font-size: .58rem;
+  display: flex; align-items: center; gap: .35rem;
+  max-width: 30%;
+  color: #e8e8f0;
+}
+.toast svg { width: .8rem; height: .8rem; color: #a78bfa; flex-shrink: 0; }
+
+/* ---------- topologia ---------- */
+.topo {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 1.5rem;
+}
+.topo-card { border: 1px solid var(--line); background: var(--card); padding: 1.25rem; }
+.topo-h {
+  font-family: var(--mono); font-size: .8rem; text-transform: uppercase;
+  letter-spacing: .08em; margin-bottom: .75rem; font-weight: 600;
+}
+.topo-bad { color: var(--risco); }
+.topo-good { color: var(--ok); }
+.topo svg { width: 100%; height: auto; display: block; }
+.topo-note { font-size: .85rem; color: var(--ink-3); margin-top: .75rem; line-height: 1.5; }
+.topo-note strong { color: var(--ink); font-variant-numeric: tabular-nums; }
+
+/* ---------- decisões ---------- */
+.dec { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.dec-row { background: var(--card); padding: 1rem 1.25rem; display: grid; grid-template-columns: 9rem 1fr; gap: 1rem; }
+.dec-k {
+  font-family: var(--mono); font-size: .78rem; text-transform: uppercase;
+  letter-spacing: .06em; color: var(--ink-3); padding-top: .15rem;
+}
+.dec-v strong { color: var(--roxo-hi); }
+.dec-v { font-size: .95rem; }
+.dec-why { display: block; color: var(--ink-3); font-size: .85rem; margin-top: .2rem; }
+
+/* ---------- ícones ---------- */
+.icons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(7rem, 1fr));
+  gap: 1px;
+  background: var(--line);
+  border: 1px solid var(--line);
+}
+.ico {
+  background: var(--card);
+  padding: .9rem .5rem;
+  display: flex; flex-direction: column; align-items: center; gap: .4rem;
+  text-align: center;
+}
+.ico-swap { display: flex; align-items: center; gap: .5rem; }
+.ico-emoji { font-size: 1.05rem; opacity: .45; filter: grayscale(1); }
+.ico-arrow { color: var(--ink-3); font-family: var(--mono); font-size: .7rem; }
+.ico svg { width: 1.35rem; height: 1.35rem; color: var(--roxo-hi); display: block; }
+.ico-nm { font-family: var(--mono); font-size: .66rem; color: var(--ink-3); }
+.ico-off { position: relative; display: inline-flex; }
+.ico-off::after {
+  content: ""; position: absolute; left: 4%; top: 46%;
+  width: 92%; height: 2px; background: var(--risco); transform: rotate(-45deg);
+}
+
+/* ---------- riscos ---------- */
+.risks { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.risk { background: var(--card); padding: 1rem 1.25rem; display: grid; grid-template-columns: 1.5rem 1fr; gap: .75rem; }
+.risk-b { width: .5rem; height: .5rem; background: var(--ambar); margin-top: .45rem; }
+.risk-b.hi { background: var(--risco); }
+.risk-t { font-weight: 600; font-size: .95rem; }
+.risk-m { color: var(--ink-3); font-size: .875rem; display: block; margin-top: .2rem; line-height: 1.5; }
+
+/* ---------- fases ---------- */
+.fases { display: flex; flex-direction: column; gap: 1px; background: var(--line); border: 1px solid var(--line); }
+.fase { background: var(--card); padding: 1.1rem 1.25rem; display: grid; grid-template-columns: 2.5rem 1fr; gap: 1rem; align-items: start; }
+.fase-n {
+  font-family: var(--pixel); font-size: .7rem; color: var(--roxo-hi);
+  padding-top: .15rem;
+}
+.fase-t { font-weight: 600; margin-bottom: .2rem; }
+.fase-d { color: var(--ink-3); font-size: .9rem; line-height: 1.55; }
+.fase-dep { font-family: var(--mono); font-size: .72rem; color: var(--ambar); margin-top: .35rem; display: block; }
+
+/* ---------- fora de escopo ---------- */
+.out { display: flex; flex-wrap: wrap; gap: .5rem; }
+.out-i {
+  font-family: var(--mono); font-size: .78rem;
+  border: 1px dashed var(--line-hi); color: var(--ink-3);
+  padding: .35rem .6rem;
+}
+
+footer {
+  border-top: 1px solid var(--line);
+  padding-top: 1.5rem;
+  font-family: var(--mono);
+  font-size: .78rem;
+  color: var(--ink-3);
+}
+
+a { color: var(--roxo-hi); }
+a:focus-visible, .ctrl:focus-visible { outline: 2px solid var(--ambar); outline-offset: 2px; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .bdg-live { animation: pulse 2.4s ease-in-out infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .55; } }
+}
+
+@media (max-width: 40rem) {
+  .stage { width: 88%; left: 6%; }
+  .chat-ov { display: none; }
+  .toast { display: none; }
+  .dec-row { grid-template-columns: 1fr; gap: .3rem; }
+  .screen { aspect-ratio: 4 / 5; }
+}
+</style>
+
+<div class="wrap">
+
+  <header class="top">
+    <span class="eyebrow">Kairos · Design aprovado</span>
+    <h1>Sala social:<br>mídia, tela e ícones</h1>
+    <p class="lede">
+      Troca a malha P2P por LiveKit, reconstrói o painel de voz e vídeo no modelo do
+      Discord, e substitui os 38 emojis da interface por ícones pixel art.
+    </p>
+    <div class="meta">
+      <span class="tag">30 · jul · 2026</span>
+      <span class="tag tag-ok">Design aprovado</span>
+      <span class="tag">3 frentes</span>
+      <span class="tag">docs/design/2026-07-30-sala-social-livekit.md</span>
+    </div>
+  </header>
+
+  <section>
+    <h2>O que está quebrado hoje</h2>
+    <div class="probs">
+      <div class="prob">
+        <span class="prob-n">21 Mbps</span>
+        <div class="prob-t">A malha não escala</div>
+        <div class="prob-d">
+          Cada pessoa abre conexão direta com cada outra. Numa sala de 8, quem
+          compartilha tela em 720p precisaria disso de upload.
+        </div>
+      </div>
+      <div class="prob">
+        <span class="prob-n">Sem TURN</span>
+        <div class="prob-t">Conexões que nunca completam</div>
+        <div class="prob-d">
+          Só existe STUN. Quem está atrás de CGNAT ou firewall corporativo não
+          conecta — é a causa real do bug de microfone já reportado.
+        </div>
+      </div>
+      <div class="prob">
+        <span class="prob-n">250 px</span>
+        <div class="prob-t">Vídeo espremido na sidebar</div>
+        <div class="prob-d">
+          O painel de vídeo vive numa coluna estreita. Não serve para webcam, muito
+          menos para tela compartilhada.
+        </div>
+      </div>
+    </div>
+    <div class="col">
+      <p>
+        Os três se resolvem com a mesma decisão: tirar a mídia da malha e passá-la
+        para um servidor dedicado, que já traz TURN embutido — e então reconstruir a
+        interface num lugar onde o vídeo caiba.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>A sala proposta</h2>
+    <div class="col">
+      <p>
+        A janela flutua sobre o mapa, arrastável e redimensionável, com tela cheia
+        quando você quiser só assistir. O mundo continua jogável embaixo.
+      </p>
+    </div>
+
+    <div class="screen" role="img" aria-label="Mockup da sala: janela de mídia flutuando sobre o mapa do jogo, com quatro tiles — uma tela compartilhada ao vivo, dois participantes e um tile ainda não assinado — barra de controles, caixa de chat e aviso de transmissão.">
+
+      <div class="on-map" style="right:10%; bottom:26%;">
+        <svg viewBox="0 0 16 20" width="2.4rem" style="width:2.4rem;height:auto;display:block;image-rendering:pixelated" aria-hidden="true" shape-rendering="crispEdges"><rect x="3" y="1" width="10" height="8" fill="#07070c"/><rect x="4" y="2" width="8" height="6" fill="#e8b894"/><rect x="3" y="3" width="1" height="4" fill="#e8b894"/><rect x="12" y="3" width="1" height="4" fill="#e8b894"/><rect x="11" y="3" width="1" height="4" fill="#be9679"/><rect x="4" y="1" width="8" height="2" fill="#3d2817"/><rect x="3" y="2" width="1" height="2" fill="#3d2817"/><rect x="12" y="2" width="1" height="2" fill="#3d2817"/><rect x="4" y="1" width="8" height="1" fill="#2a1c10"/><rect x="6" y="4" width="1" height="2" fill="#20202e"/><rect x="9" y="4" width="1" height="2" fill="#20202e"/><rect x="6" y="4" width="1" height="1" fill="#ffffff"/><rect x="9" y="4" width="1" height="1" fill="#ffffff"/><rect x="5" y="6" width="1" height="1" fill="#f7a8c0"/><rect x="10" y="6" width="1" height="1" fill="#f7a8c0"/><rect x="3" y="8" width="10" height="7" fill="#07070c"/><rect x="3" y="9" width="10" height="5" fill="#2f6b8f"/><rect x="3" y="9" width="2" height="5" fill="#367ca5"/><rect x="11" y="9" width="2" height="5" fill="#214d66"/><rect x="4" y="14" width="4" height="6" fill="#1f2937"/><rect x="9" y="14" width="4" height="6" fill="#1f2937"/><rect x="4" y="18" width="4" height="2" fill="#0d1218"/><rect x="9" y="18" width="4" height="2" fill="#0d1218"/></svg>
+        <span class="nm">Bruno</span>
+      </div>
+      <div class="on-map" style="right:24%; bottom:12%;">
+        <svg viewBox="0 0 16 20" width="2.4rem" style="width:2.4rem;height:auto;display:block;image-rendering:pixelated" aria-hidden="true" shape-rendering="crispEdges"><rect x="3" y="1" width="10" height="8" fill="#07070c"/><rect x="4" y="2" width="8" height="6" fill="#c68642"/><rect x="3" y="3" width="1" height="4" fill="#c68642"/><rect x="12" y="3" width="1" height="4" fill="#c68642"/><rect x="11" y="3" width="1" height="4" fill="#a26d36"/><rect x="4" y="1" width="8" height="2" fill="#5a3a1f"/><rect x="3" y="2" width="1" height="2" fill="#5a3a1f"/><rect x="12" y="2" width="1" height="2" fill="#5a3a1f"/><rect x="4" y="1" width="8" height="1" fill="#3e2815"/><rect x="6" y="4" width="1" height="2" fill="#20202e"/><rect x="9" y="4" width="1" height="2" fill="#20202e"/><rect x="6" y="4" width="1" height="1" fill="#ffffff"/><rect x="9" y="4" width="1" height="1" fill="#ffffff"/><rect x="5" y="6" width="1" height="1" fill="#f7a8c0"/><rect x="10" y="6" width="1" height="1" fill="#f7a8c0"/><rect x="3" y="8" width="10" height="7" fill="#07070c"/><rect x="3" y="9" width="10" height="5" fill="#7c3aed"/><rect x="3" y="9" width="2" height="5" fill="#8f43ff"/><rect x="11" y="9" width="2" height="5" fill="#5929aa"/><rect x="4" y="14" width="4" height="6" fill="#1f2937"/><rect x="9" y="14" width="4" height="6" fill="#1f2937"/><rect x="4" y="18" width="4" height="2" fill="#0d1218"/><rect x="9" y="18" width="4" height="2" fill="#0d1218"/></svg>
+        <span class="nm">você</span>
+      </div>
+
+      <div class="toast">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M4 2h16v2H4zm0 14h16v2H4zM2 4h2v12H2zm18 0h2v12h-2zm-9 14h2v2h-2zm-3 2h8v2H8z"/></svg>
+        <span>Luiz começou a compartilhar a tela</span>
+      </div>
+
+      <div class="stage">
+        <div class="stage-bar">
+          <span class="stage-ttl">LOBBY · QA</span>
+          <span class="stage-acts">
+            <span class="wbtn"></span><span class="wbtn"></span><span class="wbtn"></span>
+          </span>
+        </div>
+
+        <div class="tiles">
+          <div class="tile">
+            <div class="shared-code">
+              <span class="cl a"></span><span class="cl b"></span><span class="cl c"></span>
+              <span class="cl d"></span><span class="cl e"></span><span class="cl b"></span>
+              <span class="cl f"></span><span class="cl d"></span><span class="cl c"></span>
+            </div>
+            <div class="badges">
+              <span class="bdg">720P 60FPS</span>
+              <span class="bdg bdg-live">AO VIVO</span>
+            </div>
+            <span class="tile-lbl"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M4 2h16v2H4zm0 14h16v2H4zM2 4h2v12H2zm18 0h2v12h-2zm-9 14h2v2h-2zm-3 2h8v2H8z"/></svg> Luiz · tela</span>
+          </div>
+
+          <div class="tile tile-speaking">
+            <svg viewBox="0 0 16 20" width="2.8rem" style="width:2.8rem;height:auto;display:block;image-rendering:pixelated" aria-hidden="true" shape-rendering="crispEdges"><rect x="3" y="1" width="10" height="8" fill="#07070c"/><rect x="4" y="2" width="8" height="6" fill="#f0c9a0"/><rect x="3" y="3" width="1" height="4" fill="#f0c9a0"/><rect x="12" y="3" width="1" height="4" fill="#f0c9a0"/><rect x="11" y="3" width="1" height="4" fill="#c4a483"/><rect x="4" y="1" width="8" height="2" fill="#1f1a14"/><rect x="3" y="2" width="1" height="2" fill="#1f1a14"/><rect x="12" y="2" width="1" height="2" fill="#1f1a14"/><rect x="4" y="1" width="8" height="1" fill="#15120e"/><rect x="6" y="4" width="1" height="2" fill="#20202e"/><rect x="9" y="4" width="1" height="2" fill="#20202e"/><rect x="6" y="4" width="1" height="1" fill="#ffffff"/><rect x="9" y="4" width="1" height="1" fill="#ffffff"/><rect x="5" y="6" width="1" height="1" fill="#f7a8c0"/><rect x="10" y="6" width="1" height="1" fill="#f7a8c0"/><rect x="3" y="8" width="10" height="7" fill="#07070c"/><rect x="3" y="9" width="10" height="5" fill="#b4472f"/><rect x="3" y="9" width="2" height="5" fill="#d05236"/><rect x="11" y="9" width="2" height="5" fill="#813321"/><rect x="4" y="14" width="4" height="6" fill="#2b2b3a"/><rect x="9" y="14" width="4" height="6" fill="#2b2b3a"/><rect x="4" y="18" width="4" height="2" fill="#13131a"/><rect x="9" y="18" width="4" height="2" fill="#13131a"/></svg>
+            <span class="tile-lbl"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M10 2h4v2h-4zM8 4h2v10H8zm2 10h4v2h-4zm4-10h2v10h-2zM4 10h2v6H4zm2 6h2v2H6zm2 2h8v2H8zm8-2h2v2h-2zm2-6h2v6h-2zm-7 10h2v2h-2z"/></svg> Luiz</span>
+          </div>
+
+          <div class="tile">
+            <svg viewBox="0 0 16 20" width="2.4rem" style="width:2.4rem;height:auto;display:block;image-rendering:pixelated" aria-hidden="true" shape-rendering="crispEdges"><rect x="3" y="1" width="10" height="8" fill="#07070c"/><rect x="4" y="2" width="8" height="6" fill="#e8b894"/><rect x="3" y="3" width="1" height="4" fill="#e8b894"/><rect x="12" y="3" width="1" height="4" fill="#e8b894"/><rect x="11" y="3" width="1" height="4" fill="#be9679"/><rect x="4" y="1" width="8" height="2" fill="#3d2817"/><rect x="3" y="2" width="1" height="2" fill="#3d2817"/><rect x="12" y="2" width="1" height="2" fill="#3d2817"/><rect x="4" y="1" width="8" height="1" fill="#2a1c10"/><rect x="6" y="4" width="1" height="2" fill="#20202e"/><rect x="9" y="4" width="1" height="2" fill="#20202e"/><rect x="6" y="4" width="1" height="1" fill="#ffffff"/><rect x="9" y="4" width="1" height="1" fill="#ffffff"/><rect x="5" y="6" width="1" height="1" fill="#f7a8c0"/><rect x="10" y="6" width="1" height="1" fill="#f7a8c0"/><rect x="3" y="8" width="10" height="7" fill="#07070c"/><rect x="3" y="9" width="10" height="5" fill="#2f6b8f"/><rect x="3" y="9" width="2" height="5" fill="#367ca5"/><rect x="11" y="9" width="2" height="5" fill="#214d66"/><rect x="4" y="14" width="4" height="6" fill="#1f2937"/><rect x="9" y="14" width="4" height="6" fill="#1f2937"/><rect x="4" y="18" width="4" height="2" fill="#0d1218"/><rect x="9" y="18" width="4" height="2" fill="#0d1218"/></svg>
+            <span class="tile-lbl ico-off-wrap"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M10 2h4v2h-4zM8 8h2v6H8zm2 6h4v2h-4zm4-10h2v6h-2zM4 10h2v6H4zm2 6h2v2H6zm2 2h8v2H8zm8-2h2v2h-2zm-2-2h2v2h-2zm-2-2h2v2h-2zm-2-2h2v2h-2z"/> <path d="M8 8h2v2H8zM6 6h2v2H6zM4 4h2v2H4zM2 2h2v2H2zm16 16h2v2h-2zm2 2h2v2h-2zm-2-10h2v4h-2zm-7 10h2v2h-2z"/></svg> Bruno</span>
+          </div>
+
+          <div class="tile tile-off tile-far">
+            <span class="watch-btn">Assistir</span>
+            <span class="tile-lbl">Ana · tela</span>
+          </div>
+        </div>
+
+        <div class="ctrls">
+          <span class="ctrl ctrl-on"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M10 2h4v2h-4zM8 4h2v10H8zm2 10h4v2h-4zm4-10h2v10h-2zM4 10h2v6H4zm2 6h2v2H6zm2 2h8v2H8zm8-2h2v2h-2zm2-6h2v6h-2zm-7 10h2v2h-2z"/></svg></span>
+          <span class="ctrl ctrl-off"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M20 17V7h2v10zm-2-2V9h2v6zM2 7h2v10H2zm14 0h2v10h-2zM4 5h12v2H4zm0 12h12v2H4z"/></svg></span>
+          <span class="ctrl ctrl-on"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M4 2h16v2H4zm0 14h16v2H4zM2 4h2v12H2zm18 0h2v12h-2zm-9 14h2v2h-2zm-3 2h8v2H8z"/></svg></span>
+          <span class="ctrl"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M4 13h16v-2H4zm7-8h2V3h-2zM9 7h4V5H9zm4 0h2V5h-2zm2 2h2V7h-2zM7 9h8V7H7zm4 10h2v2h-2zm-2-2h4v2H9zm4 0h2v2h-2zm2-2h2v2h-2zm-8 0h8v2H7z"/></svg></span>
+          <span class="ctrl ctrl-leave"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M7 19H5V17H7V19ZM19 19H17V17H19V19ZM9 15V17H7V15H9ZM17 17H15V15H17V17ZM11 15H9V13H11V15ZM15 15H13V13H15V15ZM13 13H11V11H13V13ZM11 11H9V9H11V11ZM15 11H13V9H15V11ZM9 9H7V7H9V9ZM17 9H15V7H17V9ZM7 7H5V5H7V7ZM19 7H17V5H19V7Z"/></svg></span>
+        </div>
+      </div>
+
+      <div class="chat-ov">
+        <span class="chat-ln"><span class="chat-who">Bruno:</span> vou puxar o log aqui</span>
+        <span class="chat-ln"><span class="chat-who">Ana:</span> abre a tela que eu olho junto</span>
+        <div class="chat-in"><span>Conversar… (Enter)</span><span class="chat-cnt">0/255</span></div>
+      </div>
+    </div>
+    <p class="screen-cap">
+      O quarto tile mostra a regra central: sem clicar em <em>Assistir</em>, nenhum byte
+      de vídeo é baixado. Esmaecido porque quem transmite está longe, no modo proximidade.
+    </p>
+
+    <div class="col">
+      <h3>Duas camadas independentes</h3>
+      <p>
+        O <strong>modo da sala</strong> — o mesmo seletor de proximidade e sala que a voz e
+        a jukebox já usam — decide quem <em>pode</em> assinar. O <strong>clique no tile</strong>
+        decide se de fato assina. Estar perto não faz o vídeo baixar sozinho, e é isso
+        que mantém o custo de banda proporcional ao interesse real, não ao tamanho da sala.
+      </p>
+      <p>
+        Independente do modo e da distância, todo mundo recebe o aviso de que
+        alguém começou a transmitir — senão quem está do outro lado do mapa nunca
+        ficaria sabendo.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Por que trocar a topologia</h2>
+    <div class="topo">
+      <div class="topo-card">
+        <div class="topo-h topo-bad">Hoje · malha P2P</div>
+        <svg viewBox="0 0 220 156" role="img" aria-label="Seis pessoas ligadas todas entre si, quinze conexões"><line x1="110.0" y1="22.0" x2="158.5" y2="50.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="110.0" y1="22.0" x2="158.5" y2="106.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="110.0" y1="22.0" x2="110.0" y2="134.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="110.0" y1="22.0" x2="61.5" y2="106.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="110.0" y1="22.0" x2="61.5" y2="50.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="158.5" y1="50.0" x2="158.5" y2="106.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="158.5" y1="50.0" x2="110.0" y2="134.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="158.5" y1="50.0" x2="61.5" y2="106.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="158.5" y1="50.0" x2="61.5" y2="50.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="158.5" y1="106.0" x2="110.0" y2="134.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="158.5" y1="106.0" x2="61.5" y2="106.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="158.5" y1="106.0" x2="61.5" y2="50.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="110.0" y1="134.0" x2="61.5" y2="106.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="110.0" y1="134.0" x2="61.5" y2="50.0" stroke="#f87171" stroke-width="1" opacity=".5"/><line x1="61.5" y1="106.0" x2="61.5" y2="50.0" stroke="#f87171" stroke-width="1" opacity=".5"/><rect x="103.0" y="15.0" width="14" height="14" fill="#1d1d2a" stroke="#f87171" stroke-width="2"/><rect x="151.5" y="43.0" width="14" height="14" fill="#1d1d2a" stroke="#f87171" stroke-width="2"/><rect x="151.5" y="99.0" width="14" height="14" fill="#1d1d2a" stroke="#f87171" stroke-width="2"/><rect x="103.0" y="127.0" width="14" height="14" fill="#1d1d2a" stroke="#f87171" stroke-width="2"/><rect x="54.5" y="99.0" width="14" height="14" fill="#1d1d2a" stroke="#f87171" stroke-width="2"/><rect x="54.5" y="43.0" width="14" height="14" fill="#1d1d2a" stroke="#f87171" stroke-width="2"/></svg>
+        <p class="topo-note">
+          Cada linha é uma conexão. Com 6 pessoas são <strong>15</strong> conexões, e quem
+          compartilha envia <strong>uma cópia do vídeo para cada uma</strong>.
+        </p>
+      </div>
+      <div class="topo-card">
+        <div class="topo-h topo-good">Proposto · LiveKit</div>
+        <svg viewBox="0 0 220 156" role="img" aria-label="Seis pessoas ligadas a um servidor central, seis conexões"><line x1="110.0" y1="22.0" x2="110" y2="78" stroke="#34d399" stroke-width="1.5" opacity=".65"/><line x1="158.5" y1="50.0" x2="110" y2="78" stroke="#34d399" stroke-width="1.5" opacity=".65"/><line x1="158.5" y1="106.0" x2="110" y2="78" stroke="#34d399" stroke-width="1.5" opacity=".65"/><line x1="110.0" y1="134.0" x2="110" y2="78" stroke="#34d399" stroke-width="1.5" opacity=".65"/><line x1="61.5" y1="106.0" x2="110" y2="78" stroke="#34d399" stroke-width="1.5" opacity=".65"/><line x1="61.5" y1="50.0" x2="110" y2="78" stroke="#34d399" stroke-width="1.5" opacity=".65"/><rect x="97" y="65" width="26" height="26" fill="#15151f" stroke="#a78bfa" stroke-width="2"/><rect x="105" y="73" width="10" height="10" fill="#7c3aed"/><rect x="103.0" y="15.0" width="14" height="14" fill="#1d1d2a" stroke="#34d399" stroke-width="2"/><rect x="151.5" y="43.0" width="14" height="14" fill="#1d1d2a" stroke="#34d399" stroke-width="2"/><rect x="151.5" y="99.0" width="14" height="14" fill="#1d1d2a" stroke="#34d399" stroke-width="2"/><rect x="103.0" y="127.0" width="14" height="14" fill="#1d1d2a" stroke="#34d399" stroke-width="2"/><rect x="54.5" y="99.0" width="14" height="14" fill="#1d1d2a" stroke="#34d399" stroke-width="2"/><rect x="54.5" y="43.0" width="14" height="14" fill="#1d1d2a" stroke="#34d399" stroke-width="2"/></svg>
+        <p class="topo-note">
+          Cada pessoa fala só com o servidor: <strong>6</strong> conexões. Quem compartilha
+          envia <strong>uma cópia só</strong>, e o servidor distribui a quem pediu.
+        </p>
+      </div>
+    </div>
+    <div class="col">
+      <p>
+        O servidor roda na VM Oracle que já existe — arquitetura conferida, a imagem
+        tem build ARM64 oficial. Ele traz o TURN embutido, o que resolve as falhas de
+        conexão de hoje sem subir um segundo serviço, e faz subscrição seletiva por
+        participante, mecanismo que a própria documentação recomenda para aplicações
+        espaciais como esta.
+      </p>
+      <p>
+        O socket.io não sai de cena: continua responsável por posição, chat, lousa e
+        jukebox. Só a mídia muda de casa. E se o servidor de mídia cair, o mundo
+        segue de pé — você anda, conversa por texto e desenha na lousa; apenas voz e
+        vídeo ficam indisponíveis, com aviso claro.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Decisões</h2>
+    <div class="dec">
+      <div class="dec-row">
+        <div class="dec-k">Mídia</div>
+        <div class="dec-v"><strong>LiveKit self-hosted</strong>
+          <span class="dec-why">Cobre daily de squad e reunião de time inteiro. Remendar a malha custaria mais.</span>
+        </div>
+      </div>
+      <div class="dec-row">
+        <div class="dec-k">Assistir</div>
+        <div class="dec-v"><strong>Opt-in por clique</strong>
+          <span class="dec-why">Banda proporcional a quem assiste, não ao tamanho da sala.</span>
+        </div>
+      </div>
+      <div class="dec-row">
+        <div class="dec-k">Alcance</div>
+        <div class="dec-v"><strong>Segue o modo da sala + aviso para todos</strong>
+          <span class="dec-why">Reusa o conceito de proximidade que voz e jukebox já têm, em vez de inventar regra nova.</span>
+        </div>
+      </div>
+      <div class="dec-row">
+        <div class="dec-k">Qualidade</div>
+        <div class="dec-v"><strong>720p, nitidez ou fluidez</strong>
+          <span class="dec-why">Código pede resolução; jogo pede framerate. Quem compartilha escolhe.</span>
+        </div>
+      </div>
+      <div class="dec-row">
+        <div class="dec-k">Chat</div>
+        <div class="dec-v"><strong>255 caracteres, cooldown de 0,5s</strong>
+          <span class="dec-why">Validado no servidor — só no front seria contornável pelo console.</span>
+        </div>
+      </div>
+      <div class="dec-row">
+        <div class="dec-k">Ícones</div>
+        <div class="dec-v"><strong>pixelarticons</strong>
+          <span class="dec-why">Grid 24×24, licença MIT, coerente com a identidade pixel art do jogo.</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Os ícones, de verdade</h2>
+    <div class="col">
+      <p>
+        Abaixo estão os ícones reais do pacote, não uma aproximação. Cada emoji sai
+        e entra um desenho em grid de 24 pixels que fica igual em qualquer sistema.
+      </p>
+    </div>
+    <div class="icons">
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">🎙</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M10 2h4v2h-4zM8 4h2v10H8zm2 10h4v2h-4zm4-10h2v10h-2zM4 10h2v6H4zm2 6h2v2H6zm2 2h8v2H8zm8-2h2v2h-2zm2-6h2v6h-2zm-7 10h2v2h-2z"/></svg></div><span class="ico-nm">mic</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">🔇</span><span class="ico-arrow">&rarr;</span><span class="ico-off"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M10 2h4v2h-4zM8 4h2v10H8zm2 10h4v2h-4zm4-10h2v10h-2zM4 10h2v6H4zm2 6h2v2H6zm2 2h8v2H8zm8-2h2v2h-2zm2-6h2v6h-2zm-7 10h2v2h-2z"/></svg></span></div><span class="ico-nm">mic mudo</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">📹</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M20 17V7h2v10zm-2-2V9h2v6zM2 7h2v10H2zm14 0h2v10h-2zM4 5h12v2H4zm0 12h12v2H4z"/></svg></div><span class="ico-nm">câmera</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">📷</span><span class="ico-arrow">&rarr;</span><span class="ico-off"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M20 17V7h2v10zm-2-2V9h2v6zM2 7h2v10H2zm14 0h2v10h-2zM4 5h12v2H4zm0 12h12v2H4z"/></svg></span></div><span class="ico-nm">câmera off</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">🖥</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M4 2h16v2H4zm0 14h16v2H4zM2 4h2v12H2zm18 0h2v12h-2zm-9 14h2v2h-2zm-3 2h8v2H8z"/></svg></div><span class="ico-nm">tela</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">🔊</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M17 22h-2v-2h-2v-2h2V6h-2V4h2V2h2v20Zm-4-4h-2v-2h2v2ZM11 8v2H9v4h2v2H7V8h4Zm2 0h-2V6h2v2Z"/></svg></div><span class="ico-nm">volume</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">🎧</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M14 13h7v2h-7zm2 6h3v2h-3z"/> <path d="M14 13h2v8h-2zm5-6h2v12h-2zM3 13h7v2H3zm2 6h3v2H5z"/> <path d="M3 7h2v12H3zm5 6h2v8H8zM7 3h10v2H7zM5 5h2v2H5zm12 0h2v2h-2z"/></svg></div><span class="ico-nm">fone</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">✕</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M7 19H5V17H7V19ZM19 19H17V17H19V19ZM9 15V17H7V15H9ZM17 17H15V15H17V17ZM11 15H9V13H11V15ZM15 15H13V13H15V15ZM13 13H11V11H13V13ZM11 11H9V9H11V11ZM15 11H13V9H15V11ZM9 9H7V7H9V9ZM17 9H15V7H17V9ZM7 7H5V5H7V7ZM19 7H17V5H19V7Z"/></svg></div><span class="ico-nm">fechar</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">☰</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M20 18H4v-2h16v2Zm0-5H4v-2h16v2Zm0-5H4V6h16v2Z"/></svg></div><span class="ico-nm">menu</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">↻</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M16 4h2v6h-2zm-2-2h2v2h-2zm0 2h2v8h-2zM4 8H2v5h2z"/> <path d="M4 6h16v2H4zm4 14H6v-6h2zm2 2H8v-2h2zm0-2H8v-8h2zm10-4h2v-5h-2z"/> <path d="M20 18H4v-2h16z"/></svg></div><span class="ico-nm">recarregar</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">↶</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M18 20h-6v-2h6v2Zm2-2h-2v-8h2v8Zm-10-4H8v-2H6v-2H4V8h2V6h2V4h2v4h8v2h-8v4Z"/></svg></div><span class="ico-nm">desfazer</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">↷</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M20 8H6v2h14zM4 10h2v8H4zm2 8h6v2H6z"/> <path d="M18 6h-2v6h2zm-2-2h-2v8h2zm0 8h-2v2h2z"/></svg></div><span class="ico-nm">refazer</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">▶</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M15 11h-2V9h2zm0 4h-2v-2h2zm-2 2h-2v-2h2zm0-8h-2V7h2zm-2-2H9V5h2zM9 21H7V3h2zm6-8h2v-2h-2zm-6 4h2v2H9z"/></svg></div><span class="ico-nm">tocar</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">🎵</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M4 12h4v2H4zm-2 2h2v4H2zm2 4h4v2H4zM8 6h2v12H8zm10 0h2v12h-2zm-6 8h2v4h-2zm2-2h4v2h-4zm0 6h4v2h-4zM10 4h8v2h-8z"/></svg></div><span class="ico-nm">música</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">🔀</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M10 19H2v-2h8v2Zm12 0h-8v-2h8v2Zm-10-2h-2v-6h2v6Zm6-10h2v2h2v2h-2v2h-2v2h-2v-4h-4V9h4V5h2v2ZM8 11H2V9h6v2Z"/></svg></div><span class="ico-nm">aleatório</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">🔄</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M17 5h2v2h-2zM5 17h2v2H5zm6-14h2v6h-2zM9 1h2v8H9zm0 8h2v2H9zm10 8H9v2h10zM5 7H3v10h2z"/> <path d="M13 15h-2v6h2zm2-2h-2v8h2zm0 8h-2v2h2zM5 5h10v2H5zm14 12h2V7h-2z"/></svg></div><span class="ico-nm">repetir</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">✓</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M10 18H8v-2h2v2Zm-2-2H6v-2h2v2Zm4-2v2h-2v-2h2Zm-6 0H4v-2h2v2Zm8 0h-2v-2h2v2Zm2-2h-2v-2h2v2Zm2-2h-2V8h2v2Zm2-2h-2V6h2v2Z"/></svg></div><span class="ico-nm">feito</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">🐞</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M2 5h2v4H2zm20 0h-2v4h2zM4 9h2v2H4zm16 0h-2v2h2zM2 13h4v2H2zm20 0h-4v2h4zM4 17h2v2H4zm16 0h-2v2h2zM2 19h2v2H2zm20 0h-2v2h2zM6 11h12v2H6z"/> <path d="M6 7h2v12H6zm10 0h2v12h-2zM8 19h8v2H8zM8 5h8v2H8z"/> <path d="M11 15h2v6h-2zM8 1h2v6H8zm6 0h2v6h-2z"/></svg></div><span class="ico-nm">bug</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">✨</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M11 1h2v4h-2zm0 22h2v-4h-2zM9 5h2v4H9zm0 14h2v-4H9zm4-14h2v4h-2zm0 14h2v-4h-2zM5 9h4v2H5zm14 0h-4v2h4zM1 11h4v2H1zm22 0h-4v2h4zM5 13h4v2H5zm14 0h-4v2h4z"/></svg></div><span class="ico-nm">melhoria</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">📋</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M4 2h16v2H4zm2 5h2v2H6zm4 0h8v2h-8zm-4 4h2v2H6zm4 0h8v2h-8zm-4 4h2v2H6zm4 0h8v2h-8zm-6 5h16v2H4zM2 4h2v16H2zm18 0h2v16h-2z"/></svg></div><span class="ico-nm">tarefas</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">📖</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M2 3h9v2H2zM0 19h11v2H0zM13 3h9v2h-9zm0 16h11v2H13zM11 5h2v18h-2zM0 5h2v14H0zm22 0h2v14h-2zm-7 2h5v2h-5zm0 4h5v2h-5zm0 4h2v2h-2z"/></svg></div><span class="ico-nm">notas</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">🖊</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M2 4h2v16H2zm18 0h2v12h-2zM4 2h16v2H4zm14 14h2v2h-2zm-2 2h2v2h-2zM4 20h12v2H4zm10-8h6v2h-6zm-2 2h2v6h-2z"/></svg></div><span class="ico-nm">lousa</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">●</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M5 2h6v2H5zm10 0h4v2h-4zM5 10h6v2H5zm10 0h4v2h-4zm4-6h2v6h-2zm-8 0h2v6h-2zM3 4h2v6H3zM0 18h2v4H0zm14 0h2v4h-2zm8 0h2v4h-2zM4 14h8v2H4zm12 0h4v2h-4zM2 16h2v2H2zm10 0h2v2h-2zm8 0h2v2h-2z"/></svg></div><span class="ico-nm">online</span></div>
+      <div class="ico"><div class="ico-swap"><span class="ico-emoji">💬</span><span class="ico-arrow">&rarr;</span><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" shape-rendering="crispEdges"><path d="M20 2H4v2h16zm0 14H6v2h14zm2-12h-2v12h2zM4 4H2v18h2zm2 14H4v2h2z"/></svg></div><span class="ico-nm">chat</span></div>
+    </div>
+    <div class="col">
+      <p style="margin-top:1.25rem">
+        Conferi o pacote antes de fechar a decisão: o conjunto gratuito não tem
+        câmera desligada, volume mudo nem um ícone dedicado de compartilhar tela.
+        Os dois primeiros ganham a <strong>barra diagonal</strong> desenhada por cima — a
+        mesma convenção do Discord, visível na barra de controles do mockup acima — e o
+        terceiro usa o monitor. Nenhuma lacuna ficou sem solução.
+      </p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Riscos assumidos</h2>
+    <div class="risks">
+      <div class="risk">
+        <span class="risk-b hi"></span>
+        <div>
+          <div class="risk-t">60fps não é preset do SDK</div>
+          <span class="risk-m">
+            Os presets de tela param em 720p30. Os 60fps são atingíveis configurando
+            framerate e bitrate na mão, mas precisam ser <em>medidos</em> na implementação.
+            Se não sustentar, 60fps fica reservado ao modo fluidez.
+          </span>
+        </div>
+      </div>
+      <div class="risk">
+        <span class="risk-b hi"></span>
+        <div>
+          <div class="risk-t">Banda de saída da VM</div>
+          <span class="risk-m">
+            Uma reunião de 15 pessoas com uma tela consome na ordem de 20 GB por hora.
+            Confirmar a franquia da conta Oracle antes de liberar para a organização.
+          </span>
+        </div>
+      </div>
+      <div class="risk">
+        <span class="risk-b"></span>
+        <div>
+          <div class="risk-t">Portas UDP na Oracle</div>
+          <span class="risk-m">
+            Precisam ser liberadas em dois lugares — a security list da rede e o
+            iptables da instância. Esquecer o segundo é a causa clássica de
+            "conecta mas não tem som".
+          </span>
+        </div>
+      </div>
+      <div class="risk">
+        <span class="risk-b"></span>
+        <div>
+          <div class="risk-t">Regressão na voz durante a migração</div>
+          <span class="risk-m">
+            A troca é atômica: a malha sai, o LiveKit entra. Validar com três clientes
+            reais, um deles em rede móvel, antes de mergear.
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Ordem de execução</h2>
+    <div class="fases">
+      <div class="fase">
+        <span class="fase-n">01</span>
+        <div>
+          <div class="fase-t">Servidor de mídia no ar</div>
+          <div class="fase-d">
+            Container na VM, portas liberadas nos dois níveis, TLS pelo Traefik,
+            endpoint que emite o token com a sala travada por organização.
+          </div>
+        </div>
+      </div>
+      <div class="fase">
+        <span class="fase-n">02</span>
+        <div>
+          <div class="fase-t">Migrar voz e vídeo</div>
+          <div class="fase-d">
+            A camada de mídia do front é substituída, a proximidade passa a controlar
+            subscrição em vez de abrir conexões, e as 350 linhas de gestão manual saem.
+          </div>
+          <span class="fase-dep">depende de 01</span>
+        </div>
+      </div>
+      <div class="fase">
+        <span class="fase-n">03</span>
+        <div>
+          <div class="fase-t">Tela compartilhada</div>
+          <div class="fase-d">
+            Publicação com escolha de nitidez ou fluidez, badge com números reais
+            medidos, múltiplas transmissões e o aviso para a sala.
+          </div>
+          <span class="fase-dep">depende de 02</span>
+        </div>
+      </div>
+      <div class="fase">
+        <span class="fase-n">04</span>
+        <div>
+          <div class="fase-t">A janela e o chat</div>
+          <div class="fase-d">
+            Grade de tiles, arrastar, redimensionar, tela cheia, barra única de
+            controles — e a caixa de chat com scroll, limite e cooldown.
+          </div>
+          <span class="fase-dep">depende de 02</span>
+        </div>
+      </div>
+      <div class="fase">
+        <span class="fase-n">05</span>
+        <div>
+          <div class="fase-t">Sistema de ícones</div>
+          <div class="fase-d">
+            Componente de ícone com estado desligado e a troca dos 38 emojis nos 12
+            arquivos. Independente de tudo acima.
+          </div>
+          <span class="fase-dep">paralelo — pode começar junto com 01</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Fora de escopo</h2>
+    <div class="out">
+      <span class="out-i">Gravação de sessão</span>
+      <span class="out-i">Chat persistente</span>
+      <span class="out-i">Chat por proximidade / DM</span>
+      <span class="out-i">Pathfinding até quem transmite</span>
+      <span class="out-i">Múltiplas instâncias de servidor</span>
+      <span class="out-i">Ícones do pacote pago</span>
+    </div>
+    <div class="col">
+      <p style="margin-top:1.25rem">
+        O gatilho para revisitar a escala é uma sala real passando de vinte e cinco
+        pessoas simultâneas. Até lá, uma instância cobre o uso previsto.
+      </p>
+    </div>
+  </section>
+
+  <footer>
+    Spec completo em <code>docs/design/2026-07-30-sala-social-livekit.md</code> ·
+    branch <code>feat/sala-social-livekit</code>
+  </footer>
+
+</div>
