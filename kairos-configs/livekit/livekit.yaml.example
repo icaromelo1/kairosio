@@ -1,0 +1,27 @@
+port: 7880
+bind_addresses: ["0.0.0.0"]
+
+rtc:
+  tcp_port: 7881
+  # porta UDP unica com multiplexacao: dispensa a faixa 50000-60000 e o
+  # network_mode host. udp_port e port_range sao mutuamente exclusivos.
+  udp_port: 7882
+  # sem isto o servidor anuncia o IP privado da VM nos candidatos ICE
+  # e a midia nunca chega no cliente
+  use_external_ip: true
+
+turn:
+  enabled: true
+  # o TURN precisa do certificado direto; TLS terminado no Traefik nao serve
+  tls_port: 5349
+  udp_port: 3478
+  relay_range_start: 30000
+  relay_range_end: 31000
+  domain: livekit.icaromelodev.com.br
+  external_tls: true
+
+keys:
+  <LIVEKIT_API_KEY>: <LIVEKIT_API_SECRET>
+
+logging:
+  level: info
