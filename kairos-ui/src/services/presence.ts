@@ -38,6 +38,9 @@ export interface JukeboxState {
 
 export interface RemotePlayer {
   id: string
+  // uuid do usuário — é a identity do participante no LiveKit, o que liga o
+  // avatar (identificado por socket.id) à mídia sem handshake próprio
+  userId: string
   name: string
   avatar: AvatarProps
   map: string
@@ -139,10 +142,6 @@ export function connectPresence(opts: JoinOptions) {
     if (chatMessages.length > 50) chatMessages.splice(0, chatMessages.length - 50)
   })
 
-  socket.on('rtc-signal', ({ from, signal }: { from: string; signal: unknown }) => {
-    rtcHandler?.(from, signal)
-  })
-
   socket.on('jukeboxState', (s: JukeboxState) => {
     jukeboxState.mode = s.mode
     jukeboxState.queue = s.queue
@@ -200,19 +199,6 @@ export function emitVoiceSetMode(mode: VoiceMode) {
 
 export function emitChat(text: string) {
   socket?.emit('chat', { text })
-}
-
-// ---- sinalização WebRTC (voz por proximidade) ----
-let rtcHandler: ((from: string, signal: unknown) => void) | null = null
-
-export function socketId(): string | undefined {
-  return socket?.id
-}
-export function sendRtcSignal(to: string, signal: unknown) {
-  socket?.emit('rtc-signal', { to, signal })
-}
-export function setRtcHandler(cb: ((from: string, signal: unknown) => void) | null) {
-  rtcHandler = cb
 }
 
 export function emitMove(x: number, y: number, facing: Facing, pose: Pose, boost = false) {
