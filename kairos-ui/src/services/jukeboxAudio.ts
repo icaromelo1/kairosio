@@ -15,7 +15,9 @@ watch(personalVolume, (v) => localStorage.setItem('kairos-jukebox-volume', Strin
 // vs sala inteira, calculado no ticker do GamePage).
 class JukeboxAudio {
   private audio: HTMLAudioElement | null = null
-  private currentTrackId: string | null = null
+  // trackId + startedAt: a mesma música duas vezes seguidas na fila é uma
+  // reprodução NOVA (só o trackId não recomeçava o <audio> já terminado)
+  private currentKey: string | null = null
 
   private ensureAudio(): HTMLAudioElement {
     if (!this.audio) this.audio = new Audio()
@@ -26,15 +28,16 @@ class JukeboxAudio {
     const track = jukeboxState.current
     const a = this.ensureAudio()
     if (!track) {
-      if (this.currentTrackId) {
+      if (this.currentKey) {
         a.pause()
         a.removeAttribute('src')
-        this.currentTrackId = null
+        this.currentKey = null
       }
       return
     }
-    if (track.trackId !== this.currentTrackId) {
-      this.currentTrackId = track.trackId
+    const key = `${track.trackId}:${jukeboxState.startedAt ?? 0}`
+    if (key !== this.currentKey) {
+      this.currentKey = key
       a.src = `${STREAM_BASE}/${track.trackId}`
       const offset = jukeboxState.startedAt ? (Date.now() - jukeboxState.startedAt) / 1000 : 0
       a.currentTime = Math.max(0, offset)
@@ -53,7 +56,7 @@ class JukeboxAudio {
       this.audio.pause()
       this.audio.removeAttribute('src')
     }
-    this.currentTrackId = null
+    this.currentKey = null
   }
 }
 
