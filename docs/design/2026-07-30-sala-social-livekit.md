@@ -48,6 +48,22 @@ Três problemas concretos motivam a mudança:
 
 ### Servidor
 
+> **Implementado em 30/07.** Três desvios em relação ao previsto abaixo, todos
+> descobertos ao subir de verdade:
+> 1. **`udp_port: 7882` (multiplexação) no lugar da faixa 50000-60000.** Dispensa
+>    `network_mode: host`, preserva o roteamento por labels do Traefik e reduz a
+>    superfície de firewall de dez mil portas para uma. `udp_port` e `port_range`
+>    são mutuamente exclusivos — o primeiro vence.
+> 2. **O TURN aloca portas de relay numa faixa própria** (30000-40000 por padrão),
+>    que não estava no plano nem aberta. Reduzida para 30000-31000 e liberada.
+>    Sem isso o TURN falharia silenciosamente — justamente o que viemos consertar.
+> 3. **`net.core.rmem_max` elevado para 5 MB**: o próprio LiveKit avisa no boot
+>    que o buffer UDP padrão é pequeno demais para produção.
+>
+> Pegadinha do ACME: o Traefik tenta emitir o certificado quando o container sobe.
+> Se o DNS ainda não existir, falha com NXDOMAIN e **entra em backoff** — criar o
+> registro depois não basta, é preciso reiniciar o Traefik para forçar a retentativa.
+
 Container `livekit/livekit-server` na VM Oracle. **Arquitetura verificada:** a VM é
 `aarch64` com 4 vCPU e ~12 GB livres; a imagem publica `linux/arm64` oficialmente.
 
@@ -245,6 +261,7 @@ botão ("Criar →") e não vira ícone.
 | 60fps não é preset do SDK | Configurar `maxFramerate`/`maxBitrate` manualmente e **medir com `getStats()`**; se não sustentar, entregar 720p30 no modo nitidez e reservar 60fps ao modo fluidez |
 | Portas UDP bloqueadas na Oracle | Liberar na security list **e** no iptables da instância; validar forçando ICE via relay antes de considerar pronto |
 | LiveKit fora do ar derruba a voz | O mundo degrada com elegância: movimento, chat, lousa e jukebox seguem no socket.io; só mídia fica indisponível, com aviso explícito |
+| ~~Portas UDP na Oracle~~ **resolvido** | Feito em 30/07 com security list PRÓPRIA (a default contém a regra de SSH) + iptables antes do REJECT, ambos persistidos. Validado de fora com STUN binding request no TURN, que respondeu devolvendo o IP público |
 | ~~Egress da VM~~ **resolvido** | Verificado em 30/07 na API de preços da Oracle (SKU `B93455`, zona América do Sul) e na conta real: **10.240 GB/mês grátis**, uso atual de **26,95 GB (0,26%)**. Mesmo com a sala aberta 8h por dia útil, o consumo bate ~4.981 GB — **49% da franquia, custo zero**. Só passaria a custar acima de 10 TB/mês, a R$ 0,13/GB |
 | Regressão na voz durante a migração | A troca é atômica por natureza (a malha sai, o LiveKit entra); validar com 3 clientes reais antes do merge |
 | Sala de mídia vazando entre orgs | O token é emitido pelo backend com a sala fixa em `${orgId}:${mapId}`; o cliente não escolhe sala |
