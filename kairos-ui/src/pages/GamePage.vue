@@ -113,17 +113,28 @@
 
       <!-- Chat -->
       <div class="gp-chat">
-        <div v-if="messages.length" class="column q-gutter-xs gp-chat-log">
+        <div v-if="messages.length" ref="chatLog" class="gp-chat-log" @scroll="onChatScroll">
           <div v-for="(m, i) in messages" :key="i" class="gp-chat-msg">
             <span class="gp-chat-name">{{ m.name }}:</span>
             <span class="gp-chat-text"> {{ m.text }}</span>
           </div>
         </div>
-        <input
-          v-model="chatInput" maxlength="300" placeholder="Conversar… (Enter)"
-          class="gp-chat-input"
-          @keydown.enter="sendChat"
-        />
+        <div class="gp-chat-field">
+          <div class="gp-chat-foot">
+            <button v-if="chatUnread" class="gp-chat-jump" @click="scrollChatToEnd">novas mensagens ↓</button>
+            <span
+              v-if="chatInput.length > CHAT_COUNT_FROM"
+              class="gp-chat-count"
+              :class="{ 'gp-chat-count-max': chatInput.length >= CHAT_MAX_LEN }"
+            >{{ chatInput.length }}/{{ CHAT_MAX_LEN }}</span>
+          </div>
+          <input
+            v-model="chatInput" :maxlength="CHAT_MAX_LEN" placeholder="Conversar… (Enter)"
+            class="gp-chat-input"
+            @keydown.enter="sendChat"
+          />
+          <span v-if="chatCooldown" class="gp-chat-cooldown" />
+        </div>
       </div>
 
       <!-- HUD bottom -->
@@ -196,7 +207,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/useGameStore'
 import { useCharacterStore } from '@/stores/useCharacterStore'
@@ -273,6 +284,14 @@ const chatInput = ref('')
 const nearby = ref<string | null>(null)
 let emoteUntil = 0
 const messages = chatMessages
+const CHAT_MAX_LEN = 255
+const CHAT_COUNT_FROM = 200
+const CHAT_COOLDOWN_MS = 500
+const CHAT_BOTTOM_SLACK = 24
+const chatLog = ref<HTMLElement | null>(null)
+const chatCooldown = ref(false)
+const chatUnread = ref(false)
+let chatCooldownTimer = 0
 const voice = new VoiceChat()
 const voiceOn = ref(false)
 const voicePeers = ref<string[]>([])
@@ -383,11 +402,41 @@ function emote() {
 }
 
 function sendChat() {
+  if (chatCooldown.value) return
   const t = chatInput.value.trim()
   if (!t) return
   emitChat(t)
   chatInput.value = ''
+  chatCooldown.value = true
+  chatCooldownTimer = window.setTimeout(() => { chatCooldown.value = false }, CHAT_COOLDOWN_MS)
 }
+
+function atChatBottom() {
+  const el = chatLog.value
+  if (!el) return true
+  return el.scrollHeight - el.scrollTop - el.clientHeight <= CHAT_BOTTOM_SLACK
+}
+
+function scrollChatToEnd() {
+  const el = chatLog.value
+  if (el) el.scrollTop = el.scrollHeight
+  chatUnread.value = false
+}
+
+function onChatScroll() {
+  if (atChatBottom()) chatUnread.value = false
+}
+
+// mede o scroll ANTES da mensagem entrar no DOM (watcher pre-flush) e só decide
+// depois do nextTick, quando a altura nova já foi calculada; sem isso a medida
+// diria "está no fim" sempre. Watcher no array inteiro, não em .length: a lista
+// é capada em 50 no presence.ts e o length para de mudar depois disso.
+watch(messages, async () => {
+  const stick = atChatBottom()
+  await nextTick()
+  if (stick) scrollChatToEnd()
+  else chatUnread.value = true
+})
 
 // controles touch (mobile)
 function pressKey(k: string) { keys.add(k) }
@@ -726,6 +775,7 @@ onUnmounted(() => {
   window.removeEventListener('blur', clearKeys)
   clearInterval(stateTimer)
   clearInterval(voiceUiTimer)
+  clearTimeout(chatCooldownTimer)
   persistState()
   voice.disable()
   disconnectPresence()
@@ -987,30 +1037,107 @@ onUnmounted(() => {
 }
 
 .gp-chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
   max-height: 11.25rem;
   overflow-y: auto;
+  overscroll-behavior: contain;
   margin-bottom: 0.375rem;
+  padding: 0.4375rem 0.5rem;
+  background: var(--bg-1);
+  background: color-mix(in srgb, var(--bg-1) 55%, transparent);
+  border: 0.0625rem solid var(--border);
+  backdrop-filter: blur(0.1875rem);
+  -webkit-backdrop-filter: blur(0.1875rem);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
 }
+.gp-chat-log::-webkit-scrollbar { width: 0.375rem; }
+.gp-chat-log::-webkit-scrollbar-track { background: transparent; }
+.gp-chat-log::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--r-sm); }
+.gp-chat-log::-webkit-scrollbar-thumb:hover { background: var(--text-4); }
 
 .gp-chat-msg {
-  background: rgba(13, 13, 20, 0.82);
-  border: 0.0625rem solid var(--border);
-  padding: 0.3125rem 0.5625rem;
   font-size: 0.75rem;
   line-height: 1.4;
+  overflow-wrap: anywhere;
+  text-shadow: 0 0.0625rem 0.125rem var(--bg-0);
 }
 .gp-chat-name { color: var(--accent); font-weight: 600; }
 .gp-chat-text { color: var(--text); }
 
+.gp-chat-field {
+  position: relative;
+}
+
+.gp-chat-foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 0.25rem);
+  display: flex;
+  align-items: flex-end;
+  gap: 0.375rem;
+  pointer-events: none;
+}
+
+.gp-chat-jump {
+  pointer-events: auto;
+  cursor: pointer;
+  font-family: var(--f-pixel);
+  font-size: 0.5625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bg-0);
+  background: var(--primary-hi);
+  border: 0.0625rem solid var(--primary-hi);
+  border-radius: var(--r-sm);
+  padding: 0.25rem 0.375rem;
+}
+.gp-chat-jump:hover { background: var(--accent-hi); border-color: var(--accent-hi); }
+
+.gp-chat-count {
+  margin-left: auto;
+  font-family: var(--f-mono);
+  font-size: 0.625rem;
+  color: var(--text-3);
+  background: var(--bg-1);
+  background: color-mix(in srgb, var(--bg-1) 70%, transparent);
+  padding: 0.125rem 0.25rem;
+}
+.gp-chat-count-max { color: var(--warn); }
+
 .gp-chat-input {
   width: 100%;
   box-sizing: border-box;
-  background: rgba(13, 13, 20, 0.85);
+  background: var(--bg-1);
+  background: color-mix(in srgb, var(--bg-1) 72%, transparent);
+  backdrop-filter: blur(0.1875rem);
+  -webkit-backdrop-filter: blur(0.1875rem);
   border: 0.0625rem solid var(--border-strong);
   color: var(--text);
   padding: 0.5rem 0.625rem;
   font-size: 0.8125rem;
   font-family: inherit;
+}
+.gp-chat-input:focus { outline: none; border-color: var(--primary-hi); }
+
+.gp-chat-cooldown {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 0.125rem;
+  background: var(--primary-hi);
+  transform-origin: left center;
+  pointer-events: none;
+  /* duração casada com CHAT_COOLDOWN_MS no script */
+  animation: gpChatCooldown 0.5s linear forwards;
+}
+@keyframes gpChatCooldown {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }
 
 .gp-hud-bottom {

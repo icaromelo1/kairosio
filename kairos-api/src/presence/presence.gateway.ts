@@ -68,6 +68,7 @@ interface WhiteboardState {
 }
 
 const MOVE_MIN_INTERVAL_MS = 50
+const CHAT_MIN_INTERVAL_MS = 500
 const BOARD_MAX_POINTS_PER_STROKE = 500
 const BOARD_MAX_STROKES = 300
 const BOARD_MAX_PER_ROOM = 50
@@ -135,6 +136,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   private readonly voiceMode = new Map<string, VoiceMode>()
   private readonly whiteboards = new Map<string, WhiteboardState>()
   private readonly lastMoveAt = new Map<string, number>()
+  private readonly lastChatAt = new Map<string, number>()
   private readonly lastJukeboxAddAt = new Map<string, number>()
 
   constructor(
@@ -202,6 +204,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     this.socketOrg.delete(socket.id)
     this.socketUserId.delete(socket.id)
     this.lastMoveAt.delete(socket.id)
+    this.lastChatAt.delete(socket.id)
     this.lastJukeboxAddAt.delete(socket.id)
   }
 
@@ -271,8 +274,13 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   handleChat(socket: Socket, payload: { text: string }) {
     const player = this.players.get(socket.id)
     if (!player) return
-    const text = String(payload?.text ?? '').trim().slice(0, 300)
+    // descarte silencioso: o cliente já segura o envio por 500ms, isto aqui é a
+    // rede pra quem chama o socket direto pelo console
+    const now = Date.now()
+    if (now - (this.lastChatAt.get(socket.id) ?? 0) < CHAT_MIN_INTERVAL_MS) return
+    const text = String(payload?.text ?? '').trim().slice(0, 255)
     if (!text) return
+    this.lastChatAt.set(socket.id, now)
     this.server.to(this.room(player.org, player.map)).emit('chatMessage', {
       id: socket.id,
       name: player.name,
