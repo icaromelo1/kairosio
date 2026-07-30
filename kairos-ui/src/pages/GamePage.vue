@@ -4,7 +4,12 @@
     <aside class="gp-sidebar" :class="{ 'gp-sidebar-open': gameStore.sidebarOpen }">
       <div class="row items-center justify-between q-gutter-sm">
         <Logo v-if="gameStore.sidebarOpen" :id="'monogram'" size="sm" primary="var(--primary-hi)" accent="var(--accent)" />
-        <button class="gp-sidebar-toggle" @click="gameStore.sidebarOpen = !gameStore.sidebarOpen">{{ gameStore.sidebarOpen ? '‹' : '›' }}</button>
+        <button
+          class="gp-sidebar-toggle"
+          :title="gameStore.sidebarOpen ? 'Recolher o menu' : 'Expandir o menu'"
+          :aria-label="gameStore.sidebarOpen ? 'Recolher o menu' : 'Expandir o menu'"
+          @click="gameStore.sidebarOpen = !gameStore.sidebarOpen"
+        ><PixelIcon :name="gameStore.sidebarOpen ? 'chevron-left' : 'chevron-right'" size="0.875rem" /></button>
       </div>
 
       <template v-if="gameStore.sidebarOpen">
@@ -32,25 +37,15 @@
           </button>
         </div>
 
-        <!-- Voz (estilo Discord: quem está na chamada + mute individual) -->
-        <VoicePanel
-          :mode="voiceMode"
-          :voice-on="voiceOn"
-          :mic-muted="micMuted"
-          :mic-available="voice.hasMic()"
-          :self-name="playerName"
-          :peers="voicePanelPeers"
-          :self-speaking="selfSpeaking"
-          :speaking-peer-ids="speakingPeerIds"
-          :camera-on="camOn"
-          :video-peer-ids="videoPeerIds"
-          :video-elements="videoElementsMap"
-          @toggle-voice="toggleVoice"
-          @toggle-mic="toggleMic"
-          @toggle-peer-mute="togglePeerMute"
-          @set-mode="setVoiceModeUi"
-          @toggle-camera="toggleCamera"
-        />
+        <!-- Voz: único ponto de entrada — todo o controle vive dentro do MediaStage -->
+        <div class="column q-gutter-xs">
+          <div class="gp-section-label">Voz</div>
+          <button class="k-btn k-btn-ghost menu-act" @click="openMediaStage">
+            <PixelIcon :name="voiceOn ? 'mic' : 'headphone'" size="0.875rem" />
+            <span class="col">Sala de voz</span>
+            <span v-if="voiceOn" class="gp-voice-live">no ar</span>
+          </button>
+        </div>
 
         <!-- Você -->
         <div class="column q-gutter-xs">
@@ -89,8 +84,8 @@
       <div class="gp-hud gp-hud-topright">
         <div class="gp-online-count">{{ online }} online</div>
         <div class="column gp-online-list">
-          <span class="gp-peer-you">● {{ playerName }} <span class="gp-peer-you-tag">(você)</span> <span v-if="voiceOn">🎙</span></span>
-          <span v-for="p in roomPeers" :key="p.id" class="gp-peer">● {{ p.name }} <span v-if="voicePeers.includes(p.id)">🔊</span></span>
+          <span class="gp-peer-you">● {{ playerName }} <span class="gp-peer-you-tag">(você)</span> <PixelIcon v-if="voiceOn" name="mic" size="0.75rem" title="na sala de voz" /></span>
+          <span v-for="p in roomPeers" :key="p.id" class="gp-peer">● {{ p.name }} <PixelIcon v-if="voiceIdentities.includes(p.userId)" name="volume-2" size="0.75rem" title="na sala de voz" /></span>
         </div>
       </div>
 
@@ -99,31 +94,40 @@
         perto de <strong>{{ nearby }}</strong>
       </div>
 
-      <!-- Botão de voz (claro: rótulo + estado) -->
-      <div class="gp-voice-wrap column items-end q-gutter-xs">
-        <button
-          :title="voiceOn ? 'Clique pra sair da voz' : 'Clique pra ouvir/falar por voz com quem está perto (mic começa desligado)'"
-          class="gp-voice-btn"
-          :class="{ 'gp-voice-btn-on': voiceOn }"
-          @click="toggleVoice"
-        >{{ voiceOn ? '🔊 Ouvindo a sala' : '🔈 Entrar na voz' }}</button>
-        <span v-if="!voiceOn" class="gp-voice-hint">aproxime-se de alguém pra conversar por voz</span>
-        <button v-else class="gp-voice-reconnect" @click="voice.reconnect()">↻ reconectar (se a voz travar)</button>
+      <!-- Aviso de transmissão: vive AQUI e não no MediaStage porque alcança
+           todo mundo do mapa, inclusive quem nunca abriu a janela de voz. Sem
+           pointer-events e sem nada focável — o WASD segue respondendo. -->
+      <div v-if="screenNotices.length" class="gp-screen-notices" aria-live="polite">
+        <span v-for="notice in screenNotices" :key="notice.id" class="gp-screen-notice">
+          <PixelIcon name="monitor" size="0.75rem" />
+          <b>{{ notice.name }}</b> começou a compartilhar a tela
+        </span>
       </div>
 
       <!-- Chat -->
       <div class="gp-chat">
-        <div v-if="messages.length" class="column q-gutter-xs gp-chat-log">
+        <div v-if="messages.length" ref="chatLog" class="gp-chat-log" @scroll="onChatScroll">
           <div v-for="(m, i) in messages" :key="i" class="gp-chat-msg">
             <span class="gp-chat-name">{{ m.name }}:</span>
             <span class="gp-chat-text"> {{ m.text }}</span>
           </div>
         </div>
-        <input
-          v-model="chatInput" maxlength="300" placeholder="Conversar… (Enter)"
-          class="gp-chat-input"
-          @keydown.enter="sendChat"
-        />
+        <div class="gp-chat-field">
+          <div class="gp-chat-foot">
+            <button v-if="chatUnread" class="gp-chat-jump" @click="scrollChatToEnd">novas mensagens ↓</button>
+            <span
+              v-if="chatInput.length > CHAT_COUNT_FROM"
+              class="gp-chat-count"
+              :class="{ 'gp-chat-count-max': chatInput.length >= CHAT_MAX_LEN }"
+            >{{ chatInput.length }}/{{ CHAT_MAX_LEN }}</span>
+          </div>
+          <input
+            v-model="chatInput" :maxlength="CHAT_MAX_LEN" placeholder="Conversar… (Enter)"
+            class="gp-chat-input"
+            @keydown.enter="sendChat"
+          />
+          <span v-if="chatCooldown" class="gp-chat-cooldown" />
+        </div>
       </div>
 
       <!-- HUD bottom -->
@@ -133,6 +137,8 @@
         <span class="row items-center q-gutter-xs"><span class="k-key">B</span><span class="gp-hud-hint">dançar</span></span>
         <span class="gp-hud-sep">·</span>
         <span class="row items-center q-gutter-xs"><span class="k-key">G</span><span class="gp-hud-hint">acenar</span></span>
+        <span class="gp-hud-sep">·</span>
+        <span class="row items-center q-gutter-xs"><span class="k-key">V</span><span class="gp-hud-hint">voz</span></span>
         <template v-if="activeZone">
           <span class="gp-hud-sep">·</span>
           <span class="row items-center q-gutter-xs"><span class="k-key">E</span><span class="gp-hud-action">{{ activeZone.action }}</span></span>
@@ -144,7 +150,7 @@
         <div class="k-card gp-modal-card column q-gutter-md" @click.stop>
           <div class="row items-center justify-between">
             <span class="k-chip">interação</span>
-            <button class="k-btn k-btn-ghost gp-modal-close" @click="closeModal">esc ✕</button>
+            <button class="k-btn k-btn-ghost gp-modal-close" @click="closeModal">esc<PixelIcon name="close" size="0.75rem" /></button>
           </div>
           <div>
             <h2 class="gp-modal-title">{{ activeModal.name }}</h2>
@@ -156,6 +162,22 @@
         </div>
       </div>
 
+      <!-- Sala de voz/vídeo (janela flutuante sobre o mapa) -->
+      <MediaStage
+        v-if="mediaStageOpen"
+        ref="mediaStage"
+        :self-name="playerName"
+        :self-look="look"
+        :peer-looks="peerLooks"
+        :mode="voiceMode"
+        :connecting="voiceConnecting"
+        @close="mediaStageOpen = false"
+        @connect="joinVoice"
+        @leave="leaveVoice"
+        @reconnect="reconnectVoice"
+        @set-mode="setVoiceModeUi"
+      />
+
       <!-- Painel do jukebox -->
       <JukeboxPanel v-if="jukeboxOpen" @close="closeModal" />
 
@@ -166,14 +188,14 @@
       <!-- Controles touch (mobile) -->
       <div class="touch-ctl gp-touch-ctl">
         <span></span>
-        <button class="tbtn" @pointerdown.prevent="pressKey('w')" @pointerup="releaseKey('w')" @pointerleave="releaseKey('w')">▲</button>
+        <button class="tbtn" aria-label="andar para cima" @pointerdown.prevent="pressKey('w')" @pointerup="releaseKey('w')" @pointerleave="releaseKey('w')"><PixelIcon name="chevron-up" size="1.25rem" /></button>
         <span></span>
-        <button class="tbtn" @pointerdown.prevent="pressKey('a')" @pointerup="releaseKey('a')" @pointerleave="releaseKey('a')">◀</button>
-        <button class="tbtn" @pointerdown.prevent="dancing = !dancing">♪</button>
-        <button class="tbtn" @pointerdown.prevent="pressKey('d')" @pointerup="releaseKey('d')" @pointerleave="releaseKey('d')">▶</button>
+        <button class="tbtn" aria-label="andar para a esquerda" @pointerdown.prevent="pressKey('a')" @pointerup="releaseKey('a')" @pointerleave="releaseKey('a')"><PixelIcon name="chevron-left" size="1.25rem" /></button>
+        <button class="tbtn" aria-label="dançar" @pointerdown.prevent="dancing = !dancing"><PixelIcon name="music" size="1.25rem" /></button>
+        <button class="tbtn" aria-label="andar para a direita" @pointerdown.prevent="pressKey('d')" @pointerup="releaseKey('d')" @pointerleave="releaseKey('d')"><PixelIcon name="chevron-right" size="1.25rem" /></button>
         <span></span>
-        <button class="tbtn" @pointerdown.prevent="pressKey('s')" @pointerup="releaseKey('s')" @pointerleave="releaseKey('s')">▼</button>
-        <button class="tbtn" @pointerdown.prevent="emote()">👋</button>
+        <button class="tbtn" aria-label="andar para baixo" @pointerdown.prevent="pressKey('s')" @pointerup="releaseKey('s')" @pointerleave="releaseKey('s')"><PixelIcon name="chevron-down" size="1.25rem" /></button>
+        <button class="tbtn" aria-label="acenar" @pointerdown.prevent="emote()"><PixelIcon name="hand" size="1.25rem" /></button>
       </div>
 
       <div v-if="error" class="gp-error">{{ error }}</div>
@@ -196,7 +218,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/useGameStore'
 import { useCharacterStore } from '@/stores/useCharacterStore'
@@ -207,14 +229,15 @@ import { AvatarPuppet, sanitizeLook, type AvatarLook, type Facing } from '@/game
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, socketId, jukeboxState, voiceMode, emitVoiceSetMode, sessionKicked, type AvatarProps } from '@/services/presence'
-import { VoiceChat } from '@/services/webrtc'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, jukeboxState, voiceMode, emitVoiceSetMode, emitScreenShare, onScreenShare, sessionKicked, type AvatarProps, type ScreenShareState } from '@/services/presence'
+import { media } from '@/services/media'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import Logo from '@/components/logos/Logo.vue'
 import JukeboxPanel from '@/components/JukeboxPanel.vue'
-import VoicePanel from '@/components/VoicePanel.vue'
+import MediaStage from '@/components/MediaStage.vue'
+import PixelIcon from '@/components/PixelIcon.vue'
 import TaskPanel from '@/components/TaskPanel.vue'
 import NotePanel from '@/components/NotePanel.vue'
 import WhiteboardPanel from '@/components/WhiteboardPanel.vue'
@@ -273,79 +296,106 @@ const chatInput = ref('')
 const nearby = ref<string | null>(null)
 let emoteUntil = 0
 const messages = chatMessages
-const voice = new VoiceChat()
-const voiceOn = ref(false)
-const voicePeers = ref<string[]>([])
-const micMuted = ref(false)
-const mutedPeerIds = reactive(new Set<string>())
-const camOn = ref(false)
-const videoPeerIds = ref<string[]>([])
-const videoElementsMap = ref(new Map<string, HTMLVideoElement>())
-const speakingPeerIds = ref<string[]>([])
-const selfSpeaking = ref(false)
-let voiceUiTimer = 0
-
-function refreshVoiceUi() {
-  if (!voiceOn.value) return
-  videoPeerIds.value = voice.activeVideoPeerIds()
-  const nextVideos = new Map<string, HTMLVideoElement>()
-  for (const id of videoPeerIds.value) {
-    const el = voice.getRemoteVideoElement(id)
-    if (el) nextVideos.set(id, el)
+const CHAT_MAX_LEN = 255
+const CHAT_COUNT_FROM = 200
+const CHAT_COOLDOWN_MS = 500
+const CHAT_BOTTOM_SLACK = 24
+const chatLog = ref<HTMLElement | null>(null)
+const chatCooldown = ref(false)
+const chatUnread = ref(false)
+let chatCooldownTimer = 0
+const voiceOn = computed(() => media.state.connected)
+const voiceConnecting = computed(() => media.state.connecting)
+const mediaStageOpen = ref(false)
+const mediaStage = ref<InstanceType<typeof MediaStage> | null>(null)
+// tudo daqui pra baixo que fala com a mídia é chaveado por userId (identity do
+// LiveKit), nunca por socket.id — este continua sendo a chave de avatar/posição
+const voiceIdentities = computed(() => [...media.peers.values()].filter((p) => p.subscribed).map((p) => p.identity))
+// look dos participantes vem da presença (o LiveKit só conhece identity e nome)
+const peerLooks = computed(() => {
+  const out: Record<string, { name: string; look: AvatarLook }> = {}
+  for (const p of roomPeers.value) {
+    if (!p.userId) continue
+    out[p.userId] = { name: p.name, look: sanitizeLook(p.avatar) }
   }
-  videoElementsMap.value = nextVideos
-  speakingPeerIds.value = voice.speakingPeerIds()
-  selfSpeaking.value = voice.isSelfSpeaking()
+  return out
+})
+
+// ---- aviso de transmissão de tela (socket, não LiveKit) ----
+const SCREEN_NOTICE_MS = 6000
+const screenNotices = ref<{ id: number; userId: string; name: string }[]>([])
+const screenNoticeTimers = new Set<number>()
+let screenNoticeSeq = 0
+let offScreenShare: (() => void) | null = null
+
+function dropScreenNotice(id: number) {
+  const index = screenNotices.value.findIndex((n) => n.id === id)
+  if (index >= 0) screenNotices.value.splice(index, 1)
 }
 
-async function toggleCamera() {
-  if (camOn.value) {
-    voice.disableCamera()
-    camOn.value = false
+function onScreenShareState(state: ScreenShareState) {
+  // o próprio anúncio volta pelo broadcast da sala: quem compartilhou já sabe
+  if (state.userId && state.userId === auth.userId) return
+  if (!state.on) {
+    // parou antes do aviso expirar — some agora em vez de seguir mentindo
+    for (const notice of screenNotices.value.filter((n) => n.userId === state.userId)) dropScreenNotice(notice.id)
     return
   }
-  camOn.value = await voice.enableCamera()
+  const id = ++screenNoticeSeq
+  screenNotices.value.push({ id, userId: state.userId, name: state.name || 'alguém' })
+  const timer = window.setTimeout(() => {
+    screenNoticeTimers.delete(timer)
+    dropScreenNotice(id)
+  }, SCREEN_NOTICE_MS)
+  screenNoticeTimers.add(timer)
 }
 
-async function toggleVoice() {
+// uma fonte só pro anúncio: a transição de screenOn cobre parar pela UI, parar
+// pela barra do navegador e cair a conexão
+watch(() => media.state.screenOn, (on) => emitScreenShare(on))
+
+function openMediaStage() {
+  mediaStageOpen.value = true
+  void nextTick(() => mediaStage.value?.restore())
+}
+
+// fechar a janela em chamada esconderia um microfone aberto: com voz ativa o
+// atalho minimiza (a tira segue mostrando quem fala) e só fecha desconectado
+function toggleMediaStage() {
+  if (!mediaStageOpen.value) {
+    openMediaStage()
+    return
+  }
   if (voiceOn.value) {
-    voice.disable()
-    voiceOn.value = false
-    voicePeers.value = []
-    micMuted.value = true
-    mutedPeerIds.clear()
-    camOn.value = false
-    videoPeerIds.value = []
-    videoElementsMap.value = new Map()
-    speakingPeerIds.value = []
-    selfSpeaking.value = false
+    mediaStage.value?.toggleMinimized()
     return
   }
-  voice.setSelf(socketId() || '')
-  await voice.enable()
-  voiceOn.value = true
-  micMuted.value = true // entra só ouvindo — clique no seu nome pra ligar o microfone
-  if (!voice.hasMic()) error.value = 'Sem acesso ao microfone — você só vai conseguir ouvir.'
+  mediaStageOpen.value = false
 }
 
-function toggleMic() {
-  if (!voice.hasMic()) return // sem permissão de microfone, não tem o que ligar
-  if (micMuted.value) { voice.unmuteMic(); micMuted.value = false }
-  else { voice.muteMic(); micMuted.value = true }
+async function joinVoice() {
+  if (voiceConnecting.value || voiceOn.value) return
+  error.value = ''
+  if (!(await media.connect(currentId.value))) {
+    error.value = media.state.error || 'Não foi possível entrar na voz.'
+    return
+  }
+  // entra só ouvindo — o microfone liga na barra de controles do MediaStage
+  if (!media.state.micAvailable) error.value = 'Sem acesso ao microfone — você só vai conseguir ouvir.'
 }
-function togglePeerMute(id: string) {
-  if (mutedPeerIds.has(id)) { voice.unmuteRemote(id); mutedPeerIds.delete(id) }
-  else { voice.muteRemote(id); mutedPeerIds.add(id) }
+
+async function leaveVoice() {
+  await media.disconnect()
 }
+
+async function reconnectVoice() {
+  if (voiceConnecting.value) return
+  if (!(await media.reconnect(currentId.value))) error.value = media.state.error || 'Não foi possível reconectar à voz.'
+}
+
 function setVoiceModeUi(mode: 'proximity' | 'room') {
   emitVoiceSetMode(mode)
 }
-const voicePanelPeers = computed(() => roomPeers.value.map((p) => ({
-  id: p.id,
-  name: p.name,
-  connected: voicePeers.value.includes(p.id),
-  muted: mutedPeerIds.has(p.id),
-})))
 const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' | 'wave' | 'sit', boost: false }
 // ids dos avatares remotos presentes na cena
 const peerIds = new Set<string>()
@@ -360,10 +410,13 @@ function onKeyDown(e: KeyboardEvent) {
     panMode.value = true
     return
   }
-  if (['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'e', 'b', 'g', 'escape'].includes(k)) e.preventDefault()
+  // atalho da sala de voz não pode engolir Cmd/Ctrl+V (colar) nem Alt+V
+  const voiceKey = k === 'v' && !e.ctrlKey && !e.metaKey && !e.altKey
+  if (voiceKey || ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'e', 'b', 'g', 'escape'].includes(k)) e.preventDefault()
   if (k === 'e') { tryInteract(); return }
   if (k === 'b') { dancing = !dancing; return }
   if (k === 'g') { emote(); return }
+  if (voiceKey) { toggleMediaStage(); return }
   if (k === 'escape') { closeModal(); return }
   keys.add(k)
 }
@@ -383,11 +436,41 @@ function emote() {
 }
 
 function sendChat() {
+  if (chatCooldown.value) return
   const t = chatInput.value.trim()
   if (!t) return
   emitChat(t)
   chatInput.value = ''
+  chatCooldown.value = true
+  chatCooldownTimer = window.setTimeout(() => { chatCooldown.value = false }, CHAT_COOLDOWN_MS)
 }
+
+function atChatBottom() {
+  const el = chatLog.value
+  if (!el) return true
+  return el.scrollHeight - el.scrollTop - el.clientHeight <= CHAT_BOTTOM_SLACK
+}
+
+function scrollChatToEnd() {
+  const el = chatLog.value
+  if (el) el.scrollTop = el.scrollHeight
+  chatUnread.value = false
+}
+
+function onChatScroll() {
+  if (atChatBottom()) chatUnread.value = false
+}
+
+// mede o scroll ANTES da mensagem entrar no DOM (watcher pre-flush) e só decide
+// depois do nextTick, quando a altura nova já foi calculada; sem isso a medida
+// diria "está no fim" sempre. Watcher no array inteiro, não em .length: a lista
+// é capada em 50 no presence.ts e o length para de mudar depois disso.
+watch(messages, async () => {
+  const stick = atChatBottom()
+  await nextTick()
+  if (stick) scrollChatToEnd()
+  else chatUnread.value = true
+})
 
 // controles touch (mobile)
 function pressKey(k: string) { keys.add(k) }
@@ -494,6 +577,9 @@ function selectMap(id: string) {
   pos.x = map.spawn.x
   pos.y = map.spawn.y
   switchMap(id)
+  // a sala do LiveKit é `${org}:${mapId}` — sem reconectar, continuaríamos ouvindo
+  // a sala do mundo anterior
+  if (media.state.connected) void media.reconnect(id)
 }
 
 // foto de peer vem da rede — só carrega se for o caminho canônico da nossa API,
@@ -569,8 +655,8 @@ onMounted(async () => {
   window.addEventListener('keydown', onKeyDown)
   window.addEventListener('keyup', onKeyUp)
   window.addEventListener('blur', clearKeys)
+  offScreenShare = onScreenShare(onScreenShareState)
   stateTimer = window.setInterval(persistState, 15000)
-  voiceUiTimer = window.setInterval(refreshVoiceUi, 250)
 
   scene.app.ticker.add((ticker) => {
     if (!scene) return
@@ -643,24 +729,23 @@ onMounted(async () => {
     let near: string | null = null
     let best = 3
     const voiceIds: string[] = []
-    const voiceConnected = voiceOn.value ? new Set(voice.activePeers()) : null
+    const voiceLive = media.state.connected
     for (const peer of remotePlayers.values()) {
       if (peer.map && peer.map !== map.id) continue
       const d = Math.hypot(peer.x - pos.x, peer.y - pos.y)
       if (d < best) { best = d; near = peer.name }
       const inRange = d <= 4 // raio de comunicação — mesmo alcance usado pra voz por proximidade
-      // histerese na voz: conecta a ≤4, mas quem já está conectado só cai a >5 —
-      // sem isso, dançar na borda do raio derruba/reconecta o WebRTC em loop
-      const keepConnected = !!voiceConnected?.has(peer.id) && d <= 5
-      // no modo "sala", a voz conecta com todo mundo — o raio some, só regula nomes flutuantes
-      if (voiceMode.value === 'room' || inRange || keepConnected) voiceIds.push(peer.id)
+      // histerese na voz: assina a ≤4, mas quem já está assinado só cai a >5 —
+      // sem isso, dançar na borda do raio gera assina/desassina em loop
+      const keepConnected = voiceLive && media.isSubscribed(peer.userId) && d <= 5
+      // no modo "sala", a voz alcança todo mundo — o raio some, só regula nomes flutuantes
+      // (userId vazio não deveria acontecer — o gateway recusa socket sem usuário —
+      // mas se acontecer o peer só fica sem mídia, sem quebrar o frame)
+      if (peer.userId && (voiceMode.value === 'room' || inRange || keepConnected)) voiceIds.push(peer.userId)
       scene.avatar(peer.id)?.setNameVisible(inRange)
     }
     nearby.value = near
-    if (voiceOn.value) {
-      voice.sync(voiceIds)
-      voicePeers.value = voice.activePeers()
-    }
+    if (voiceLive) media.syncSubscriptions(voiceIds)
 
     // ---- jukebox: toca sincronizado, volume por distância (modo proximidade) ----
     jukeboxAudio.sync()
@@ -725,9 +810,14 @@ onUnmounted(() => {
   window.removeEventListener('keyup', onKeyUp)
   window.removeEventListener('blur', clearKeys)
   clearInterval(stateTimer)
-  clearInterval(voiceUiTimer)
+  clearTimeout(chatCooldownTimer)
+  offScreenShare?.()
+  offScreenShare = null
+  for (const timer of screenNoticeTimers) clearTimeout(timer)
+  screenNoticeTimers.clear()
   persistState()
-  voice.disable()
+  // Room vazada = microfone continua ligado depois de sair da tela
+  void media.disconnect()
   disconnectPresence()
   jukeboxAudio.stop()
   scene?.destroy()
@@ -935,47 +1025,50 @@ onUnmounted(() => {
   color: var(--text);
 }
 
-.gp-voice-wrap {
+/* abaixo do "perto de X" pra não brigar pelo topo-centro */
+.gp-screen-notices {
   position: absolute;
-  bottom: 1rem;
-  right: 1.5rem;
+  top: 3.75rem;
+  left: 50%;
+  transform: translateX(-50%);
   z-index: 20;
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  max-width: min(26rem, calc(100% - 2rem));
+  /* não captura clique nem foco: o jogo segue respondendo ao teclado embaixo */
+  pointer-events: none;
 }
 
-.gp-voice-btn {
-  display: inline-flex;
+.gp-screen-notice {
+  display: flex;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  padding: 0.5625rem 0.875rem;
-  border-radius: 1.375rem;
-  font-size: 0.8125rem;
-  font-weight: 600;
-  border: 0.0625rem solid var(--border-strong);
-  background: rgba(13, 13, 20, 0.85);
-  color: var(--text);
-}
-.gp-voice-btn-on {
-  border-color: var(--ok);
-  background: rgba(52, 211, 153, 0.22);
-}
-
-.gp-voice-hint {
-  font-size: 0.6875rem;
-  color: var(--text-3);
-  background: rgba(13, 13, 20, 0.7);
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
-}
-
-.gp-voice-reconnect {
-  font-size: 0.6875rem;
+  gap: 0.375rem;
+  padding: 0.375rem 0.625rem;
+  background: var(--bg-2);
+  border: 0.125rem solid var(--accent-lo);
+  box-shadow: var(--ui-shadow);
+  font-size: 0.75rem;
   color: var(--text-2);
-  background: rgba(13, 13, 20, 0.7);
-  border: 0.0625rem solid var(--border);
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.25rem;
-  cursor: pointer;
+}
+.gp-screen-notice b { color: var(--accent); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .gp-screen-notice {
+    animation: gpScreenNotice 0.18s steps(3, jump-none) both;
+  }
+  @keyframes gpScreenNotice {
+    from { opacity: 0; transform: translateY(-0.5rem); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+.gp-voice-live {
+  flex: none;
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  color: var(--ok);
 }
 
 .gp-chat {
@@ -987,30 +1080,107 @@ onUnmounted(() => {
 }
 
 .gp-chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
   max-height: 11.25rem;
   overflow-y: auto;
+  overscroll-behavior: contain;
   margin-bottom: 0.375rem;
+  padding: 0.4375rem 0.5rem;
+  background: var(--bg-1);
+  background: color-mix(in srgb, var(--bg-1) 55%, transparent);
+  border: 0.0625rem solid var(--border);
+  backdrop-filter: blur(0.1875rem);
+  -webkit-backdrop-filter: blur(0.1875rem);
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
 }
+.gp-chat-log::-webkit-scrollbar { width: 0.375rem; }
+.gp-chat-log::-webkit-scrollbar-track { background: transparent; }
+.gp-chat-log::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--r-sm); }
+.gp-chat-log::-webkit-scrollbar-thumb:hover { background: var(--text-4); }
 
 .gp-chat-msg {
-  background: rgba(13, 13, 20, 0.82);
-  border: 0.0625rem solid var(--border);
-  padding: 0.3125rem 0.5625rem;
   font-size: 0.75rem;
   line-height: 1.4;
+  overflow-wrap: anywhere;
+  text-shadow: 0 0.0625rem 0.125rem var(--bg-0);
 }
 .gp-chat-name { color: var(--accent); font-weight: 600; }
 .gp-chat-text { color: var(--text); }
 
+.gp-chat-field {
+  position: relative;
+}
+
+.gp-chat-foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: calc(100% + 0.25rem);
+  display: flex;
+  align-items: flex-end;
+  gap: 0.375rem;
+  pointer-events: none;
+}
+
+.gp-chat-jump {
+  pointer-events: auto;
+  cursor: pointer;
+  font-family: var(--f-pixel);
+  font-size: 0.5625rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--bg-0);
+  background: var(--primary-hi);
+  border: 0.0625rem solid var(--primary-hi);
+  border-radius: var(--r-sm);
+  padding: 0.25rem 0.375rem;
+}
+.gp-chat-jump:hover { background: var(--accent-hi); border-color: var(--accent-hi); }
+
+.gp-chat-count {
+  margin-left: auto;
+  font-family: var(--f-mono);
+  font-size: 0.625rem;
+  color: var(--text-3);
+  background: var(--bg-1);
+  background: color-mix(in srgb, var(--bg-1) 70%, transparent);
+  padding: 0.125rem 0.25rem;
+}
+.gp-chat-count-max { color: var(--warn); }
+
 .gp-chat-input {
   width: 100%;
   box-sizing: border-box;
-  background: rgba(13, 13, 20, 0.85);
+  background: var(--bg-1);
+  background: color-mix(in srgb, var(--bg-1) 72%, transparent);
+  backdrop-filter: blur(0.1875rem);
+  -webkit-backdrop-filter: blur(0.1875rem);
   border: 0.0625rem solid var(--border-strong);
   color: var(--text);
   padding: 0.5rem 0.625rem;
   font-size: 0.8125rem;
   font-family: inherit;
+}
+.gp-chat-input:focus { outline: none; border-color: var(--primary-hi); }
+
+.gp-chat-cooldown {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 0.125rem;
+  background: var(--primary-hi);
+  transform-origin: left center;
+  pointer-events: none;
+  /* duração casada com CHAT_COOLDOWN_MS no script */
+  animation: gpChatCooldown 0.5s linear forwards;
+}
+@keyframes gpChatCooldown {
+  from { transform: scaleX(1); }
+  to { transform: scaleX(0); }
 }
 
 .gp-hud-bottom {
@@ -1046,7 +1216,7 @@ onUnmounted(() => {
   width: min(32.5rem, 100%);
 }
 
-.gp-modal-close { padding: 0.375rem 0.625rem; }
+.gp-modal-close { padding: 0.375rem 0.625rem; gap: 0.375rem; }
 
 .gp-modal-title {
   margin: 0 0 0.375rem;
@@ -1145,16 +1315,6 @@ onUnmounted(() => {
     margin-bottom: 0;
   }
 
-  /* Voz: rótulos auxiliares (dica/reconectar) ocupavam largura própria e
-     colidiam com o chat (bottom-left) em telas < ~31.25rem. Fica só o botão. */
-  .gp-voice-hint,
-  .gp-voice-reconnect {
-    display: none;
-  }
-  .gp-voice-wrap {
-    bottom: 0.75rem;
-    right: 0.75rem;
-  }
   .gp-chat {
     bottom: 0.75rem;
     left: 0.75rem;

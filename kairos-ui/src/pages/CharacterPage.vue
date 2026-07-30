@@ -370,8 +370,8 @@ const PANTS_COLORS = [
 
 const ACCESSORIES = [
   { id: 'none' as const, label: 'Nenhum' },
-  { id: 'glasses' as const, label: '🤓 Óculos' },
-  { id: 'hat' as const, label: '🧢 Chapéu' },
+  { id: 'glasses' as const, label: 'Óculos' },
+  { id: 'hat' as const, label: 'Chapéu' },
 ]
 </script>
 

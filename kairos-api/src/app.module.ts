@@ -24,6 +24,7 @@ import { TaskModule } from './task/task.module'
 import { Task } from './task/task.entity'
 import { NoteModule } from './note/note.module'
 import { Note } from './note/note.entity'
+import { MediaModule } from './media/media.module'
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { Note } from './note/note.entity'
     JukeboxModule,
     TaskModule,
     NoteModule,
+    MediaModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
