@@ -3,20 +3,17 @@
 Estado real do projeto. Visão em `KAIROS.md`; **o que falta em `docs/PENDENTE.md`**;
 specs detalhados em `docs/PLANO-*.md`.
 
-> Atualizado: 2026-06-22.
+> Atualizado: 2026-07-30.
 
 ---
 
 ## 🔜 O QUE FALTA → `docs/PENDENTE.md`
 
-Resumo (detalhe + ordem no PENDENTE.md):
-1. **Arte 2.5D** — y-sort+sombras+customização ✅; falta objetos com volume "real" + spritesheets do avatar. — `PLANO-arte-2.5d.md`
-2. **Editor**: undo/redo + validações; poltrona sentável.
-3. **Estações funcionais**: ligar lousa/jukebox/mesa/estante a ferramentas reais.
-4. **Voz/vídeo**: vídeo por proximidade + indicador de "quem fala".
-5. **OAuth Google/GitHub**: código pronto, falta o Icaro criar os apps + creds.
-6. **Polimento**: performance/culling, hardening XSS completo.
-7. **Backlog (não agendado):** NPCs-LLM. **Recusado:** economia/dinheiro.
+Resumo (detalhe no PENDENTE.md):
+1. **Spritesheets do avatar** — única peça grande de arte que falta (destrava o virar de perfil no A/D). — `PLANO-arte-2.5d.md`
+2. **OAuth Google/GitHub**: código pronto, falta o Icaro criar os apps + creds.
+3. **Débitos técnicos**: `synchronize: true` em prod, estado do jogo em memória (não escala pra 2+ instâncias), bundle único grande.
+4. **Backlog (não agendado):** NPCs-LLM. **Recusado:** economia/dinheiro.
 
 ---
 
@@ -40,6 +37,16 @@ Resumo (detalhe + ordem no PENDENTE.md):
   onboarding (criar/entrar org via convite), **link de convite** (`/join/<code>`, copiável no admin,
   preservado através de login/registro), **painel `/admin`** (membros/mundos/config).
 - Persistência: personagem + último mundo/posição no banco (retoma ao logar); nome não vaza entre contas.
+
+**Estações funcionais (jun–jul/2026)**
+- **Jukebox**: fila por link do YouTube (`yt-dlp`), storage no Drive (`rclone`), cache local,
+  modo sala/proximidade, sincronizado por timestamp.
+- **Lousa** colaborativa (strokes em tempo real), **mesa** (tarefas) e **estante** (notas),
+  todas escopadas por org e abertas com `[E]`.
+- **Vídeo por proximidade** opt-in + indicador de quem está falando.
+- **Editor**: undo/redo, validação de spawn/overlap, flag `sittable` genérica.
+- **Performance**: culling de avatares fora do viewport.
+- **Code review geral (30/07)**: segurança, bugs de multiplayer e leaks — `docs/REVIEW-2026-07-30.md`.
 
 **Produto / outros**
 - Branding **Kairos** (renomeado de "Kairos IO") + favicon; **landing** reescrita (o que é/como usar/pra que serve).
@@ -70,6 +77,7 @@ Resumo (detalhe + ordem no PENDENTE.md):
 ## 📂 Specs (`docs/`)
 `PENDENTE.md` · `PLANO-arte-2.5d.md` · `PLANO-editor-melhorias.md` · `PLANO-interacoes-objetos.md`
 · `PLANO-camera-e-estilo.md` · `PLANO-feedback-status.md` · `PLANO-hardening-e-login.md`
+· `PLANO-jukebox.md` · `REVIEW-2026-07-30.md`
 · `PLANO-landing-page.md` · `PLANO-multi-tenancy.md` · `PLANO-admin-panel.md`
 
 ---
