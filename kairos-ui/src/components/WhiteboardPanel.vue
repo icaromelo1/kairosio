@@ -2,8 +2,8 @@
   <div class="wb-overlay" @click="$emit('close')">
     <div class="k-card wb-card q-pa-lg column q-gutter-md" @click.stop>
       <div class="row items-center justify-between">
-        <span class="k-chip">🖊 lousa</span>
-        <button class="k-btn k-btn-ghost k-btn-sm" @click="$emit('close')">esc ✕</button>
+        <span class="k-chip"><PixelIcon name="pencil" size="0.6875rem" />lousa</span>
+        <button class="k-btn k-btn-ghost k-btn-sm" @click="$emit('close')">esc<PixelIcon name="close" size="0.75rem" /></button>
       </div>
 
       <div class="row items-center q-gutter-xs">
@@ -35,6 +35,7 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue'
 import { joinBoard, sendStroke, clearBoard, onBoardState, onBoardStroke, onBoardClear } from '@/services/presence'
+import PixelIcon from '@/components/PixelIcon.vue'
 
 interface Point { x: number; y: number }
 interface Stroke { id: string; color: string; points: Point[] }

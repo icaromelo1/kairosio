@@ -24,8 +24,8 @@
         <div class="fb-field">
           <label>Tipo</label>
           <div class="fb-kinds">
-            <button :class="['fb-kind', form.kind === 'bug' && 'k-active']" @click="form.kind = 'bug'">🐞 Bug</button>
-            <button :class="['fb-kind', form.kind === 'melhoria' && 'k-active']" @click="form.kind = 'melhoria'">✨ Melhoria</button>
+            <button :class="['fb-kind', form.kind === 'bug' && 'k-active']" @click="form.kind = 'bug'"><PixelIcon name="bug" size="0.875rem" />Bug</button>
+            <button :class="['fb-kind', form.kind === 'melhoria' && 'k-active']" @click="form.kind = 'melhoria'"><PixelIcon name="sparkles" size="0.875rem" />Melhoria</button>
           </div>
         </div>
 
@@ -42,7 +42,7 @@
         <button class="fb-submit" :disabled="sending" @click="submit">
           {{ sending ? 'Enviando…' : 'Enviar' }}
         </button>
-        <p v-if="ok" class="fb-ok">✓ Obrigado! Seu feedback foi registrado.</p>
+        <p v-if="ok" class="fb-ok"><PixelIcon name="check" size="0.875rem" />Obrigado! Seu feedback foi registrado.</p>
         <p v-if="err" class="fb-err">{{ err }}</p>
       </section>
 
@@ -53,7 +53,7 @@
         <ul class="fb-list">
           <li v-for="f in list" :key="f.id" class="fb-item">
             <div class="fb-item-top">
-              <span class="fb-tag">{{ f.kind === 'bug' ? '🐞 Bug' : '✨ Melhoria' }}</span>
+              <span class="fb-tag"><PixelIcon :name="f.kind === 'bug' ? 'bug' : 'sparkles'" size="0.8125rem" />{{ f.kind === 'bug' ? 'Bug' : 'Melhoria' }}</span>
               <span :class="['k-badge', statusBadgeClass[f.status]]">{{ statusLabel[f.status] }}</span>
             </div>
             <div class="fb-item-title">{{ f.title }}</div>
@@ -76,6 +76,7 @@ import { ref, reactive, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { createFeedback, fetchFeedback, type Feedback, type FeedbackKind, type FeedbackStatus } from '@/services/feedback.api'
 import { useAuthStore } from '@/stores/useAuthStore'
+import PixelIcon from '@/components/PixelIcon.vue'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -181,18 +182,18 @@ onUnmounted(() => clearInterval(nowTimer))
 .fb-field input, .fb-field textarea { width: 100%; box-sizing: border-box; background: #1d1d2a; border: 0.0625rem solid #303045; color: #e8e8f0; padding: 0.5625rem 0.6875rem; border-radius: 0.25rem; font-size: 0.875rem; font-family: inherit; }
 .fb-field textarea { resize: vertical; }
 .fb-kinds { display: flex; gap: 0.5rem; }
-.fb-kind { flex: 1; background: #1d1d2a; border: 0.0625rem solid #303045; color: #c8c8d8; padding: 0.5rem; cursor: pointer; border-radius: 0.25rem; font-size: 0.8125rem; }
+.fb-kind { flex: 1; background: #1d1d2a; border: 0.0625rem solid #303045; color: #c8c8d8; padding: 0.5rem; cursor: pointer; border-radius: 0.25rem; font-size: 0.8125rem; display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; }
 .fb-kind.k-active { color: #fff; }
 .fb-submit { background: #7c3aed; border: none; color: #fff; padding: 0.625rem 1.25rem; cursor: pointer; border-radius: 0.25rem; font-size: 0.875rem; font-weight: 600; }
 .fb-submit:disabled { opacity: 0.6; cursor: default; }
-.fb-ok { color: #34d399; font-size: 0.8125rem; margin: 0.75rem 0 0; }
+.fb-ok { color: #34d399; font-size: 0.8125rem; margin: 0.75rem 0 0; display: flex; align-items: center; gap: 0.375rem; }
 .fb-err { color: #f87171; font-size: 0.8125rem; margin: 0.75rem 0 0; }
 .fb-count { color: #8a8aa0; font-weight: 400; }
 .fb-empty { font-size: 0.8125rem; color: #8a8aa0; }
 .fb-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.75rem; }
 .fb-item { background: #1a1a26; border: 0.0625rem solid #262636; border-radius: 0.375rem; padding: 0.75rem 0.875rem; overflow-wrap: anywhere; word-break: break-word; min-width: 0; }
 .fb-item-top { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; margin-bottom: 0.375rem; }
-.fb-tag { font-size: 0.75rem; color: #c8c8d8; }
+.fb-tag { font-size: 0.75rem; color: #c8c8d8; display: inline-flex; align-items: center; gap: 0.375rem; }
 .fb-item-resolved { font-size: 0.6875rem; color: #34d399; margin-top: 0.25rem; }
 .fb-item-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.1875rem; }
 .fb-item-msg { font-size: 0.8125rem; color: #a0a0b8; line-height: 1.5; white-space: pre-wrap; }

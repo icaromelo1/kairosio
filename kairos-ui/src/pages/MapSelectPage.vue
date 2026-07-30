@@ -49,7 +49,7 @@
         <div class="row justify-between items-center q-mt-xs">
           <span class="ms-meta">{{ m.width }}×{{ m.height }} · {{ countZones(m) }} estações · {{ m.hours }}</span>
           <span class="row items-center q-gutter-md">
-            <a v-if="m.ownerId && m.ownerId === auth.userId" href="#" class="ms-edit-link" @click.stop.prevent="router.push(`/editor/${m.id}`)">✎ Editar</a>
+            <a v-if="m.ownerId && m.ownerId === auth.userId" href="#" class="ms-edit-link" @click.stop.prevent="router.push(`/editor/${m.id}`)"><PixelIcon name="pencil" size="0.875rem" />Editar</a>
             <span class="ms-enter-label">Entrar →</span>
           </span>
         </div>
@@ -68,6 +68,7 @@ import { interactableObjects, type MapDef } from '@/game/maps'
 import { fetchMaps, fetchOnlineCounts } from '@/services/maps.api'
 import { getMyOrg } from '@/services/org.api'
 import Logo from '@/components/logos/Logo.vue'
+import PixelIcon from '@/components/PixelIcon.vue'
 
 const router = useRouter()
 const gameStore = useGameStore()
@@ -202,6 +203,9 @@ onUnmounted(() => clearInterval(countTimer))
 }
 
 .ms-edit-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
   font-size: 0.8125rem;
   color: var(--text-2);
   font-weight: 600;

@@ -2,8 +2,8 @@
   <div class="jb-overlay" @click="$emit('close')">
     <div class="k-card jb-card q-pa-lg column q-gutter-md" @click.stop>
       <div class="row items-center justify-between">
-        <span class="k-chip">📋 tarefas</span>
-        <button class="k-btn k-btn-ghost k-btn-sm" @click="$emit('close')">esc ✕</button>
+        <span class="k-chip"><PixelIcon name="clipboard" size="0.6875rem" />tarefas</span>
+        <button class="k-btn k-btn-ghost k-btn-sm" @click="$emit('close')">esc<PixelIcon name="close" size="0.75rem" /></button>
       </div>
 
       <p v-if="error" class="jb-error">{{ error }}</p>
@@ -30,7 +30,7 @@
             <input type="checkbox" :checked="t.done" @change="toggleDone(t)" />
             <span :class="{ 'jb-task-done': t.done }" class="ellipsis">{{ t.title }}</span>
           </label>
-          <button class="k-btn k-btn-ghost k-btn-xs" @click="remove(t)" title="apagar">✕</button>
+          <button class="k-btn k-btn-ghost k-btn-xs" title="apagar tarefa" aria-label="apagar tarefa" @click="remove(t)"><PixelIcon name="close" size="0.6875rem" /></button>
         </div>
       </div>
     </div>
@@ -40,6 +40,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { listTasks, createTask, updateTask, deleteTask, type TaskItem } from '@/services/task.api'
+import PixelIcon from '@/components/PixelIcon.vue'
 
 const props = defineProps<{ mapId: string; objectId: string }>()
 defineEmits(['close'])

@@ -2,8 +2,8 @@
   <div class="jb-overlay" @click="$emit('close')">
     <div class="k-card jb-card q-pa-lg column q-gutter-md" @click.stop>
       <div class="row items-center justify-between">
-        <span class="k-chip">🎵 jukebox</span>
-        <button class="k-btn k-btn-ghost k-btn-sm" @click="$emit('close')">esc ✕</button>
+        <span class="k-chip"><PixelIcon name="music" size="0.6875rem" />jukebox</span>
+        <button class="k-btn k-btn-ghost k-btn-sm" @click="$emit('close')">esc<PixelIcon name="close" size="0.75rem" /></button>
       </div>
 
       <!-- tocando agora -->
@@ -47,7 +47,7 @@
             <button class="k-btn k-btn-primary k-btn-sm" :disabled="adding || !!jukeboxState.status" @click="add">{{ adding || jukeboxState.status ? '...' : 'add' }}</button>
           </div>
         </div>
-        <p v-if="jukeboxState.status" class="k-hint-text">🔄 {{ jukeboxState.status }}</p>
+        <p v-if="jukeboxState.status" class="k-hint-text jb-status"><PixelIcon name="loader" size="0.75rem" />{{ jukeboxState.status }}</p>
         <p v-if="jukeboxError" class="jb-error">{{ jukeboxError }}</p>
       </div>
 
@@ -55,13 +55,14 @@
       <div class="column q-gutter-xs">
         <div class="row no-wrap q-gutter-xs">
           <div class="col">
-            <button class="k-btn k-btn-ghost full-width ellipsis k-btn-sm" @click="toggleLibrary">
-              {{ libraryOpen ? '▲ esconder biblioteca' : '▼ ver músicas já baixadas' }}
+            <button class="k-btn k-btn-ghost full-width k-btn-sm" @click="toggleLibrary">
+              <PixelIcon :name="libraryOpen ? 'chevron-up' : 'chevron-down'" size="0.75rem" />
+              <span class="ellipsis">{{ libraryOpen ? 'esconder biblioteca' : 'ver músicas já baixadas' }}</span>
             </button>
           </div>
           <div class="col-auto">
             <button class="k-btn k-btn-ghost k-btn-sm" :disabled="syncing" @click="syncFromDrive" title="rebaixar do Drive tudo que estiver faltando no cache local">
-              {{ syncing ? 'sincronizando...' : '⟲ sync' }}
+              <PixelIcon v-if="!syncing" name="reload" size="0.75rem" />{{ syncing ? 'sincronizando...' : 'sync' }}
             </button>
           </div>
         </div>
@@ -74,10 +75,10 @@
           />
           <div class="row no-wrap q-gutter-xs">
             <div class="col">
-              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!jukeboxState.status" @click="addRandom">🔀 aleatória</button>
+              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!jukeboxState.status" @click="addRandom"><PixelIcon name="shuffle" size="0.75rem" />aleatória</button>
             </div>
             <div class="col">
-              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!jukeboxState.status" @click="addAll">▶ tocar todas</button>
+              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!jukeboxState.status" @click="addAll"><PixelIcon name="play" size="0.75rem" />tocar todas</button>
             </div>
           </div>
           <div class="jb-list">
@@ -109,7 +110,7 @@
         </div>
       </div>
 
-      <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!jukeboxState.current" @click="emitJukeboxSkip()">⏭ pular</button>
+      <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!jukeboxState.current" @click="emitJukeboxSkip()"><PixelIcon name="forward" size="0.75rem" />pular</button>
     </div>
   </div>
 </template>
@@ -119,6 +120,7 @@ import { ref, watch } from 'vue'
 import { jukeboxState, jukeboxError, emitJukeboxAdd, emitJukeboxSkip, emitJukeboxSetMode } from '@/services/presence'
 import { personalVolume } from '@/services/jukeboxAudio'
 import { apiFetch } from '@/services/http'
+import PixelIcon from '@/components/PixelIcon.vue'
 
 defineEmits(['close'])
 
@@ -256,6 +258,15 @@ async function syncFromDrive() {
   text-overflow: ellipsis;
   white-space: nowrap;
   display: block;
+  /* o texto virou um span DENTRO do botão flex (por causa do ícone ao lado):
+     sem min-width:0 ele não encolhe e o ellipsis nunca corta */
+  min-width: 0;
+}
+
+.jb-status {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
 }
 
 .jb-now-playing {

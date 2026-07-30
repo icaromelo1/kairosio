@@ -4,7 +4,12 @@
     <aside class="gp-sidebar" :class="{ 'gp-sidebar-open': gameStore.sidebarOpen }">
       <div class="row items-center justify-between q-gutter-sm">
         <Logo v-if="gameStore.sidebarOpen" :id="'monogram'" size="sm" primary="var(--primary-hi)" accent="var(--accent)" />
-        <button class="gp-sidebar-toggle" @click="gameStore.sidebarOpen = !gameStore.sidebarOpen">{{ gameStore.sidebarOpen ? '‹' : '›' }}</button>
+        <button
+          class="gp-sidebar-toggle"
+          :title="gameStore.sidebarOpen ? 'Recolher o menu' : 'Expandir o menu'"
+          :aria-label="gameStore.sidebarOpen ? 'Recolher o menu' : 'Expandir o menu'"
+          @click="gameStore.sidebarOpen = !gameStore.sidebarOpen"
+        ><PixelIcon :name="gameStore.sidebarOpen ? 'chevron-left' : 'chevron-right'" size="0.875rem" /></button>
       </div>
 
       <template v-if="gameStore.sidebarOpen">
@@ -79,8 +84,8 @@
       <div class="gp-hud gp-hud-topright">
         <div class="gp-online-count">{{ online }} online</div>
         <div class="column gp-online-list">
-          <span class="gp-peer-you">● {{ playerName }} <span class="gp-peer-you-tag">(você)</span> <span v-if="voiceOn">🎙</span></span>
-          <span v-for="p in roomPeers" :key="p.id" class="gp-peer">● {{ p.name }} <span v-if="voiceIdentities.includes(p.userId)">🔊</span></span>
+          <span class="gp-peer-you">● {{ playerName }} <span class="gp-peer-you-tag">(você)</span> <PixelIcon v-if="voiceOn" name="mic" size="0.75rem" title="na sala de voz" /></span>
+          <span v-for="p in roomPeers" :key="p.id" class="gp-peer">● {{ p.name }} <PixelIcon v-if="voiceIdentities.includes(p.userId)" name="volume-2" size="0.75rem" title="na sala de voz" /></span>
         </div>
       </div>
 
@@ -145,7 +150,7 @@
         <div class="k-card gp-modal-card column q-gutter-md" @click.stop>
           <div class="row items-center justify-between">
             <span class="k-chip">interação</span>
-            <button class="k-btn k-btn-ghost gp-modal-close" @click="closeModal">esc ✕</button>
+            <button class="k-btn k-btn-ghost gp-modal-close" @click="closeModal">esc<PixelIcon name="close" size="0.75rem" /></button>
           </div>
           <div>
             <h2 class="gp-modal-title">{{ activeModal.name }}</h2>
@@ -183,14 +188,14 @@
       <!-- Controles touch (mobile) -->
       <div class="touch-ctl gp-touch-ctl">
         <span></span>
-        <button class="tbtn" @pointerdown.prevent="pressKey('w')" @pointerup="releaseKey('w')" @pointerleave="releaseKey('w')">▲</button>
+        <button class="tbtn" aria-label="andar para cima" @pointerdown.prevent="pressKey('w')" @pointerup="releaseKey('w')" @pointerleave="releaseKey('w')"><PixelIcon name="chevron-up" size="1.25rem" /></button>
         <span></span>
-        <button class="tbtn" @pointerdown.prevent="pressKey('a')" @pointerup="releaseKey('a')" @pointerleave="releaseKey('a')">◀</button>
-        <button class="tbtn" @pointerdown.prevent="dancing = !dancing">♪</button>
-        <button class="tbtn" @pointerdown.prevent="pressKey('d')" @pointerup="releaseKey('d')" @pointerleave="releaseKey('d')">▶</button>
+        <button class="tbtn" aria-label="andar para a esquerda" @pointerdown.prevent="pressKey('a')" @pointerup="releaseKey('a')" @pointerleave="releaseKey('a')"><PixelIcon name="chevron-left" size="1.25rem" /></button>
+        <button class="tbtn" aria-label="dançar" @pointerdown.prevent="dancing = !dancing"><PixelIcon name="music" size="1.25rem" /></button>
+        <button class="tbtn" aria-label="andar para a direita" @pointerdown.prevent="pressKey('d')" @pointerup="releaseKey('d')" @pointerleave="releaseKey('d')"><PixelIcon name="chevron-right" size="1.25rem" /></button>
         <span></span>
-        <button class="tbtn" @pointerdown.prevent="pressKey('s')" @pointerup="releaseKey('s')" @pointerleave="releaseKey('s')">▼</button>
-        <button class="tbtn" @pointerdown.prevent="emote()">👋</button>
+        <button class="tbtn" aria-label="andar para baixo" @pointerdown.prevent="pressKey('s')" @pointerup="releaseKey('s')" @pointerleave="releaseKey('s')"><PixelIcon name="chevron-down" size="1.25rem" /></button>
+        <button class="tbtn" aria-label="acenar" @pointerdown.prevent="emote()"><PixelIcon name="hand" size="1.25rem" /></button>
       </div>
 
       <div v-if="error" class="gp-error">{{ error }}</div>
@@ -1211,7 +1216,7 @@ onUnmounted(() => {
   width: min(32.5rem, 100%);
 }
 
-.gp-modal-close { padding: 0.375rem 0.625rem; }
+.gp-modal-close { padding: 0.375rem 0.625rem; gap: 0.375rem; }
 
 .gp-modal-title {
   margin: 0 0 0.375rem;
