@@ -1,12 +1,12 @@
 import { Column, CreateDateColumn, Entity, PrimaryColumn } from 'typeorm'
 
-@Entity('org_invites')
-export class OrgInvite {
+@Entity('server_invites')
+export class ServerInvite {
   @PrimaryColumn()
   code: string
 
   @Column({ type: 'uuid' })
-  organizationId: string
+  serverId: string
 
   @Column({ type: 'uuid' })
   createdBy: string

@@ -19,7 +19,7 @@
     <section class="lp-sec">
       <h2>O que é</h2>
       <p>
-        Um espaço virtual multiusuário <strong>por organização/equipe</strong>: você entra com
+        Um espaço virtual multiusuário <strong>por servidor</strong>: você entra com
         seu avatar, vê as outras pessoas em tempo real e interage com quem está perto — como num
         escritório ou praça virtual, mas pixel art e do seu jeito.
       </p>
@@ -30,7 +30,7 @@
       <h2>Como usar</h2>
       <ol class="lp-steps">
         <li><b>1.</b> Crie uma conta (ou entre como convidado pra experimentar).</li>
-        <li><b>2.</b> Crie ou entre numa <b>organização</b> (sua equipe/grupo).</li>
+        <li><b>2.</b> Crie ou entre num <b>servidor</b> (seu grupo).</li>
         <li><b>3.</b> Monte seu <b>avatar</b>.</li>
         <li><b>4.</b> Escolha um <b>mundo</b> e entre.</li>
         <li><b>5.</b> <b>Ande</b> (WASD), <b>converse</b> (chat), <b>fale</b> (voz por proximidade), <b>acene/dance</b>.</li>
@@ -62,7 +62,7 @@
 
     <!-- CTA final -->
     <section class="lp-final">
-      <h2>Crie sua organização e chame o time.</h2>
+      <h2>Crie seu servidor e chame a galera.</h2>
       <button class="lp-btn" @click="entrar">Começar agora →</button>
     </section>
 
@@ -81,7 +81,7 @@ const features = [
   { t: 'Mundos em tempo real', d: 'Veja os outros andando, com colisão e presença ao vivo.' },
   { t: 'Chat + voz por proximidade', d: 'Converse por texto e fale por voz com quem está perto.' },
   { t: 'Editor de mundos', d: 'Coloque objetos, redimensione e salve seu próprio espaço.' },
-  { t: 'Organizações / times', d: 'Cada equipe só vê os próprios mundos — espaços isolados.' },
+  { t: 'Servidores', d: 'Cada servidor só vê os próprios mundos — espaços isolados.' },
   { t: 'Avatar e emotes', d: 'Customize seu personagem; acene, dance e interaja.' },
   { t: 'Pixel art', d: 'Visual leve e gostoso, roda no navegador.' },
 ]

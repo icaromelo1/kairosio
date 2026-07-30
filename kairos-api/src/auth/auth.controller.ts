@@ -59,7 +59,7 @@ export class AuthController {
   }
 
   // chamado ao clicar em "Sair" — se for convidado, apaga a conta inteira
-  // (personagem/mundo salvo/vínculos de org); conta real não sofre nada
+  // (personagem/mundo salvo/vínculos de servidor); conta real não sofre nada
   @UseGuards(AuthGuard('jwt'))
   @Post('logout')
   async logout(@Request() req: any) {

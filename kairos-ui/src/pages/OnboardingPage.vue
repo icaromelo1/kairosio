@@ -2,32 +2,32 @@
   <div class="ob-root">
     <div class="ob-head">
       <Logo id="monogram" size="lg" primary="var(--primary-hi)" accent="var(--accent)" />
-      <h1>{{ myOrgs.length ? 'Escolha sua organização' : 'Sua organização' }}</h1>
-      <p v-if="myOrgs.length">Você faz parte de mais de uma organização — escolha qual usar agora, ou crie/entre em outra abaixo.</p>
-      <p v-else>Crie uma organização (vira sua equipe) ou entre numa existente com um convite.</p>
+      <h1>{{ myServers.length ? 'Escolha seu servidor' : 'Seu servidor' }}</h1>
+      <p v-if="myServers.length">Você faz parte de mais de um servidor — escolha qual usar agora, ou crie/entre em outro abaixo.</p>
+      <p v-else>Crie um servidor (vira seu grupo) ou entre num existente com um convite.</p>
     </div>
 
-    <!-- Organizações de que já sou membro -->
-    <section v-if="myOrgs.length" class="ob-card ob-orgs-card">
-      <h2>Suas organizações</h2>
-      <div class="ob-org-list">
+    <!-- Servidores de que já sou membro -->
+    <section v-if="myServers.length" class="ob-card ob-servers-card">
+      <h2>Seus servidores</h2>
+      <div class="ob-server-list">
         <button
-          v-for="o in myOrgs" :key="o.id" class="ob-org-item"
-          :class="{ 'ob-org-item-active': o.active }"
+          v-for="s in myServers" :key="s.id" class="ob-server-item"
+          :class="{ 'ob-server-item-active': s.active }"
           :disabled="busy"
-          @click="pick(o.id)"
+          @click="pick(s.id)"
         >
-          <span class="ob-org-name">{{ o.name }}</span>
-          <span class="ob-org-role">{{ o.role === 'admin' ? 'admin' : 'membro' }}{{ o.active ? ' · atual' : '' }}</span>
+          <span class="ob-server-name">{{ s.name }}</span>
+          <span class="ob-server-role">{{ s.role === 'admin' ? 'admin' : 'membro' }}{{ s.active ? ' · atual' : '' }}</span>
         </button>
       </div>
     </section>
 
     <div class="ob-grid">
       <section v-if="!auth.isGuest" class="ob-card">
-        <h2>Criar organização</h2>
+        <h2>Criar servidor</h2>
         <p class="ob-sub">Você vira o admin. Depois pode convidar a galera.</p>
-        <input v-model.trim="orgName" maxlength="40" class="ob-input" placeholder="Nome da org / equipe" @keyup.enter="create" />
+        <input v-model.trim="serverName" maxlength="40" class="ob-input" placeholder="Nome do servidor" @keyup.enter="create" />
         <button class="ob-btn" :disabled="busy" @click="create">{{ busy ? '…' : 'Criar →' }}</button>
       </section>
 
@@ -46,30 +46,30 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { createOrg, joinOrg, getMyOrgs, switchOrg, type MyOrgSummary } from '@/services/org.api'
+import { createServer, joinServer, getMyServers, switchServer, type MyServerSummary } from '@/services/server.api'
 import Logo from '@/components/logos/Logo.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 const router = useRouter()
 const route = useRoute()
 const auth = useAuthStore()
-const orgName = ref('')
+const serverName = ref('')
 const code = ref('')
 const error = ref('')
 const busy = ref(false)
-const myOrgs = ref<MyOrgSummary[]>([])
+const myServers = ref<MyServerSummary[]>([])
 
 onMounted(async () => {
   const inv = route.query.invite
   if (typeof inv === 'string') code.value = inv
-  myOrgs.value = await getMyOrgs()
+  myServers.value = await getMyServers()
 })
 
-async function pick(orgId: string) {
+async function pick(serverId: string) {
   error.value = ''
   busy.value = true
   try {
-    await switchOrg(orgId)
+    await switchServer(serverId)
     router.push('/character')
   } catch (e) {
     error.value = (e as Error).message
@@ -79,11 +79,11 @@ async function pick(orgId: string) {
 }
 
 async function create() {
-  if (!orgName.value) { error.value = 'Dê um nome à organização.'; return }
+  if (!serverName.value) { error.value = 'Dê um nome ao servidor.'; return }
   error.value = ''
   busy.value = true
   try {
-    await createOrg(orgName.value)
+    await createServer(serverName.value)
     router.push('/character')
   } catch (e) {
     error.value = (e as Error).message
@@ -97,7 +97,7 @@ async function join() {
   error.value = ''
   busy.value = true
   try {
-    await joinOrg(code.value)
+    await joinServer(code.value)
     router.push('/character')
   } catch (e) {
     error.value = (e as Error).message
@@ -123,9 +123,9 @@ async function join() {
 .ob-btn:disabled { opacity: 0.6; }
 .ob-error { color: #f87171; font-size: 0.8125rem; }
 
-.ob-orgs-card { width: min(45rem, 100%); }
-.ob-org-list { display: flex; flex-direction: column; gap: 0.5rem; }
-.ob-org-item {
+.ob-servers-card { width: min(45rem, 100%); }
+.ob-server-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.ob-server-item {
   appearance: none;
   background: var(--bg-1);
   border: 0.0625rem solid var(--border);
@@ -139,8 +139,8 @@ async function join() {
   font-size: 0.875rem;
   text-align: left;
 }
-.ob-org-item:disabled { opacity: 0.6; cursor: default; }
-.ob-org-item-active { border-color: var(--primary-hi); background: rgba(124, 58, 237, 0.1); }
-.ob-org-name { font-weight: 600; }
-.ob-org-role { font-size: 0.6875rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.ob-server-item:disabled { opacity: 0.6; cursor: default; }
+.ob-server-item-active { border-color: var(--primary-hi); background: rgba(124, 58, 237, 0.1); }
+.ob-server-name { font-weight: 600; }
+.ob-server-role { font-size: 0.6875rem; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.08em; }
 </style>

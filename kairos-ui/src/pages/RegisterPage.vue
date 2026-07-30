@@ -33,7 +33,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { register } from '@/services/auth.api'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { consumePendingInvite } from '@/services/org.api'
+import { consumePendingInvite } from '@/services/server.api'
 import Logo from '@/components/logos/Logo.vue'
 
 const router = useRouter()

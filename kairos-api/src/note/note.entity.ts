@@ -12,7 +12,7 @@ export class Note {
   objectId: string
 
   @Column({ type: 'uuid', nullable: true })
-  organizationId: string | null
+  serverId: string | null
 
   @Column('text')
   body: string

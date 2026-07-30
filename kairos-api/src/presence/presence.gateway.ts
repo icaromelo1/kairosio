@@ -45,7 +45,7 @@ interface Player {
   name: string
   avatar: unknown
   map: MapId
-  org: string | null // org derivada do TOKEN (não do cliente) — isola as salas
+  serverId: string | null // servidor derivado do TOKEN (não do cliente) — isola as salas
   x: number
   y: number
   facing: Facing
@@ -127,17 +127,17 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   @WebSocketServer() server: Server
 
   private readonly players = new Map<string, Player>()
-  // org de cada socket, derivada do JWT no handshake (fonte de verdade do isolamento)
-  private readonly socketOrg = new Map<string, string | null>()
+  // servidor de cada socket, derivado do JWT no handshake (fonte de verdade do isolamento)
+  private readonly socketServer = new Map<string, string | null>()
   // uuid real do usuário (JWT sub) — socket.id não é uuid, não pode ir em colunas uuid (ex: Track.addedBy)
   private readonly socketUserId = new Map<string, string | null>()
   // sessão única por usuário: userId -> socket.id ativo no momento. Mesma conta
   // aberta em várias abas (localStorage compartilha o token) só fica com UM
   // personagem visível — a aba nova derruba a antiga.
   private readonly userSocket = new Map<string, string>()
-  // estado do jukebox por sala (org:map) — fila/faixa atual/modo, em memória
+  // estado do jukebox por sala (servidor:map) — fila/faixa atual/modo, em memória
   private readonly jukebox = new Map<string, JukeboxRoomState>()
-  // modo de voz por sala (org:map) — qualquer membro pode alternar, vale pra todos
+  // modo de voz por sala (servidor:map) — qualquer membro pode alternar, vale pra todos
   private readonly voiceMode = new Map<string, VoiceMode>()
   private readonly whiteboards = new Map<string, WhiteboardState>()
   // quem está transmitindo a tela (socket.id) — só pra saber se a transição é
@@ -154,25 +154,25 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     private readonly jukeboxService: JukeboxService,
   ) {}
 
-  // sala = org + mapa (templates de orgs diferentes não se misturam)
-  private room(org: string | null, map: MapId): string {
-    return `${org || 'public'}:${map}`
+  // sala = servidor + mapa (templates de servidores diferentes não se misturam)
+  private room(serverId: string | null, map: MapId): string {
+    return `${serverId || 'public'}:${map}`
   }
 
   async handleConnection(socket: Socket) {
-    // valida o token do handshake e guarda a org + o uuid real do usuário
-    let org: string | null = null
+    // valida o token do handshake e guarda o servidor + o uuid real do usuário
+    let serverId: string | null = null
     let userId: string | null = null
     try {
       const token = socket.handshake.auth?.token as string | undefined
       if (token) {
         const payload: any = this.jwt.verify(token, { secret: jwtSecret() })
         const user = await this.users.findOne({ where: { id: payload.sub } })
-        org = user?.organizationId ?? null
+        serverId = user?.serverId ?? null
         userId = user?.id ?? null
       }
     } catch {
-      org = null
+      serverId = null
       userId = null
     }
     // sem usuário válido não entra — todo cliente legítimo tem token (login,
@@ -181,7 +181,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       socket.disconnect(true)
       return
     }
-    this.socketOrg.set(socket.id, org)
+    this.socketServer.set(socket.id, serverId)
     this.socketUserId.set(socket.id, userId)
 
     // sessão única: mesmo usuário já tem outra aba/dispositivo conectado?
@@ -206,14 +206,14 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       // o player ainda ocupa
       this.stopScreenShareFor(player)
       this.players.delete(socket.id)
-      this.server.to(this.room(player.org, player.map)).emit('playerLeft', { id: socket.id })
-      this.cleanupRoomIfEmpty(player.org, player.map)
+      this.server.to(this.room(player.serverId, player.map)).emit('playerLeft', { id: socket.id })
+      this.cleanupRoomIfEmpty(player.serverId, player.map)
     }
     const userId = this.socketUserId.get(socket.id)
     // só remove se ESSE socket ainda for o "dono" da sessão — evita que o
     // disconnect tardio de uma aba já kickada apague o registro da aba nova
     if (userId && this.userSocket.get(userId) === socket.id) this.userSocket.delete(userId)
-    this.socketOrg.delete(socket.id)
+    this.socketServer.delete(socket.id)
     this.socketUserId.delete(socket.id)
     this.sharingScreen.delete(socket.id)
     this.lastMoveAt.delete(socket.id)
@@ -224,7 +224,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
 
   @SubscribeMessage('join')
   handleJoin(socket: Socket, payload: JoinPayload) {
-    const org = this.socketOrg.get(socket.id) ?? null
+    const serverId = this.socketServer.get(socket.id) ?? null
     const map = String(payload?.map ?? '').slice(0, 64)
     if (!map) return
     // join repetido (ex: remount sem switchMap) — sai da sala velha antes,
@@ -232,11 +232,11 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     const existing = this.players.get(socket.id)
     if (existing && existing.map !== map) {
       this.stopScreenShareFor(existing)
-      const oldRoom = this.room(existing.org, existing.map)
+      const oldRoom = this.room(existing.serverId, existing.map)
       socket.leave(oldRoom)
       this.server.to(oldRoom).emit('playerLeft', { id: socket.id })
       this.players.delete(socket.id)
-      this.cleanupRoomIfEmpty(existing.org, existing.map)
+      this.cleanupRoomIfEmpty(existing.serverId, existing.map)
     }
     const player: Player = {
       id: socket.id,
@@ -244,7 +244,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       name: sanitizeName(payload?.name),
       avatar: sanitizeAvatar(payload?.avatar),
       map,
-      org,
+      serverId,
       x: sanitizeCoord(payload?.x, 0),
       y: sanitizeCoord(payload?.y, 0),
       facing: 'down',
@@ -252,9 +252,9 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       boost: false,
     }
     this.players.set(socket.id, player)
-    const room = this.room(org, player.map)
+    const room = this.room(serverId, player.map)
     socket.join(room)
-    socket.emit('players', this.peersInRoom(org, player.map, socket.id))
+    socket.emit('players', this.peersInRoom(serverId, player.map, socket.id))
     socket.to(room).emit('playerJoined', player)
     socket.emit('jukeboxState', this.jukeboxSnapshot(room))
     socket.emit('voiceState', { mode: this.voiceMode.get(room) || 'proximity' })
@@ -276,7 +276,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     if (facing) player.facing = facing
     if (pose) player.pose = pose
     player.boost = !!payload.boost
-    socket.to(this.room(player.org, player.map)).emit('playerMoved', {
+    socket.to(this.room(player.serverId, player.map)).emit('playerMoved', {
       id: socket.id,
       x: payload.x,
       y: payload.y,
@@ -297,7 +297,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     const text = String(payload?.text ?? '').trim().slice(0, 255)
     if (!text) return
     this.lastChatAt.set(socket.id, now)
-    this.server.to(this.room(player.org, player.map)).emit('chatMessage', {
+    this.server.to(this.room(player.serverId, player.map)).emit('chatMessage', {
       id: socket.id,
       name: player.name,
       text,
@@ -311,7 +311,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     const me = this.players.get(socket.id)
     const target = this.players.get(payload?.to)
     if (!me || !target) return
-    if (me.org !== target.org || me.map !== target.map) return
+    if (me.serverId !== target.serverId || me.map !== target.map) return
     this.server.to(payload.to).emit('rtc-signal', { from: socket.id, signal: payload.signal })
   }
 
@@ -321,27 +321,27 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     const map = String(payload?.map ?? '').slice(0, 64)
     if (!player || !map || player.map === map) return
     this.stopScreenShareFor(player)
-    const oldOrg = player.org
+    const oldServerId = player.serverId
     const oldMap = player.map
-    socket.leave(this.room(oldOrg, oldMap))
-    this.server.to(this.room(oldOrg, oldMap)).emit('playerLeft', { id: socket.id })
+    socket.leave(this.room(oldServerId, oldMap))
+    this.server.to(this.room(oldServerId, oldMap)).emit('playerLeft', { id: socket.id })
     player.map = map
-    this.cleanupRoomIfEmpty(oldOrg, oldMap)
-    const room = this.room(player.org, player.map)
+    this.cleanupRoomIfEmpty(oldServerId, oldMap)
+    const room = this.room(player.serverId, player.map)
     socket.join(room)
-    socket.emit('players', this.peersInRoom(player.org, player.map, socket.id))
+    socket.emit('players', this.peersInRoom(player.serverId, player.map, socket.id))
     socket.to(room).emit('playerJoined', player)
     socket.emit('jukeboxState', this.jukeboxSnapshot(room))
     socket.emit('voiceState', { mode: this.voiceMode.get(room) || 'proximity' })
   }
 
-  // ---- voz: modo por sala (org:map) — proximidade (padrão) ou sala inteira ----
+  // ---- voz: modo por sala (servidor:map) — proximidade (padrão) ou sala inteira ----
 
   @SubscribeMessage('voiceSetMode')
   handleVoiceSetMode(socket: Socket, payload: { mode: VoiceMode }) {
     const player = this.players.get(socket.id)
     if (!player || (payload?.mode !== 'proximity' && payload?.mode !== 'room')) return
-    const room = this.room(player.org, player.map)
+    const room = this.room(player.serverId, player.map)
     this.voiceMode.set(room, payload.mode)
     this.server.to(room).emit('voiceState', { mode: payload.mode })
   }
@@ -371,7 +371,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   // o nome sai do player do servidor (já capado em NAME_MAX no join), nunca do
   // payload — o cliente não escolhe como é anunciado pra sala
   private broadcastScreenShare(player: Player, on: boolean) {
-    this.server.to(this.room(player.org, player.map)).emit('screenShareState', {
+    this.server.to(this.room(player.serverId, player.map)).emit('screenShareState', {
       id: player.id,
       userId: player.userId,
       name: player.name,
@@ -394,7 +394,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     const player = this.players.get(socket.id)
     const objectId = this.sanitizeObjectId(payload?.objectId)
     if (!player || !objectId) return
-    const key = this.boardKey(this.room(player.org, player.map), objectId)
+    const key = this.boardKey(this.room(player.serverId, player.map), objectId)
     socket.emit('boardState', { objectId, strokes: this.whiteboardStateFor(key).strokes })
   }
 
@@ -409,7 +409,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     stroke.points = stroke.points
       .filter((p) => p && Number.isFinite(Number(p.x)) && Number.isFinite(Number(p.y)))
       .slice(0, BOARD_MAX_POINTS_PER_STROKE)
-    const room = this.room(player.org, player.map)
+    const room = this.room(player.serverId, player.map)
     const key = this.boardKey(room, objectId)
     const state = this.whiteboardStateFor(key)
     const existingIndex = state.strokes.findIndex((s) => s.id === stroke.id)
@@ -427,7 +427,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     const player = this.players.get(socket.id)
     const objectId = this.sanitizeObjectId(payload?.objectId)
     if (!player || !objectId) return
-    const room = this.room(player.org, player.map)
+    const room = this.room(player.serverId, player.map)
     const key = this.boardKey(room, objectId)
     this.whiteboardStateFor(key).strokes = []
     socket.to(room).emit('boardClear', { objectId })
@@ -466,18 +466,18 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   // sala esvaziou → para o timer do jukebox e descarta fila/modo de voz (música
   // tocando pra ninguém e estado acumulando pra sempre); as lousas ficam — são o
   // "conteúdo" da sala e já têm cap próprio
-  private cleanupRoomIfEmpty(org: string | null, map: MapId) {
+  private cleanupRoomIfEmpty(serverId: string | null, map: MapId) {
     for (const p of this.players.values()) {
-      if (p.org === org && p.map === map) return
+      if (p.serverId === serverId && p.map === map) return
     }
-    const room = this.room(org, map)
+    const room = this.room(serverId, map)
     const juke = this.jukebox.get(room)
     if (juke?.timer) clearTimeout(juke.timer)
     this.jukebox.delete(room)
     this.voiceMode.delete(room)
   }
 
-  // ---- jukebox: fila por sala (org:map), sincronizada por startedAt ----
+  // ---- jukebox: fila por sala (servidor:map), sincronizada por startedAt ----
 
   @SubscribeMessage('jukeboxAdd')
   async handleJukeboxAdd(socket: Socket, payload: { input: string }) {
@@ -488,7 +488,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       socket.emit('jukeboxError', { message: 'Faça login para adicionar música' })
       return
     }
-    const room = this.room(player.org, player.map)
+    const room = this.room(player.serverId, player.map)
     const state = this.jukeboxStateFor(room)
 
     let youtubeId: string
@@ -545,14 +545,14 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   handleJukeboxSkip(socket: Socket) {
     const player = this.players.get(socket.id)
     if (!player) return
-    this.advanceJukebox(this.room(player.org, player.map))
+    this.advanceJukebox(this.room(player.serverId, player.map))
   }
 
   @SubscribeMessage('jukeboxSetMode')
   handleJukeboxSetMode(socket: Socket, payload: { mode: JukeboxMode }) {
     const player = this.players.get(socket.id)
     if (!player || (payload?.mode !== 'proximity' && payload?.mode !== 'room')) return
-    const room = this.room(player.org, player.map)
+    const room = this.room(player.serverId, player.map)
     this.jukeboxStateFor(room).mode = payload.mode
     this.broadcastJukebox(room)
   }
@@ -599,20 +599,20 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
   }
 
-  // { mapId: qtd } dentro de uma org (consumido pelo GET /presence/counts)
-  getCounts(orgId: string | null): Record<string, number> {
+  // { mapId: qtd } dentro de um servidor (consumido pelo GET /presence/counts)
+  getCounts(serverId: string | null): Record<string, number> {
     const counts: Record<string, number> = {}
     for (const p of this.players.values()) {
-      if (p.org !== orgId) continue
+      if (p.serverId !== serverId) continue
       counts[p.map] = (counts[p.map] || 0) + 1
     }
     return counts
   }
 
-  private peersInRoom(org: string | null, map: MapId, exceptId: string): Player[] {
+  private peersInRoom(serverId: string | null, map: MapId, exceptId: string): Player[] {
     const peers: Player[] = []
     for (const player of this.players.values()) {
-      if (player.org === org && player.map === map && player.id !== exceptId) peers.push(player)
+      if (player.serverId === serverId && player.map === map && player.id !== exceptId) peers.push(player)
     }
     return peers
   }

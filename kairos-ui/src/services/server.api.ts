@@ -1,18 +1,18 @@
-// API da organização (multi-tenancy). JWT via apiFetch.
+// API do servidor (multi-tenancy). JWT via apiFetch.
 import { apiFetch } from './http'
 
-export interface OrgMember {
+export interface ServerMember {
   id: string
   email: string
-  orgRole: 'admin' | 'member'
+  serverRole: 'admin' | 'member'
   createdAt: string
 }
 
-export interface Org {
+export interface Server {
   id: string
   name: string
   slug: string
-  members?: OrgMember[]
+  members?: ServerMember[]
 }
 
 async function jsonOrNull<T>(res: Response): Promise<T | null> {
@@ -21,11 +21,11 @@ async function jsonOrNull<T>(res: Response): Promise<T | null> {
   return text ? (JSON.parse(text) as T) : null
 }
 
-export async function getMyOrg(): Promise<Org | null> {
-  return jsonOrNull<Org>(await apiFetch('/org/me'))
+export async function getMyServer(): Promise<Server | null> {
+  return jsonOrNull<Server>(await apiFetch('/server/me'))
 }
 
-export interface MyOrgSummary {
+export interface MyServerSummary {
   id: string
   name: string
   slug: string
@@ -33,27 +33,27 @@ export interface MyOrgSummary {
   active: boolean
 }
 
-// todas as orgs de que o usuário é membro — usada pra decidir se mostra a tela de escolha
-export async function getMyOrgs(): Promise<MyOrgSummary[]> {
-  const res = await apiFetch('/org/mine')
+// todos os servidores de que o usuário é membro — usada pra decidir se mostra a tela de escolha
+export async function getMyServers(): Promise<MyServerSummary[]> {
+  const res = await apiFetch('/server/mine')
   if (!res.ok) return []
   return res.json()
 }
 
-export async function switchOrg(orgId: string): Promise<Org | null> {
-  const res = await apiFetch(`/org/switch/${orgId}`, { method: 'POST' })
-  if (!res.ok) throw new Error('Falha ao trocar de organização')
+export async function switchServer(serverId: string): Promise<Server | null> {
+  const res = await apiFetch(`/server/switch/${serverId}`, { method: 'POST' })
+  if (!res.ok) throw new Error('Falha ao trocar de servidor')
   return res.json()
 }
 
-export async function createOrg(name: string): Promise<Org> {
-  const res = await apiFetch('/org', { method: 'POST', body: JSON.stringify({ name }) })
-  if (!res.ok) throw new Error('Falha ao criar organização')
+export async function createServer(name: string): Promise<Server> {
+  const res = await apiFetch('/server', { method: 'POST', body: JSON.stringify({ name }) })
+  if (!res.ok) throw new Error('Falha ao criar servidor')
   return res.json()
 }
 
-export async function joinOrg(code: string): Promise<void> {
-  const res = await apiFetch('/org/join', { method: 'POST', body: JSON.stringify({ code }) })
+export async function joinServer(code: string): Promise<void> {
+  const res = await apiFetch('/server/join', { method: 'POST', body: JSON.stringify({ code }) })
   if (!res.ok) {
     const body = await res.json().catch(() => ({}))
     throw new Error(body.message || 'Convite inválido')
@@ -61,7 +61,7 @@ export async function joinOrg(code: string): Promise<void> {
 }
 
 export async function createInvite(): Promise<{ code: string; expiresAt: string }> {
-  const res = await apiFetch('/org/invite', { method: 'POST' })
+  const res = await apiFetch('/server/invite', { method: 'POST' })
   if (!res.ok) throw new Error('Falha ao gerar convite')
   return res.json()
 }
@@ -85,13 +85,13 @@ export function consumePendingInvite(): string | null {
 }
 
 export async function setMemberRole(id: string, role: 'admin' | 'member'): Promise<void> {
-  await apiFetch(`/org/member/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) })
+  await apiFetch(`/server/member/${id}/role`, { method: 'PUT', body: JSON.stringify({ role }) })
 }
 
 export async function removeMember(id: string): Promise<void> {
-  await apiFetch(`/org/member/${id}`, { method: 'DELETE' })
+  await apiFetch(`/server/member/${id}`, { method: 'DELETE' })
 }
 
-export async function updateOrg(name: string): Promise<void> {
-  await apiFetch('/org', { method: 'PUT', body: JSON.stringify({ name }) })
+export async function updateServer(name: string): Promise<void> {
+  await apiFetch('/server', { method: 'PUT', body: JSON.stringify({ name }) })
 }
