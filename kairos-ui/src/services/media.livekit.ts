@@ -98,6 +98,12 @@ async function fetchMediaToken(mapId: string): Promise<MediaToken> {
 
 export class MediaRoom {
   private room: Room | null = null
+  // mundo da sala viva (ou da que está subindo) — só é lido com `room` de pé
+  private mapId = ''
+  // O `this.room !== room` só protege depois que a Room existe. Antes disso (o
+  // token ainda está sendo pedido) o disconnect não tem o que anular, e a
+  // tentativa seguiria até publicar o microfone com a pessoa já fora da tela.
+  private epoch = 0
   private inFlight: Promise<boolean> | null = null
   private videoEls = new Map<string, HTMLVideoElement>()
   private audioEls = new Map<string, HTMLAudioElement>()
@@ -128,7 +134,11 @@ export class MediaRoom {
     // espera uma tentativa anterior terminar de se desfazer antes de abrir outra —
     // sem isso, trocar de mundo duas vezes seguidas deixava a segunda sem voz
     if (this.inFlight) await this.inFlight.catch(() => false)
-    if (this.room) return this.state.connected
+    // trocar de mundo durante o handshake anterior terminava com a voz na sala
+    // velha e o avatar na nova. O nome da sala tem o servidor junto, e aqui só
+    // chega o mundo: trocar de servidor sem trocar de mundo continua exigindo o
+    // reconnect explícito de quem chama.
+    if (this.room) return this.mapId === mapId ? this.state.connected : this.reconnect(mapId)
     const attempt = this.attemptConnect(mapId)
     this.inFlight = attempt
     try {
@@ -142,6 +152,7 @@ export class MediaRoom {
   // desliga o microfone ao sair da tela e precisa valer no mesmo tick. Quem estiver
   // no meio de um await descobre que perdeu a vez pelo teste `this.room !== room`.
   async disconnect(): Promise<void> {
+    this.epoch++
     const room = this.room
     this.room = null
     this.reset()
@@ -155,8 +166,10 @@ export class MediaRoom {
   }
 
   private async attemptConnect(mapId: string): Promise<boolean> {
+    const epoch = ++this.epoch
     this.state.connecting = true
     this.state.error = ''
+    this.mapId = mapId
     try {
       let config: MediaToken
       try {
@@ -165,6 +178,9 @@ export class MediaRoom {
         this.state.error = (e as Error).message || 'Falha ao autorizar a voz'
         return false
       }
+      // desistiram enquanto o token vinha: sair da tela, trocar de mundo ou de
+      // servidor. Abrir a Room agora seria abrir uma que ninguém vai fechar.
+      if (this.epoch !== epoch) return false
 
       const room = new Room({ adaptiveStream: true, dynacast: true })
       this.room = room
@@ -189,6 +205,10 @@ export class MediaRoom {
       this.state.micMuted = true
       for (const participant of room.remoteParticipants.values()) this.trackParticipant(participant)
       await this.setMicEnabled(true)
+      // a preferência só vale DEPOIS da track publicada (e publicada muda): o
+      // getUserMedia pode ficar segundos no prompt, e até lá o estado tem de
+      // seguir dizendo que o microfone está fechado, porque está
+      if (this.room === room && this.state.micWanted) await this.setMicMuted(false)
       return this.room === room
     } finally {
       this.state.connecting = false
@@ -241,9 +261,12 @@ export class MediaRoom {
   }
 
   async setMicMuted(muted: boolean): Promise<void> {
-    this.state.micMuted = muted
     const publication = this.room?.localParticipant.getTrackPublication(Track.Source.Microphone)
+    // sem track publicada não há o que mutar: mexer no estado aqui faria o
+    // rodapé anunciar "microfone aberto" com nada no ar (a intenção fica no
+    // `micWanted`, que a fachada guarda)
     if (!publication) return
+    this.state.micMuted = muted
     try {
       await (muted ? publication.mute() : publication.unmute())
     } catch {
@@ -355,6 +378,15 @@ export class MediaRoom {
     if (!peer) return
     this.room?.remoteParticipants.get(identity)?.setVolume(muted ? 0 : 1)
     peer.mutedByMe = muted
+  }
+
+  // desligar TODO o som é `muted` no elemento; silenciar UMA pessoa é `volume`
+  // no participante. Propriedades diferentes de propósito: religar o som geral
+  // não desfaz quem a pessoa silenciou na janela de voz, e vice-versa.
+  setDeafened(on: boolean) {
+    this.state.deafened = on
+    for (const element of this.audioEls.values()) element.muted = on
+    for (const element of this.screenAudioEls.values()) element.muted = on
   }
 
   isSubscribed(identity: string): boolean {
@@ -517,7 +549,11 @@ export class MediaRoom {
     if (track.kind === Track.Kind.Audio) {
       const store = publication.source === Track.Source.ScreenShareAudio ? this.screenAudioEls : this.audioEls
       this.releaseElement(store, identity)
-      store.set(identity, track.attach() as HTMLAudioElement)
+      const element = track.attach() as HTMLAudioElement
+      // quem chega depois do deafen (participante novo, reconexão, troca de
+      // mundo) nasceria tocando: o elemento é criado agora, já silenciado
+      element.muted = this.state.deafened
+      store.set(identity, element)
     }
   }
 
