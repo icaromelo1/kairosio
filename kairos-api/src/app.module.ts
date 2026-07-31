@@ -25,6 +25,9 @@ import { Task } from './task/task.entity'
 import { NoteModule } from './note/note.module'
 import { Note } from './note/note.entity'
 import { MediaModule } from './media/media.module'
+import { FriendModule } from './friend/friend.module'
+import { Friendship } from './friend/friendship.entity'
+import { FriendServerInvite } from './friend/friend-server-invite.entity'
 
 @Module({
   imports: [
@@ -33,7 +36,7 @@ import { MediaModule } from './media/media.module'
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL || 'postgres://kairos:kairos@localhost:5432/kairosio',
-      entities: [User, Character, WorldState, GameMap, Feedback, Server, ServerInvite, ServerMembership, Track, Task, Note],
+      entities: [User, Character, WorldState, GameMap, Feedback, Server, ServerInvite, ServerMembership, Track, Task, Note, Friendship, FriendServerInvite],
       synchronize: true,
     }),
     AuthModule,
@@ -47,6 +50,7 @@ import { MediaModule } from './media/media.module'
     TaskModule,
     NoteModule,
     MediaModule,
+    FriendModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
