@@ -447,7 +447,7 @@ export class PresenceGateway
   // dentro do jogo, editar a aparência não tirava mais ninguém da tela e a
   // mudança ficava invisível pros outros até reconectar
   @SubscribeMessage('avatarUpdate')
-  handleAvatarUpdate(socket: Socket, payload: { avatar: unknown }) {
+  handleAvatarUpdate(socket: Socket, payload: { avatar: unknown; name?: unknown }) {
     const player = this.players.get(socket.id)
     if (!player) return
     const now = Date.now()
@@ -456,10 +456,17 @@ export class PresenceGateway
     // o mesmo saneamento do join: sem ele o payload seria uma URL arbitrária que
     // a sala inteira baixaria
     player.avatar = sanitizeAvatar(payload?.avatar)
+    // o painel salva nome e aparência juntos; sem isto o nome flutuante e a
+    // lista de presença ficariam com o valor do join
+    const nomeNovo = payload?.name === undefined ? player.name : sanitizeName(payload.name)
+    const nomeMudou = nomeNovo !== player.name
+    player.name = nomeNovo
     socket.to(this.room(player.serverId, player.map)).emit('playerAvatar', {
       id: socket.id,
       avatar: player.avatar,
+      name: player.name,
     })
+    if (nomeMudou) this.emitPresence(player, 'update')
   }
 
   // relay de sinalização WebRTC 1:1 — só entre players na mesma sala
