@@ -31,16 +31,29 @@ test('rota interna sem sessao redireciona pro login', async ({ page }) => {
   await expect(page).toHaveURL(/\/login$/)
 })
 
-test('fluxo convidado: login -> personagem -> mundos -> jogo', async ({ page }) => {
+test('fluxo convidado: login -> jogo direto', async ({ page }) => {
   await page.goto('/login')
   await page.locator('text=Continuar como convidado').click()
-  await expect(page).toHaveURL(/\/character$/)
 
-  await page.locator('text=Entrar no Kairos').click()
-  await expect(page).toHaveURL(/\/map-select$/)
+  // o convidado vai direto ao jogo: não passa mais por escolha de servidor nem
+  // de mundo. Sem personagem salvo, o painel de personagem abre junto
+  await expect(page).toHaveURL(/\/game(\?.*)?$/)
+})
 
-  // entra no primeiro mundo
-  await page.locator('text=Entrar →').first().click()
-  await expect(page).toHaveURL(/\/game$/)
-  await expect(page.locator('text=online')).toBeVisible()
+test('raiz com sessao cai no jogo, sem passar pela landing', async ({ page }) => {
+  await page.goto('/login')
+  await page.locator('text=Continuar como convidado').click()
+  await expect(page).toHaveURL(/\/game(\?.*)?$/)
+
+  await page.goto('/')
+  await expect(page).toHaveURL(/\/game(\?.*)?$/)
+})
+
+test('rotas removidas nao quebram', async ({ page }) => {
+  await page.goto('/login')
+  await page.locator('text=Continuar como convidado').click()
+  await expect(page).toHaveURL(/\/game(\?.*)?$/)
+
+  await page.goto('/map-select')
+  await expect(page).toHaveURL(/\/game(\?.*)?$/)
 })
