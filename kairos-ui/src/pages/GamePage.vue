@@ -1,63 +1,22 @@
 <template>
   <div class="gp-root" :class="{ 'gp-sidebar-open': gameStore.sidebarOpen }">
-    <!-- Sidebar -->
+    <!-- Sidebar: servidores + mundos + pessoas (navegar não conecta) -->
     <aside class="gp-sidebar" :class="{ 'gp-sidebar-open': gameStore.sidebarOpen }">
-      <div class="row items-center justify-between q-gutter-sm">
-        <Logo v-if="gameStore.sidebarOpen" :id="'monogram'" size="sm" primary="var(--primary-hi)" accent="var(--accent)" />
-        <button
-          class="gp-sidebar-toggle"
-          :title="gameStore.sidebarOpen ? 'Recolher o menu' : 'Expandir o menu'"
-          :aria-label="gameStore.sidebarOpen ? 'Recolher o menu' : 'Expandir o menu'"
-          @click="gameStore.sidebarOpen = !gameStore.sidebarOpen"
-        ><PixelIcon :name="gameStore.sidebarOpen ? 'chevron-left' : 'chevron-right'" size="0.875rem" /></button>
-      </div>
-
-      <template v-if="gameStore.sidebarOpen">
-        <!-- User card -->
-        <div class="gp-user-card row items-center q-gutter-sm">
-          <div class="gp-avatar-box">
-            <PixelAvatar :scale="1.6" v-bind="look" :shadow="false" />
-          </div>
-          <div class="gp-user-info">
-            <div class="ellipsis gp-user-name">{{ playerName }}</div>
-            <div class="gp-user-status">● online · {{ online }}</div>
-          </div>
-        </div>
-
-        <!-- Mundos (vindos do banco) -->
-        <div class="column q-gutter-xs">
-          <div class="gp-section-label">Mundos</div>
-          <button
-            v-for="m in maps" :key="m.id" @click="selectMap(m.id)"
-            class="gp-map-btn row items-center q-gutter-sm"
-            :class="{ 'k-active': currentId === m.id }"
-          >
-            <span class="col ellipsis">{{ m.name }}</span>
-            <span v-if="currentId === m.id" class="gp-map-current">atual</span>
-          </button>
-        </div>
-
-        <!-- Voz: único ponto de entrada — todo o controle vive dentro do MediaStage -->
-        <div class="column q-gutter-xs">
-          <div class="gp-section-label">Voz</div>
-          <button class="k-btn k-btn-ghost menu-act" @click="openMediaStage">
-            <PixelIcon :name="voiceOn ? 'mic' : 'headphone'" size="0.875rem" />
-            <span class="col">Sala de voz</span>
-            <span v-if="voiceOn" class="gp-voice-live">no ar</span>
-          </button>
-        </div>
-
-        <!-- Você -->
-        <div class="column q-gutter-xs">
-          <div class="gp-section-label">Você</div>
-          <button class="k-btn k-btn-ghost menu-act" @click="router.push('/character')">Editar avatar</button>
-          <button v-if="!auth.isGuest" class="k-btn k-btn-ghost menu-act" @click="router.push('/editor/new')">Criar mundo</button>
-          <button v-if="currentMap && currentMap.ownerId === auth.userId" class="k-btn k-btn-ghost menu-act" @click="router.push(`/editor/${currentId}`)">Editar este mundo</button>
-          <button v-if="!auth.isGuest" class="k-btn k-btn-ghost menu-act" @click="router.push('/admin')">Administração</button>
-          <button class="k-btn k-btn-ghost menu-act" @click="router.push('/feedback')">Feedback / Reportar</button>
-          <button class="k-btn k-btn-ghost menu-act" @click="leave">Sair</button>
-        </div>
-      </template>
+      <ServerSidebar
+        ref="sidebar"
+        v-model:open="gameStore.sidebarOpen"
+        :maps="maps"
+        :current-map-id="currentId"
+        :player-name="playerName"
+        :look="look"
+        :voice-on="voiceOn"
+        :can-edit-current-world="!!currentMap && currentMap.ownerId === auth.userId"
+        :is-guest="auth.isGuest"
+        @select-world="selectMap"
+        @server-changed="onServerChanged"
+        @open-media="openMediaStage"
+        @leave="leave"
+      />
     </aside>
 
     <!-- Stage (PixiJS) -->
@@ -234,9 +193,9 @@ import { media } from '@/services/media'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
-import Logo from '@/components/logos/Logo.vue'
 import JukeboxPanel from '@/components/JukeboxPanel.vue'
 import MediaStage from '@/components/MediaStage.vue'
+import ServerSidebar from '@/components/ServerSidebar.vue'
 import PixelIcon from '@/components/PixelIcon.vue'
 import TaskPanel from '@/components/TaskPanel.vue'
 import NotePanel from '@/components/NotePanel.vue'
@@ -255,6 +214,7 @@ function persistState() {
 }
 
 const host = ref<HTMLElement | null>(null)
+const sidebar = ref<InstanceType<typeof ServerSidebar> | null>(null)
 const maps = ref<MapDef[]>([])
 const currentId = ref('')
 const error = ref('')
@@ -565,21 +525,48 @@ function closeModal() {
   boardOpen.value = false
 }
 
+function applyMap(map: MapDef) {
+  currentId.value = map.id
+  gameStore.activeMap = map.id
+  scene?.setMap(map)
+  pos.x = map.spawn.x
+  pos.y = map.spawn.y
+}
+
 function selectMap(id: string) {
   // B2: já estou neste mundo → no-op. Re-entrar recriava a sessão (switchMap limpa
   // os peers e re-join), me deixando "sozinho" e exigindo F5 pra voltar.
   if (id === currentId.value) return
   const map = maps.value.find((m) => m.id === id)
   if (!scene || !map) return
-  currentId.value = id
-  gameStore.activeMap = id
-  scene.setMap(map)
-  pos.x = map.spawn.x
-  pos.y = map.spawn.y
+  applyMap(map)
   switchMap(id)
   // a sala do LiveKit é `${serverId}:${mapId}` — sem reconectar, continuaríamos ouvindo
   // a sala do mundo anterior
   if (media.state.connected) void media.reconnect(id)
+}
+
+// o servidor ativo já mudou no backend (a barra lateral chamou switchServer):
+// aqui recarregam os mundos e a sessão. O socket lê o servidor no handshake e
+// não tem como atualizá-lo, então tem de reconectar — sem isso o avatar
+// continuaria na sala do servidor anterior.
+async function onServerChanged() {
+  error.value = ''
+  try {
+    maps.value = await fetchMaps()
+    const target = maps.value.find((m) => m.id === currentId.value) || maps.value[0]
+    if (!target) { error.value = 'Nenhum mundo disponível'; return }
+    if (target.id !== currentId.value) applyMap(target)
+    disconnectPresence()
+    // o histórico é da sala do servidor anterior
+    messages.splice(0)
+    connectPresence({ name: playerName.value, avatar: joinAvatarPayload.value, map: target.id, x: pos.x, y: pos.y })
+    // connectPresence nasce sem servidor observado nenhum
+    sidebar.value?.syncPresence()
+    if (media.state.connected) void media.reconnect(target.id)
+  } catch (e) {
+    error.value = (e as Error).message
+  }
 }
 
 // foto de peer vem da rede — só carrega se for o caminho canônico da nossa API,
@@ -648,6 +635,9 @@ onMounted(async () => {
     selectMap(first.id)
     if (savedPos) { pos.x = savedPos.x; pos.y = savedPos.y }
     connectPresence({ name: playerName.value, avatar: joinAvatarPayload.value, map: first.id, x: pos.x, y: pos.y })
+    // a barra lateral já montou (e já pediu a lista de servidores) antes do
+    // socket existir: o observador de presença só cola agora
+    sidebar.value?.syncPresence()
   } catch (e) {
     error.value = (e as Error).message
   }
@@ -835,40 +825,15 @@ onUnmounted(() => {
   transition: grid-template-columns 0.25s ease;
 }
 .gp-root.gp-sidebar-open {
-  grid-template-columns: 16rem 1fr;
+  grid-template-columns: 18rem 1fr;
 }
 
 .gp-sidebar {
   background: var(--bg-2);
   border-right: 0.0625rem solid var(--border);
   display: flex;
-  flex-direction: column;
-  gap: 0.875rem;
-  padding: 0.5rem;
+  min-width: 0;
   overflow: hidden;
-}
-.gp-sidebar.gp-sidebar-open {
-  padding: 1rem;
-}
-
-.gp-sidebar-toggle {
-  appearance: none;
-  background: transparent;
-  border: 0.0625rem solid var(--border);
-  color: var(--text-2);
-  width: 1.75rem;
-  height: 1.75rem;
-  cursor: pointer;
-  display: grid;
-  place-items: center;
-  font-size: 0.875rem;
-  flex-shrink: 0;
-}
-
-.gp-user-card {
-  background: var(--bg-1);
-  border: 0.0625rem solid var(--border);
-  padding: 0.75rem;
 }
 
 .gp-avatar-box {
@@ -879,62 +844,6 @@ onUnmounted(() => {
   place-items: center;
   overflow: hidden;
   flex-shrink: 0;
-}
-
-.gp-user-info { flex: 1; min-width: 0; }
-.gp-user-name { font-size: 0.8125rem; font-weight: 600; }
-.gp-user-status {
-  font-size: 0.625rem;
-  color: var(--ok);
-  font-family: var(--f-mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.gp-section-label {
-  font-size: 0.625rem;
-  letter-spacing: 0.18em;
-  color: var(--text-3);
-  text-transform: uppercase;
-  font-weight: 600;
-  padding: 0.25rem 0.375rem;
-}
-
-.gp-map-btn {
-  appearance: none;
-  text-align: left;
-  background: transparent;
-  border: 0.0625rem solid transparent;
-  color: var(--text-2);
-  padding: 0.5rem 0.625rem;
-  font-size: 0.8125rem;
-  cursor: pointer;
-  font-family: inherit;
-  min-width: 0;
-}
-/* flex item com classe "col" (Quasar) não encolhe abaixo do conteúdo por padrão —
-   sem isso, nome de mundo comprido estourava a largura da sidebar. */
-.gp-map-btn .col {
-  min-width: 0;
-}
-.gp-map-current {
-  font-size: 0.5625rem;
-  color: var(--accent);
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  font-weight: 700;
-}
-
-/* botões do menu lateral: ocupam a largura toda e QUEBRAM linha em vez de estourar
-   a sidebar (rótulos longos como "Feedback / Reportar" não vazam mais). */
-.menu-act {
-  width: 100%;
-  justify-content: flex-start;
-  text-align: left;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  line-height: 1.25;
-  min-width: 0;
 }
 
 .gp-stage {
@@ -1061,14 +970,6 @@ onUnmounted(() => {
     from { opacity: 0; transform: translateY(-0.5rem); }
     to { opacity: 1; transform: translateY(0); }
   }
-}
-
-.gp-voice-live {
-  flex: none;
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  letter-spacing: 0.08em;
-  color: var(--ok);
 }
 
 .gp-chat {
@@ -1285,7 +1186,7 @@ onUnmounted(() => {
 }
 
 /* Telas estreitas (ou zoom alto do navegador, que reduz os mesmos px de CSS):
-   a sidebar aberta virava um grid-column de 16rem e sobrava quase nada pro palco.
+   a sidebar aberta virava um grid-column de 18rem e sobrava quase nada pro palco.
    Vira overlay flutuante em vez de empurrar o grid — o palco sempre ocupa o resto. */
 @media (max-width: 48rem) {
   .gp-root.gp-sidebar-open {
@@ -1295,7 +1196,7 @@ onUnmounted(() => {
     position: fixed;
     top: 0;
     left: 0;
-    width: min(16rem, 80vw);
+    width: min(18rem, 80vw);
     height: 100vh;
     z-index: 100;
     box-shadow: 0.5rem 0 1.5rem rgba(0, 0, 0, 0.5);
