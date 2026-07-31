@@ -15,6 +15,7 @@
         @select-world="selectMap"
         @server-changed="onServerChanged"
         @open-media="openMediaStage"
+        @open-panel="openPanel"
         @join-voice="joinVoice"
         @leave="leave"
       />
@@ -136,6 +137,17 @@
       <NotePanel v-if="noteOpen" :map-id="currentId" :object-id="noteObjectId" @close="closeModal" />
       <WhiteboardPanel v-if="boardOpen" :object-id="boardObjectId" @close="closeModal" />
 
+      <!-- Telas que viraram painel: uma por vez, sempre sobre o mapa rodando -->
+      <ServersPanel v-if="panel === 'servidores'" :invite="panelInvite" @close="closeModal" @server-changed="onServerChanged" />
+      <CharacterPanel v-if="panel === 'personagem'" @close="closeModal" />
+      <AdminPanel
+        v-if="panel === 'admin'"
+        @close="closeModal"
+        @server-changed="onServerChanged"
+        @open-servers="openPanel('servidores')"
+      />
+      <FeedbackPanel v-if="panel === 'feedback'" @close="closeModal" />
+
       <!-- Controles touch (mobile) -->
       <div class="touch-ctl gp-touch-ctl">
         <span></span>
@@ -170,7 +182,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRouter, useRoute } from 'vue-router'
 import { useGameStore } from '@/stores/useGameStore'
 import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -184,6 +196,7 @@ import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers
 import { media } from '@/services/media'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
+import { panelFromQuery, type GamePanel } from '@/services/postAuth'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import JukeboxPanel from '@/components/JukeboxPanel.vue'
 import MediaStage from '@/components/MediaStage.vue'
@@ -192,8 +205,13 @@ import PixelIcon from '@/components/PixelIcon.vue'
 import TaskPanel from '@/components/TaskPanel.vue'
 import NotePanel from '@/components/NotePanel.vue'
 import WhiteboardPanel from '@/components/WhiteboardPanel.vue'
+import ServersPanel from '@/components/ServersPanel.vue'
+import CharacterPanel from '@/components/CharacterPanel.vue'
+import AdminPanel from '@/components/AdminPanel.vue'
+import FeedbackPanel from '@/components/FeedbackPanel.vue'
 
 const router = useRouter()
+const route = useRoute()
 const gameStore = useGameStore()
 const characterStore = useCharacterStore()
 const auth = useAuthStore()
@@ -222,6 +240,9 @@ const noteOpen = ref(false)
 const noteObjectId = ref('')
 const boardOpen = ref(false)
 const boardObjectId = ref('')
+// telas que viraram painel (barra lateral / ?abrir=): uma por vez
+const panel = ref<GamePanel | null>(null)
+const panelInvite = ref('')
 const JUKEBOX_RADIUS = 6 // tiles — alcance do modo "proximidade"
 
 const look = computed<AvatarLook>(() => ({
@@ -532,7 +553,30 @@ function closeModal() {
   taskOpen.value = false
   noteOpen.value = false
   boardOpen.value = false
+  panel.value = null
+  panelInvite.value = ''
 }
+
+// abrir um painel fecha o que estiver aberto (inclusive uma estação): nada empilha,
+// e o isModalOpen congela o personagem enquanto o painel estiver na frente
+function openPanel(next: GamePanel, invite = '') {
+  closeModal()
+  panel.value = next
+  panelInvite.value = invite
+  gameStore.isModalOpen = true
+}
+
+// o painel do personagem edita o avatar com o jogo rodando atrás; o AvatarPuppet
+// nasce com o look e não troca de peça, então o boneco é remontado no lugar
+watch([look, myPhotoUrl], () => {
+  // antes do onMounted montar o boneco não há o que trocar: ele já nasce com o look atual
+  if (!scene?.avatar('me')) return
+  scene.removeAvatar('me')
+  const puppet = new AvatarPuppet(look.value)
+  scene.addAvatar('me', puppet)
+  puppet.setPhoto(myPhotoUrl.value)
+  scene.placeAvatar('me', pos.x, pos.y)
+})
 
 function applyMap(map: MapDef) {
   currentId.value = map.id
@@ -570,8 +614,10 @@ async function onServerChanged() {
     // o histórico é da sala do servidor anterior
     messages.splice(0)
     connectPresence({ name: playerName.value, avatar: joinAvatarPayload.value, map: target.id, x: pos.x, y: pos.y })
-    // connectPresence nasce sem servidor observado nenhum
-    sidebar.value?.syncPresence()
+    // connectPresence nasce sem servidor observado nenhum; a lista da barra também
+    // envelheceu (criar/entrar/sair de servidor vem do painel, sem remontar nada) e o
+    // reload termina em syncPresence — o gateway só aceita um presenceWatch por vez
+    void sidebar.value?.reloadServers()
     void enterVoice(target.id, true)
   } catch (e) {
     error.value = (e as Error).message
@@ -616,6 +662,13 @@ function detectZone(map: MapDef) {
 }
 
 onMounted(async () => {
+  // ?abrir= diz qual painel a entrada (ou uma rota antiga) pediu; a query é
+  // consumida na hora pra um F5 não reabrir o painel eternamente
+  const asked = panelFromQuery(route.query)
+  const invite = route.query.invite
+  if (asked) openPanel(asked, typeof invite === 'string' ? invite : '')
+  if (asked || invite) void router.replace({ path: '/game' })
+
   scene = new MapScene()
   await scene.init(host.value!)
   const savedZoom = parseFloat(localStorage.getItem('kairos_zoom') || '')

@@ -6,14 +6,17 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { getCharacter } from './character.api'
 import { getMyServers, consumePendingInvite } from './server.api'
 
-export type GamePanel = 'personagem' | 'servidores'
+// personagem/servidores são os dois que a entrada escolhe sozinha; admin e feedback
+// entram no vocabulário porque as rotas antigas (/admin, /feedback) redirecionam pra cá
+const PANELS = ['personagem', 'servidores', 'admin', 'feedback'] as const
+
+export type GamePanel = (typeof PANELS)[number]
 
 export const PANEL_QUERY = 'abrir'
 
 export function panelFromQuery(query: LocationQuery): GamePanel | null {
   const value = query[PANEL_QUERY]
-  if (value === 'personagem' || value === 'servidores') return value
-  return null
+  return PANELS.includes(value as GamePanel) ? (value as GamePanel) : null
 }
 
 export async function initialPanel(): Promise<GamePanel | null> {

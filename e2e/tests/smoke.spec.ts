@@ -20,9 +20,14 @@ test('cadastro carrega', async ({ page }) => {
   await expect(page.locator('input[type="email"]')).toBeVisible()
 })
 
-test('feedback carrega', async ({ page }) => {
+test('feedback virou painel: a rota antiga cai no jogo com ele aberto', async ({ page }) => {
+  await page.goto('/login')
+  await page.locator('text=Continuar como convidado').click()
+  await expect(page).toHaveURL(/\/game(\?.*)?$/)
+
   await page.goto('/feedback')
-  await expect(page.locator('text=Feedback').first()).toBeVisible()
+  await expect(page).toHaveURL(/\/game(\?.*)?$/)
+  await expect(page.locator('text=Relatar bug ou pedir melhoria')).toBeVisible()
 })
 
 test('rota interna sem sessao redireciona pro login', async ({ page }) => {
