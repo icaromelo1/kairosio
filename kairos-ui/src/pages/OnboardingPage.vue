@@ -2,9 +2,8 @@
   <div class="ob-root">
     <div class="ob-head">
       <Logo id="monogram" size="lg" primary="var(--primary-hi)" accent="var(--accent)" />
-      <h1>{{ myServers.length ? 'Escolha seu servidor' : 'Seu servidor' }}</h1>
-      <p v-if="myServers.length">Você faz parte de mais de um servidor — escolha qual usar agora, ou crie/entre em outro abaixo.</p>
-      <p v-else>Crie um servidor (vira seu grupo) ou entre num existente com um convite.</p>
+      <h1>{{ title }}</h1>
+      <p>{{ subtitle }}</p>
     </div>
 
     <!-- Servidores de que já sou membro -->
@@ -24,7 +23,13 @@
     </section>
 
     <div class="ob-grid">
-      <section v-if="!auth.isGuest" class="ob-card">
+      <section v-if="auth.isGuest" class="ob-card">
+        <h2 class="ob-locked-title"><PixelIcon name="lock" size="0.875rem" />Criar servidor</h2>
+        <p class="ob-sub">Convidado não cria servidor: a conta de convidado é apagada quando você sai, e o servidor ficaria sem dono. Com uma conta, o servidor é seu.</p>
+        <button class="ob-btn ob-btn-ghost" @click="goRegister">Criar conta →</button>
+      </section>
+
+      <section v-else class="ob-card">
         <h2>Criar servidor</h2>
         <p class="ob-sub">Você vira o admin. Depois pode convidar a galera.</p>
         <input v-model.trim="serverName" maxlength="40" class="ob-input" placeholder="Nome do servidor" @keyup.enter="create" />
@@ -40,14 +45,23 @@
     </div>
 
     <p v-if="error" class="ob-error">{{ error }}</p>
+
+    <div class="ob-exit">
+      <button class="ob-exit-btn" @click="skip">
+        <PixelIcon name="gamepad" size="0.875rem" />
+        Ir jogar agora →
+      </button>
+      <p class="ob-exit-hint">{{ exitHint }}</p>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { createServer, joinServer, getMyServers, switchServer, type MyServerSummary } from '@/services/server.api'
+import { createServer, joinServer, getMyServers, switchServer, setPendingInvite, type MyServerSummary } from '@/services/server.api'
 import Logo from '@/components/logos/Logo.vue'
+import PixelIcon from '@/components/PixelIcon.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 
 const router = useRouter()
@@ -64,6 +78,31 @@ onMounted(async () => {
   if (typeof inv === 'string') code.value = inv
   myServers.value = await getMyServers()
 })
+
+const title = computed(() => (myServers.value.length ? 'Escolha seu servidor' : 'Seu servidor'))
+
+const subtitle = computed(() => {
+  if (myServers.value.length) return 'Escolha qual servidor usar agora, ou entre em outro abaixo.'
+  if (auth.isGuest) return 'Como convidado dá pra entrar num servidor por convite. Criar um servidor precisa de conta — ou vá direto pros mundos abertos.'
+  return 'Crie um servidor (vira seu grupo) ou entre num existente com um convite.'
+})
+
+const exitHint = computed(() =>
+  myServers.value.length
+    ? 'Entra no servidor atual, sem trocar de servidor.'
+    : 'Os mundos abertos não precisam de servidor nenhum.',
+)
+
+function skip() {
+  router.push('/character')
+}
+
+// o convite volta pro localStorage pra sobreviver ao cadastro — o RegisterPage o consome
+// e devolve o código já preenchido nesta tela
+function goRegister() {
+  if (code.value) setPendingInvite(code.value)
+  router.push('/register')
+}
 
 async function pick(serverId: string) {
   error.value = ''
@@ -121,7 +160,27 @@ async function join() {
 .ob-btn { background: var(--primary); border: none; color: #fff; padding: 0.625rem; cursor: pointer; border-radius: 0.25rem; font-weight: 600; }
 .ob-btn-ghost { background: transparent; border: 0.0625rem solid var(--border-strong); color: var(--text); }
 .ob-btn:disabled { opacity: 0.6; }
-.ob-error { color: #f87171; font-size: 0.8125rem; }
+.ob-error { color: var(--err); font-size: 0.8125rem; }
+
+.ob-locked-title { display: flex; align-items: center; gap: 0.375rem; color: var(--text-2); }
+
+.ob-exit { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; }
+.ob-exit-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: 0.0625rem solid var(--border-strong);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 0.875rem;
+  font-weight: 600;
+  padding: 0.625rem 1.125rem;
+  cursor: pointer;
+}
+.ob-exit-btn:hover { border-color: var(--primary-hi); color: var(--primary-hi); }
+.ob-exit-hint { font-size: 0.75rem; color: var(--text-3); margin: 0; text-align: center; }
 
 .ob-servers-card { width: min(45rem, 100%); }
 .ob-server-list { display: flex; flex-direction: column; gap: 0.5rem; }

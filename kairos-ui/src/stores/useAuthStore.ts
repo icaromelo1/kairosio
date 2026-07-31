@@ -6,6 +6,7 @@ interface JwtPayload {
   sub?: string
   email?: string
   isGuest?: boolean
+  exp?: number
 }
 
 function decode(token: string): JwtPayload | null {
@@ -16,12 +17,24 @@ function decode(token: string): JwtPayload | null {
   }
 }
 
+// sessão vencida com token ainda no localStorage passava na guarda de rota e caía
+// numa tela onde toda chamada dá 401 — sem login, sem saída. Aqui ela já nasce sem sessão.
+function restore(): { token: string | null; payload: JwtPayload | null } {
+  const stored = localStorage.getItem(TOKEN_KEY)
+  if (!stored) return { token: null, payload: null }
+  const payload = decode(stored)
+  if (!payload || (payload.exp && payload.exp * 1000 <= Date.now())) {
+    localStorage.removeItem(TOKEN_KEY)
+    return { token: null, payload: null }
+  }
+  return { token: stored, payload }
+}
+
 export const useAuthStore = defineStore('auth', {
   state: () => {
-    const token = localStorage.getItem(TOKEN_KEY)
-    const p = token ? decode(token) : null
+    const { token, payload: p } = restore()
     return {
-      token: token as string | null,
+      token,
       userId: p?.sub ?? null,
       email: p?.email ?? null,
       isGuest: !!p?.isGuest,

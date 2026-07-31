@@ -167,17 +167,20 @@ import { login, guest } from '@/services/auth.api'
 import { getMyServers, consumePendingInvite } from '@/services/server.api'
 import type { RouteLocationRaw } from 'vue-router'
 
+const router = useRouter()
+const authStore = useAuthStore()
+
 // destino pós-login: convite pendente (do link) tem prioridade; 1 servidor só → direto pro
-// jogo; 0 ou 2+ servidores → onboarding (cria/entra, ou escolhe qual usar nesta sessão)
+// jogo; vários → tela de escolha; nenhum → tela de escolha só pra quem pode criar servidor.
+// Convidado não pode criar, e já enxerga os mundos abertos: vai direto pro jogo.
 async function postAuthDest(): Promise<RouteLocationRaw> {
   const invite = consumePendingInvite()
   if (invite) return { path: '/onboarding', query: { invite } }
   const servers = await getMyServers()
-  return servers.length === 1 ? '/character' : '/onboarding'
+  if (servers.length === 1) return '/character'
+  if (servers.length === 0 && authStore.isGuest) return '/character'
+  return '/onboarding'
 }
-
-const router = useRouter()
-const authStore = useAuthStore()
 
 const email = ref('')
 const password = ref('')
