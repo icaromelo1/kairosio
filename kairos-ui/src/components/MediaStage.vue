@@ -2,7 +2,7 @@
   <div
     ref="root"
     class="ms-window"
-    :class="{ 'ms-window-min': minimized, 'ms-window-fs': fullscreen }"
+    :class="{ 'ms-window-hidden': minimized, 'ms-window-fs': fullscreen }"
     :style="frameStyle"
   >
     <div
@@ -765,6 +765,10 @@ onBeforeUnmount(() => {
   border: 0.125rem solid var(--border-strong);
   box-shadow: var(--ui-shadow);
   overflow: hidden;
+}
+
+.ms-window-hidden {
+  display: none;
 }
 
 .ms-window-fs {
