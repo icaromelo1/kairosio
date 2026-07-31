@@ -23,8 +23,16 @@
         <div v-if="loading" class="jb-muted-4 jb-text-sm">carregando...</div>
         <div v-else-if="!notes.length" class="jb-muted-4 jb-text-sm">nenhuma nota</div>
         <div v-for="n in notes" :key="n.id" class="row items-start justify-between q-gutter-xs jb-queue-item jb-note-item">
-          <span class="jb-note-body">{{ n.body }}</span>
-          <button class="k-btn k-btn-ghost k-btn-xs" title="apagar nota" aria-label="apagar nota" @click="remove(n)"><PixelIcon name="close" size="0.6875rem" /></button>
+          <template v-if="editingId === n.id">
+            <textarea v-model="editBody" class="jb-note-edit" rows="2" maxlength="4000" @keydown.esc="cancelEdit" @keydown.enter.exact.prevent="saveEdit(n)"></textarea>
+            <button class="k-btn k-btn-ghost k-btn-xs" title="salvar" aria-label="salvar nota" @click="saveEdit(n)"><PixelIcon name="check" size="0.6875rem" /></button>
+            <button class="k-btn k-btn-ghost k-btn-xs" title="cancelar" aria-label="cancelar edição" @click="cancelEdit"><PixelIcon name="close" size="0.6875rem" /></button>
+          </template>
+          <template v-else>
+            <span class="jb-note-body">{{ n.body }}</span>
+            <button class="k-btn k-btn-ghost k-btn-xs" title="editar nota" aria-label="editar nota" @click="startEdit(n)"><PixelIcon name="pencil" size="0.6875rem" /></button>
+            <button class="k-btn k-btn-ghost k-btn-xs" title="apagar nota" aria-label="apagar nota" @click="remove(n)"><PixelIcon name="close" size="0.6875rem" /></button>
+          </template>
         </div>
       </div>
     </div>
@@ -33,7 +41,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { listNotes, createNote, deleteNote, type NoteItem } from '@/services/note.api'
+import { listNotes, createNote, updateNote, deleteNote, type NoteItem } from '@/services/note.api'
 import PixelIcon from '@/components/PixelIcon.vue'
 
 const props = defineProps<{ mapId: string; objectId: string }>()
@@ -70,6 +78,33 @@ async function add() {
     error.value = (e as Error).message || 'falha ao criar nota'
   } finally {
     adding.value = false
+  }
+}
+
+const editingId = ref<string | null>(null)
+const editBody = ref('')
+
+function startEdit(n: NoteItem) {
+  editingId.value = n.id
+  editBody.value = n.body
+}
+
+function cancelEdit() {
+  editingId.value = null
+  editBody.value = ''
+}
+
+async function saveEdit(n: NoteItem) {
+  const body = editBody.value.trim()
+  if (!body || body === n.body) { cancelEdit(); return }
+  error.value = ''
+  try {
+    const salva = await updateNote(n.id, body)
+    const i = notes.value.findIndex(x => x.id === n.id)
+    if (i >= 0) notes.value[i] = salva
+    cancelEdit()
+  } catch (e) {
+    error.value = (e as Error).message || 'falha ao salvar nota'
   }
 }
 
@@ -149,6 +184,19 @@ onMounted(load)
   background: var(--bg-1);
   border: 0.0625rem solid var(--border);
   padding: 0.5rem;
+}
+
+.jb-note-edit {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg-1);
+  border: 0.0625rem solid var(--border-strong);
+  border-radius: var(--r-sm);
+  color: var(--text);
+  font-family: var(--f-sans);
+  font-size: 0.8125rem;
+  padding: 0.25rem 0.375rem;
+  resize: vertical;
 }
 
 .jb-note-body {
