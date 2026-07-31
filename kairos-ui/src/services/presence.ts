@@ -196,11 +196,12 @@ export function connectPresence(opts: JoinOptions) {
 
   // alguém editou a própria aparência sem sair do mundo — o avatar do join
   // envelheceria até a pessoa reconectar
-  socket.on('playerAvatar', ({ id, avatar }: { id: string; avatar: AvatarProps }) => {
+  socket.on('playerAvatar', ({ id, avatar, name }: { id: string; avatar: AvatarProps; name?: string }) => {
     const p = remotePlayers.get(id)
-    if (p) p.avatar = avatar
+    if (!p) return
+    p.avatar = avatar
+    if (name) p.name = name
   })
-
   socket.on('chatMessage', (m: ChatMessage) => {
     chatMessages.push(m)
     if (chatMessages.length > 50) chatMessages.splice(0, chatMessages.length - 50)
@@ -375,9 +376,12 @@ export function emitChat(text: string) {
 
 // anuncia a aparência nova pra sala. Também atualiza o join guardado: sem isso a
 // reconexão automática do socket.io reentraria com o look velho.
-export function emitAvatarUpdate(avatar: AvatarProps) {
-  if (currentJoin) currentJoin.avatar = avatar
-  socket?.emit('avatarUpdate', { avatar })
+export function emitAvatarUpdate(avatar: AvatarProps, name?: string) {
+  if (currentJoin) {
+    currentJoin.avatar = avatar
+    if (name !== undefined) currentJoin.name = name
+  }
+  socket?.emit('avatarUpdate', name === undefined ? { avatar } : { avatar, name })
 }
 
 export function emitMove(x: number, y: number, facing: Facing, pose: Pose, boost = false) {
