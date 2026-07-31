@@ -15,6 +15,7 @@ import { ServerMembership } from '../server/server-membership.entity'
 import { normalizeUsername } from '../user/username'
 import { Friendship } from './friendship.entity'
 import { FriendServerInvite } from './friend-server-invite.entity'
+import { ServerService } from '../server/server.service'
 import { MAX_PEDIDOS_PENDENTES, friendPair, isParty, otherSide, stripAt } from './friendship'
 
 const UNIQUE_VIOLATION = '23505'
@@ -33,6 +34,7 @@ export class FriendService {
     @InjectRepository(User) private users: Repository<User>,
     @InjectRepository(Server) private servers: Repository<Server>,
     @InjectRepository(ServerMembership) private memberships: Repository<ServerMembership>,
+    private readonly serverService: ServerService,
   ) {}
 
   async list(userId: string) {
@@ -248,6 +250,24 @@ export class FriendService {
       }),
     )
     return this.inviteView(convite, server.name)
+  }
+
+  async respondServerInvite(userId: string, inviteId: string, aceitar: boolean) {
+    const convite = await this.serverInvites.findOne({ where: { id: inviteId } })
+    // convite de outra pessoa responde igual a convite inexistente: quem recebeu
+    // um id alheio não deve descobrir que ele existe
+    if (!convite || convite.toUserId !== userId) throw new NotFoundException('Convite não encontrado')
+    if (convite.status !== 'pendente') throw new ConflictException('Este convite já foi respondido')
+
+    convite.status = aceitar ? 'aceito' : 'recusado'
+    convite.respondedAt = new Date()
+    await this.serverInvites.save(convite)
+
+    if (!aceitar) return { id: convite.id, status: convite.status }
+    // a entrada em si é do ServerService: criar membership aqui duplicaria as
+    // checagens de arquivado e de já-ser-membro em dois lugares
+    const servidor = await this.serverService.joinFromFriendInvite(userId, convite.serverId)
+    return { id: convite.id, status: convite.status, servidor }
   }
 
   async serverInvitesFor(userId: string) {
