@@ -24,12 +24,40 @@ export type { MediaPeer, ScreenMode, ScreenStats } from './media.state'
 
 type MediaRoom = import('./media.livekit').MediaRoom
 
+// Preferência de áudio da pessoa, entre sessões. Ausência da chave = primeira
+// vez de todas = microfone DESLIGADO: ninguém é ouvido sem ter clicado uma vez.
+// Por isso o padrão nunca é gravado — só o que foge dele ocupa espaço.
+const PREFS_KEY = 'kairos_audio'
+
+let prefsKey = PREFS_KEY
 let impl: MediaRoom | null = null
 let loading: Promise<MediaRoom> | null = null
 // "eu quero estar na voz". O disconnect pode chegar enquanto o chunk ainda baixa
 // (sair da tela logo depois de clicar em entrar): sem esta flag a conexão subiria
 // DEPOIS, com o microfone aberto e ninguém olhando.
 let wanted = false
+
+function readPrefs(key: string): { mic: boolean; deaf: boolean } {
+  try {
+    const parsed: unknown = JSON.parse(localStorage.getItem(key) || 'null')
+    if (!parsed || typeof parsed !== 'object') return { mic: false, deaf: false }
+    const saved = parsed as Record<string, unknown>
+    // qualquer coisa que não seja exatamente `true` cai no padrão: preferência
+    // corrompida nunca pode virar microfone aberto
+    return { mic: saved.mic === true, deaf: saved.deaf === true }
+  } catch {
+    return { mic: false, deaf: false }
+  }
+}
+
+function savePrefs(): void {
+  try {
+    if (!state.micWanted && !state.deafened) localStorage.removeItem(prefsKey)
+    else localStorage.setItem(prefsKey, JSON.stringify({ mic: state.micWanted, deaf: state.deafened }))
+  } catch {
+    // storage cheio/bloqueado não pode travar o controle
+  }
+}
 
 function load(): Promise<MediaRoom> {
   if (loading) return loading
@@ -48,24 +76,28 @@ function load(): Promise<MediaRoom> {
 }
 
 // o `connecting` cobre o download do chunk também: sem isso o botão ficaria
-// dizendo "entrar na voz" durante a baixa e aceitaria um segundo clique.
-// É zerado antes de delegar porque o attemptConnect o liga de novo, de forma
-// síncrona — e porque o caminho "já conectado" da impl retorna cedo sem mexer
-// nele, o que deixaria o estado preso em "conectando" pra sempre.
+// dizendo "entrar na voz" durante a baixa e aceitaria um segundo clique. Só é
+// zerado no fim de tudo, e por AQUI — o caminho "já conectado" da impl retorna
+// cedo sem tocar nele, e sem este finally o estado ficaria preso em "conectando".
 async function start(run: (room: MediaRoom) => Promise<boolean>): Promise<boolean> {
   wanted = true
   state.connecting = true
-  let room: MediaRoom
   try {
-    room = await load()
-  } catch {
-    state.error = 'Não foi possível carregar a camada de voz'
-    return false
+    let room: MediaRoom
+    try {
+      room = await load()
+    } catch {
+      state.error = 'Não foi possível carregar a camada de voz'
+      return false
+    }
+    if (!wanted) return false
+    // o `connecting` fica de pé até a impl terminar: ela o desliga entre o
+    // disconnect e o reconnect da troca de mundo, e nesse buraco o rodapé
+    // anunciaria "voz desligada" no meio de uma troca que está indo bem
+    return await run(room)
   } finally {
     state.connecting = false
   }
-  if (!wanted) return false
-  return run(room)
 }
 
 export const media = {
@@ -76,6 +108,16 @@ export const media = {
   screenElements,
   selfScreenElement,
   screenStats,
+
+  // chamada por quem entra no mundo ANTES de conectar: a preferência é por
+  // pessoa, e a da conta anterior no mesmo navegador não vale pra esta
+  loadPrefs(userId: string | null): void {
+    prefsKey = userId ? `${PREFS_KEY}:${userId}` : PREFS_KEY
+    const prefs = readPrefs(prefsKey)
+    state.micWanted = prefs.mic
+    state.deafened = prefs.deaf
+    impl?.setDeafened(prefs.deaf)
+  },
 
   async connect(mapId: string): Promise<boolean> {
     return start((room) => room.connect(mapId))
@@ -91,8 +133,20 @@ export const media = {
     await impl?.disconnect()
   },
 
+  // a intenção é gravada mesmo com a voz fora do ar: é ela que o attemptConnect
+  // aplica quando a sala sobe
   async setMicMuted(muted: boolean): Promise<void> {
+    state.micWanted = !muted
+    savePrefs()
     await impl?.setMicMuted(muted)
+  },
+
+  // vale mesmo antes do SDK carregar: o impl lê `state.deafened` ao anexar cada
+  // elemento de áudio
+  setDeafened(on: boolean): void {
+    state.deafened = on
+    savePrefs()
+    impl?.setDeafened(on)
   },
 
   async setCameraEnabled(on: boolean): Promise<boolean> {

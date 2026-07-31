@@ -47,6 +47,13 @@ export const state = reactive({
   connecting: false,
   micAvailable: false,
   micMuted: true,
+  // preferência lembrada da pessoa, NÃO o que está no ar: sobrevive à
+  // desconexão e é ela que decide se o microfone abre ao entrar num mundo.
+  // `micMuted` continua sendo a verdade — nunca dizer "aberto" antes de estar.
+  micWanted: false,
+  // deafen local: silencia todo mundo de uma vez, sem tocar no `mutedByMe`
+  // (silenciar UMA pessoa), que é outra coisa e vive por participante
+  deafened: false,
   cameraOn: false,
   selfSpeaking: false,
   screenOn: false,

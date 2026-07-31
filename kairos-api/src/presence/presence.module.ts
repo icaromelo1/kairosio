@@ -4,12 +4,15 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { PresenceGateway } from './presence.gateway'
 import { PresenceController } from './presence.controller'
 import { User } from '../user/user.entity'
+import { ServerMembership } from '../server/server-membership.entity'
 import { JukeboxModule } from '../jukebox/jukebox.module'
 import { jwtSecret } from '../auth/jwt-secret'
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User]),
+    // ServerMembership é lida (nunca escrita) aqui: é a autorização de quem pode
+    // observar a presença de cada servidor
+    TypeOrmModule.forFeature([User, ServerMembership]),
     // registerAsync: lê o segredo na instanciação, depois do ConfigModule
     JwtModule.registerAsync({ useFactory: () => ({ secret: jwtSecret() }) }),
     JukeboxModule,

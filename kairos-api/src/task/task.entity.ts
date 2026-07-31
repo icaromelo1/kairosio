@@ -12,7 +12,7 @@ export class Task {
   objectId: string
 
   @Column({ type: 'uuid' })
-  organizationId: string
+  serverId: string
 
   @Column()
   title: string

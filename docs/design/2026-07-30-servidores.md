@@ -82,6 +82,11 @@ renome do banco trivial: as tabelas antigas são derrubadas, o `synchronize: tru
 recria o schema novo no boot, e o `MapService` re-semeia os três mundos oficiais
 sozinho, como já faz.
 
+**Atenção ao schema.** Produção tem `search_path = kairos, public` e as tabelas
+vivem no schema **`kairos`** — não em `public`, que é onde o ambiente local as
+cria. Zerar exige `DROP SCHEMA kairos CASCADE`; derrubar `public` não apagaria
+nada e daria a falsa impressão de ter funcionado.
+
 Antes de zerar, duas salvaguardas:
 
 1. **Backup do banco** (`pg_dump`), guardado fora do repositório. Leva segundos
