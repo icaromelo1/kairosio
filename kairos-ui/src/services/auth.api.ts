@@ -15,15 +15,36 @@ export async function login(email: string, password: string): Promise<TokenRespo
   return res.json()
 }
 
-export async function register(email: string, password: string): Promise<TokenResponse> {
+export async function register(email: string, password: string, username: string): Promise<TokenResponse> {
   const res = await apiFetch('/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, username }),
   })
-  if (res.status === 409) throw new Error('email-exists')
-  if (res.status === 400) throw new Error('invalid-input')
-  if (!res.ok) throw new Error('register-failed')
+  if (!res.ok) throw new Error(await failureCode(res))
   return res.json()
+}
+
+export type UsernameReason = 'formato' | 'reservado' | 'em-uso'
+
+export interface UsernameStatus {
+  disponivel: boolean
+  motivo?: UsernameReason
+}
+
+export async function checkUsername(username: string): Promise<UsernameStatus> {
+  const res = await apiFetch(`/auth/username-disponivel?u=${encodeURIComponent(username)}`)
+  if (res.status === 429) throw new Error('rate-limited')
+  if (!res.ok) throw new Error('check-failed')
+  return res.json()
+}
+
+// email repetido e nome de usuário repetido são os dois 409: quem separa um do
+// outro é o code do corpo, não o status
+async function failureCode(res: Response): Promise<string> {
+  const body = await res.json().catch(() => null)
+  const code = (body as { code?: unknown } | null)?.code
+  if (typeof code === 'string') return code
+  return res.status === 400 ? 'invalid-input' : 'register-failed'
 }
 
 export async function guest(): Promise<TokenResponse> {

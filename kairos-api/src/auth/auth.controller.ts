@@ -1,8 +1,9 @@
-import { Controller, Post, Body, Get, Request, Res, UseGuards } from '@nestjs/common'
+import { Controller, Post, Patch, Body, Get, Query, Request, Res, UseGuards } from '@nestjs/common'
 import { Response } from 'express'
+import { Throttle } from '@nestjs/throttler'
 import { AuthService } from './auth.service'
 import { AuthGuard } from '@nestjs/passport'
-import { AuthCredentialsDto } from './auth.dto'
+import { AuthCredentialsDto, RegisterDto, UpdateUsernameDto, UsernameQueryDto } from './auth.dto'
 
 const FRONT_URL = process.env.FRONT_URL || 'https://icaromelodev.com.br/kairos'
 
@@ -43,8 +44,22 @@ export class AuthController {
   }
 
   @Post('register')
-  register(@Body() body: AuthCredentialsDto) {
-    return this.authService.register(body.email, body.password)
+  register(@Body() body: RegisterDto) {
+    return this.authService.register(body.email, body.password, body.username)
+  }
+
+  // limite próprio, bem abaixo do teto global: no ritmo de 120/min esta rota vira
+  // um enumerador de quem existe na plataforma
+  @Throttle({ default: { limit: 20, ttl: 60000 } })
+  @Get('username-disponivel')
+  usernameDisponivel(@Query() query: UsernameQueryDto) {
+    return this.authService.usernameStatus(query.u)
+  }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Patch('username')
+  changeUsername(@Request() req: any, @Body() body: UpdateUsernameDto) {
+    return this.authService.changeUsername(req.user.sub, body.username)
   }
 
   @Post('guest')
