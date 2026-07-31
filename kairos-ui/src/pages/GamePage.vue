@@ -16,6 +16,7 @@
         @server-changed="onServerChanged"
         @open-media="openMediaStage"
         @open-panel="openPanel"
+        @open-friends="openFriends"
         @join-voice="joinVoice"
         @leave="leave"
       />
@@ -147,6 +148,13 @@
         @open-servers="openPanel('servidores')"
       />
       <FeedbackPanel v-if="panel === 'feedback'" @close="closeModal" />
+      <FriendsPanel
+        v-if="friendsOpen"
+        :maps="maps"
+        @close="closeModal"
+        @jump="jumpToFriend"
+        @changed="sidebar?.reloadFriendRequests()"
+      />
 
       <!-- Controles touch (mobile) -->
       <div class="touch-ctl gp-touch-ctl">
@@ -209,6 +217,7 @@ import ServersPanel from '@/components/ServersPanel.vue'
 import CharacterPanel from '@/components/CharacterPanel.vue'
 import AdminPanel from '@/components/AdminPanel.vue'
 import FeedbackPanel from '@/components/FeedbackPanel.vue'
+import FriendsPanel from '@/components/FriendsPanel.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -243,6 +252,9 @@ const boardObjectId = ref('')
 // telas que viraram painel (barra lateral / ?abrir=): uma por vez
 const panel = ref<GamePanel | null>(null)
 const panelInvite = ref('')
+// amigos fica fora do GamePanel: nenhuma rota antiga leva a ele e a entrada nunca
+// o escolhe sozinha, então não entra no vocabulário do ?abrir=
+const friendsOpen = ref(false)
 const JUKEBOX_RADIUS = 6 // tiles — alcance do modo "proximidade"
 
 const look = computed<AvatarLook>(() => ({
@@ -555,6 +567,7 @@ function closeModal() {
   boardOpen.value = false
   panel.value = null
   panelInvite.value = ''
+  friendsOpen.value = false
 }
 
 // abrir um painel fecha o que estiver aberto (inclusive uma estação): nada empilha,
@@ -564,6 +577,19 @@ function openPanel(next: GamePanel, invite = '') {
   panel.value = next
   panelInvite.value = invite
   gameStore.isModalOpen = true
+}
+
+function openFriends() {
+  closeModal()
+  friendsOpen.value = true
+  gameStore.isModalOpen = true
+}
+
+// pular até o amigo é a troca que a barra lateral já sabe fazer: ela decide entre
+// só mudar de mundo e entrar noutro servidor antes
+function jumpToFriend(serverId: string, mapId: string) {
+  closeModal()
+  void sidebar.value?.jumpTo(serverId, mapId)
 }
 
 // o painel do personagem edita o avatar com o jogo rodando atrás; o AvatarPuppet
@@ -603,11 +629,15 @@ function selectMap(id: string) {
 // aqui recarregam os mundos e a sessão. O socket lê o servidor no handshake e
 // não tem como atualizá-lo, então tem de reconectar — sem isso o avatar
 // continuaria na sala do servidor anterior.
-async function onServerChanged() {
+// mapId chega quando a troca veio de um "pular até o amigo": cair direto no mundo
+// dele evita entrar no mundo anterior e só então trocar de novo
+async function onServerChanged(_serverId?: string, mapId?: string) {
   error.value = ''
   try {
     maps.value = await fetchMaps()
-    const target = maps.value.find((m) => m.id === currentId.value) || maps.value[0]
+    const target = maps.value.find((m) => m.id === mapId)
+      || maps.value.find((m) => m.id === currentId.value)
+      || maps.value[0]
     if (!target) { error.value = 'Nenhum mundo disponível'; return }
     if (target.id !== currentId.value) applyMap(target)
     disconnectPresence()

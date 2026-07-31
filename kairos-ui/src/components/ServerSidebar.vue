@@ -31,6 +31,19 @@
         @click="emit('open-panel', 'servidores')"
       ><PixelIcon name="plus" size="0.875rem" /></button>
 
+      <!-- com a barra recolhida o botão de amigos sai da lista de ações: sem ele
+           aqui, o contador de pedidos sumiria justo pra quem joga com a barra fechada -->
+      <button
+        v-if="!open"
+        class="ss-rail-mic ss-rail-friends"
+        :title="friendsTitle"
+        :aria-label="friendsTitle"
+        @click="emit('open-friends')"
+      >
+        <PixelIcon name="users" size="0.875rem" />
+        <span v-if="friendRequests" class="ss-server-badge">{{ friendRequests }}</span>
+      </button>
+
       <!-- com a barra recolhida este é o único lugar onde o microfone aparece:
            some da lista de mundos, não do olho de quem está no ar -->
       <button
@@ -117,6 +130,10 @@
 
         <div class="ss-label">Ações</div>
         <div class="ss-acts">
+          <button class="k-btn k-btn-ghost ss-act" :title="friendsTitle" @click="emit('open-friends')">
+            <PixelIcon name="users" size="0.75rem" /><span>Amigos</span>
+            <span v-if="friendRequests" class="ss-act-badge">{{ friendRequests }}</span>
+          </button>
           <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="router.push('/editor/new')">
             <PixelIcon name="plus-box" size="0.75rem" /><span>Criar mundo</span>
           </button>
@@ -214,6 +231,7 @@ import {
   type PresencePerson,
 } from '@/services/presence'
 import { media } from '@/services/media'
+import { pendingFriends } from '@/services/friend.api'
 import type { GamePanel } from '@/services/postAuth'
 import { useAuthStore } from '@/stores/useAuthStore'
 import type { MapDef } from '@/game/maps'
@@ -244,9 +262,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:open': [open: boolean]
   'select-world': [mapId: string]
-  'server-changed': [serverId: string]
+  // o mundo vai junto quando a troca de servidor é um "pular até o amigo": quem
+  // recarrega os mundos é o GamePage, e só ele consegue cair no mundo certo já na
+  // reconexão, sem passar pelo mundo anterior
+  'server-changed': [serverId: string, mapId?: string]
   'open-media': []
   'open-panel': [panel: GamePanel]
+  'open-friends': []
   'join-voice': []
   leave: []
 }>()
@@ -300,7 +322,7 @@ function showServer(serverId: string) {
   if (!props.open) emit('update:open', true)
 }
 
-async function enterServer(serverId: string | null) {
+async function enterServer(serverId: string | null, mapId?: string) {
   if (!serverId || busy.value || serverId === activeServerId.value) return
   busy.value = true
   error.value = ''
@@ -311,12 +333,22 @@ async function enterServer(serverId: string | null) {
     shownServerId.value = serverId
     // quem recarrega mundos, presença e mídia é o GamePage: o socket carrega o
     // servidor do handshake e precisa reconectar pra sair da sala antiga
-    emit('server-changed', serverId)
+    emit('server-changed', serverId, mapId)
   } catch (e) {
     error.value = (e as Error).message
   } finally {
     busy.value = false
   }
+}
+
+// pular até o amigo: mesmo servidor é só trocar de mundo; servidor diferente entra
+// primeiro, levando o mundo de destino junto pra troca acontecer numa reconexão só
+async function jumpTo(serverId: string, mapId: string) {
+  if (serverId === activeServerId.value) {
+    emit('select-world', mapId)
+    return
+  }
+  await enterServer(serverId, mapId)
 }
 
 async function loadServers() {
@@ -346,7 +378,29 @@ function syncPresence() {
 // reloadServers: a barra não desmonta mais quando o servidor muda (virou painel), então
 // a lista precisa ser buscada de novo — senão fica sem o servidor criado e com o "aqui"
 // no lugar errado
-defineExpose({ syncPresence, reloadServers: () => loadServers() })
+defineExpose({ syncPresence, reloadServers: () => loadServers(), reloadFriendRequests: () => loadFriendRequests(), jumpTo })
+
+// ---- pedidos de amizade esperando resposta ----
+const FRIEND_POLL_MS = 60000
+const friendRequests = ref(0)
+let friendPollTimer = 0
+
+const friendsTitle = computed(() => {
+  if (!friendRequests.value) return 'Amigos'
+  return friendRequests.value === 1
+    ? 'Amigos — 1 pedido esperando resposta'
+    : `Amigos — ${friendRequests.value} pedidos esperando resposta`
+})
+
+async function loadFriendRequests() {
+  if (props.isGuest) return
+  try {
+    friendRequests.value = (await pendingFriends()).recebidos.length
+  } catch {
+    // sem contador é melhor que um número velho: o painel mostra o erro de verdade
+    friendRequests.value = 0
+  }
+}
 
 // ---- colapsar por mundo ----
 const COLLAPSE_KEY = 'kairos_worlds_collapsed'
@@ -464,11 +518,16 @@ watch(
 
 onMounted(() => {
   void loadServers()
+  void loadFriendRequests()
+  // pedido de amizade novo não tem evento no gateway: sem esta releitura o contador
+  // só mudaria quando a pessoa recarregasse a página
+  if (!props.isGuest) friendPollTimer = window.setInterval(loadFriendRequests, FRIEND_POLL_MS)
 })
 
 onUnmounted(() => {
   watchServerPresence([])
   window.clearTimeout(micPushTimer)
+  window.clearInterval(friendPollTimer)
 })
 </script>
 
@@ -601,6 +660,10 @@ onUnmounted(() => {
   color: var(--text-2);
 }
 .ss-rail-mic:disabled { opacity: 0.5; cursor: default; }
+
+/* relativo por causa do contador, que é posicionado sobre o canto do botão */
+.ss-rail-friends { position: relative; }
+.ss-rail-friends:hover { color: var(--text); border-color: var(--text-3); }
 
 /* ---- lista de mundos ---- */
 .ss-main {
@@ -789,6 +852,19 @@ onUnmounted(() => {
 }
 
 .ss-acts { display: flex; flex-direction: column; gap: 0.25rem; }
+
+.ss-act-badge {
+  margin-left: auto;
+  flex: none;
+  min-width: 1rem;
+  padding: 0 0.1875rem;
+  background: var(--accent);
+  color: var(--bg-0);
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  line-height: 1rem;
+  text-align: center;
+}
 
 .ss-act {
   width: 100%;
