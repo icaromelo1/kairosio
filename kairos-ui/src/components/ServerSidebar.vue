@@ -28,7 +28,7 @@
         class="ss-server ss-add"
         title="Entrar noutro servidor por convite"
         aria-label="Entrar noutro servidor por convite"
-        @click="router.push('/onboarding')"
+        @click="emit('open-panel', 'servidores')"
       ><PixelIcon name="plus" size="0.875rem" /></button>
 
       <!-- com a barra recolhida este é o único lugar onde o microfone aparece:
@@ -123,10 +123,10 @@
           <button v-if="canEditCurrentWorld" class="k-btn k-btn-ghost ss-act" @click="router.push(`/editor/${currentMapId}`)">
             <PixelIcon name="pen-square" size="0.75rem" /><span>Editar este mundo</span>
           </button>
-          <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="router.push('/admin')">
+          <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="emit('open-panel', 'admin')">
             <PixelIcon name="shield" size="0.75rem" /><span>Administração</span>
           </button>
-          <button class="k-btn k-btn-ghost ss-act" @click="router.push('/feedback')">
+          <button class="k-btn k-btn-ghost ss-act" @click="emit('open-panel', 'feedback')">
             <PixelIcon name="bug" size="0.75rem" /><span>Feedback / Reportar</span>
           </button>
           <button class="k-btn k-btn-ghost ss-act" @click="emit('leave')">
@@ -161,7 +161,7 @@
         </div>
 
         <div class="ss-foot-main">
-          <button class="ss-me" title="Editar avatar" @click="router.push('/character')">
+          <button class="ss-me" title="Editar avatar" @click="emit('open-panel', 'personagem')">
             <span class="ss-me-avatar"><PixelAvatar :scale="1.4" v-bind="look" :shadow="false" /></span>
             <span class="ss-me-info">
               <span class="ss-me-name ellipsis">{{ playerName }}</span>
@@ -214,6 +214,7 @@ import {
   type PresencePerson,
 } from '@/services/presence'
 import { media } from '@/services/media'
+import type { GamePanel } from '@/services/postAuth'
 import { useAuthStore } from '@/stores/useAuthStore'
 import type { MapDef } from '@/game/maps'
 import type { AvatarLook } from '@/game/pixi/avatar'
@@ -245,6 +246,7 @@ const emit = defineEmits<{
   'select-world': [mapId: string]
   'server-changed': [serverId: string]
   'open-media': []
+  'open-panel': [panel: GamePanel]
   'join-voice': []
   leave: []
 }>()
@@ -339,9 +341,12 @@ function syncPresence() {
   pushMic(true)
 }
 
-// o GamePage chama depois de (re)conectar a presença — o connectPresence nasce
-// sem nenhum servidor observado e sem saber do microfone
-defineExpose({ syncPresence })
+// syncPresence: o GamePage chama depois de (re)conectar a presença — o connectPresence
+// nasce sem nenhum servidor observado e sem saber do microfone.
+// reloadServers: a barra não desmonta mais quando o servidor muda (virou painel), então
+// a lista precisa ser buscada de novo — senão fica sem o servidor criado e com o "aqui"
+// no lugar errado
+defineExpose({ syncPresence, reloadServers: () => loadServers() })
 
 // ---- colapsar por mundo ----
 const COLLAPSE_KEY = 'kairos_worlds_collapsed'

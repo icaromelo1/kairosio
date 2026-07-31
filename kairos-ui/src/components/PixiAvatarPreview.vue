@@ -44,10 +44,16 @@ function rebuild() {
   place()
 }
 
+// vive dentro de um painel que fecha na tecla Esc: fechar antes do init assíncrono
+// terminar deixaria um ticker e um contexto de WebGL vivos pra sempre
+let gone = false
+
 onMounted(async () => {
-  app = new Application()
-  await app.init({ backgroundAlpha: 0, resizeTo: host.value!, antialias: false })
-  host.value!.appendChild(app.canvas)
+  const created = new Application()
+  await created.init({ backgroundAlpha: 0, resizeTo: host.value!, antialias: false })
+  if (gone || !host.value) { created.destroy(true); return }
+  app = created
+  host.value.appendChild(app.canvas)
   puppet = new AvatarPuppet(look())
   app.stage.addChild(puppet.root)
   place()
@@ -61,5 +67,9 @@ onMounted(async () => {
 // rebuild ao mudar qualquer parte da customização
 watch(() => [props.hairStyle, props.hairColor, props.skin, props.topColor, props.pantsColor, props.accessory], rebuild)
 
-onUnmounted(() => app?.destroy(true))
+onUnmounted(() => {
+  gone = true
+  app?.destroy(true)
+  app = null
+})
 </script>

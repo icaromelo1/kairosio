@@ -19,6 +19,7 @@ KAIROS_URL=http://localhost:9000 npm test
 
 ## Cobertura
 
-- Landing, login, cadastro e feedback carregam.
+- Landing, login e cadastro carregam.
 - Rota interna sem sessão redireciona pro login (guarda de rota).
-- Fluxo de convidado completo: login → personagem → seleção de mundo → jogo.
+- Fluxo de convidado: login → jogo direto.
+- Rotas antigas (`/map-select`, `/feedback`) caem no jogo em vez de quebrar.
