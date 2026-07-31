@@ -13,5 +13,6 @@ import { ServerController } from './server.controller'
   imports: [TypeOrmModule.forFeature([Server, ServerInvite, ServerMembership, User, GameMap, Character])],
   providers: [ServerService],
   controllers: [ServerController],
+  exports: [ServerService],
 })
 export class ServerModule {}
