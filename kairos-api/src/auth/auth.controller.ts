@@ -38,11 +38,15 @@ export class AuthController {
     res.redirect(`${FRONT_URL}/login?token=${token}`)
   }
 
+  // 120/min do teto global deixaria 172 mil tentativas de senha por dia contra
+  // uma conta conhecida — testado em 31/07: 10 senhas erradas seguidas, nenhuma barrada
+  @Throttle({ default: { limit: 8, ttl: 60000 } })
   @Post('login')
   login(@Body() body: AuthCredentialsDto) {
     return this.authService.login(body.email, body.password)
   }
 
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('register')
   register(@Body() body: RegisterDto) {
     return this.authService.register(body.email, body.password, body.username)
@@ -62,6 +66,9 @@ export class AuthController {
     return this.authService.changeUsername(req.user.sub, body.username)
   }
 
+  // cada chamada grava um usuário no banco; sem freio dá pra criar 172 mil
+  // contas por dia, entupindo o armazenamento e envenenando qualquer métrica
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @Post('guest')
   guest() {
     return this.authService.loginAsGuest()
