@@ -1,3 +1,4 @@
+import { OnModuleDestroy, OnModuleInit } from '@nestjs/common'
 import {
   OnGatewayConnection,
   OnGatewayDisconnect,
@@ -7,9 +8,10 @@ import {
 } from '@nestjs/websockets'
 import { JwtService } from '@nestjs/jwt'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
+import { In, Repository } from 'typeorm'
 import { Server, Socket } from 'socket.io'
 import { User } from '../user/user.entity'
+import { ServerMembership } from '../server/server-membership.entity'
 import { JukeboxService } from '../jukebox/jukebox.service'
 import { jwtSecret } from '../auth/jwt-secret'
 
@@ -61,6 +63,21 @@ interface JoinPayload {
   y: number
 }
 
+// pessoa numa lista de presença de servidor (barra lateral): identidade + o que a
+// UI indica ao lado do nome. Posição NÃO entra — mover não pode gerar tráfego aqui.
+interface PresencePerson {
+  id: string
+  userId: string
+  name: string
+  map: MapId
+  micMuted: boolean
+  sharingScreen: boolean
+}
+
+type PresenceDelta =
+  | { serverId: string; type: 'join' | 'update'; person: PresencePerson }
+  | { serverId: string; type: 'leave'; id: string }
+
 interface Stroke {
   id: string
   color: string
@@ -74,6 +91,11 @@ interface WhiteboardState {
 const MOVE_MIN_INTERVAL_MS = 50
 const CHAT_MIN_INTERVAL_MS = 500
 const SCREEN_MIN_INTERVAL_MS = 1000
+const MIC_MIN_INTERVAL_MS = 500
+const PRESENCE_WATCH_MIN_INTERVAL_MS = 500
+const PRESENCE_WATCH_MAX_SERVERS = 30
+const MEMBERSHIP_RECHECK_MIN_INTERVAL_MS = 5000
+const MEMBERSHIP_SWEEP_MS = 30000
 const BOARD_MAX_POINTS_PER_STROKE = 500
 const BOARD_MAX_STROKES = 300
 const BOARD_MAX_PER_ROOM = 50
@@ -123,7 +145,9 @@ function sanitizeAvatar(raw: unknown): Record<string, string | null> {
   pingInterval: 10000,
   pingTimeout: 8000,
 })
-export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class PresenceGateway
+  implements OnGatewayConnection, OnGatewayDisconnect, OnModuleInit, OnModuleDestroy
+{
   @WebSocketServer() server: Server
 
   private readonly players = new Map<string, Player>()
@@ -143,23 +167,62 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
   // quem está transmitindo a tela (socket.id) — só pra saber se a transição é
   // real e pra desfazer o aviso quando a aba cai sem mandar o 'off'
   private readonly sharingScreen = new Set<string>()
+  // microfone ABERTO por socket. Ausência = mudo: quem nunca reportou nada nunca
+  // aparece com o microfone aberto na lista dos outros.
+  private readonly micUnmuted = new Set<string>()
+  // servidores de que o dono do socket é membro, lidos do banco no handshake
+  // (server_memberships pelo sub do JWT). É a ÚNICA autorização de presença —
+  // nenhum id de servidor vindo do cliente entra aqui.
+  private readonly socketMemberships = new Map<string, Set<string>>()
+  // servidores que o socket está observando (subconjunto autorizado do que pediu)
+  private readonly watchedServers = new Map<string, Set<string>>()
+  private readonly lastMembershipCheckAt = new Map<string, number>()
+  // handshake em andamento por socket — quem depende da identidade espera aqui
+  private readonly identityReady = new Map<string, Promise<void>>()
   private readonly lastMoveAt = new Map<string, number>()
   private readonly lastChatAt = new Map<string, number>()
   private readonly lastScreenAt = new Map<string, number>()
+  private readonly lastMicAt = new Map<string, number>()
+  private readonly lastWatchAt = new Map<string, number>()
   private readonly lastJukeboxAddAt = new Map<string, number>()
+  private membershipSweep: ReturnType<typeof setInterval> | null = null
 
   constructor(
     private readonly jwt: JwtService,
     @InjectRepository(User) private readonly users: Repository<User>,
+    @InjectRepository(ServerMembership) private readonly memberships: Repository<ServerMembership>,
     private readonly jukeboxService: JukeboxService,
   ) {}
+
+  // revalidação periódica das memberships de quem está observando: sair de um
+  // servidor (ou ser removido dele) não derruba o socket, então sem isto a lista
+  // continuaria chegando até a aba fechar
+  onModuleInit() {
+    this.membershipSweep = setInterval(() => void this.sweepMemberships(), MEMBERSHIP_SWEEP_MS)
+    this.membershipSweep.unref?.()
+  }
+
+  onModuleDestroy() {
+    if (this.membershipSweep) clearInterval(this.membershipSweep)
+    this.membershipSweep = null
+  }
 
   // sala = servidor + mapa (templates de servidores diferentes não se misturam)
   private room(serverId: string | null, map: MapId): string {
     return `${serverId || 'public'}:${map}`
   }
 
-  async handleConnection(socket: Socket) {
+  // o cliente emite 'join' assim que o socket abre, e o socket.io entrega essa
+  // mensagem mesmo com o handshake ainda no meio das consultas ao banco. Sem
+  // esperar por aqui, o player nasce com serverId nulo e cai na sala pública:
+  // some da lista de presença do servidor e some do isolamento por servidor.
+  handleConnection(socket: Socket): Promise<void> {
+    const identity = this.resolveIdentity(socket)
+    this.identityReady.set(socket.id, identity)
+    return identity
+  }
+
+  private async resolveIdentity(socket: Socket) {
     // valida o token do handshake e guarda o servidor + o uuid real do usuário
     let serverId: string | null = null
     let userId: string | null = null
@@ -183,6 +246,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     }
     this.socketServer.set(socket.id, serverId)
     this.socketUserId.set(socket.id, userId)
+    await this.loadMemberships(socket.id, userId)
 
     // sessão única: mesmo usuário já tem outra aba/dispositivo conectado?
     // derruba a antiga (o cliente lá recebe 'sessionKicked' e NÃO reconecta
@@ -197,6 +261,10 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       }
       this.userSocket.set(userId, socket.id)
     }
+
+    // caiu enquanto o banco respondia: o handleDisconnect já passou e limpou
+    // antes destas linhas gravarem
+    if (socket.disconnected) this.forgetSocket(socket.id)
   }
 
   handleDisconnect(socket: Socket) {
@@ -207,23 +275,38 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
       this.stopScreenShareFor(player)
       this.players.delete(socket.id)
       this.server.to(this.room(player.serverId, player.map)).emit('playerLeft', { id: socket.id })
+      this.emitPresenceLeave(player)
       this.cleanupRoomIfEmpty(player.serverId, player.map)
     }
     const userId = this.socketUserId.get(socket.id)
     // só remove se ESSE socket ainda for o "dono" da sessão — evita que o
     // disconnect tardio de uma aba já kickada apague o registro da aba nova
     if (userId && this.userSocket.get(userId) === socket.id) this.userSocket.delete(userId)
-    this.socketServer.delete(socket.id)
-    this.socketUserId.delete(socket.id)
-    this.sharingScreen.delete(socket.id)
-    this.lastMoveAt.delete(socket.id)
-    this.lastChatAt.delete(socket.id)
-    this.lastScreenAt.delete(socket.id)
-    this.lastJukeboxAddAt.delete(socket.id)
+    this.forgetSocket(socket.id)
+  }
+
+  private forgetSocket(socketId: string) {
+    this.socketServer.delete(socketId)
+    this.socketUserId.delete(socketId)
+    this.identityReady.delete(socketId)
+    this.sharingScreen.delete(socketId)
+    this.micUnmuted.delete(socketId)
+    this.socketMemberships.delete(socketId)
+    this.watchedServers.delete(socketId)
+    this.lastMembershipCheckAt.delete(socketId)
+    this.lastMoveAt.delete(socketId)
+    this.lastChatAt.delete(socketId)
+    this.lastScreenAt.delete(socketId)
+    this.lastMicAt.delete(socketId)
+    this.lastWatchAt.delete(socketId)
+    this.lastJukeboxAddAt.delete(socketId)
   }
 
   @SubscribeMessage('join')
-  handleJoin(socket: Socket, payload: JoinPayload) {
+  async handleJoin(socket: Socket, payload: JoinPayload) {
+    await this.identityReady.get(socket.id)
+    // token inválido: o handshake já mandou desconectar, não vira player
+    if (!this.socketUserId.has(socket.id)) return
     const serverId = this.socketServer.get(socket.id) ?? null
     const map = String(payload?.map ?? '').slice(0, 64)
     if (!map) return
@@ -258,6 +341,9 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     socket.to(room).emit('playerJoined', player)
     socket.emit('jukeboxState', this.jukeboxSnapshot(room))
     socket.emit('voiceState', { mode: this.voiceMode.get(room) || 'proximity' })
+    // join repetido mantém o mesmo socket.id na lista de presença: é troca de
+    // mundo pra quem observa, não uma pessoa nova
+    this.emitPresence(player, existing ? 'update' : 'join')
   }
 
   @SubscribeMessage('move')
@@ -333,6 +419,164 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     socket.to(room).emit('playerJoined', player)
     socket.emit('jukeboxState', this.jukeboxSnapshot(room))
     socket.emit('voiceState', { mode: this.voiceMode.get(room) || 'proximity' })
+    this.emitPresence(player, 'update')
+  }
+
+  // ---- presença por servidor: quem está em cada mundo, pra barra lateral ----
+  //
+  // Separada das salas de mapa de propósito: aqui o cliente acompanha servidores
+  // que não são o ativo dele (olhar sem trocar), e o que trafega é delta, não
+  // posição. Sala de entrega = `presence:<serverId>`, e só se entra nela depois
+  // de bater a membership no banco.
+
+  @SubscribeMessage('presenceWatch')
+  async handlePresenceWatch(socket: Socket, payload: { serverIds: string[] }) {
+    // mesma corrida do join: sem esperar, a membership do handshake ainda não
+    // existe e todo servidor pedido seria negado
+    await this.identityReady.get(socket.id)
+    const now = Date.now()
+    if (now - (this.lastWatchAt.get(socket.id) ?? 0) < PRESENCE_WATCH_MIN_INTERVAL_MS) return
+    this.lastWatchAt.set(socket.id, now)
+
+    const requested = Array.isArray(payload?.serverIds)
+      ? [
+          ...new Set(
+            payload.serverIds.filter((id) => typeof id === 'string' && !!id && id.length <= 64),
+          ),
+        ].slice(0, PRESENCE_WATCH_MAX_SERVERS)
+      : []
+
+    let allowed = this.socketMemberships.get(socket.id) ?? new Set<string>()
+    // membership do handshake envelhece (entrar num servidor novo não reconecta o
+    // socket): relê o banco só quando aparece um id fora do cache, com cooldown
+    // próprio pra que id inventado não vire consulta por mensagem
+    const userId = this.socketUserId.get(socket.id)
+    if (
+      userId &&
+      requested.some((id) => !allowed.has(id)) &&
+      now - (this.lastMembershipCheckAt.get(socket.id) ?? 0) >= MEMBERSHIP_RECHECK_MIN_INTERVAL_MS
+    ) {
+      allowed = await this.loadMemberships(socket.id, userId)
+    }
+
+    const watched = this.watchedServers.get(socket.id) ?? new Set<string>()
+    // ids não autorizados somem em silêncio — negar com erro confirmaria que o
+    // servidor existe pra quem está sondando
+    const next = new Set(requested.filter((id) => allowed.has(id)))
+    for (const serverId of watched) {
+      if (!next.has(serverId)) socket.leave(this.presenceRoom(serverId))
+    }
+    for (const serverId of next) {
+      if (watched.has(serverId)) continue
+      socket.join(this.presenceRoom(serverId))
+      socket.emit('presenceState', { serverId, people: this.peopleInServer(serverId) })
+    }
+    if (next.size) this.watchedServers.set(socket.id, next)
+    else this.watchedServers.delete(socket.id)
+  }
+
+  // estado do microfone reportado pelo próprio dono (o gateway não fala com o
+  // LiveKit); vale mesmo antes do join, pra lista já nascer certa
+  @SubscribeMessage('micState')
+  handleMicState(socket: Socket, payload: { muted: boolean }) {
+    if (typeof payload?.muted !== 'boolean') return
+    if (this.micUnmuted.has(socket.id) === !payload.muted) return
+    const now = Date.now()
+    if (now - (this.lastMicAt.get(socket.id) ?? 0) < MIC_MIN_INTERVAL_MS) return
+    this.lastMicAt.set(socket.id, now)
+    if (payload.muted) this.micUnmuted.delete(socket.id)
+    else this.micUnmuted.add(socket.id)
+    const player = this.players.get(socket.id)
+    if (player) this.emitPresence(player, 'update')
+  }
+
+  private presenceRoom(serverId: string): string {
+    return `presence:${serverId}`
+  }
+
+  private personOf(player: Player): PresencePerson {
+    return {
+      id: player.id,
+      userId: player.userId,
+      name: player.name,
+      map: player.map,
+      micMuted: !this.micUnmuted.has(player.id),
+      sharingScreen: this.sharingScreen.has(player.id),
+    }
+  }
+
+  private peopleInServer(serverId: string): PresencePerson[] {
+    const people: PresencePerson[] = []
+    for (const player of this.players.values()) {
+      if (player.serverId === serverId) people.push(this.personOf(player))
+    }
+    return people
+  }
+
+  // o serverId sai SEMPRE do player (derivado do token no handshake), nunca do
+  // payload — quem recebe é só quem entrou na sala de presença dele
+  private emitPresence(player: Player, type: 'join' | 'update') {
+    if (!player.serverId) return
+    const delta: PresenceDelta = { serverId: player.serverId, type, person: this.personOf(player) }
+    this.server.to(this.presenceRoom(player.serverId)).emit('presenceDelta', delta)
+  }
+
+  private emitPresenceLeave(player: Player) {
+    if (!player.serverId) return
+    const delta: PresenceDelta = { serverId: player.serverId, type: 'leave', id: player.id }
+    this.server.to(this.presenceRoom(player.serverId)).emit('presenceDelta', delta)
+  }
+
+  private async loadMemberships(socketId: string, userId: string): Promise<Set<string>> {
+    this.lastMembershipCheckAt.set(socketId, Date.now())
+    try {
+      const rows = await this.memberships.find({ where: { userId } })
+      const set = new Set(rows.map((r) => r.serverId))
+      // socket pode ter caído durante a consulta — repor a entrada aqui vazaria
+      // memória (o disconnect já passou)
+      if (this.socketUserId.has(socketId)) this.socketMemberships.set(socketId, set)
+      return set
+    } catch {
+      return this.socketMemberships.get(socketId) ?? new Set<string>()
+    }
+  }
+
+  // uma consulta só pra todos os observadores: quem perdeu a membership sai da
+  // sala de presença e é avisado, pra lista não congelar desatualizada na tela
+  private async sweepMemberships() {
+    const userIds = new Set<string>()
+    for (const socketId of this.watchedServers.keys()) {
+      const userId = this.socketUserId.get(socketId)
+      if (userId) userIds.add(userId)
+    }
+    if (!userIds.size) return
+    let rows: ServerMembership[]
+    try {
+      rows = await this.memberships.find({ where: { userId: In([...userIds]) } })
+    } catch {
+      return
+    }
+    const byUser = new Map<string, Set<string>>()
+    for (const row of rows) {
+      const set = byUser.get(row.userId) ?? new Set<string>()
+      set.add(row.serverId)
+      byUser.set(row.userId, set)
+    }
+    for (const [socketId, watched] of this.watchedServers) {
+      const userId = this.socketUserId.get(socketId)
+      if (!userId) continue
+      const fresh = byUser.get(userId) ?? new Set<string>()
+      this.socketMemberships.set(socketId, fresh)
+      this.lastMembershipCheckAt.set(socketId, Date.now())
+      for (const serverId of [...watched]) {
+        if (fresh.has(serverId)) continue
+        watched.delete(serverId)
+        const socket = this.server.sockets.sockets.get(socketId)
+        socket?.leave(this.presenceRoom(serverId))
+        socket?.emit('presenceRevoked', { serverId })
+      }
+      if (!watched.size) this.watchedServers.delete(socketId)
+    }
   }
 
   // ---- voz: modo por sala (servidor:map) — proximidade (padrão) ou sala inteira ----
@@ -366,6 +610,7 @@ export class PresenceGateway implements OnGatewayConnection, OnGatewayDisconnect
     if (payload.on) this.sharingScreen.add(socket.id)
     else this.sharingScreen.delete(socket.id)
     this.broadcastScreenShare(player, payload.on)
+    this.emitPresence(player, 'update')
   }
 
   // o nome sai do player do servidor (já capado em NAME_MAX no join), nunca do

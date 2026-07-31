@@ -60,6 +60,22 @@ export interface ScreenShareState {
   on: boolean
 }
 
+// Uma pessoa na lista de presença de um servidor (barra lateral). Chave = id
+// (socket.id), o mesmo de RemotePlayer — a mesma conta em outro dispositivo não
+// existe (sessão única), então id e userId andam juntos.
+export interface PresencePerson {
+  id: string
+  userId: string
+  name: string
+  map: string
+  micMuted: boolean
+  sharingScreen: boolean
+}
+
+export type PresenceDelta =
+  | { serverId: string; type: 'join' | 'update'; person: PresencePerson }
+  | { serverId: string; type: 'leave'; id: string }
+
 export interface AvatarProps {
   hairStyle?: string | null
   hairColor?: string | null
@@ -98,6 +114,11 @@ export const voiceMode = ref<VoiceMode>('proximity')
 // true quando esta aba foi derrubada por outra sessão da MESMA conta (login em
 // outro lugar) — a tela mostra um aviso em vez de deixar a conexão travada
 export const sessionKicked = ref(false)
+// Quem está online em cada servidor OBSERVADO: serverId → (socket.id → pessoa).
+// Só aparece aqui servidor de que o usuário é membro — o backend recusa o resto
+// em silêncio. A barra lateral lê isto direto; agrupar por mundo é com quem
+// desenha (peopleInWorld ajuda).
+export const presenceByServer = reactive(new Map<string, Map<string, PresencePerson>>())
 
 let socket: Socket | null = null
 let lastEmit = 0
@@ -106,6 +127,10 @@ let pending: { x: number; y: number; facing: Facing; pose: Pose; boost: boolean 
 // do socket.io re-emite este (re-join com os opts originais devolvia o player
 // pro mapa antigo depois de um blip de rede)
 let currentJoin: JoinOptions | null = null
+
+// servidores que esta aba pediu pra observar — reemitidos a cada (re)conexão,
+// porque a sala de presença vive no socket e some junto com ele
+let watchedServerIds: string[] = []
 
 let currentBoardId: string | null = null
 const boardStateListeners = new Set<(strokes: Stroke[]) => void>()
@@ -127,6 +152,7 @@ export function connectPresence(opts: JoinOptions) {
 
   socket.on('connect', () => {
     if (currentJoin) socket?.emit('join', currentJoin)
+    if (watchedServerIds.length) socket?.emit('presenceWatch', { serverIds: watchedServerIds })
   })
 
   socket.on('players', (peers: RemotePlayer[]) => {
@@ -171,6 +197,28 @@ export function connectPresence(opts: JoinOptions) {
     for (const cb of screenShareListeners) cb(state)
   })
 
+  // lista cheia: chega uma vez por servidor, quando esta aba passa a observá-lo
+  socket.on('presenceState', ({ serverId, people }: { serverId: string; people: PresencePerson[] }) => {
+    const byId = new Map<string, PresencePerson>()
+    for (const person of people) byId.set(person.id, person)
+    presenceByServer.set(serverId, byId)
+  })
+
+  // daí em diante só delta. Servidor não observado é ignorado — sem criar entrada
+  // nova, senão um evento perdido viraria lista fantasma na barra lateral
+  socket.on('presenceDelta', (delta: PresenceDelta) => {
+    const byId = presenceByServer.get(delta.serverId)
+    if (!byId) return
+    if (delta.type === 'leave') byId.delete(delta.id)
+    else byId.set(delta.person.id, delta.person)
+  })
+
+  // perdeu a membership com o servidor observado (saiu ou foi removido)
+  socket.on('presenceRevoked', ({ serverId }: { serverId: string }) => {
+    presenceByServer.delete(serverId)
+    watchedServerIds = watchedServerIds.filter((id) => id !== serverId)
+  })
+
   socket.on('boardState', ({ objectId, strokes }: { objectId: string; strokes: Stroke[] }) => {
     if (objectId !== currentBoardId) return
     for (const cb of boardStateListeners) cb(strokes)
@@ -193,7 +241,40 @@ export function connectPresence(opts: JoinOptions) {
 
   socket.on('disconnect', () => {
     remotePlayers.clear()
+    // a lista some enquanto está fora do ar em vez de mentir; o 'connect'
+    // reemite o watch e o snapshot volta inteiro
+    presenceByServer.clear()
   })
+}
+
+// ---- presença por servidor (barra lateral) ----
+
+// Passa a observar exatamente estes servidores (substitui a lista anterior).
+// O backend descarta em silêncio os que não são do usuário.
+export function watchServerPresence(serverIds: string[]) {
+  watchedServerIds = [...new Set(serverIds)]
+  for (const serverId of [...presenceByServer.keys()]) {
+    if (!watchedServerIds.includes(serverId)) presenceByServer.delete(serverId)
+  }
+  socket?.emit('presenceWatch', { serverIds: watchedServerIds })
+}
+
+// microfone aberto/fechado do PRÓPRIO usuário — o indicador ao lado do nome não
+// vem do LiveKit, que só alcança quem está na mesma sala de mídia
+export function emitMicState(muted: boolean) {
+  socket?.emit('micState', { muted })
+}
+
+export function peopleInWorld(serverId: string, mapId: string): PresencePerson[] {
+  const byId = presenceByServer.get(serverId)
+  if (!byId) return []
+  return [...byId.values()]
+    .filter((person) => person.map === mapId)
+    .sort((a, b) => a.name.localeCompare(b.name))
+}
+
+export function serverOnlineCount(serverId: string): number {
+  return presenceByServer.get(serverId)?.size ?? 0
 }
 
 // ---- jukebox ----
@@ -283,7 +364,9 @@ export function switchMap(map: string) {
 
 export function disconnectPresence() {
   currentJoin = null
+  watchedServerIds = []
   socket?.disconnect()
   socket = null
   remotePlayers.clear()
+  presenceByServer.clear()
 }
