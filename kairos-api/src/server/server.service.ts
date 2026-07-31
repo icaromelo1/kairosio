@@ -274,7 +274,7 @@ export class ServerService implements OnModuleInit {
 
   // as rotas com :id agem sobre um servidor que pode não ser o ativo, e o ServerAdminGuard
   // só enxerga o ativo — a permissão dessas rotas é resolvida aqui, contra o servidor alvo
-  private async requireMembership(userId: string, serverId: string): Promise<ServerMembership> {
+  async requireMembership(userId: string, serverId: string): Promise<ServerMembership> {
     const membership = await this.memberships.findOne({ where: { userId, serverId } })
     if (!membership) throw new ForbiddenException('Você não é membro deste servidor')
     return membership
