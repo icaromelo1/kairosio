@@ -45,6 +45,27 @@ export class FriendService {
     return this.views(rows, userId)
   }
 
+  // só os ids de quem já é amigo aceito, em lote. Existe pro gateway de presença:
+  // ele precisa do conjunto por usuário a cada varredura, e as views de `list`
+  // trariam junto um join de perfil que ninguém ali usa.
+  async acceptedFriendIds(userIds: string[]): Promise<Map<string, Set<string>>> {
+    const unicos = [...new Set(userIds)].filter(Boolean)
+    const mapa = new Map<string, Set<string>>()
+    for (const id of unicos) mapa.set(id, new Set<string>())
+    if (!unicos.length) return mapa
+    const rows = await this.friendships.find({
+      where: [
+        { userAId: In(unicos), status: 'aceita' },
+        { userBId: In(unicos), status: 'aceita' },
+      ],
+    })
+    for (const row of rows) {
+      mapa.get(row.userAId)?.add(row.userBId)
+      mapa.get(row.userBId)?.add(row.userAId)
+    }
+    return mapa
+  }
+
   async pending(userId: string) {
     const rows = await this.friendships.find({
       where: [
@@ -73,6 +94,16 @@ export class FriendService {
       ],
     })
     return this.views(rows, userId)
+  }
+
+  // "estes dois podem se falar agora?" — só 'aceita' responde sim. Desfazer a amizade
+  // apaga a linha e bloquear muda o status, então os dois casos caem aqui do mesmo jeito.
+  async saoAmigos(userId: string, outroId: string): Promise<boolean> {
+    if (!userId || !outroId || userId === outroId) return false
+    const row = await this.friendships.findOne({
+      where: { ...friendPair(userId, outroId), status: 'aceita' },
+    })
+    return !!row
   }
 
   async request(userId: string, rawUsername: string) {
@@ -285,7 +316,7 @@ export class FriendService {
   }
 
   // o nome de exibição vive em Character, o @nome em User
-  private async perfis(ids: string[]): Promise<Map<string, Perfil>> {
+  async perfis(ids: string[]): Promise<Map<string, Perfil>> {
     const unicos = [...new Set(ids)]
     const mapa = new Map<string, Perfil>()
     if (!unicos.length) return mapa

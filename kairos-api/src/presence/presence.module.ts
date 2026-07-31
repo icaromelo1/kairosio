@@ -6,6 +6,7 @@ import { PresenceController } from './presence.controller'
 import { User } from '../user/user.entity'
 import { ServerMembership } from '../server/server-membership.entity'
 import { JukeboxModule } from '../jukebox/jukebox.module'
+import { FriendModule } from '../friend/friend.module'
 import { jwtSecret } from '../auth/jwt-secret'
 
 @Module({
@@ -16,6 +17,9 @@ import { jwtSecret } from '../auth/jwt-secret'
     // registerAsync: lê o segredo na instanciação, depois do ConfigModule
     JwtModule.registerAsync({ useFactory: () => ({ secret: jwtSecret() }) }),
     JukeboxModule,
+    // quem é amigo de quem sai do FriendService — o gateway só decide QUANTO da
+    // presença cada amigo enxerga
+    FriendModule,
   ],
   providers: [PresenceGateway],
   controllers: [PresenceController],

@@ -76,6 +76,19 @@ export type PresenceDelta =
   | { serverId: string; type: 'join' | 'update'; person: PresencePerson }
   | { serverId: string; type: 'leave'; id: string }
 
+// Presença de um amigo. `online` vale pra qualquer amigo aceito; servidor, mundo,
+// microfone e tela só CHEGAM quando quem recebe também é membro do servidor onde
+// o amigo está — o backend não manda o resto, não é a tela que esconde. Amigo sem
+// servidor em comum chega aqui com dois campos e mais nada.
+export interface FriendPresence {
+  userId: string
+  online: boolean
+  serverId?: string
+  map?: string
+  micMuted?: boolean
+  sharingScreen?: boolean
+}
+
 export interface AvatarProps {
   hairStyle?: string | null
   hairColor?: string | null
@@ -119,6 +132,9 @@ export const sessionKicked = ref(false)
 // em silêncio. A barra lateral lê isto direto; agrupar por mundo é com quem
 // desenha (peopleInWorld ajuda).
 export const presenceByServer = reactive(new Map<string, Map<string, PresencePerson>>())
+// Amigos ONLINE agora, por userId — estar ausente daqui é estar offline. Quem
+// desenha a lista casa isto com o `GET /friend` (que traz @nome e nome do avatar).
+export const friendPresence = reactive(new Map<string, FriendPresence>())
 
 let socket: Socket | null = null
 let lastEmit = 0
@@ -131,6 +147,10 @@ let currentJoin: JoinOptions | null = null
 // servidores que esta aba pediu pra observar — reemitidos a cada (re)conexão,
 // porque a sala de presença vive no socket e some junto com ele
 let watchedServerIds: string[] = []
+
+// intenção de observar amigos: sobrevive à troca de mundo (que desconecta e
+// reconecta o socket), pra quem abriu o painel não precisar rearmar o observador
+let watchingFriends = false
 
 let currentBoardId: string | null = null
 const boardStateListeners = new Set<(strokes: Stroke[]) => void>()
@@ -153,6 +173,7 @@ export function connectPresence(opts: JoinOptions) {
   socket.on('connect', () => {
     if (currentJoin) socket?.emit('join', currentJoin)
     if (watchedServerIds.length) socket?.emit('presenceWatch', { serverIds: watchedServerIds })
+    if (watchingFriends) socket?.emit('friendPresenceWatch')
   })
 
   socket.on('players', (peers: RemotePlayer[]) => {
@@ -171,6 +192,13 @@ export function connectPresence(opts: JoinOptions) {
 
   socket.on('playerLeft', ({ id }: { id: string }) => {
     remotePlayers.delete(id)
+  })
+
+  // alguém editou a própria aparência sem sair do mundo — o avatar do join
+  // envelheceria até a pessoa reconectar
+  socket.on('playerAvatar', ({ id, avatar }: { id: string; avatar: AvatarProps }) => {
+    const p = remotePlayers.get(id)
+    if (p) p.avatar = avatar
   })
 
   socket.on('chatMessage', (m: ChatMessage) => {
@@ -213,6 +241,18 @@ export function connectPresence(opts: JoinOptions) {
     else byId.set(delta.person.id, delta.person)
   })
 
+  // lista cheia dos amigos online: chega ao começar a observar e de novo sempre
+  // que muda o que este usuário pode ver (amizade desfeita, entrou/saiu de servidor)
+  socket.on('friendPresenceState', ({ friends }: { friends: FriendPresence[] }) => {
+    friendPresence.clear()
+    for (const friend of friends) friendPresence.set(friend.userId, friend)
+  })
+
+  socket.on('friendPresenceDelta', ({ friend }: { friend: FriendPresence }) => {
+    if (friend.online) friendPresence.set(friend.userId, friend)
+    else friendPresence.delete(friend.userId)
+  })
+
   // perdeu a membership com o servidor observado (saiu ou foi removido)
   socket.on('presenceRevoked', ({ serverId }: { serverId: string }) => {
     presenceByServer.delete(serverId)
@@ -244,6 +284,7 @@ export function connectPresence(opts: JoinOptions) {
     // a lista some enquanto está fora do ar em vez de mentir; o 'connect'
     // reemite o watch e o snapshot volta inteiro
     presenceByServer.clear()
+    friendPresence.clear()
   })
 }
 
@@ -257,6 +298,34 @@ export function watchServerPresence(serverIds: string[]) {
     if (!watchedServerIds.includes(serverId)) presenceByServer.delete(serverId)
   }
   socket?.emit('presenceWatch', { serverIds: watchedServerIds })
+}
+
+// ---- presença de amigo (painel de amigos) ----
+
+// Passa a acompanhar os amigos ACEITOS desta conta. Quem decide o que aparece é o
+// backend: amigo de outro servidor chega sem servidor e sem mundo. A intenção fica
+// guardada e é rearmada sozinha em cada reconexão (troca de mundo, blip de rede).
+export function watchFriendPresence() {
+  watchingFriends = true
+  socket?.emit('friendPresenceWatch')
+}
+
+export function unwatchFriendPresence() {
+  watchingFriends = false
+  friendPresence.clear()
+  socket?.emit('friendPresenceUnwatch')
+}
+
+export function isFriendOnline(userId: string): boolean {
+  return friendPresence.has(userId)
+}
+
+// null = offline OU sem servidor em comum. As duas respostas são a mesma pra quem
+// desenha: não há para onde pular nem o que mostrar ao lado do nome.
+export function friendLocation(userId: string): { serverId: string; map: string } | null {
+  const friend = friendPresence.get(userId)
+  if (!friend?.serverId || !friend.map) return null
+  return { serverId: friend.serverId, map: friend.map }
 }
 
 // microfone aberto/fechado do PRÓPRIO usuário — o indicador ao lado do nome não
@@ -302,6 +371,13 @@ export function onScreenShare(cb: (state: ScreenShareState) => void) {
 
 export function emitChat(text: string) {
   socket?.emit('chat', { text })
+}
+
+// anuncia a aparência nova pra sala. Também atualiza o join guardado: sem isso a
+// reconexão automática do socket.io reentraria com o look velho.
+export function emitAvatarUpdate(avatar: AvatarProps) {
+  if (currentJoin) currentJoin.avatar = avatar
+  socket?.emit('avatarUpdate', { avatar })
 }
 
 export function emitMove(x: number, y: number, facing: Facing, pose: Pose, boost = false) {
@@ -369,4 +445,7 @@ export function disconnectPresence() {
   socket = null
   remotePlayers.clear()
   presenceByServer.clear()
+  // watchingFriends fica: trocar de mundo passa por aqui, e o painel aberto não
+  // deve ter que rearmar o observador a cada troca
+  friendPresence.clear()
 }
