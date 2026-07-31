@@ -25,6 +25,7 @@ function makeGateway(amizades: Record<string, string[]> = {}) {
         return mapa
       },
     } as any,
+    { register: () => undefined } as any,
   )
   gateway.server = {
     to: (para: string) => ({
