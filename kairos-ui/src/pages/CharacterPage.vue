@@ -302,7 +302,7 @@ async function enterKairos() {
       accessory: characterStore.accessory,
     })
   }
-  router.push('/map-select')
+  router.push('/game')
 }
 
 const activeTab = ref<'hair' | 'skin' | 'outfit' | 'photo'>('hair')

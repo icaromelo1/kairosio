@@ -3,7 +3,7 @@
     <!-- Toolbar -->
     <aside class="ed-side" :class="{ 'ed-side-open': sidebarOpen }">
       <div class="ed-head">
-        <button class="ed-back" @click="router.push('/map-select')">‹ Mundos</button>
+        <button class="ed-back" @click="router.push('/game')">‹ Jogo</button>
         <strong>Editor</strong>
       </div>
 
@@ -357,7 +357,7 @@ async function del() {
   saving.value = true
   try {
     await deleteMap(route.params.id as string)
-    router.replace('/map-select')
+    router.replace('/game')
   } catch {
     msg.value = 'Falha ao apagar o mundo.'
     saving.value = false
@@ -367,7 +367,7 @@ async function del() {
 onMounted(async () => {
   // convidado não cria mundo — precisa de conta
   if (isNew.value && auth.isGuest) {
-    router.replace('/map-select')
+    router.replace('/game')
     return
   }
   scene = new MapScene()

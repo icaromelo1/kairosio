@@ -1,6 +1,6 @@
 // Renderer de mapa no PixiJS (Épico 1b/1c) — desenha um MapDef (piso, paredes,
 // objetos) a partir do schema de dados e hospeda os avatares numa camada com
-// câmera que segue um alvo. Reutilizável tanto no preview /lab quanto no /game.
+// câmera que segue um alvo. Reutilizável tanto no /game quanto no editor.
 
 import { Application, Container, Graphics, Text } from 'pixi.js'
 import type { MapDef, MapObject } from '../maps'

@@ -1,70 +1,60 @@
 <template>
   <div class="lp">
-    <!-- Hero -->
-    <header class="lp-hero">
-      <Logo id="monogram" size="lg" primary="var(--primary-hi)" accent="var(--accent)" />
-      <h1>Seu espaço virtual em pixel art — junte a galera num mundo só.</h1>
-      <p class="lp-sub">
-        O Kairos é um espaço social estilo Gather.town em pixel art: cada um tem um avatar,
-        anda pelos mundos e conversa por <strong>texto e voz por proximidade</strong>. E você
-        pode <strong>criar os próprios mundos</strong>.
-      </p>
-      <div class="lp-cta">
-        <button class="lp-btn" @click="entrar">Entrar / Criar conta →</button>
-        <span class="lp-free">Aberto a todos — grátis.</span>
-      </div>
-    </header>
+    <div class="lp-edge"><MeanderBorder :height="12" :opacity="0.55" /></div>
 
-    <!-- O que é -->
-    <section class="lp-sec">
-      <h2>O que é</h2>
-      <p>
-        Um espaço virtual multiusuário <strong>por servidor</strong>: você entra com
-        seu avatar, vê as outras pessoas em tempo real e interage com quem está perto — como num
-        escritório ou praça virtual, mas pixel art e do seu jeito.
-      </p>
-    </section>
+    <main class="lp-main">
+      <section class="lp-pitch">
+        <Logo id="monogram" size="lg" primary="var(--primary-hi)" accent="var(--accent)" />
+        <h1>O espaço da sua galera,<br />em pixel art.</h1>
+        <p class="lp-sub">
+          Um mundo 2D onde vocês aparecem juntos: cada um com seu avatar, andando pelo
+          mapa e conversando por <strong>texto e voz com quem está perto</strong>.
+        </p>
 
-    <!-- Como usar -->
-    <section class="lp-sec">
-      <h2>Como usar</h2>
-      <ol class="lp-steps">
-        <li><b>1.</b> Crie uma conta (ou entre como convidado pra experimentar).</li>
-        <li><b>2.</b> Crie ou entre num <b>servidor</b> (seu grupo).</li>
-        <li><b>3.</b> Monte seu <b>avatar</b>.</li>
-        <li><b>4.</b> Escolha um <b>mundo</b> e entre.</li>
-        <li><b>5.</b> <b>Ande</b> (WASD), <b>converse</b> (chat), <b>fale</b> (voz por proximidade), <b>acene/dance</b>.</li>
-        <li><b>6.</b> <b>Crie seu próprio mundo</b> no editor.</li>
-      </ol>
-    </section>
-
-    <!-- Recursos -->
-    <section class="lp-sec">
-      <h2>O que dá pra fazer</h2>
-      <div class="lp-grid">
-        <div v-for="f in features" :key="f.t" class="lp-card">
-          <strong>{{ f.t }}</strong>
-          <span>{{ f.d }}</span>
+        <div class="lp-cta">
+          <button class="k-btn k-btn-primary lp-enter" @click="entrar">Entrar no Kairos →</button>
+          <span class="lp-note">Grátis. Crie uma conta ou entre como convidado.</span>
         </div>
-      </div>
-    </section>
 
-    <!-- Casos de uso -->
-    <section class="lp-sec">
-      <h2>Pra que serve</h2>
-      <div class="lp-grid">
-        <div v-for="u in useCases" :key="u.t" class="lp-card">
-          <strong>{{ u.t }}</strong>
-          <span>{{ u.d }}</span>
-        </div>
-      </div>
-    </section>
+        <ul class="lp-facts">
+          <li v-for="f in facts" :key="f.icon">
+            <span class="lp-fact-icon"><PixelIcon :name="f.icon" size="0.875rem" /></span>
+            <span>{{ f.text }}</span>
+          </li>
+        </ul>
+      </section>
 
-    <!-- CTA final -->
-    <section class="lp-final">
-      <h2>Crie seu servidor e chame a galera.</h2>
-      <button class="lp-btn" @click="entrar">Começar agora →</button>
-    </section>
+      <section class="lp-scene" aria-label="Amostra de um mundo do Kairos">
+        <svg class="pixelated lp-scene-map" viewBox="0 0 160 100" preserveAspectRatio="none">
+          <rect x="0" y="0" width="160" height="100" fill="var(--bg-2)" />
+          <rect
+            v-for="t in floorTiles" :key="`${t.x}-${t.y}`"
+            :x="t.x * 10" :y="t.y * 10" width="10" height="10" fill="var(--bg-3)"
+          />
+          <rect x="0" y="0" width="160" height="16" fill="var(--bg-4)" />
+          <rect x="0" y="16" width="160" height="2" fill="var(--primary-lo)" />
+          <rect x="18" y="3" width="28" height="11" fill="var(--bg-1)" />
+          <rect x="20" y="5" width="24" height="2" fill="var(--primary-hi)" />
+          <rect x="20" y="9" width="16" height="2" fill="var(--primary-hi)" />
+          <rect x="110" y="3" width="20" height="11" fill="var(--bg-1)" />
+          <rect x="113" y="6" width="14" height="5" fill="var(--accent-lo)" />
+          <rect x="46" y="52" width="68" height="34" fill="var(--primary-lo)" />
+          <rect x="52" y="58" width="56" height="22" fill="var(--bg-2)" />
+          <rect x="22" y="34" width="34" height="14" fill="var(--accent-lo)" />
+          <rect x="22" y="34" width="34" height="4" fill="var(--accent)" />
+          <rect x="26" y="48" width="4" height="8" fill="var(--accent-lo)" />
+          <rect x="48" y="48" width="4" height="8" fill="var(--accent-lo)" />
+          <rect x="126" y="36" width="12" height="12" fill="var(--ok)" />
+          <rect x="130" y="48" width="4" height="8" fill="var(--accent-lo)" />
+        </svg>
+
+        <span class="lp-who lp-who-a"><PixelAvatar :scale="1.9" hair-style="curly" /></span>
+        <span class="lp-who lp-who-b"><PixelAvatar :scale="1.9" hair-style="ponytail" /></span>
+        <span class="lp-who lp-who-c"><PixelAvatar :scale="1.9" hair-style="mohawk" /></span>
+
+        <span class="lp-bubble">olá!</span>
+      </section>
+    </main>
 
     <footer class="lp-foot">© Kairos 2026</footer>
   </div>
@@ -73,44 +63,176 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import Logo from '@/components/logos/Logo.vue'
+import MeanderBorder from '@/components/pixel/MeanderBorder.vue'
+import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
+import PixelIcon from '@/components/PixelIcon.vue'
 
 const router = useRouter()
 function entrar() { router.push('/login') }
 
-const features = [
-  { t: 'Mundos em tempo real', d: 'Veja os outros andando, com colisão e presença ao vivo.' },
-  { t: 'Chat + voz por proximidade', d: 'Converse por texto e fale por voz com quem está perto.' },
-  { t: 'Editor de mundos', d: 'Coloque objetos, redimensione e salve seu próprio espaço.' },
-  { t: 'Servidores', d: 'Cada servidor só vê os próprios mundos — espaços isolados.' },
-  { t: 'Avatar e emotes', d: 'Customize seu personagem; acene, dance e interaja.' },
-  { t: 'Pixel art', d: 'Visual leve e gostoso, roda no navegador.' },
+const facts = [
+  { icon: 'users', text: 'Todo mundo no mesmo mapa, ao vivo' },
+  { icon: 'mic', text: 'Voz e chat por proximidade' },
+  { icon: 'pen-square', text: 'Editor pra criar seus mundos' },
 ]
-const useCases = [
-  { t: 'Escritório virtual', d: 'Equipe remota "junta" num espaço, com presença e voz.' },
-  { t: 'Eventos e encontros', d: 'Salas temáticas e conversas por proximidade.' },
-  { t: 'Estudo / coworking', d: 'Foco compartilhado, salas de trabalho em grupo.' },
-  { t: 'Socializar o time', d: 'Happy hour, dinâmicas, onboarding mais humano.' },
-]
+
+const floorTiles = Array.from({ length: 9 }, (_, row) =>
+  Array.from({ length: 16 }, (_, col) => ({ x: col, y: row + 1 })),
+)
+  .flat()
+  .filter((t) => (t.x + t.y) % 2 === 0)
 </script>
 
 <style scoped>
-.lp { min-height: 100vh; background: radial-gradient(ellipse at 50% -10%, rgba(124,58,237,0.18), transparent 55%), var(--bg-0); color: var(--text); font-family: system-ui; }
-.lp-hero { max-width: 47.5rem; margin: 0 auto; padding: 4rem 1.5rem 2.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1.125rem; }
-.lp-hero h1 { font-size: 2.375rem; line-height: 1.1; letter-spacing: -0.03em; margin: 0.5rem 0 0; }
-.lp-sub { color: var(--text-2); font-size: 1.0625rem; line-height: 1.6; margin: 0; max-width: 40rem; }
-.lp-cta { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
-.lp-btn { background: var(--primary); border: none; color: #fff; padding: 0.8125rem 1.625rem; font-size: 1rem; font-weight: 600; border-radius: 0.375rem; cursor: pointer; }
-.lp-free { font-size: 0.8125rem; color: var(--text-3); }
-.lp-sec { max-width: 55rem; margin: 0 auto; padding: 2rem 1.5rem; }
-.lp-sec h2 { font-size: 1.375rem; margin: 0 0 0.875rem; letter-spacing: -0.02em; }
-.lp-sec p { color: var(--text-2); font-size: 1rem; line-height: 1.7; margin: 0; }
-.lp-steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.625rem; color: var(--text-2); font-size: 1rem; line-height: 1.5; }
-.lp-steps b { color: var(--accent); }
-.lp-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(13.75rem, 1fr)); gap: 0.875rem; }
-.lp-card { background: var(--bg-2); border: 0.0625rem solid var(--border); border-radius: 0.5rem; padding: 1rem; display: flex; flex-direction: column; gap: 0.375rem; }
-.lp-card strong { font-size: 0.9375rem; }
-.lp-card span { color: var(--text-3); font-size: 0.875rem; line-height: 1.5; }
-.lp-final { max-width: 47.5rem; margin: 1.5rem auto; padding: 3rem 1.5rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 1.125rem; }
-.lp-final h2 { font-size: 1.625rem; margin: 0; letter-spacing: -0.02em; }
-.lp-foot { text-align: center; color: var(--text-4); font-size: 0.75rem; padding: 1.5rem; }
+.lp {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse at 50% -10%, var(--primary-glow), transparent 55%),
+    var(--bg-0);
+  color: var(--text);
+}
+
+.lp-edge { flex: none; }
+
+.lp-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, auto);
+  align-items: center;
+  justify-content: center;
+  gap: 3rem;
+  width: min(64rem, 100%);
+  margin: 0 auto;
+  padding: 2.5rem 1.5rem;
+}
+
+.lp-pitch {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1.125rem;
+  max-width: 32rem;
+}
+
+.lp-pitch h1 {
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  line-height: 1.15;
+  letter-spacing: -0.03em;
+  margin: 0.25rem 0 0;
+}
+
+.lp-sub {
+  color: var(--text-2);
+  font-size: 1rem;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.lp-cta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  margin-top: 0.25rem;
+}
+
+.lp-enter {
+  font-size: 0.8125rem;
+  padding: 1rem 1.5rem;
+}
+
+.lp-note {
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.lp-facts {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lp-facts li {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
+  color: var(--text-3);
+}
+
+.lp-fact-icon {
+  display: inline-flex;
+  color: var(--accent);
+}
+
+.lp-scene {
+  position: relative;
+  width: min(26rem, 100%);
+  aspect-ratio: 8 / 5;
+  border: var(--ui-border-style);
+  border-color: var(--primary-hi);
+  box-shadow: var(--ui-shadow);
+}
+
+.lp-scene-map {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.lp-who {
+  position: absolute;
+  /* o avatar tem tamanho fixo em px (é pixel art, não escala junto com a caixa):
+     a âncora é o pé dele, por isso translate de -50%/-100% */
+  transform: translate(-50%, -100%);
+}
+
+.lp-who-a { left: 30%; top: 62%; animation: lpBob 1.8s steps(1, end) infinite; }
+.lp-who-b { left: 52%; top: 84%; }
+.lp-who-c { left: 74%; top: 58%; animation: lpBob 2.4s steps(1, end) infinite 0.6s; }
+
+@keyframes lpBob {
+  0%, 100% { transform: translate(-50%, -100%); }
+  50% { transform: translate(-50%, calc(-100% - 0.125rem)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lp-who { animation: none; }
+}
+
+.lp-bubble {
+  position: absolute;
+  left: 56%;
+  top: 60%;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-1);
+  border: 0.125rem solid var(--primary-hi);
+  color: var(--text-2);
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  white-space: nowrap;
+}
+
+.lp-foot {
+  flex: none;
+  text-align: center;
+  color: var(--text-4);
+  font-size: 0.6875rem;
+  padding: 1rem;
+}
+
+@media (max-width: 56rem) {
+  .lp-main {
+    grid-template-columns: minmax(0, 1fr);
+    justify-items: center;
+    gap: 2rem;
+    text-align: center;
+  }
+  .lp-pitch { align-items: center; }
+  .lp-facts { align-items: flex-start; }
+}
 </style>
