@@ -40,17 +40,6 @@
         </div>
       </div>
 
-      <!-- HUD top-right: online + lista -->
-      <div class="gp-hud gp-hud-topright">
-        <div class="gp-online-count">{{ online }} online</div>
-        <div class="column gp-online-list">
-          <!-- o microfone aberto tem ícone PRÓPRIO: estar na sala de voz (que
-               agora é automático) não é o mesmo que estar sendo ouvido -->
-          <span class="gp-peer-you">● {{ playerName }} <span class="gp-peer-you-tag">(você)</span> <PixelIcon v-if="voiceOn" name="volume-2" size="0.75rem" title="na sala de voz" /> <PixelIcon v-if="micLive" name="mic" size="0.75rem" class="gp-peer-mic" title="seu microfone está aberto" /></span>
-          <span v-for="p in roomPeers" :key="p.id" class="gp-peer">● {{ p.name }} <PixelIcon v-if="voiceIdentities.includes(p.userId)" name="volume-2" size="0.75rem" title="na sala de voz" /></span>
-        </div>
-      </div>
-
       <!-- Proximidade + voz -->
       <div v-if="nearby" class="gp-hud gp-nearby">
         perto de <strong>{{ nearby }}</strong>
@@ -249,7 +238,6 @@ const joinAvatarPayload = computed(() => ({ ...look.value, photoUrl: myPhotoUrl.
 const playerName = computed(() => characterStore.name || 'Convidado')
 const currentMap = computed(() => maps.value.find((m) => m.id === currentId.value))
 const roomPeers = computed(() => [...remotePlayers.values()].filter((p) => !p.map || p.map === currentId.value))
-const online = computed(() => roomPeers.value.length + 1)
 
 let scene: MapScene | null = null
 const pos = reactive({ x: 11, y: 9 })
@@ -273,12 +261,10 @@ let chatCooldownTimer = 0
 const voiceOn = computed(() => media.state.connected)
 const voiceConnecting = computed(() => media.state.connecting)
 // "estou sendo ouvido de verdade" — nem estar na sala nem a preferência bastam
-const micLive = computed(() => media.state.connected && media.state.micAvailable && !media.state.micMuted)
 const mediaStageOpen = ref(false)
 const mediaStage = ref<InstanceType<typeof MediaStage> | null>(null)
 // tudo daqui pra baixo que fala com a mídia é chaveado por userId (identity do
 // LiveKit), nunca por socket.id — este continua sendo a chave de avatar/posição
-const voiceIdentities = computed(() => [...media.peers.values()].filter((p) => p.subscribed).map((p) => p.identity))
 // look dos participantes vem da presença (o LiveKit só conhece identity e nome)
 const peerLooks = computed(() => {
   const out: Record<string, { name: string; look: AvatarLook }> = {}
@@ -921,30 +907,8 @@ onUnmounted(() => {
   text-transform: uppercase;
 }
 
-.gp-hud-topright {
-  top: 1rem;
-  right: 1rem;
-  background: rgba(13, 13, 20, 0.82);
-  border: 0.0625rem solid var(--border-strong);
-  backdrop-filter: blur(0.625rem);
-  padding: 0.5rem 0.75rem;
-  min-width: 8.75rem;
-}
 
-.gp-online-count {
-  color: var(--accent);
-  font-weight: 600;
-  font-family: var(--f-mono);
-  font-size: 0.75rem;
-  letter-spacing: 0.08em;
-  margin-bottom: 0.375rem;
-}
 
-.gp-online-list { gap: 0.125rem; font-size: 0.75rem; }
-.gp-peer-you { color: var(--text); }
-.gp-peer-you-tag { color: var(--text-4); }
-.gp-peer-mic { color: var(--ok); }
-.gp-peer { color: var(--text-2); }
 
 .gp-nearby {
   top: 1rem;
@@ -1229,16 +1193,6 @@ onUnmounted(() => {
   /* HUD: lista de quem está online ocupava um card próprio no topo-direita —
      em telas estreitas colide com o card do topo-esquerda. Esconde os nomes,
      mantém só a contagem (mais compacta). */
-  .gp-online-list {
-    display: none;
-  }
-  .gp-hud-topright {
-    min-width: 0;
-    padding: 0.375rem 0.625rem;
-  }
-  .gp-online-count {
-    margin-bottom: 0;
-  }
 
   .gp-chat {
     bottom: 0.75rem;
