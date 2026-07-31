@@ -28,6 +28,9 @@ import { MediaModule } from './media/media.module'
 import { FriendModule } from './friend/friend.module'
 import { Friendship } from './friend/friendship.entity'
 import { FriendServerInvite } from './friend/friend-server-invite.entity'
+import { DmModule } from './dm/dm.module'
+import { DmConversation } from './dm/dm-conversation.entity'
+import { DmMessage } from './dm/dm-message.entity'
 
 @Module({
   imports: [
@@ -36,7 +39,7 @@ import { FriendServerInvite } from './friend/friend-server-invite.entity'
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL || 'postgres://kairos:kairos@localhost:5432/kairosio',
-      entities: [User, Character, WorldState, GameMap, Feedback, Server, ServerInvite, ServerMembership, Track, Task, Note, Friendship, FriendServerInvite],
+      entities: [User, Character, WorldState, GameMap, Feedback, Server, ServerInvite, ServerMembership, Track, Task, Note, Friendship, FriendServerInvite, DmConversation, DmMessage],
       synchronize: true,
     }),
     AuthModule,
@@ -51,6 +54,7 @@ import { FriendServerInvite } from './friend/friend-server-invite.entity'
     NoteModule,
     MediaModule,
     FriendModule,
+    DmModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
