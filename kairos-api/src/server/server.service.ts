@@ -13,6 +13,7 @@ import { Server } from './server.entity'
 import { ServerInvite } from './server-invite.entity'
 import { ServerMembership } from './server-membership.entity'
 import { User } from '../user/user.entity'
+import { Character } from '../character/character.entity'
 import { GameMap } from '../map/game-map.entity'
 
 function slugify(name: string): string {
@@ -71,10 +72,21 @@ export class ServerService implements OnModuleInit {
     if (!serverId) return null
     const server = await this.servers.findOne({ where: { id: serverId } })
     if (!server || server.archivedAt) return null
-    const members = await this.users.find({
-      where: { serverId },
-      select: ['id', 'email', 'serverRole', 'createdAt'],
-    })
+    // a lista sai de server_memberships: users.serverId só diz quem está COM este
+    // servidor ativo agora, então membro que está noutro sumiria da administração.
+    // O nome de exibição vive em Character, não em User.
+    const members = await this.memberships
+      .createQueryBuilder('m')
+      .innerJoin(User, 'u', 'u.id = m.userId')
+      .leftJoin(Character, 'c', 'c."userId" = m.userId')
+      .select('u.id', 'id')
+      .addSelect('u.email', 'email')
+      .addSelect('c.name', 'name')
+      .addSelect('m.role', 'serverRole')
+      .addSelect('m.joinedAt', 'joinedAt')
+      .where('m.serverId = :serverId', { serverId })
+      .orderBy('m.joinedAt', 'ASC')
+      .getRawMany<{ id: string; email: string; name: string | null; serverRole: 'admin' | 'member'; joinedAt: Date }>()
     return { ...server, members }
   }
 
@@ -89,11 +101,12 @@ export class ServerService implements OnModuleInit {
       .addSelect('s.name', 'name')
       .addSelect('s.slug', 'slug')
       .addSelect('s.archivedAt', 'archivedAt')
+      .addSelect('s.ownerId', 'ownerId')
       .addSelect('m.role', 'role')
       .where('m.userId = :userId', { userId })
       .andWhere(archived ? 's.archivedAt IS NOT NULL' : 's.archivedAt IS NULL')
       .orderBy('s.name', 'ASC')
-      .getRawMany<{ id: string; name: string; slug: string; archivedAt: Date | null; role: 'admin' | 'member' }>()
+      .getRawMany<{ id: string; name: string; slug: string; archivedAt: Date | null; ownerId: string; role: 'admin' | 'member' }>()
 
     return rows.map((r) => ({
       id: r.id,
@@ -102,6 +115,7 @@ export class ServerService implements OnModuleInit {
       role: r.role,
       active: r.id === activeServerId,
       archived: r.archivedAt !== null,
+      owner: r.ownerId === userId,
     }))
   }
 
@@ -223,6 +237,7 @@ export class ServerService implements OnModuleInit {
   async setRole(serverId: string, targetId: string, role: 'admin' | 'member', requesterId: string) {
     // mudar o próprio papel permitiria o último admin se rebaixar e travar o servidor
     if (targetId === requesterId) throw new BadRequestException('Você não pode alterar seu próprio papel')
+    await this.refuseIfOwner(serverId, targetId, 'rebaixar o dono do servidor')
     const target = await this.users.findOne({ where: { id: targetId } })
     if (!target || target.serverId !== serverId) throw new NotFoundException('Membro não encontrado')
     await this.users.update(targetId, { serverRole: role })
@@ -234,6 +249,7 @@ export class ServerService implements OnModuleInit {
   // membership existente (se houver) ou fica sem servidor ativo
   async removeMember(serverId: string, targetId: string, requesterId: string) {
     if (targetId === requesterId) throw new BadRequestException('Você não pode se remover')
+    await this.refuseIfOwner(serverId, targetId, 'remover o dono do servidor')
     const target = await this.users.findOne({ where: { id: targetId } })
     if (!target) throw new NotFoundException('Membro não encontrado')
 
@@ -302,6 +318,13 @@ export class ServerService implements OnModuleInit {
       await this.users.update(userId, { serverId: fallback.serverId, serverRole: fallback.role })
     } else {
       await this.users.update(userId, { serverId: null, serverRole: 'member' })
+    }
+  }
+
+  private async refuseIfOwner(serverId: string, targetId: string, acao: string) {
+    const server = await this.servers.findOne({ where: { id: serverId } })
+    if (server?.ownerId === targetId) {
+      throw new BadRequestException(`Não é possível ${acao}. Transfira a posse antes.`)
     }
   }
 
