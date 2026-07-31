@@ -15,6 +15,7 @@
         @select-world="selectMap"
         @server-changed="onServerChanged"
         @open-media="openMediaStage"
+        @join-voice="joinVoice"
         @leave="leave"
       />
     </aside>
@@ -43,7 +44,9 @@
       <div class="gp-hud gp-hud-topright">
         <div class="gp-online-count">{{ online }} online</div>
         <div class="column gp-online-list">
-          <span class="gp-peer-you">● {{ playerName }} <span class="gp-peer-you-tag">(você)</span> <PixelIcon v-if="voiceOn" name="mic" size="0.75rem" title="na sala de voz" /></span>
+          <!-- o microfone aberto tem ícone PRÓPRIO: estar na sala de voz (que
+               agora é automático) não é o mesmo que estar sendo ouvido -->
+          <span class="gp-peer-you">● {{ playerName }} <span class="gp-peer-you-tag">(você)</span> <PixelIcon v-if="voiceOn" name="volume-2" size="0.75rem" title="na sala de voz" /> <PixelIcon v-if="micLive" name="mic" size="0.75rem" class="gp-peer-mic" title="seu microfone está aberto" /></span>
           <span v-for="p in roomPeers" :key="p.id" class="gp-peer">● {{ p.name }} <PixelIcon v-if="voiceIdentities.includes(p.userId)" name="volume-2" size="0.75rem" title="na sala de voz" /></span>
         </div>
       </div>
@@ -205,6 +208,9 @@ const router = useRouter()
 const gameStore = useGameStore()
 const characterStore = useCharacterStore()
 const auth = useAuthStore()
+// antes de qualquer filho montar: o rodapé da barra lateral desenha o estado do
+// microfone já na primeira pintura, e o da conta anterior não vale pra esta
+media.loadPrefs(auth.userId)
 let stateTimer = 0
 
 function persistState() {
@@ -266,6 +272,8 @@ const chatUnread = ref(false)
 let chatCooldownTimer = 0
 const voiceOn = computed(() => media.state.connected)
 const voiceConnecting = computed(() => media.state.connecting)
+// "estou sendo ouvido de verdade" — nem estar na sala nem a preferência bastam
+const micLive = computed(() => media.state.connected && media.state.micAvailable && !media.state.micMuted)
 const mediaStageOpen = ref(false)
 const mediaStage = ref<InstanceType<typeof MediaStage> | null>(null)
 // tudo daqui pra baixo que fala com a mídia é chaveado por userId (identity do
@@ -333,24 +341,39 @@ function toggleMediaStage() {
   mediaStageOpen.value = false
 }
 
-async function joinVoice() {
-  if (voiceConnecting.value || voiceOn.value) return
-  error.value = ''
-  if (!(await media.connect(currentId.value))) {
-    error.value = media.state.error || 'Não foi possível entrar na voz.'
+// sair da chamada é uma decisão explícita: vale até a pessoa pedir a voz de
+// volta, senão a próxima troca de mundo a reconectaria sozinha
+let voiceOptOut = false
+
+// Mídia NUNCA segura a entrada no mundo: microfone negado, token recusado ou
+// rede fora do ar só mudam o que o rodapé da barra lateral mostra. Por isso
+// nada aqui escreve em `error`, que é o aviso do meio da tela.
+async function enterVoice(mapId: string, serverChanged = false): Promise<void> {
+  if (!mapId || voiceOptOut) return
+  // trocar de servidor sem trocar de mundo mantém o mapId e muda a sala (o nome
+  // dela é `${serverId}:${mapId}`): só o reconnect explícito tira da sala velha
+  // — inclusive quando a conexão com o servidor anterior ainda está subindo
+  if (serverChanged && (media.state.connected || media.state.connecting)) {
+    await media.reconnect(mapId)
     return
   }
-  // entra só ouvindo — o microfone liga na barra de controles do MediaStage
-  if (!media.state.micAvailable) error.value = 'Sem acesso ao microfone — você só vai conseguir ouvir.'
+  await media.connect(mapId)
+}
+
+function joinVoice() {
+  voiceOptOut = false
+  void enterVoice(currentId.value)
 }
 
 async function leaveVoice() {
+  voiceOptOut = true
   await media.disconnect()
 }
 
 async function reconnectVoice() {
   if (voiceConnecting.value) return
-  if (!(await media.reconnect(currentId.value))) error.value = media.state.error || 'Não foi possível reconectar à voz.'
+  voiceOptOut = false
+  await media.reconnect(currentId.value)
 }
 
 function setVoiceModeUi(mode: 'proximity' | 'room') {
@@ -541,9 +564,9 @@ function selectMap(id: string) {
   if (!scene || !map) return
   applyMap(map)
   switchMap(id)
-  // a sala do LiveKit é `${serverId}:${mapId}` — sem reconectar, continuaríamos ouvindo
-  // a sala do mundo anterior
-  if (media.state.connected) void media.reconnect(id)
+  // entrar num mundo é entrar na conversa dele: sem voz ainda, conecta; com voz,
+  // troca de sala (o media.ts compara o mundo e reconecta sozinho)
+  void enterVoice(id)
 }
 
 // o servidor ativo já mudou no backend (a barra lateral chamou switchServer):
@@ -563,7 +586,7 @@ async function onServerChanged() {
     connectPresence({ name: playerName.value, avatar: joinAvatarPayload.value, map: target.id, x: pos.x, y: pos.y })
     // connectPresence nasce sem servidor observado nenhum
     sidebar.value?.syncPresence()
-    if (media.state.connected) void media.reconnect(target.id)
+    void enterVoice(target.id, true)
   } catch (e) {
     error.value = (e as Error).message
   }
@@ -920,6 +943,7 @@ onUnmounted(() => {
 .gp-online-list { gap: 0.125rem; font-size: 0.75rem; }
 .gp-peer-you { color: var(--text); }
 .gp-peer-you-tag { color: var(--text-4); }
+.gp-peer-mic { color: var(--ok); }
 .gp-peer { color: var(--text-2); }
 
 .gp-nearby {

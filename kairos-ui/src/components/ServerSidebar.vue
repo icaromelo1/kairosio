@@ -31,14 +31,17 @@
         @click="router.push('/onboarding')"
       ><PixelIcon name="plus" size="0.875rem" /></button>
 
+      <!-- com a barra recolhida este é o único lugar onde o microfone aparece:
+           some da lista de mundos, não do olho de quem está no ar -->
       <button
         v-if="!open"
         class="ss-rail-mic"
-        :class="micMuted ? 'ss-ctrl-off' : 'ss-ctrl-on'"
+        :class="micLive ? 'ss-ctrl-live' : micOn ? 'ss-ctrl-on' : 'ss-ctrl-off'"
+        :disabled="voiceLive && !micAvailable"
         :title="micTitle"
         :aria-label="micTitle"
         @click="toggleMic"
-      ><PixelIcon :name="micMuted ? 'mic-off' : 'mic'" size="0.875rem" /></button>
+      ><PixelIcon :name="micOn ? 'mic' : 'mic-off'" size="0.875rem" /></button>
     </nav>
 
     <section v-if="open" class="ss-main">
@@ -133,39 +136,65 @@
       </div>
 
       <footer class="ss-foot">
-        <button class="ss-me" title="Editar avatar" @click="router.push('/character')">
-          <span class="ss-me-avatar"><PixelAvatar :scale="1.4" v-bind="look" :shadow="false" /></span>
-          <span class="ss-me-info">
-            <span class="ss-me-name ellipsis">{{ playerName }}</span>
-            <span class="ss-me-hint">editar avatar</span>
-          </span>
-        </button>
-
-        <div class="ss-foot-ctrls">
-          <button
-            class="ss-ctrl"
-            :class="micMuted ? 'ss-ctrl-off' : 'ss-ctrl-on'"
-            :disabled="voiceOn && !micAvailable"
-            :title="micTitle"
-            :aria-label="micTitle"
-            @click="toggleMic"
-          ><PixelIcon :name="micMuted ? 'mic-off' : 'mic'" size="0.875rem" /></button>
+        <!-- a voz sobe sozinha ao entrar num mundo: o estado do microfone fica
+             escrito aqui o tempo todo, e é daqui que se desliga -->
+        <div class="ss-voice" :class="{ 'ss-voice-live': micLive, 'ss-voice-down': !voiceLive }" aria-live="polite">
+          <span class="ss-voice-dot" />
+          <PixelIcon :name="micOn ? 'mic' : 'mic-off'" size="0.6875rem" />
+          <span class="ss-voice-text ellipsis">{{ voiceLabel }}</span>
 
           <button
-            class="ss-ctrl"
-            :class="soundOff ? 'ss-ctrl-off' : 'ss-ctrl-on'"
-            :title="soundOff ? 'Ligar o som de quem fala' : 'Desligar o som de quem fala'"
-            :aria-label="soundOff ? 'Ligar o som' : 'Desligar o som'"
-            @click="soundOff = !soundOff"
-          ><PixelIcon name="volume-2" :off="soundOff" size="0.875rem" /></button>
+            v-if="voiceDown"
+            class="ss-voice-join"
+            :title="media.state.error || 'Entrar na voz deste mundo'"
+            @click="emit('join-voice')"
+          >entrar</button>
 
-          <button
-            class="ss-ctrl"
-            :class="{ 'ss-ctrl-on': voiceOn }"
-            :title="voiceOn ? 'Abrir a sala de voz — você está no ar' : 'Abrir a sala de voz'"
-            aria-label="Abrir a sala de voz"
-            @click="emit('open-media')"
-          ><PixelIcon name="headphone" size="0.875rem" /></button>
+          <PixelIcon
+            v-else-if="deafened"
+            name="volume"
+            :off="true"
+            size="0.6875rem"
+            class="ss-voice-deaf"
+            title="som desligado — você não ouve ninguém"
+          />
+        </div>
+
+        <div class="ss-foot-main">
+          <button class="ss-me" title="Editar avatar" @click="router.push('/character')">
+            <span class="ss-me-avatar"><PixelAvatar :scale="1.4" v-bind="look" :shadow="false" /></span>
+            <span class="ss-me-info">
+              <span class="ss-me-name ellipsis">{{ playerName }}</span>
+              <span class="ss-me-hint">editar avatar</span>
+            </span>
+          </button>
+
+          <div class="ss-foot-ctrls">
+            <button
+              class="ss-ctrl"
+              :class="micLive ? 'ss-ctrl-live' : micOn ? 'ss-ctrl-on' : 'ss-ctrl-off'"
+              :disabled="voiceLive && !micAvailable"
+              :title="micTitle"
+              :aria-label="micTitle"
+              @click="toggleMic"
+            ><PixelIcon :name="micOn ? 'mic' : 'mic-off'" size="0.875rem" /></button>
+
+            <button
+              class="ss-ctrl"
+              :class="deafened ? 'ss-ctrl-deaf' : 'ss-ctrl-on'"
+              :title="deafened ? 'Ligar o som de quem fala' : 'Desligar o som de quem fala'"
+              :aria-label="deafened ? 'Ligar o som' : 'Desligar o som'"
+              @click="toggleSound"
+            ><PixelIcon name="volume-2" :off="deafened" size="0.875rem" /></button>
+
+            <button
+              class="ss-ctrl"
+              :class="{ 'ss-ctrl-on': voiceLive }"
+              :title="voiceLive ? 'Abrir a sala de voz — você está no ar' : 'Abrir a sala de voz'"
+              aria-label="Abrir a sala de voz"
+              @click="emit('open-media')"
+            ><PixelIcon name="headphone" size="0.875rem" /></button>
+          </div>
         </div>
       </footer>
     </section>
@@ -179,6 +208,7 @@ import { getMyServers, switchServer, type MyServerSummary } from '@/services/ser
 import {
   emitMicState,
   peopleInWorld,
+  presenceByServer,
   serverOnlineCount,
   watchServerPresence,
   type PresencePerson,
@@ -215,6 +245,7 @@ const emit = defineEmits<{
   'select-world': [mapId: string]
   'server-changed': [serverId: string]
   'open-media': []
+  'join-voice': []
   leave: []
 }>()
 
@@ -305,7 +336,7 @@ function syncPresence() {
   const ids = servers.value.map((s) => s.id)
   if (ids.length) watchServerPresence(ids)
   // socket novo (troca de servidor) nasce me considerando mudo
-  emitMicState(media.state.micMuted)
+  pushMic(true)
 }
 
 // o GamePage chama depois de (re)conectar a presença — o connectPresence nasce
@@ -348,55 +379,83 @@ function toggleWorld(world: WorldRow) {
 }
 
 // ---- microfone e som ----
+const voiceLive = computed(() => props.voiceOn)
+const voiceBusy = computed(() => media.state.connecting)
+const voiceDown = computed(() => !voiceLive.value && !voiceBusy.value)
 const micMuted = computed(() => media.state.micMuted)
 const micAvailable = computed(() => media.state.micAvailable)
+const deafened = computed(() => media.state.deafened)
+
+// estar sendo ouvido de verdade. É este — não a preferência — que pinta o botão
+// de verde e que a presença anuncia.
+const micLive = computed(() => voiceLive.value && micAvailable.value && !micMuted.value)
+// com a voz no ar o botão fala do estado real; sem ela, fala da intenção, que é
+// o que vai valer assim que a sala subir
+const micOn = computed(() => (voiceLive.value ? micLive.value : media.state.micWanted))
+
+const voiceLabel = computed(() => {
+  if (voiceBusy.value) return 'conectando à voz…'
+  if (!voiceLive.value) return 'voz desligada'
+  if (!micAvailable.value) return 'só ouvindo · sem microfone'
+  return micMuted.value ? 'microfone desligado' : 'microfone aberto'
+})
 
 const micTitle = computed(() => {
-  if (!props.voiceOn) return 'Abrir a sala de voz para falar'
+  if (!voiceLive.value) {
+    return micOn.value ? 'Microfone ligado — abre quando a voz conectar' : 'Ligar seu microfone e entrar na voz'
+  }
   if (!micAvailable.value) return 'Sem acesso ao microfone — você só ouve'
-  return micMuted.value ? 'Ligar seu microfone' : 'Desligar seu microfone'
+  return micMuted.value ? 'Ligar seu microfone' : 'Desligar seu microfone — você está sendo ouvido'
 })
 
 function toggleMic() {
-  if (!props.voiceOn) {
-    emit('open-media')
+  const on = micOn.value
+  void media.setMicMuted(on)
+  // pedir o microfone com a voz fora do ar traz a voz junto — senão o clique não
+  // faria nada visível
+  if (!on && !voiceLive.value) emit('join-voice')
+}
+
+// desligar TODO o som é da camada de mídia (silencia os elementos de áudio);
+// silenciar UMA pessoa continua sendo o clique no tile da janela de voz
+function toggleSound() {
+  media.setDeafened(!media.state.deafened)
+}
+
+// O indicador ao lado do nome não vem do LiveKit (que só alcança a sala de
+// mídia): quem avisa a presença é o próprio dono. O gateway descarta dois
+// avisos em menos de 500ms, e uma troca de mundo derruba e sobe o microfone em
+// sequência — a espera junta o vai-e-vem num aviso só, com o valor final.
+const MIC_PUSH_MS = 600
+let micPushTimer = 0
+let micPushed: boolean | null = null
+
+function pushMic(now = false) {
+  const muted = !micLive.value
+  window.clearTimeout(micPushTimer)
+  if (now) {
+    micPushed = muted
+    emitMicState(muted)
     return
   }
-  void media.setMicMuted(!media.state.micMuted)
+  micPushTimer = window.setTimeout(() => {
+    if (muted === micPushed) return
+    micPushed = muted
+    emitMicState(muted)
+  }, MIC_PUSH_MS)
 }
 
-// o indicador ao lado do nome não vem do LiveKit (que só alcança a sala de
-// mídia): quem avisa a presença é o próprio dono, venha o toque daqui ou da
-// janela de voz
-watch(micMuted, (muted) => emitMicState(muted))
+watch(micLive, () => pushMic())
 
-const SOUND_KEY = 'kairos_sound_off'
-const soundOff = ref(localStorage.getItem(SOUND_KEY) === '1')
-// só os que ESTE controle silenciou: quem a pessoa já tinha silenciado na
-// janela de voz não pode ser reaberto ao religar o som
-const silenced = new Set<string>()
-
-function applySound() {
-  for (const [identity, peer] of media.peers) {
-    if (soundOff.value) {
-      if (peer.mutedByMe) continue
-      media.setPeerMuted(identity, true)
-      silenced.add(identity)
-    } else if (silenced.delete(identity)) {
-      media.setPeerMuted(identity, false)
-    }
-  }
-}
-
-watch([soundOff, () => [...media.peers.keys()].join('|')], applySound, { immediate: true })
-
-watch(soundOff, (off) => {
-  try {
-    localStorage.setItem(SOUND_KEY, off ? '1' : '0')
-  } catch {
-    // storage cheio/bloqueado não pode travar o controle
-  }
-})
+// socket novo esquece o microfone, e o presence.ts só reemite join e
+// presenceWatch ao reconectar: a lista voltando a encher é o sinal de que há
+// socket novo (primeira carga inclusive)
+watch(
+  () => presenceByServer.size,
+  (size, before) => {
+    if (size && !before) pushMic(true)
+  },
+)
 
 onMounted(() => {
   void loadServers()
@@ -404,8 +463,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   watchServerPresence([])
-  for (const identity of silenced) media.setPeerMuted(identity, false)
-  silenced.clear()
+  window.clearTimeout(micPushTimer)
 })
 </script>
 
@@ -537,6 +595,7 @@ onUnmounted(() => {
   border: 0.125rem solid var(--border-strong);
   color: var(--text-2);
 }
+.ss-rail-mic:disabled { opacity: 0.5; cursor: default; }
 
 /* ---- lista de mundos ---- */
 .ss-main {
@@ -739,16 +798,72 @@ onUnmounted(() => {
   gap: 0.375rem;
 }
 
-/* ---- rodapé: personagem + controles ---- */
+/* ---- rodapé: estado da voz + personagem + controles ---- */
 .ss-foot {
   flex: none;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 0.375rem;
   padding: 0.5rem;
   background: var(--bg-1);
   border-top: 0.0625rem solid var(--border);
 }
+
+.ss-foot-main {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+}
+
+.ss-voice {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  padding: 0.25rem 0.375rem;
+  background: var(--bg-3);
+  border: 0.0625rem solid var(--border-strong);
+  color: var(--text-2);
+}
+.ss-voice-live {
+  color: var(--ok);
+  border-color: var(--ok);
+}
+.ss-voice-down { color: var(--text-3); }
+
+.ss-voice-dot {
+  width: 0.375rem;
+  height: 0.375rem;
+  flex: none;
+  background: var(--text-4);
+}
+.ss-voice-live .ss-voice-dot { background: var(--ok); }
+
+.ss-voice-text {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--f-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.02em;
+}
+
+.ss-voice-join {
+  appearance: none;
+  flex: none;
+  cursor: pointer;
+  background: transparent;
+  border: 0.0625rem solid var(--primary-hi);
+  color: var(--primary-hi);
+  font-family: var(--f-pixel);
+  font-size: 0.4375rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 0.1875rem 0.3125rem;
+}
+.ss-voice-join:hover { background: rgba(124, 58, 237, 0.18); }
+
+.ss-voice-deaf { flex: none; color: var(--err); }
 
 .ss-me {
   appearance: none;
@@ -804,4 +919,23 @@ onUnmounted(() => {
 .ss-ctrl:disabled { opacity: 0.5; cursor: default; }
 .ss-ctrl-on { color: var(--ok); border-color: var(--ok); }
 .ss-ctrl-off { color: var(--text-3); }
+/* microfone REALMENTE aberto é o único controle preenchido: conectar sozinho
+   aumenta a chance de alguém não perceber que está sendo ouvido */
+.ss-ctrl-live {
+  color: var(--bg-0);
+  background: var(--ok);
+  border-color: var(--ok);
+}
+.ss-ctrl-live:hover { color: var(--bg-0); border-color: var(--ok); }
+.ss-ctrl-deaf { color: var(--err); border-color: var(--err); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .ss-voice-live .ss-voice-dot {
+    animation: ssMicLive 1.6s steps(2, jump-none) infinite;
+  }
+  @keyframes ssMicLive {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.25; }
+  }
+}
 </style>
