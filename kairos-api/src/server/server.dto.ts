@@ -1,4 +1,4 @@
-import { IsIn, IsString, MaxLength, MinLength } from 'class-validator'
+import { IsIn, IsOptional, IsString, IsUUID, MaxLength, MinLength } from 'class-validator'
 
 export class CreateServerDto {
   @IsString()
@@ -24,4 +24,15 @@ export class UpdateServerDto {
 export class SetRoleDto {
   @IsIn(['admin', 'member'])
   role: 'admin' | 'member'
+}
+
+export class TransferServerDto {
+  @IsUUID()
+  userId: string
+}
+
+export class ListMineQueryDto {
+  @IsOptional()
+  @IsIn(['true', 'false'])
+  archived?: string
 }

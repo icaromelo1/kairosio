@@ -14,6 +14,10 @@ export class Server {
   @Column({ type: 'uuid' })
   ownerId: string
 
+  // arquivado some das listagens e não aceita entrada, mas membros, mundos e convite continuam no banco
+  @Column({ type: 'timestamp', nullable: true })
+  archivedAt: Date | null
+
   @CreateDateColumn()
   createdAt: Date
 }

@@ -1,8 +1,28 @@
-import { Body, Controller, Delete, ForbiddenException, Get, Param, Post, Put, Request, UseGuards } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  ForbiddenException,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  Put,
+  Query,
+  Request,
+  UseGuards,
+} from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { ServerService } from './server.service'
 import { ServerAdminGuard } from './server-admin.guard'
-import { CreateServerDto, JoinServerDto, SetRoleDto, UpdateServerDto } from './server.dto'
+import {
+  CreateServerDto,
+  JoinServerDto,
+  ListMineQueryDto,
+  SetRoleDto,
+  TransferServerDto,
+  UpdateServerDto,
+} from './server.dto'
 
 @UseGuards(AuthGuard('jwt'))
 @Controller('server')
@@ -23,10 +43,11 @@ export class ServerController {
     return this.servers.me(req.user.sub)
   }
 
-  // todos os servidores de que o usuário é membro (pra tela de escolha no login)
+  // todos os servidores de que o usuário é membro (pra tela de escolha no login);
+  // ?archived=true lista só os arquivados (seção de arquivados do painel)
   @Get('mine')
-  mine(@Request() req: any) {
-    return this.servers.listMine(req.user.sub)
+  mine(@Request() req: any, @Query() query: ListMineQueryDto) {
+    return this.servers.listMine(req.user.sub, query.archived === 'true')
   }
 
   // troca qual servidor está ativo nesta sessão
@@ -40,13 +61,39 @@ export class ServerController {
     return this.servers.join(req.user.sub, dto.code)
   }
 
-  // ---- admin do servidor ----
-  @UseGuards(ServerAdminGuard)
-  @Post('invite')
-  invite(@Request() req: any) {
-    return this.servers.createInvite(req.user.serverId, req.user.sub)
+  // ---- ações sobre um servidor específico (pode não ser o ativo) ----
+  // a permissão é resolvida no service contra o :id, não pelo ServerAdminGuard
+  @Post(':id/leave')
+  leave(@Request() req: any, @Param('id', ParseUUIDPipe) id: string) {
+    return this.servers.leave(req.user.sub, id)
   }
 
+  @Get(':id/invite')
+  invite(@Request() req: any, @Param('id', ParseUUIDPipe) id: string) {
+    return this.servers.getInvite(id, req.user.sub)
+  }
+
+  @Post(':id/invite/revoke')
+  revokeInvite(@Request() req: any, @Param('id', ParseUUIDPipe) id: string) {
+    return this.servers.revokeInvite(id, req.user.sub)
+  }
+
+  @Post(':id/transfer')
+  transfer(@Request() req: any, @Param('id', ParseUUIDPipe) id: string, @Body() dto: TransferServerDto) {
+    return this.servers.transferOwnership(id, req.user.sub, dto.userId)
+  }
+
+  @Post(':id/archive')
+  archive(@Request() req: any, @Param('id', ParseUUIDPipe) id: string) {
+    return this.servers.archive(id, req.user.sub)
+  }
+
+  @Post(':id/restore')
+  restore(@Request() req: any, @Param('id', ParseUUIDPipe) id: string) {
+    return this.servers.restore(id, req.user.sub)
+  }
+
+  // ---- admin do servidor ATIVO ----
   @UseGuards(ServerAdminGuard)
   @Put()
   update(@Request() req: any, @Body() dto: UpdateServerDto) {
