@@ -1,7 +1,7 @@
 <template>
   <div class="ad-root">
     <header class="ad-head">
-      <button class="ad-back" @click="router.push('/map-select')">
+      <button class="ad-back" @click="router.push('/game')">
         <PixelIcon name="chevron-left" size="0.875rem" />Voltar
       </button>
       <h1 class="ad-title">{{ server ? server.name : 'Painel do servidor' }}</h1>
