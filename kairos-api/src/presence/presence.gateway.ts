@@ -14,6 +14,7 @@ import { User } from '../user/user.entity'
 import { ServerMembership } from '../server/server-membership.entity'
 import { JukeboxService } from '../jukebox/jukebox.service'
 import { FriendService } from '../friend/friend.service'
+import { DmDelivery } from '../dm/dm-delivery'
 import { jwtSecret } from '../auth/jwt-secret'
 
 type MapId = string
@@ -225,6 +226,7 @@ export class PresenceGateway
     @InjectRepository(ServerMembership) private readonly memberships: Repository<ServerMembership>,
     private readonly jukeboxService: JukeboxService,
     private readonly friends: FriendService,
+    private readonly dmDelivery: DmDelivery,
   ) {}
 
   // revalidação periódica das memberships de quem está observando: sair de um
@@ -233,6 +235,13 @@ export class PresenceGateway
   onModuleInit() {
     this.membershipSweep = setInterval(() => void this.sweepMemberships(), MEMBERSHIP_SWEEP_MS)
     this.membershipSweep.unref?.()
+
+    // quem está offline pega pelo histórico; aqui só entregamos a quem está conectado
+    this.dmDelivery.register(({ paraUserId, conversaId, de, naoLidas, mensagem }) => {
+      const socketId = this.userSocket.get(paraUserId)
+      if (!socketId) return
+      this.server.to(socketId).emit('dmMessage', { conversaId, de, naoLidas, mensagem })
+    })
   }
 
   onModuleDestroy() {
