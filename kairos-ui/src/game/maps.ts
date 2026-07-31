@@ -78,7 +78,7 @@ export interface MapDef {
   objects: MapObject[]
   // multi-tenancy (vêm da API; opcionais no front)
   ownerId?: string | null
-  organizationId?: string | null
+  serverId?: string | null
   isTemplate?: boolean
 }
 

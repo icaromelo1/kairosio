@@ -11,7 +11,7 @@ import EditorPage from '@/pages/EditorPage.vue'
 import OnboardingPage from '@/pages/OnboardingPage.vue'
 import AdminPage from '@/pages/AdminPage.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { setPendingInvite } from '@/services/org.api'
+import { setPendingInvite } from '@/services/server.api'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),

@@ -164,6 +164,16 @@
             @click="toggleMic"
           ><PixelIcon :name="micMuted ? 'mic-off' : 'mic'" size="1rem" /></button>
 
+          <!-- desligar o som é geral e vive aqui e no rodapé da barra lateral;
+               silenciar uma pessoa só continua sendo o clique no tile dela -->
+          <button
+            type="button"
+            class="ms-ctrl"
+            :class="deafened ? 'ms-ctrl-deaf' : 'ms-ctrl-off'"
+            :title="deafened ? 'Ligar o som de todo mundo' : 'Desligar o som de todo mundo'"
+            @click="toggleSound"
+          ><PixelIcon name="volume-2" :off="deafened" size="1rem" /></button>
+
           <button
             type="button"
             class="ms-ctrl"
@@ -223,7 +233,7 @@
           type="button"
           class="k-btn k-btn-primary k-btn-sm ms-join"
           :disabled="connecting"
-          title="Entrar na voz — o microfone começa desligado"
+          title="Entrar na voz deste mundo"
           @click="emit('connect')"
         >
           <PixelIcon name="headphone" size="0.875rem" />
@@ -311,6 +321,7 @@ const cameraOn = computed(() => media.state.cameraOn)
 const screenOn = computed(() => media.state.screenOn)
 const screenBusy = computed(() => media.state.screenBusy)
 const screenError = computed(() => media.state.screenError)
+const deafened = computed(() => media.state.deafened)
 
 const micTitle = computed(() => {
   if (!micAvailable.value) return 'Sem acesso ao microfone — você só consegue ouvir'
@@ -421,6 +432,9 @@ function tileTitle(tile: StageTile): string {
   const parts: string[] = []
   if (tile.micOff) parts.push(`${tile.name} está com o microfone desligado`)
   if (tile.far) parts.push('fora do alcance — aproxime-se pra ouvir')
+  // sem isto, quem está com o som geral desligado clicaria em "voltar a ouvir"
+  // e seguiria sem ouvir nada, sem entender por quê
+  if (deafened.value) parts.push('seu som está desligado')
   parts.push(tile.mutedByMe ? 'silenciado por você — clique pra voltar a ouvir' : `clique pra silenciar ${tile.name}`)
   return parts.join(' · ')
 }
@@ -428,6 +442,10 @@ function tileTitle(tile: StageTile): string {
 function toggleMic() {
   if (!micAvailable.value) return
   void media.setMicMuted(!micMuted.value)
+}
+
+function toggleSound() {
+  media.setDeafened(!deafened.value)
 }
 
 function toggleCamera() {
@@ -1029,6 +1047,11 @@ onBeforeUnmount(() => {
   background: var(--bg-4);
   border-color: var(--border-strong);
   color: var(--text-2);
+}
+.ms-ctrl-deaf {
+  background: var(--bg-4);
+  border-color: var(--err);
+  color: var(--err);
 }
 .ms-ctrl-leave {
   background: var(--err);

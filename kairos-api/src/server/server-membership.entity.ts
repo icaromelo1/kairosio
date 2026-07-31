@@ -1,11 +1,11 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm'
 
-// vínculo N:N entre User e Organization — um usuário pode pertencer a várias orgs;
-// User.organizationId continua existindo como "org ativa no momento" (conveniência
+// vínculo N:N entre User e Server — um usuário pode pertencer a vários servidores;
+// User.serverId continua existindo como "servidor ativo no momento" (conveniência
 // pro presence gateway e queries de isolamento), mas a fonte de verdade de "de quais
-// orgs eu sou membro" é essa tabela.
-@Entity('org_memberships')
-export class OrgMembership {
+// servidores eu sou membro" é essa tabela.
+@Entity('server_memberships')
+export class ServerMembership {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
@@ -13,7 +13,7 @@ export class OrgMembership {
   userId: string
 
   @Column({ type: 'uuid' })
-  organizationId: string
+  serverId: string
 
   @Column({ default: 'member' })
   role: 'admin' | 'member'

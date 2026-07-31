@@ -32,27 +32,27 @@ export class MapService implements OnModuleInit {
     private readonly repo: Repository<GameMap>,
   ) {}
 
-  // semeia os mapas oficiais e garante que sejam templates globais (sem org, visíveis a todos)
+  // semeia os mapas oficiais e garante que sejam templates globais (sem servidor, visíveis a todos)
   async onModuleInit() {
     const count = await this.repo.count({ where: { ownerId: IsNull() } })
     if (count === 0) {
       await this.repo.save(SEED_MAPS.map((m) => ({ ...m, ownerId: null })))
     }
     // mundos oficiais (sem dono) = templates
-    await this.repo.update({ ownerId: IsNull() }, { isTemplate: true, organizationId: null })
+    await this.repo.update({ ownerId: IsNull() }, { isTemplate: true, serverId: null })
   }
 
-  // visível ao usuário: templates globais + mundos da org dele
-  findAllForUser(orgId: string | null): Promise<GameMap[]> {
+  // visível ao usuário: templates globais + mundos do servidor dele
+  findAllForUser(serverId: string | null): Promise<GameMap[]> {
     const where: any[] = [{ isTemplate: true }]
-    if (orgId) where.push({ organizationId: orgId })
+    if (serverId) where.push({ serverId })
     return this.repo.find({ where, order: { name: 'ASC' } })
   }
 
-  // leitura escopada: só template ou mundo da org do usuário
-  async findOneForUser(id: string, orgId: string | null): Promise<GameMap> {
+  // leitura escopada: só template ou mundo do servidor do usuário
+  async findOneForUser(id: string, serverId: string | null): Promise<GameMap> {
     const map = await this.findOne(id)
-    if (!map.isTemplate && map.organizationId !== orgId) {
+    if (!map.isTemplate && map.serverId !== serverId) {
       throw new NotFoundException(`Mapa "${id}" não encontrado`)
     }
     return map
@@ -64,8 +64,8 @@ export class MapService implements OnModuleInit {
     return map
   }
 
-  // cria um mundo na org do usuário
-  async create(dto: CreateMapDto, ownerId: string, organizationId: string): Promise<GameMap> {
+  // cria um mundo no servidor do usuário
+  async create(dto: CreateMapDto, ownerId: string, serverId: string): Promise<GameMap> {
     const id = await this.uniqueId(slugify(dto.name))
     const map = this.repo.create({
       id,
@@ -79,7 +79,7 @@ export class MapService implements OnModuleInit {
       spawn: dto.spawn ?? { x: Math.floor(dto.width / 2), y: Math.floor(dto.height / 2) },
       objects: dto.objects ?? [],
       ownerId,
-      organizationId,
+      serverId,
       isTemplate: false,
     })
     return this.repo.save(map)
@@ -90,17 +90,17 @@ export class MapService implements OnModuleInit {
     const map = await this.findOne(id)
     if (map.isTemplate || map.ownerId === null) throw new ForbiddenException('Mundo oficial não pode ser editado')
     if (map.ownerId !== userId) throw new ForbiddenException('Você só pode editar mundos que criou')
-    Object.assign(map, patch, { id: map.id, ownerId: map.ownerId, organizationId: map.organizationId, isTemplate: false })
+    Object.assign(map, patch, { id: map.id, ownerId: map.ownerId, serverId: map.serverId, isTemplate: false })
     return this.repo.save(map)
   }
 
-  // remoção — o dono, ou um admin da MESMA org do mundo
-  async remove(id: string, userId: string, orgId: string | null, isAdmin: boolean): Promise<{ deleted: string }> {
+  // remoção — o dono, ou um admin do MESMO servidor do mundo
+  async remove(id: string, userId: string, serverId: string | null, isAdmin: boolean): Promise<{ deleted: string }> {
     const map = await this.findOne(id)
     if (map.isTemplate || map.ownerId === null) throw new ForbiddenException('Mundo oficial não pode ser apagado')
     const isOwner = map.ownerId === userId
-    const isOrgAdmin = isAdmin && !!orgId && map.organizationId === orgId
-    if (!isOwner && !isOrgAdmin) throw new ForbiddenException('Sem permissão para apagar este mundo')
+    const isServerAdmin = isAdmin && !!serverId && map.serverId === serverId
+    if (!isOwner && !isServerAdmin) throw new ForbiddenException('Sem permissão para apagar este mundo')
     await this.repo.remove(map)
     return { deleted: id }
   }

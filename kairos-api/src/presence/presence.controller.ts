@@ -7,9 +7,9 @@ import { PresenceGateway } from './presence.gateway'
 export class PresenceController {
   constructor(private readonly gateway: PresenceGateway) {}
 
-  // { mapId: quantos online } dentro da org do usuário
+  // { mapId: quantos online } dentro do servidor do usuário
   @Get('counts')
   counts(@Request() req: any) {
-    return this.gateway.getCounts(req.user.organizationId)
+    return this.gateway.getCounts(req.user.serverId)
   }
 }

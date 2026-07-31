@@ -11,38 +11,38 @@ export class TaskService {
     private readonly repo: Repository<Task>,
   ) {}
 
-  list(organizationId: string, mapId: string, objectId: string): Promise<Task[]> {
+  list(serverId: string, mapId: string, objectId: string): Promise<Task[]> {
     return this.repo.find({
-      where: { organizationId, mapId, objectId },
+      where: { serverId, mapId, objectId },
       order: { createdAt: 'ASC' },
     })
   }
 
-  create(organizationId: string, userId: string, dto: CreateTaskDto): Promise<Task> {
+  create(serverId: string, userId: string, dto: CreateTaskDto): Promise<Task> {
     const task = this.repo.create({
       mapId: dto.mapId,
       objectId: dto.objectId,
       title: dto.title,
-      organizationId,
+      serverId,
       createdBy: userId,
     })
     return this.repo.save(task)
   }
 
-  async update(organizationId: string, id: string, patch: UpdateTaskDto): Promise<Task> {
-    const task = await this.findOneForOrg(organizationId, id)
+  async update(serverId: string, id: string, patch: UpdateTaskDto): Promise<Task> {
+    const task = await this.findOneForServer(serverId, id)
     Object.assign(task, patch)
     return this.repo.save(task)
   }
 
-  async remove(organizationId: string, id: string): Promise<{ deleted: string }> {
-    const task = await this.findOneForOrg(organizationId, id)
+  async remove(serverId: string, id: string): Promise<{ deleted: string }> {
+    const task = await this.findOneForServer(serverId, id)
     await this.repo.remove(task)
     return { deleted: id }
   }
 
-  private async findOneForOrg(organizationId: string, id: string): Promise<Task> {
-    const task = await this.repo.findOne({ where: { id, organizationId } })
+  private async findOneForServer(serverId: string, id: string): Promise<Task> {
+    const task = await this.repo.findOne({ where: { id, serverId } })
     if (!task) throw new NotFoundException(`Task "${id}" não encontrada`)
     return task
   }

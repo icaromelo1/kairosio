@@ -39,9 +39,9 @@ export class GameMap {
   @Column({ type: 'uuid', nullable: true })
   ownerId: string | null
 
-  // multi-tenancy: org dona do mundo (null = template global, visível a todos)
+  // multi-tenancy: servidor dono do mundo (null = template global, visível a todos)
   @Column({ type: 'uuid', nullable: true })
-  organizationId: string | null
+  serverId: string | null
 
   @Column({ default: false })
   isTemplate: boolean

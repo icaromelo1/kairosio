@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn } from 'typeorm'
 
-@Entity('organizations')
-export class Organization {
+@Entity('servers')
+export class Server {
   @PrimaryGeneratedColumn('uuid')
   id: string
 
@@ -13,6 +13,10 @@ export class Organization {
 
   @Column({ type: 'uuid' })
   ownerId: string
+
+  // arquivado some das listagens e não aceita entrada, mas membros, mundos e convite continuam no banco
+  @Column({ type: 'timestamp', nullable: true })
+  archivedAt: Date | null
 
   @CreateDateColumn()
   createdAt: Date
