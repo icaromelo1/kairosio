@@ -66,10 +66,9 @@
 
       <!-- Login card -->
       <div class="k-card login-card">
-        <!-- Beta chip + logos button -->
+        <!-- Beta chip -->
         <div class="card-toprow">
           <span class="k-chip">v0.1 · Beta</span>
-          <button class="k-btn k-btn-ghost logos-btn" @click="showLogosModal = true">◇ logos</button>
         </div>
 
         <!-- Email -->
@@ -185,7 +184,6 @@ async function postAuthDest(): Promise<RouteLocationRaw> {
 const email = ref('')
 const password = ref('')
 const keepConnected = ref(false)
-const showLogosModal = ref(false)
 const error = ref('')
 const loading = ref(false)
 
@@ -351,10 +349,6 @@ onMounted(async () => {
   letter-spacing: 0.05em;
 }
 
-.logos-btn {
-  font-size: 0.6875rem;
-  padding: 0.375rem 0.75rem;
-}
 
 .field-group {
   display: flex;
