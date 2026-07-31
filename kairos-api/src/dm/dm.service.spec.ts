@@ -159,6 +159,7 @@ function makeService() {
     users as any,
     servers as any,
     memberships as any,
+    { joinFromFriendInvite: async () => ({}) } as any,
   )
 
   const conversations = new FakeRepo('c')

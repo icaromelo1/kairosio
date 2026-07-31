@@ -97,6 +97,7 @@ function makeService() {
     users as any,
     servers as any,
     memberships as any,
+    { joinFromFriendInvite: async () => ({}) } as any,
   )
   return { service, friendships, serverInvites, users, servers, memberships }
 }

@@ -155,6 +155,25 @@ export class ServerService implements OnModuleInit {
     return this.me(userId)
   }
 
+  // entrada por convite direto de amigo: mesmo efeito do join por código, sem
+  // código no meio. As checagens de arquivado e de já-ser-membro são as mesmas
+  async joinFromFriendInvite(userId: string, serverId: string) {
+    const server = await this.servers.findOne({ where: { id: serverId } })
+    if (!server) throw new NotFoundException('Servidor não encontrado')
+    if (server.archivedAt) throw new ForbiddenException('Este servidor está arquivado e não aceita novos membros')
+
+    const already = await this.memberships.findOne({ where: { userId, serverId } })
+    if (already) throw new ConflictException('Você já é membro deste servidor')
+
+    await this.memberships.save(this.memberships.create({ userId, serverId, role: 'member' }))
+
+    const hasActive = await this.userServer(userId)
+    if (!hasActive) {
+      await this.users.update(userId, { serverId, serverRole: 'member' })
+    }
+    return this.me(userId)
+  }
+
   async getInvite(serverId: string, userId: string) {
     await this.requireAdmin(userId, serverId)
     const invite = await this.invites.findOne({ where: { serverId }, order: { createdAt: 'DESC' } })
