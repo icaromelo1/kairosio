@@ -93,12 +93,6 @@ async function failureCode(res: Response): Promise<string> {
   return res.status === 400 ? 'invalid-input' : 'register-failed'
 }
 
-export async function guest(): Promise<TokenResponse> {
-  const res = await apiFetch('/auth/guest', { method: 'POST' })
-  if (!res.ok) throw new Error('guest-failed')
-  return res.json()
-}
-
 // avisa o backend antes de limpar o token local — se for conta de convidado,
 // apaga tudo no backend (personagem/mundo salvo/vínculos de servidor). Best-effort:
 // falha de rede aqui não deve impedir o usuário de sair da tela.

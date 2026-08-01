@@ -74,12 +74,6 @@ describe('AuthService — cadastro com @nome', () => {
     }
   })
 
-  it('convidado nasce sem nome', async () => {
-    const { service, users } = makeService()
-    await service.loginAsGuest()
-    expect(users.rows[0].isGuest).toBe(true)
-    expect(users.rows[0].username).toBeNull()
-  })
 })
 
 describe('AuthService — disponibilidade', () => {
@@ -140,7 +134,7 @@ describe('AuthService — troca de @nome', () => {
 
   it('convidado não tem nome pra trocar', async () => {
     const { service, users } = makeService()
-    await service.loginAsGuest()
+    await users.save(users.create({ isGuest: true }))
     const p = service.changeUsername(users.rows[0].id, 'convidadinho')
     await expect(p).rejects.toBeInstanceOf(ForbiddenException)
     await expectCode(p, 'guest-no-username')

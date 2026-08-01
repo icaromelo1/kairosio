@@ -62,12 +62,6 @@ export class AuthController {
     return this.authService.changeUsername(req.user.sub, body.username)
   }
 
-  @Throttle({ default: { limit: 5, ttl: 60000 } })
-  @Post('guest')
-  guest() {
-    return this.authService.loginAsGuest()
-  }
-
   @UseGuards(AuthGuard('jwt'))
   @Get('me')
   me(@Request() req: any) {

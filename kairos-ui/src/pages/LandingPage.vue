@@ -13,7 +13,7 @@
 
         <div class="lp-cta">
           <button class="k-btn k-btn-primary lp-enter" @click="entrar">Entrar no Kairos →</button>
-          <span class="lp-note">Grátis. Crie uma conta ou entre como convidado.</span>
+          <span class="lp-note">Grátis. Crie sua conta em menos de um minuto.</span>
         </div>
 
         <ul class="lp-facts">

@@ -1,6 +1,18 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 
-// Smoke: cada rota principal carrega e o fluxo de convidado leva ao jogo.
+// Smoke: cada rota principal carrega e o cadastro leva ao jogo.
+
+async function entrarComContaNova(page: Page) {
+  const sufixo = `${Date.now()}${Math.floor(Math.random() * 1000)}`
+  await page.goto('/register')
+  await page.locator('input[type="email"]').fill(`e2e-${sufixo}@teste.dev`)
+  await page.locator('input.reg-user-input').fill(`e2e${sufixo}`)
+  const senhas = page.locator('input[type="password"]')
+  await senhas.nth(0).fill('segredo123')
+  await senhas.nth(1).fill('segredo123')
+  await page.locator('button:has-text("Cadastrar")').click()
+  await expect(page).toHaveURL(/\/game(\?.*)?$/)
+}
 
 test('landing carrega', async ({ page }) => {
   await page.goto('/')
@@ -14,6 +26,11 @@ test('login tem email, senha e criar conta', async ({ page }) => {
   await expect(page.locator('text=Criar conta')).toBeVisible()
 })
 
+test('login nao oferece mais entrar como convidado', async ({ page }) => {
+  await page.goto('/login')
+  await expect(page.locator('text=convidado')).toHaveCount(0)
+})
+
 test('cadastro carrega', async ({ page }) => {
   await page.goto('/register')
   await expect(page.locator('text=Cadastrar')).toBeVisible()
@@ -21,9 +38,7 @@ test('cadastro carrega', async ({ page }) => {
 })
 
 test('feedback virou painel: a rota antiga cai no jogo com ele aberto', async ({ page }) => {
-  await page.goto('/login')
-  await page.locator('text=Continuar como convidado').click()
-  await expect(page).toHaveURL(/\/game(\?.*)?$/)
+  await entrarComContaNova(page)
 
   await page.goto('/feedback')
   await expect(page).toHaveURL(/\/game(\?.*)?$/)
@@ -36,26 +51,19 @@ test('rota interna sem sessao redireciona pro login', async ({ page }) => {
   await expect(page).toHaveURL(/\/login$/)
 })
 
-test('fluxo convidado: login -> jogo direto', async ({ page }) => {
-  await page.goto('/login')
-  await page.locator('text=Continuar como convidado').click()
-
-  await expect(page).toHaveURL(/\/game(\?.*)?$/)
+test('cadastro leva direto ao jogo', async ({ page }) => {
+  await entrarComContaNova(page)
 })
 
 test('raiz com sessao cai no jogo, sem passar pela landing', async ({ page }) => {
-  await page.goto('/login')
-  await page.locator('text=Continuar como convidado').click()
-  await expect(page).toHaveURL(/\/game(\?.*)?$/)
+  await entrarComContaNova(page)
 
   await page.goto('/')
   await expect(page).toHaveURL(/\/game(\?.*)?$/)
 })
 
 test('rotas removidas nao quebram', async ({ page }) => {
-  await page.goto('/login')
-  await page.locator('text=Continuar como convidado').click()
-  await expect(page).toHaveURL(/\/game(\?.*)?$/)
+  await entrarComContaNova(page)
 
   await page.goto('/map-select')
   await expect(page).toHaveURL(/\/game(\?.*)?$/)
