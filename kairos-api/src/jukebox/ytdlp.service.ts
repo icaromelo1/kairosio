@@ -7,6 +7,7 @@ import * as path from 'node:path'
 const execFileAsync = promisify(execFile)
 const EXEC_OPTS = { maxBuffer: 1024 * 1024 * 10, timeout: 5 * 60 * 1000 }
 const MAX_DURATION_SEC = parseInt(process.env.JUKEBOX_MAX_DURATION_SEC || '1200', 10) // 20min
+const PLAYER_CLIENTS = process.env.JUKEBOX_PLAYER_CLIENTS || 'web,mweb,tv'
 
 export interface YtDlpInfo {
   title: string
@@ -44,15 +45,11 @@ export class YtDlpService {
     }
   }
 
-  // sidecar bgutil-ytdlp-pot-provider (container "bgutil-provider") gera o PO token
-  // que o YouTube passou a exigir junto com cookies pro gate anti-bot. player_client=web
-  // é obrigatório aqui: outros clients (tv/android_vr/...) pegam PO token de client
-  // diferente do que assina a URL do stream e dá 403 no download do segmento.
   private potArgs(): string[] {
     if (!this.potProviderUrl) return []
     return [
       '--extractor-args',
-      'youtube:player_client=web',
+      `youtube:player_client=${PLAYER_CLIENTS}`,
       '--extractor-args',
       `youtubepot-bgutilhttp:base_url=${this.potProviderUrl}`,
     ]
