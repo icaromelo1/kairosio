@@ -491,7 +491,7 @@ function separador(index: number): string {
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.4375rem;
+  gap: 0.5rem;
 }
 
 .dm-cols {
@@ -550,7 +550,7 @@ function separador(index: number): string {
 .dm-conv-badge {
   flex: none;
   min-width: 1rem;
-  padding: 0 0.1875rem;
+  padding: 0 0.25rem;
   background: var(--primary-hi);
   color: var(--bg-0);
   font-family: var(--f-pixel);
@@ -668,7 +668,7 @@ function separador(index: number): string {
   font-size: 0.5rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 0.1875rem 0.3125rem;
+  padding: 0.25rem 0.375rem;
 }
 .dm-jump:hover { background: rgba(251, 191, 36, 0.16); }
 

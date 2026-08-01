@@ -398,7 +398,7 @@ onUnmounted(() => {
 .ed-back { background: transparent; border: 0.0625rem solid #303045; color: #c8c8d8; padding: 0.25rem 0.625rem; cursor: pointer; border-radius: 0.1875rem; font-size: 0.75rem; }
 .ed-input { background: #1d1d2a; border: 0.0625rem solid #303045; color: #e8e8f0; padding: 0.5rem; border-radius: 0.25rem; font-size: 0.875rem; }
 .ed-row { display: flex; gap: 0.5rem; }
-.ed-row label { flex: 1; font-size: 0.6875rem; color: #8a8aa0; display: flex; flex-direction: column; gap: 0.1875rem; }
+.ed-row label { flex: 1; font-size: 0.6875rem; color: #8a8aa0; display: flex; flex-direction: column; gap: 0.25rem; }
 .ed-num { background: #1d1d2a; border: 0.0625rem solid #303045; color: #e8e8f0; padding: 0.375rem; border-radius: 0.25rem; width: 100%; box-sizing: border-box; }
 .ed-label { font-size: 0.625rem; letter-spacing: 0.16em; color: #6a6a80; text-transform: uppercase; margin-top: 0.375rem; }
 /* o ícone + gap deixa cada botão ~8px mais largo que o glifo de texto que havia

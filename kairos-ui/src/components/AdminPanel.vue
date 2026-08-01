@@ -382,7 +382,7 @@ onMounted(() => run('load', load))
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.4375rem;
+  gap: 0.5rem;
 }
 
 .ap-hint { margin: 0; }
@@ -404,7 +404,7 @@ onMounted(() => run('load', load))
   gap: 0.75rem;
   background: var(--bg-2);
   border: 0.0625rem solid var(--border);
-  padding: 0.5625rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
   flex-wrap: wrap;
 }

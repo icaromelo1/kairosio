@@ -492,7 +492,7 @@ onUnmounted(() => {
   margin: 0;
   display: flex;
   align-items: center;
-  gap: 0.4375rem;
+  gap: 0.5rem;
 }
 
 .fp-hint { margin: 0; }
@@ -538,7 +538,7 @@ onUnmounted(() => {
   flex-wrap: wrap;
   background: var(--bg-2);
   border: 0.0625rem solid var(--border);
-  padding: 0.5625rem 0.75rem;
+  padding: 0.5rem 0.75rem;
   font-size: 0.875rem;
 }
 
