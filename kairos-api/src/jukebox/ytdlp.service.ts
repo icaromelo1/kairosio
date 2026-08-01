@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, ServiceUnavailableException } from '@nestjs/common'
+import { BadRequestException, Injectable, Logger, ServiceUnavailableException } from '@nestjs/common'
 import { execFile } from 'node:child_process'
 import { promisify } from 'node:util'
 import * as fs from 'node:fs'
@@ -29,6 +29,7 @@ function formatDuration(sec: number): string {
 // extensão tipo "Get cookies.txt"). Ver COOKIES_FILE no .env.
 @Injectable()
 export class YtDlpService {
+  private readonly logger = new Logger(YtDlpService.name)
   private readonly cookiesFile = process.env.COOKIES_FILE
   private readonly potProviderUrl = process.env.POT_PROVIDER_URL
 
@@ -49,7 +50,12 @@ export class YtDlpService {
   // diferente do que assina a URL do stream e dá 403 no download do segmento.
   private potArgs(): string[] {
     if (!this.potProviderUrl) return []
-    return ['--extractor-args', `youtube:player_client=web;youtubepot-bgutilhttp:base_url=${this.potProviderUrl}`]
+    return [
+      '--extractor-args',
+      'youtube:player_client=web',
+      '--extractor-args',
+      `youtubepot-bgutilhttp:base_url=${this.potProviderUrl}`,
+    ]
   }
 
   extractYoutubeId(input: string): string {
@@ -114,11 +120,24 @@ export class YtDlpService {
   }
 
   private translateError(e: Error): Error {
+    this.logger.error(e.message)
+
     if (/Sign in to confirm/i.test(e.message)) {
       return new ServiceUnavailableException(
-        'YouTube bloqueou o download deste servidor (anti-bot). Configure COOKIES_FILE no servidor.',
+        'YouTube bloqueou o download deste servidor (anti-bot). Os cookies do servidor precisam ser renovados.',
       )
     }
-    return e
+    if (/Requested format is not available|Only images are available/i.test(e.message)) {
+      return new ServiceUnavailableException(
+        'O YouTube não liberou o áudio deste vídeo agora. Tente de novo em alguns minutos ou escolha outro link.',
+      )
+    }
+    if (/Video unavailable|Private video|members-only/i.test(e.message)) {
+      return new BadRequestException('Esse vídeo não está disponível publicamente.')
+    }
+    if (/is not a valid URL|Unsupported URL/i.test(e.message)) {
+      return new BadRequestException('Link do YouTube inválido')
+    }
+    return new ServiceUnavailableException('Não deu pra baixar o áudio agora. Tente de novo em alguns minutos.')
   }
 }
