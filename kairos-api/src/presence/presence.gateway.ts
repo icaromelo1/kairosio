@@ -431,6 +431,7 @@ export class PresenceGateway
     this.lastChatAt.set(socket.id, now)
     this.server.to(this.room(player.serverId, player.map)).emit('chatMessage', {
       id: socket.id,
+      userId: player.userId,
       name: player.name,
       text,
       ts: Date.now(),
