@@ -38,6 +38,53 @@ export async function checkUsername(username: string): Promise<UsernameStatus> {
   return res.json()
 }
 
+export interface Me {
+  id: string
+  email: string | null
+  username: string | null
+  usernameChangedAt: string | null
+  isGuest: boolean
+  serverId: string | null
+  serverRole: string
+  createdAt: string
+}
+
+export async function me(): Promise<Me> {
+  const res = await apiFetch('/auth/me')
+  if (!res.ok) throw new Error('me-failed')
+  return res.json()
+}
+
+export interface UsernameView {
+  username: string | null
+  usernameChangedAt: string | null
+  proximaTrocaEm: string | null
+}
+
+export class UsernameError extends Error {
+  constructor(public code: string, message: string, public proximaTrocaEm: string | null = null) {
+    super(message)
+  }
+}
+
+export async function changeUsername(username: string): Promise<UsernameView> {
+  const res = await apiFetch('/auth/username', {
+    method: 'PATCH',
+    body: JSON.stringify({ username }),
+  })
+  if (!res.ok) {
+    const body = (await res.json().catch(() => null)) as
+      | { code?: string; message?: string; proximaTrocaEm?: string }
+      | null
+    throw new UsernameError(
+      body?.code ?? 'username-failed',
+      body?.message ?? 'Não deu pra trocar o nome de usuário.',
+      body?.proximaTrocaEm ?? null,
+    )
+  }
+  return res.json()
+}
+
 async function failureCode(res: Response): Promise<string> {
   const body = await res.json().catch(() => null)
   const code = (body as { code?: unknown } | null)?.code

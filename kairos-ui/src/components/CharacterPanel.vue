@@ -20,6 +20,43 @@
           maxlength="20"
           placeholder="Seu nome..."
         />
+
+        <div v-if="!auth.isGuest" class="cp-handle">
+          <span class="cp-eyebrow">seu @nome</span>
+          <p class="cp-handle-hint">
+            É por ele que te encontram nos amigos. O nome de cima é o que flutua sobre o avatar.
+          </p>
+
+          <div class="cp-handle-row">
+            <span class="cp-at">@</span>
+            <input
+              v-model.trim="handle"
+              class="k-input cp-handle-input"
+              type="text"
+              maxlength="20"
+              autocapitalize="off"
+              autocomplete="off"
+              spellcheck="false"
+              placeholder="seu.nome"
+              @keyup.enter="salvarHandle"
+            />
+            <button
+              class="k-btn k-btn-ghost k-btn-sm"
+              :disabled="!podeSalvarHandle"
+              @click="salvarHandle"
+            >{{ salvandoHandle ? 'Salvando…' : (handleAtual ? 'Trocar' : 'Definir') }}</button>
+          </div>
+
+          <p v-if="handleErro" class="cp-error">{{ handleErro }}</p>
+          <p v-else-if="handleOk" class="cp-handle-ok">{{ handleOk }}</p>
+          <p v-else-if="handleAviso" class="cp-handle-aviso">{{ handleAviso }}</p>
+          <p v-else-if="!handleAtual" class="cp-handle-aviso">
+            Você ainda não tem um @nome — sem ele ninguém consegue te adicionar.
+          </p>
+          <p v-else-if="bloqueadoAte" class="cp-handle-hint">
+            Próxima troca liberada em {{ bloqueadoAte }}.
+          </p>
+        </div>
       </div>
 
       <div class="cp-controls">
@@ -143,13 +180,14 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import PanelShell from '@/components/PanelShell.vue'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import PixiAvatarPreview from '@/components/PixiAvatarPreview.vue'
 import { useCharacterStore, type HairStyle } from '@/stores/useCharacterStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { getCharacter, saveCharacter, uploadPhoto, removePhoto, photoUrl } from '@/services/character.api'
+import { changeUsername, me, UsernameError } from '@/services/auth.api'
 
 const emit = defineEmits<{ close: [] }>()
 
@@ -159,11 +197,62 @@ const auth = useAuthStore()
 const activeTab = ref<'hair' | 'skin' | 'outfit' | 'photo'>('hair')
 const saving = ref(false)
 
+const handle = ref('')
+const handleAtual = ref('')
+const handleErro = ref('')
+const handleOk = ref('')
+const handleAviso = ref('')
+const salvandoHandle = ref(false)
+const proximaTrocaEm = ref<string | null>(null)
+
+const bloqueadoAte = computed(() => {
+  if (!proximaTrocaEm.value) return ''
+  const data = new Date(proximaTrocaEm.value)
+  if (Number.isNaN(data.getTime()) || data.getTime() <= Date.now()) return ''
+  return data.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+})
+
+const podeSalvarHandle = computed(
+  () => !salvandoHandle.value && !!handle.value && handle.value.toLowerCase() !== handleAtual.value.toLowerCase(),
+)
+
 onMounted(async () => {
   if (!auth.isAuthenticated) return
   const saved = await getCharacter()
   if (saved && saved.hairStyle) characterStore.$patch(saved)
+  if (auth.isGuest) return
+  try {
+    const perfil = await me()
+    handleAtual.value = perfil.username ?? ''
+    handle.value = perfil.username ?? ''
+  } catch {
+    handleAviso.value = 'Não deu pra ler seu @nome agora.'
+  }
 })
+
+async function salvarHandle() {
+  if (!podeSalvarHandle.value) return
+  salvandoHandle.value = true
+  handleErro.value = ''
+  handleOk.value = ''
+  handleAviso.value = ''
+  try {
+    const view = await changeUsername(handle.value)
+    handleAtual.value = view.username ?? ''
+    handle.value = view.username ?? ''
+    proximaTrocaEm.value = view.proximaTrocaEm
+    handleOk.value = `Pronto: agora você é @${view.username}.`
+  } catch (e) {
+    if (e instanceof UsernameError) {
+      handleErro.value = e.message
+      if (e.proximaTrocaEm) proximaTrocaEm.value = e.proximaTrocaEm
+    } else {
+      handleErro.value = 'Não deu pra trocar o nome de usuário.'
+    }
+  } finally {
+    salvandoHandle.value = false
+  }
+}
 
 async function save() {
   if (auth.isAuthenticated) {
@@ -283,6 +372,47 @@ const ACCESSORIES = [
 }
 
 .cp-name { text-align: center; }
+
+.cp-handle {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.375rem;
+  width: 100%;
+  border-top: 0.0625rem solid var(--border);
+  padding-top: 0.75rem;
+}
+
+.cp-handle .cp-eyebrow { text-align: center; }
+
+.cp-handle-hint {
+  margin: 0;
+  font-size: 0.6875rem;
+  line-height: 1.4;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.cp-handle-row {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.cp-at {
+  font-family: var(--f-mono);
+  font-size: 0.875rem;
+  color: var(--text-3);
+}
+
+.cp-handle-input {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--f-mono);
+}
+
+.cp-handle-ok { color: var(--ok); font-size: 0.75rem; margin: 0; text-align: center; }
+.cp-handle-aviso { color: var(--warn); font-size: 0.75rem; margin: 0; text-align: center; }
 
 .cp-controls {
   display: flex;
