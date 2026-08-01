@@ -78,12 +78,6 @@ export class AuthService {
     return { token: this.jwtService.sign({ sub: user.id, email: user.email }) }
   }
 
-  async loginAsGuest() {
-    const user = this.userRepo.create({ isGuest: true })
-    await this.userRepo.save(user)
-    return { token: this.jwtService.sign({ sub: user.id, isGuest: true }) }
-  }
-
   async usernameStatus(raw: string): Promise<UsernameStatus> {
     const problem = checkUsername(raw)
     if (problem) return { disponivel: false, motivo: problem }

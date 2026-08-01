@@ -135,8 +135,6 @@
           </button>
         </div>
 
-        <!-- Guest button -->
-        <button class="k-btn k-btn-ghost guest-btn" @click="handleGuest">Continuar como convidado</button>
       </div>
 
       <!-- Footer -->
@@ -161,7 +159,7 @@ import MeanderBorder from '@/components/pixel/MeanderBorder.vue'
 import PixelColumn from '@/components/pixel/PixelColumn.vue'
 import Logo from '@/components/logos/Logo.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { login, guest } from '@/services/auth.api'
+import { login } from '@/services/auth.api'
 import { postAuthDest } from '@/services/postAuth'
 
 const router = useRouter()
@@ -205,22 +203,8 @@ function goRegister() {
   router.push('/register')
 }
 
-async function handleGuest() {
-  error.value = ''
-  loading.value = true
-  try {
-    const res = await guest()
-    authStore.setToken(res.token)
-    router.push(await postAuthDest())
-  } catch {
-    error.value = 'Falha ao entrar como convidado.'
-  } finally {
-    loading.value = false
-  }
-}
-
 function socialSoon() {
-  error.value = 'Login com Google/GitHub em breve. Use email e senha ou entre como convidado.'
+  error.value = 'Login com Google/GitHub em breve. Use email e senha.'
 }
 
 // callback de OAuth: /login?token=... → guarda a sessão e entra.
@@ -455,11 +439,6 @@ onMounted(async () => {
   font-size: 0.6875rem;
   padding: 0.625rem 0.75rem;
   gap: 0.375rem;
-}
-
-.guest-btn {
-  width: 100%;
-  font-size: 0.6875rem;
 }
 
 .login-footer {
