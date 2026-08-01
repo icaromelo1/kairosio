@@ -948,7 +948,7 @@ export class PresenceGateway
     try {
       state.status = 'buscando informações...'
       this.broadcastJukebox(room)
-      const track = await this.jukeboxService.resolveTrack(youtubeId, userId, player.name, (label) => {
+      const track = await this.jukeboxService.resolveTrack(youtubeId, userId, player.name, player.serverId, (label) => {
         state.status = label
         this.broadcastJukebox(room)
       })

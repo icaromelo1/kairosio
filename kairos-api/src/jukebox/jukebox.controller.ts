@@ -3,6 +3,7 @@ import { AuthGuard } from '@nestjs/passport'
 import { Response } from 'express'
 import { JukeboxService } from './jukebox.service'
 import { isAdminEmail } from '../auth/admin'
+import { ServerAdminGuard } from '../server/server-admin.guard'
 
 @Controller('jukebox')
 export class JukeboxController {
@@ -32,5 +33,11 @@ export class JukeboxController {
   async sync(@Request() req: any) {
     if (!isAdminEmail(req.user.email)) throw new ForbiddenException('Apenas administradores')
     return this.jukebox.syncFromDrive()
+  }
+
+  @UseGuards(AuthGuard('jwt'), ServerAdminGuard)
+  @Post('sync/server')
+  async syncServer(@Request() req: any) {
+    return this.jukebox.syncServer(req.user.serverId)
   }
 }

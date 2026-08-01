@@ -44,8 +44,9 @@ export interface Me {
   username: string | null
   usernameChangedAt: string | null
   isGuest: boolean
+  isAdmin: boolean
   serverId: string | null
-  serverRole: string
+  serverRole: 'admin' | 'member'
   createdAt: string
 }
 

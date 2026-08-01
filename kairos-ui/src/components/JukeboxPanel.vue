@@ -60,9 +60,24 @@
               <span class="ellipsis">{{ libraryOpen ? 'esconder biblioteca' : 'ver músicas já baixadas' }}</span>
             </button>
           </div>
-          <div class="col-auto">
-            <button class="k-btn k-btn-ghost k-btn-sm" :disabled="syncing" @click="syncFromDrive" title="rebaixar do Drive tudo que estiver faltando no cache local">
-              <PixelIcon v-if="!syncing" name="reload" size="0.75rem" />{{ syncing ? 'sincronizando...' : 'sync' }}
+          <div class="col-auto row q-gutter-xs">
+            <button
+              v-if="isServerAdmin"
+              class="k-btn k-btn-ghost k-btn-sm"
+              :disabled="!!syncing"
+              title="rebaixar do Drive as músicas adicionadas neste servidor"
+              @click="syncServer"
+            >
+              <PixelIcon v-if="syncing !== 'server'" name="reload" size="0.75rem" />{{ syncing === 'server' ? 'sincronizando...' : 'sync deste servidor' }}
+            </button>
+            <button
+              v-if="isProductAdmin"
+              class="k-btn k-btn-ghost k-btn-sm"
+              :disabled="!!syncing"
+              title="rebaixar do Drive tudo que estiver faltando no cache local, de todos os servidores"
+              @click="syncFromDrive"
+            >
+              <PixelIcon v-if="syncing !== 'all'" name="reload" size="0.75rem" />{{ syncing === 'all' ? 'sincronizando...' : 'sync geral' }}
             </button>
           </div>
         </div>
@@ -116,10 +131,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { jukeboxState, jukeboxError, emitJukeboxAdd, emitJukeboxSkip, emitJukeboxSetMode } from '@/services/presence'
 import { personalVolume } from '@/services/jukeboxAudio'
 import { apiFetch } from '@/services/http'
+import { me } from '@/services/auth.api'
 import PixelIcon from '@/components/PixelIcon.vue'
 
 defineEmits(['close'])
@@ -185,30 +201,58 @@ function addAll() {
   for (const t of library.value) emitJukeboxAdd(t.youtubeId)
 }
 
-const syncing = ref(false)
+const syncing = ref<'' | 'server' | 'all'>('')
 const syncMessage = ref('')
+const isProductAdmin = ref(false)
+const isServerAdmin = ref(false)
 
-async function syncFromDrive() {
-  syncing.value = true
+onMounted(async () => {
+  try {
+    const perfil = await me()
+    isProductAdmin.value = perfil.isAdmin
+    isServerAdmin.value = perfil.serverRole === 'admin' && !!perfil.serverId
+  } catch {
+    isProductAdmin.value = false
+    isServerAdmin.value = false
+  }
+})
+
+async function runSync(rota: string, modo: 'server' | 'all', resumo: (r: any) => string) {
+  syncing.value = modo
   syncMessage.value = ''
   try {
-    const res = await apiFetch('/jukebox/sync', { method: 'POST' })
+    const res = await apiFetch(rota, { method: 'POST' })
     if (res.status === 403) {
-      syncMessage.value = 'apenas administradores podem sincronizar'
+      syncMessage.value = 'você não tem permissão para essa sincronização'
       return
     }
     if (!res.ok) {
       syncMessage.value = 'falha ao sincronizar'
       return
     }
-    const r = await res.json()
-    syncMessage.value = `${r.downloaded} baixadas, ${r.skipped} já no cache, ${r.recovered} recuperadas no banco (${r.total} no total)`
+    syncMessage.value = resumo(await res.json())
     if (libraryOpen.value) fetchLibrary()
   } catch {
     syncMessage.value = 'falha ao sincronizar'
   } finally {
-    syncing.value = false
+    syncing.value = ''
   }
+}
+
+function syncFromDrive() {
+  return runSync(
+    '/jukebox/sync',
+    'all',
+    (r) => `${r.downloaded} baixadas, ${r.skipped} já no cache, ${r.recovered} recuperadas no banco (${r.total} no total)`,
+  )
+}
+
+function syncServer() {
+  return runSync('/jukebox/sync/server', 'server', (r) =>
+    r.total === 0
+      ? 'nenhuma música foi adicionada por este servidor ainda'
+      : `${r.downloaded} baixadas, ${r.skipped} já no cache${r.missing ? `, ${r.missing} sumiram do Drive` : ''} (${r.total} deste servidor)`,
+  )
 }
 </script>
 
