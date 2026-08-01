@@ -1,5 +1,4 @@
 export const DM_TEXTO_MAX = 2000
-// mesmo freio do chat de mundo (CHAT_MIN_INTERVAL_MS no presence.gateway)
 export const DM_INTERVALO_MIN_MS = 500
 export const DM_PAGINA_PADRAO = 30
 export const DM_PAGINA_MAX = 50
@@ -12,10 +11,6 @@ export interface DmCursor {
   id: string
 }
 
-// o cursor leva data E id: duas mensagens gravadas no mesmo milissegundo empatam na
-// data, e um cursor só de data faria a página seguinte repetir ou pular uma delas.
-// A data vai em milissegundos (não em ISO) pra nenhum caractere precisar de escape na
-// query string — ':' do ISO sai como %3A.
 export function encodeCursor(enviadaEm: Date, id: string): string {
   return `${new Date(enviadaEm).getTime()}${CURSOR_SEP}${id}`
 }

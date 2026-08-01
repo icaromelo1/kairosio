@@ -11,7 +11,6 @@ import { DmController } from './dm.controller'
   imports: [TypeOrmModule.forFeature([DmConversation, DmMessage]), FriendModule],
   providers: [DmService, DmDelivery],
   controllers: [DmController],
-  // DmDelivery é exportado pra quem entrega em tempo real (PresenceGateway) se registrar
   exports: [DmDelivery],
 })
 export class DmModule {}

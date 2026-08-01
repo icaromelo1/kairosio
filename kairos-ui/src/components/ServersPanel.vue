@@ -95,8 +95,6 @@ async function run(action: () => Promise<void>) {
   }
 }
 
-// entrar no servidor onde já estou é fechar o painel: trocar pelo mesmo id
-// derrubaria a presença e a voz à toa
 function pick(serverId: string) {
   if (serverId === activeId.value) { emit('close'); return }
   void run(async () => {
@@ -124,8 +122,6 @@ function join() {
     const entered = code.value
     code.value = ''
     await load()
-    // o back só ativa o servidor do convite pra quem ainda não tinha nenhum;
-    // com outro ativo, quem escolhe entrar é a pessoa, na lista acima
     if (activeId.value !== before) {
       emit('server-changed')
       emit('close')
@@ -135,8 +131,6 @@ function join() {
   })
 }
 
-// o convite volta pro localStorage pra sobreviver ao cadastro — o RegisterPage o consome
-// e a entrada devolve o código já preenchido neste painel
 function goRegister() {
   if (code.value) setPendingInvite(code.value)
   router.push('/register')

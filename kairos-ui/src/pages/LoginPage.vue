@@ -66,7 +66,6 @@
 
       <!-- Login card -->
       <div class="k-card login-card">
-        <!-- Beta chip -->
         <div class="card-toprow">
           <span class="k-chip">v0.1 · Beta</span>
         </div>

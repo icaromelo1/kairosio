@@ -73,8 +73,6 @@ const loading = ref(false)
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-// espelho das regras do backend: serve pra avisar antes de gastar uma chamada,
-// mas quem decide continua sendo o servidor
 const USERNAME_RE = /^[A-Za-z0-9._]{3,20}$/
 const RESERVED = ['admin', 'kairos', 'suporte', 'sistema', 'moderador', 'eu']
 const RULES_MESSAGE =
@@ -113,8 +111,6 @@ function localProblem(value: string): 'formato' | 'reservado' | null {
   return null
 }
 
-// o campo já mostra o @ do lado de fora, e espaço nunca é aceito: tirar na
-// digitação evita a pessoa descobrir isso só no erro
 function onUsernameInput(event: Event) {
   const el = event.target as HTMLInputElement
   const cleaned = el.value.replace(/^@+/, '').replace(/\s+/g, '')
@@ -123,7 +119,6 @@ function onUsernameInput(event: Event) {
 }
 
 let checkTimer: ReturnType<typeof setTimeout> | undefined
-// resposta atrasada de um nome antigo não pode sobrescrever o resultado do atual
 let checkSeq = 0
 
 watch(username, (value) => {

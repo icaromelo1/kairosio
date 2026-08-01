@@ -155,8 +155,6 @@ export class ServerService implements OnModuleInit {
     return this.me(userId)
   }
 
-  // entrada por convite direto de amigo: mesmo efeito do join por código, sem
-  // código no meio. As checagens de arquivado e de já-ser-membro são as mesmas
   async joinFromFriendInvite(userId: string, serverId: string) {
     const server = await this.servers.findOne({ where: { id: serverId } })
     if (!server) throw new NotFoundException('Servidor não encontrado')

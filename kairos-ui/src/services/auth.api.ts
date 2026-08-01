@@ -38,8 +38,6 @@ export async function checkUsername(username: string): Promise<UsernameStatus> {
   return res.json()
 }
 
-// email repetido e nome de usuário repetido são os dois 409: quem separa um do
-// outro é o code do corpo, não o status
 async function failureCode(res: Response): Promise<string> {
   const body = await res.json().catch(() => null)
   const code = (body as { code?: unknown } | null)?.code

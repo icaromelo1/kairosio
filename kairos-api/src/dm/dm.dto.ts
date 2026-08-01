@@ -10,7 +10,6 @@ export class SendDmDto {
 }
 
 export class DmHistoryQueryDto {
-  // cursor opaco devolvido pela página anterior (`proximoCursor`)
   @IsOptional()
   @IsString()
   @MaxLength(80)

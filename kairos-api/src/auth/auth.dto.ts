@@ -9,8 +9,6 @@ export class AuthCredentialsDto {
   password: string
 }
 
-// o teto de 64 é só contra payload gigante: quem recusa por tamanho/formato é o
-// checkUsername, que sabe distinguir formato de nome reservado na resposta
 export class RegisterDto extends AuthCredentialsDto {
   @IsString()
   @MaxLength(64)

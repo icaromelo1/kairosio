@@ -47,9 +47,6 @@ export class FriendService {
     return this.views(rows, userId)
   }
 
-  // só os ids de quem já é amigo aceito, em lote. Existe pro gateway de presença:
-  // ele precisa do conjunto por usuário a cada varredura, e as views de `list`
-  // trariam junto um join de perfil que ninguém ali usa.
   async acceptedFriendIds(userIds: string[]): Promise<Map<string, Set<string>>> {
     const unicos = [...new Set(userIds)].filter(Boolean)
     const mapa = new Map<string, Set<string>>()
@@ -87,7 +84,6 @@ export class FriendService {
     }
   }
 
-  // só quem bloqueou enxerga a linha bloqueada — é daqui que sai o id pro unblock
   async blocked(userId: string) {
     const rows = await this.friendships.find({
       where: [
@@ -98,8 +94,6 @@ export class FriendService {
     return this.views(rows, userId)
   }
 
-  // "estes dois podem se falar agora?" — só 'aceita' responde sim. Desfazer a amizade
-  // apaga a linha e bloquear muda o status, então os dois casos caem aqui do mesmo jeito.
   async saoAmigos(userId: string, outroId: string): Promise<boolean> {
     if (!userId || !outroId || userId === outroId) return false
     const row = await this.friendships.findOne({
@@ -118,8 +112,6 @@ export class FriendService {
       })
     }
 
-    // o teto é conferido ANTES de procurar o alvo: conferido depois, a mensagem de
-    // teto só apareceria pra nome que existe, virando um detector de contas
     const pendentes = await this.friendships.count({
       where: { requestedBy: userId, status: 'pendente' },
     })
@@ -150,8 +142,6 @@ export class FriendService {
       await this.friendships.save(novo)
     } catch (err: any) {
       if (err?.code !== UNIQUE_VIOLATION) throw err
-      // os dois se pediram no mesmo instante e passaram juntos pela consulta acima:
-      // quem perdeu a corrida do UNIQUE cai aqui e resolve contra a linha que venceu
       const corrida = await this.friendships.findOne({ where: pair })
       if (!corrida) throw err
       return this.reconciliar(corrida, userId)
@@ -176,8 +166,6 @@ export class FriendService {
     return this.view(row, userId)
   }
 
-  // recusar apaga a linha: os três estados do par são pendente, aceita e bloqueada —
-  // não existe "recusada" guardada, e quem pediu não é avisado
   async reject(userId: string, id: string) {
     const row = await this.mine(id, userId)
     if (row.status !== 'pendente' || row.requestedBy === userId) throw this.pedidoNaoEncontrado()
@@ -185,7 +173,6 @@ export class FriendService {
     return { ok: true }
   }
 
-  // some dos dois lados sem avisar ninguém; serve também pra desistir de um pedido enviado
   async remove(userId: string, id: string) {
     const row = await this.mine(id, userId)
     await this.friendships.delete(row.id)
@@ -201,7 +188,6 @@ export class FriendService {
     return this.view(row, userId)
   }
 
-  // desbloquear não devolve a amizade: apaga a linha e os dois voltam a ser estranhos
   async unblock(userId: string, id: string) {
     const row = await this.mine(id, userId)
     if (row.status !== 'bloqueada' || row.blockedBy !== userId) throw this.amizadeNaoEncontrada()
@@ -219,8 +205,6 @@ export class FriendService {
     }
     const amigoId = otherSide(row, userId)
 
-    // mesma régua do link de convite (GET /server/:id/invite): quem não pode tirar o
-    // link também não pode convidar por dentro
     const minha = await this.memberships.findOne({ where: { userId, serverId } })
     if (!minha) throw new ForbiddenException('Você não é membro deste servidor')
     if (minha.role !== 'admin') {
@@ -254,8 +238,6 @@ export class FriendService {
 
   async respondServerInvite(userId: string, inviteId: string, aceitar: boolean) {
     const convite = await this.serverInvites.findOne({ where: { id: inviteId } })
-    // convite de outra pessoa responde igual a convite inexistente: quem recebeu
-    // um id alheio não deve descobrir que ele existe
     if (!convite || convite.toUserId !== userId) throw new NotFoundException('Convite não encontrado')
     if (convite.status !== 'pendente') throw new ConflictException('Este convite já foi respondido')
 
@@ -264,8 +246,6 @@ export class FriendService {
     await this.serverInvites.save(convite)
 
     if (!aceitar) return { id: convite.id, status: convite.status }
-    // a entrada em si é do ServerService: criar membership aqui duplicaria as
-    // checagens de arquivado e de já-ser-membro em dois lugares
     const servidor = await this.serverService.joinFromFriendInvite(userId, convite.serverId)
     return { id: convite.id, status: convite.status, servidor }
   }
@@ -286,8 +266,6 @@ export class FriendService {
     }))
   }
 
-  // a linha bloqueada pelo outro não existe pro bloqueado: mesma resposta de uma
-  // amizade que nunca houve, pra nada na API denunciar o bloqueio
   private async mine(id: string, userId: string): Promise<Friendship> {
     const row = await this.friendships.findOne({ where: { id } })
     if (!row || !isParty(row, userId)) throw this.amizadeNaoEncontrada()
@@ -308,7 +286,6 @@ export class FriendService {
     if (row.status === 'aceita') {
       throw new ConflictException({ code: 'friend-already', message: 'Vocês já são amigos.' })
     }
-    // o outro já tinha pedido: pedir de volta é o mesmo que aceitar, e continua uma linha só
     if (row.requestedBy !== userId) {
       row.status = 'aceita'
       row.respondedAt = new Date()
@@ -335,7 +312,6 @@ export class FriendService {
     }))
   }
 
-  // o nome de exibição vive em Character, o @nome em User
   async perfis(ids: string[]): Promise<Map<string, Perfil>> {
     const unicos = [...new Set(ids)]
     const mapa = new Map<string, Perfil>()

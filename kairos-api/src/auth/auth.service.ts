@@ -67,8 +67,6 @@ export class AuthService {
     return { token: this.jwtService.sign({ sub: user.id, email: user.email }) }
   }
 
-  // login via OAuth (Google/GitHub): acha ou cria o usuário pelo email. Nasce sem
-  // username — escolhe o dele depois, pelo PATCH /auth/username
   async oauthLogin(email: string) {
     const normalized = email.trim().toLowerCase()
     let user = await this.userRepo.findOne({ where: { email: normalized } })
@@ -85,8 +83,6 @@ export class AuthService {
     return { token: this.jwtService.sign({ sub: user.id, isGuest: true }) }
   }
 
-  // resposta idêntica pra "formato ruim" e "já é de alguém" no que importa
-  // (disponivel: false); o motivo só existe pra tela explicar o que corrigir
   async usernameStatus(raw: string): Promise<UsernameStatus> {
     const problem = checkUsername(raw)
     if (problem) return { disponivel: false, motivo: problem }
@@ -107,8 +103,6 @@ export class AuthService {
     const name = displayUsername(raw)
     const nameLower = normalizeUsername(raw)
 
-    // trocar só a grafia (icaro → Icaro) não faz ninguém perder você de vista,
-    // então não gasta a troca dos 30 dias
     if (user.usernameLower === nameLower) {
       if (user.username !== name) {
         user.username = name
@@ -129,8 +123,6 @@ export class AuthService {
     const owner = await this.userRepo.findOne({ where: { usernameLower: nameLower } })
     if (owner) throw this.usernameTaken()
 
-    // conta que ainda não tinha nome (criada antes desta coluna, ou via OAuth)
-    // está adotando o primeiro, não trocando: não inicia a espera
     const adotandoOPrimeiro = !user.usernameLower
     user.username = name
     user.usernameLower = nameLower
@@ -191,8 +183,6 @@ export class AuthService {
     }
   }
 
-  // duas pessoas pedindo o mesmo nome no mesmo instante passam as duas pela
-  // consulta acima; quem decide de verdade é o UNIQUE do banco
   private async saveUnique(user: User) {
     try {
       await this.userRepo.save(user)

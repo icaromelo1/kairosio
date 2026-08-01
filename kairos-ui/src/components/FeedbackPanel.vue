@@ -1,7 +1,6 @@
 <template>
   <PanelShell title="feedback" icon="bug" size="lg" @close="emit('close')">
     <div class="fp-grid">
-      <!-- Formulário -->
       <section class="fp-card">
         <h3 class="fp-title">Relatar bug ou pedir melhoria</h3>
         <p class="k-hint-text fp-intro">
@@ -48,7 +47,6 @@
         <p v-if="err" class="fp-err">{{ err }}</p>
       </section>
 
-      <!-- Lista -->
       <section class="fp-card">
         <h3 class="fp-title">Enviados <span class="fp-dim">{{ list.length }}</span></h3>
         <p v-if="!list.length" class="k-hint-text">Nenhum feedback ainda. Seja o primeiro.</p>
@@ -90,7 +88,6 @@ const sending = ref(false)
 const ok = ref(false)
 const err = ref('')
 
-// já vem com o email do usuário logado (o gate exige email cadastrado)
 const form = reactive({ kind: 'bug' as FeedbackKind, title: '', message: '' })
 
 const statusLabel: Record<FeedbackStatus, string> = {
@@ -118,7 +115,6 @@ function fmtDate(s: string): string {
 function fmtDateTime(s: string): string {
   return new Date(s).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit', hour: '2-digit', minute: '2-digit' })
 }
-// "há X" — timer regressivo (recalcula via `now`, que atualiza a cada 60s)
 const now = ref(Date.now())
 function relTime(s: string): string {
   void now.value

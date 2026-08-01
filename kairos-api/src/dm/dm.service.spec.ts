@@ -25,8 +25,6 @@ class FakeRepo {
     }
     if (!row.id) {
       row.id = `${this.prefix}${String(++this.seq).padStart(4, '0')}`
-      // createdAt da mensagem vem do serviço (é o cursor da paginação): só preenche o que
-      // o banco preencheria sozinho
       if (row.createdAt === undefined) row.createdAt = new Date()
       this.rows.push(row)
     }
@@ -97,7 +95,6 @@ function cmp(a: any, b: any): number {
   return x < y ? -1 : 1
 }
 
-// o perfil sai de um join com characters; aqui basta id e @nome
 class FakeUserRepo extends FakeRepo {
   createQueryBuilder() {
     let ids: string[] = []
@@ -115,8 +112,6 @@ class FakeUserRepo extends FakeRepo {
   }
 }
 
-// reproduz em JS a contagem de não-lidas que no banco é um GROUP BY com join na conversa;
-// a SQL de verdade é exercitada contra o Postgres, não aqui
 class FakeMessageRepo extends FakeRepo {
   conversas: FakeRepo
 
@@ -192,9 +187,6 @@ async function amizade(ctx: Ctx, de: any, paraUsername: string) {
   return pedido.id
 }
 
-// relógio controlado: o intervalo mínimo entre envios é regra do serviço, e sem mexer no
-// relógio dois envios seguidos cairiam no mesmo milissegundo — ordem de conversa e corte
-// de não-lidas passariam a depender de empate de data
 beforeEach(() => jest.useFakeTimers({ now: new Date('2026-07-31T12:00:00.000Z') }))
 afterEach(() => jest.useRealTimers())
 
@@ -289,7 +281,6 @@ describe('DmService — uma conversa por par', () => {
   it('os dois mandando no mesmo instante: quem perde o UNIQUE escreve na conversa do outro', async () => {
     const ctx = await dupla()
     const primeira = await enviar(ctx, ctx.a.id, ctx.b.id, 'de A')
-    // B passa pela busca antes de a linha de A existir e só descobre no INSERT
     ctx.conversations.escondeNoProximoFindOne = true
     ctx.conversations.falhaNoProximoSave = Object.assign(new Error('duplicate key'), {
       code: '23505',
@@ -375,7 +366,6 @@ describe('DmService — não-lidas', () => {
     await enviar(ctx, ctx.a.id, ctx.b.id, 'duas')
 
     expect((await ctx.service.list(ctx.b.id))[0].naoLidas).toBe(2)
-    // o que eu mesmo mandei nunca conta como não lido
     expect((await ctx.service.list(ctx.a.id))[0].naoLidas).toBe(0)
 
     await ctx.service.markRead(ctx.b.id, enviada.conversaId)
@@ -503,9 +493,7 @@ describe('DmService — limites de envio', () => {
     const c = await novaConta(ctx.users, 'terceira')
     await amizade(ctx, ctx.a, 'terceira')
     await ctx.service.send(ctx.a.id, ctx.b.id, 'pra B')
-    // conversa diferente, mesma pessoa mandando: continua barrado
     await expectCode(ctx.service.send(ctx.a.id, c.id, 'pra C'), 'dm-rapido-demais')
-    // pessoa diferente não paga pelo envio de quem quer que seja
     await expect(ctx.service.send(ctx.b.id, ctx.a.id, 'resposta')).resolves.toMatchObject({
       texto: 'resposta',
     })

@@ -2,7 +2,6 @@ import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from 
 
 export type FriendServerInviteStatus = 'pendente' | 'aceito' | 'recusado'
 
-// convite de servidor mandado direto a um amigo, sem link copiado por fora
 @Entity('friend_server_invites')
 @Index(['toUserId', 'status'])
 export class FriendServerInvite {

@@ -11,7 +11,6 @@ export interface DmMensagemView {
 }
 
 export interface DmEntrega {
-  // quem deve receber; o gateway é que sabe traduzir isso em socket (userSocket)
   paraUserId: string
   conversaId: string
   de: Perfil | null
@@ -21,9 +20,6 @@ export interface DmEntrega {
 
 type Ouvinte = (entrega: DmEntrega) => void
 
-// costura com o socket sem o módulo de mensagens conhecer o gateway: o DmService grava e
-// anuncia aqui, e quem entrega de fato (PresenceGateway, que tem a conexão de todo mundo)
-// se registra. Sem ouvinte registrado, a mensagem continua gravada e chega pelo histórico.
 @Injectable()
 export class DmDelivery {
   private ouvinte: Ouvinte | null = null
@@ -33,11 +29,8 @@ export class DmDelivery {
   }
 
   entregar(entrega: DmEntrega) {
-    // entrega em tempo real é acessório: falhar aqui não pode desfazer o que já foi gravado
     try {
       this.ouvinte?.(entrega)
-    } catch {
-      /* ignora */
-    }
+    } catch {}
   }
 }

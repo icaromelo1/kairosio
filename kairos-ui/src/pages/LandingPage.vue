@@ -186,8 +186,6 @@ const floorTiles = Array.from({ length: 9 }, (_, row) =>
 
 .lp-who {
   position: absolute;
-  /* o avatar tem tamanho fixo em px (é pixel art, não escala junto com a caixa):
-     a âncora é o pé dele, por isso translate de -50%/-100% */
   transform: translate(-50%, -100%);
 }
 

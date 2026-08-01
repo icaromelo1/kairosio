@@ -40,8 +40,6 @@ test('fluxo convidado: login -> jogo direto', async ({ page }) => {
   await page.goto('/login')
   await page.locator('text=Continuar como convidado').click()
 
-  // o convidado vai direto ao jogo: não passa mais por escolha de servidor nem
-  // de mundo. Sem personagem salvo, o painel de personagem abre junto
   await expect(page).toHaveURL(/\/game(\?.*)?$/)
 })
 
