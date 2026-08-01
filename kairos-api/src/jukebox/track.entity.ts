@@ -25,6 +25,9 @@ export class Track {
   @Column({ type: 'uuid', nullable: true })
   addedBy: string | null
 
+  @Column({ type: 'uuid', nullable: true })
+  serverId: string | null
+
   @Column()
   addedByName: string
 

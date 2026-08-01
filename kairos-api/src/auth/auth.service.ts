@@ -11,6 +11,7 @@ import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 import { User } from '../user/user.entity'
 import { ServerMembership } from '../server/server-membership.entity'
+import { isAdminEmail } from './admin'
 import {
   UsernameProblem,
   checkUsername,
@@ -132,7 +133,7 @@ export class AuthService {
   }
 
   async me(userId: string) {
-    return this.userRepo.findOne({
+    const user = await this.userRepo.findOne({
       where: { id: userId },
       select: [
         'id',
@@ -145,6 +146,8 @@ export class AuthService {
         'createdAt',
       ],
     })
+    if (!user) return null
+    return { ...user, isAdmin: isAdminEmail(user.email) }
   }
 
   // convidado nunca fica pra trás no banco: ao sair (botão "Sair"), se for

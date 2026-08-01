@@ -119,12 +119,35 @@ export class JukeboxService implements OnModuleInit {
     return { total: files.length, downloaded, skipped, recovered }
   }
 
+  async syncServer(serverId: string): Promise<{ total: number; downloaded: number; skipped: number; missing: number }> {
+    const tracks = await this.tracks.find({ where: { serverId } })
+    let downloaded = 0
+    let skipped = 0
+    let missing = 0
+
+    for (const track of tracks) {
+      if (this.cache.has(track.driveFile)) {
+        skipped++
+        continue
+      }
+      try {
+        await this.drive.download(track.driveFile, this.cache.localPath(track.driveFile))
+        downloaded++
+      } catch (e) {
+        this.logger.warn(`Sync do servidor: ${track.driveFile} não veio do Drive: ${(e as Error).message}`)
+        missing++
+      }
+    }
+    return { total: tracks.length, downloaded, skipped, missing }
+  }
+
   // resolve um link/id pra uma Track: dedup por youtubeId (já baixada antes? só
   // garante que está quente no cache) ou baixa + sobe pro Drive pela primeira vez.
   async resolveTrack(
     youtubeId: string,
     userId: string,
     userName: string,
+    serverId: string | null,
     onProgress?: (label: string) => void,
   ): Promise<Track> {
     const existing = await this.tracks.findOne({ where: { youtubeId } })
@@ -143,7 +166,7 @@ export class JukeboxService implements OnModuleInit {
     const inFlight = this.inFlightDownloads.get(youtubeId)
     if (inFlight) return inFlight
 
-    const promise = this.downloadAndSave(youtubeId, userId, userName, onProgress).finally(() => {
+    const promise = this.downloadAndSave(youtubeId, userId, userName, serverId, onProgress).finally(() => {
       this.inFlightDownloads.delete(youtubeId)
     })
     this.inFlightDownloads.set(youtubeId, promise)
@@ -154,6 +177,7 @@ export class JukeboxService implements OnModuleInit {
     youtubeId: string,
     userId: string,
     userName: string,
+    serverId: string | null,
     onProgress?: (label: string) => void,
   ): Promise<Track> {
     onProgress?.('baixando áudio do YouTube...')
@@ -170,6 +194,7 @@ export class JukeboxService implements OnModuleInit {
       driveFile: fileName,
       addedBy: userId,
       addedByName: userName,
+      serverId,
       lastPlayedAt: new Date(),
     })
     await this.tracks.save(track)
