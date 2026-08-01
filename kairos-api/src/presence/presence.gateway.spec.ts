@@ -1,10 +1,5 @@
 import { PresenceGateway } from './presence.gateway'
 
-// A regra em teste: online é de todo amigo aceito, LUGAR (servidor, mundo,
-// microfone, tela) é só de quem também é membro daquele servidor. O teste olha o
-// que o gateway EMITE, não o que a tela desenharia — é no emit que a privacidade
-// vive ou morre.
-
 interface Emitido {
   para: string
   evento: string
@@ -36,7 +31,6 @@ function makeGateway(amizades: Record<string, string[]> = {}) {
   return { gateway, emitidos }
 }
 
-// põe uma pessoa conectada e dentro de um mundo, como o handleJoin faria
 function entra(
   gateway: any,
   { socketId, userId, serverId, map }: { socketId: string; userId: string; serverId: string; map: string },
@@ -58,7 +52,6 @@ function entra(
   })
 }
 
-// alguém que abriu o painel de amigos: observa `amigos` e é membro de `servidores`
 function observa(
   gateway: any,
   { socketId, userId, amigos, servidores }: { socketId: string; userId: string; amigos: string[]; servidores: string[] },
@@ -152,7 +145,6 @@ describe('PresenceGateway — presença de amigo', () => {
     entra(gateway, { socketId: 'sB', userId: 'B', serverId: 'compartilhado', map: 'agora' })
     observa(gateway, { socketId: 'sA', userId: 'A', amigos: ['B'], servidores: ['compartilhado'] })
 
-    // o sweep relê as memberships do banco, que agora não tem mais a de A
     await (gateway as any).sweepMemberships()
 
     const estado = emitidos.filter((e) => e.evento === 'friendPresenceState').pop()

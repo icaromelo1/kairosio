@@ -1,7 +1,6 @@
 <template>
   <PanelShell title="personagem" icon="user" size="lg" @close="emit('close')">
     <div class="cp-grid">
-      <!-- preview ao vivo -->
       <div class="cp-stage">
         <span class="cp-eyebrow">seu avatar</span>
         <div class="cp-preview">
@@ -23,7 +22,6 @@
         />
       </div>
 
-      <!-- customização -->
       <div class="cp-controls">
         <div class="cp-tabs">
           <button
@@ -161,7 +159,6 @@ const auth = useAuthStore()
 const activeTab = ref<'hair' | 'skin' | 'outfit' | 'photo'>('hair')
 const saving = ref(false)
 
-// a customização salva no banco (cross-device) vence a do localStorage
 onMounted(async () => {
   if (!auth.isAuthenticated) return
   const saved = await getCharacter()

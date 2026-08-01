@@ -1,5 +1,3 @@
-// API de amizade (/friend). Toda rota é autenticada e recusa convidado com 403
-// `guest-no-friends` — a tela confere isso antes de chamar.
 import { apiFetch } from './http'
 
 export interface FriendUser {
@@ -33,8 +31,6 @@ export interface FriendServerInvite {
   de?: FriendUser | null
 }
 
-// o `code` do corpo é o que separa "não existe" de "já são amigos" e de "você
-// bloqueou"; a mensagem do back entra só como texto de reserva
 export class FriendError extends Error {
   readonly code: string
 
@@ -73,8 +69,6 @@ export function receivedServerInvites(): Promise<FriendServerInvite[]> {
   return send('/friend/invites', 'Falha ao carregar os convites de servidor')
 }
 
-// o "@" é enfeite da interface: o back tira sozinho, mas mandar sem ele evita
-// depender disso
 export function requestFriend(username: string): Promise<FriendView> {
   return send('/friend/request', 'Falha ao enviar o pedido', {
     method: 'POST',

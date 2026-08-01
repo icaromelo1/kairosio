@@ -50,8 +50,6 @@ export class FriendController {
     return this.friends.respondServerInvite(req.user.sub, id, false)
   }
 
-  // limite próprio, bem abaixo do teto global: no ritmo de 120/min esta rota vira um
-  // enumerador de quais @nomes existem na plataforma
   @Throttle({ default: { limit: 20, ttl: 60000 } })
   @Post('request')
   request(@Request() req: any, @Body() dto: FriendRequestDto) {

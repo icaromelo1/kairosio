@@ -45,8 +45,6 @@ export class DmService {
     const rows = await this.conversations.find({
       where: [{ userAId: userId }, { userBId: userId }],
     })
-    // conversa de quem não é mais amigo não aparece: a linha continua no banco e volta a
-    // aparecer com o histórico inteiro se a amizade voltar
     const minhas = rows.filter((row) => perfis.has(otherSide(row, userId)))
     if (!minhas.length) return []
 
@@ -76,7 +74,6 @@ export class DmService {
         ]
       : [{ conversationId: conversa.id }]
 
-    // uma a mais que a página só pra saber se ainda tem passado; ela não é devolvida
     const rows = await this.messages.find({
       where,
       order: { createdAt: 'DESC', id: 'DESC' },
@@ -86,14 +83,11 @@ export class DmService {
     const ultima = pagina[pagina.length - 1]
     return {
       conversaId: conversa.id,
-      // mais recente primeiro, a mesma direção em que a página anda
       mensagens: pagina.map((row) => this.mensagemView(row, userId)),
       proximoCursor: rows.length > take && ultima ? encodeCursor(ultima.createdAt, ultima.id) : null,
     }
   }
 
-  // :amigoUserId é o id do USUÁRIO amigo (o das listas de amizade), não o da conversa —
-  // a conversa pode nem existir ainda quando a primeira mensagem chega
   async send(userId: string, amigoUserId: string, textoBruto: unknown) {
     if (userId === amigoUserId) {
       throw new BadRequestException({
@@ -101,8 +95,6 @@ export class DmService {
         message: 'Você não pode mandar mensagem pra você mesmo.',
       })
     }
-    // a amizade é conferida a CADA mensagem, não só ao abrir a conversa: sem isso uma
-    // conversa aberta viraria canal permanente, sobrevivendo ao fim da amizade
     await this.assertAmizade(userId, amigoUserId)
 
     const texto = normalizeTexto(textoBruto)
@@ -157,8 +149,6 @@ export class DmService {
     })
   }
 
-  // freio no servidor, medido pela última mensagem gravada da pessoa: o teto do cliente é
-  // contornável pelo console, e um freio em memória zeraria a cada reinício
   private async assertIntervalo(userId: string) {
     const ultima = await this.messages.findOne({
       where: { authorId: userId },
@@ -183,8 +173,6 @@ export class DmService {
       return await this.conversations.save(this.conversations.create(par))
     } catch (err: any) {
       if (err?.code !== UNIQUE_VIOLATION) throw err
-      // os dois mandaram a primeira mensagem no mesmo instante e passaram juntos pela
-      // consulta acima: quem perdeu a corrida do UNIQUE escreve na linha que venceu
       const corrida = await this.conversations.findOne({ where: par })
       if (!corrida) throw err
       return corrida
@@ -217,14 +205,9 @@ export class DmService {
         naoLidas: naoLidas.get(conversa.id) ?? 0,
         mensagem: this.mensagemView(mensagem, destinatarioId),
       })
-    } catch {
-      // a mensagem já está gravada e chega pelo histórico; falhar o envio aqui seria
-      // dizer ao autor que não enviou
-    }
+    } catch {}
   }
 
-  // uma consulta pra todas as conversas: a marca de leitura de quem pergunta mora na
-  // conversa, então o corte sai do join, não de uma marca por mensagem
   private async contarNaoLidas(
     userId: string,
     conversas: DmConversation[],

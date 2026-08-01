@@ -19,8 +19,6 @@ import { jwtSecret } from '../auth/jwt-secret'
     JwtModule.registerAsync({ useFactory: () => ({ secret: jwtSecret() }) }),
     JukeboxModule,
     DmModule,
-    // quem é amigo de quem sai do FriendService — o gateway só decide QUANTO da
-    // presença cada amigo enxerga
     FriendModule,
   ],
   providers: [PresenceGateway],

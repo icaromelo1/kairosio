@@ -80,11 +80,6 @@ type PresenceDelta =
   | { serverId: string; type: 'join' | 'update'; person: PresencePerson }
   | { serverId: string; type: 'leave'; id: string }
 
-// presença de um amigo. `online` vale pra qualquer amigo aceito; TODO o resto —
-// servidor, mundo, microfone, tela — só existe no payload de quem também é membro
-// daquele servidor. Quem não é membro recebe um objeto com dois campos, não um
-// objeto completo pra esconder na tela: a lista de amigos não pode virar um mapa
-// de por onde a pessoa anda.
 interface FriendPresence {
   userId: string
   online: boolean
@@ -203,10 +198,7 @@ export class PresenceGateway
   // servidores que o socket está observando (subconjunto autorizado do que pediu)
   private readonly watchedServers = new Map<string, Set<string>>()
   private readonly lastMembershipCheckAt = new Map<string, number>()
-  // sockets que pediram presença de amigo → ids dos amigos ACEITOS, lidos do
-  // FriendService. Estar aqui é o que faz o socket receber os deltas.
   private readonly friendWatchers = new Map<string, Set<string>>()
-  // convidado não tem @nome nem amizade: a lista dele é vazia sem ir ao banco
   private readonly socketGuest = new Set<string>()
   // handshake em andamento por socket — quem depende da identidade espera aqui
   private readonly identityReady = new Map<string, Promise<void>>()
@@ -236,7 +228,6 @@ export class PresenceGateway
     this.membershipSweep = setInterval(() => void this.sweepMemberships(), MEMBERSHIP_SWEEP_MS)
     this.membershipSweep.unref?.()
 
-    // quem está offline pega pelo histórico; aqui só entregamos a quem está conectado
     this.dmDelivery.register(({ paraUserId, conversaId, de, naoLidas, mensagem }) => {
       const socketId = this.userSocket.get(paraUserId)
       if (!socketId) return
@@ -298,9 +289,6 @@ export class PresenceGateway
     // sozinho — desconexão iniciada pelo servidor não dispara auto-reconnect
     // do socket.io, evitando um looping de "kick mútuo" entre as abas).
     const previousSocketId = this.userSocket.get(userId)
-    // a aba nova assume a sessão ANTES do kick: o disconnect da antiga confere
-    // este registro pra decidir se avisa os amigos que a pessoa saiu, e trocar de
-    // aba não é sair
     this.userSocket.set(userId, socket.id)
     if (previousSocketId && previousSocketId !== socket.id) {
       const previousSocket = this.server.sockets.sockets.get(previousSocketId)
@@ -315,7 +303,6 @@ export class PresenceGateway
       this.forgetSocket(socket.id)
       return
     }
-    // conectou = online pros amigos, mesmo antes de entrar em qualquer mundo
     if (!previousSocketId) this.emitFriendPresence(userId)
   }
 
@@ -332,8 +319,6 @@ export class PresenceGateway
     }
     const userId = this.socketUserId.get(socket.id)
     // só remove se ESSE socket ainda for o "dono" da sessão — evita que o
-    // disconnect tardio de uma aba já kickada apague o registro da aba nova, e
-    // que trocar de aba anuncie "ficou offline" pros amigos
     if (userId && this.userSocket.get(userId) === socket.id) {
       this.userSocket.delete(userId)
       this.emitFriendOffline(userId)
@@ -452,9 +437,6 @@ export class PresenceGateway
     })
   }
 
-  // o look chega no join e antes não mudava mais: com o painel de personagem
-  // dentro do jogo, editar a aparência não tirava mais ninguém da tela e a
-  // mudança ficava invisível pros outros até reconectar
   @SubscribeMessage('avatarUpdate')
   handleAvatarUpdate(socket: Socket, payload: { avatar: unknown; name?: unknown }) {
     const player = this.players.get(socket.id)
@@ -462,11 +444,7 @@ export class PresenceGateway
     const now = Date.now()
     if (now - (this.lastAvatarAt.get(socket.id) ?? 0) < AVATAR_MIN_INTERVAL_MS) return
     this.lastAvatarAt.set(socket.id, now)
-    // o mesmo saneamento do join: sem ele o payload seria uma URL arbitrária que
-    // a sala inteira baixaria
     player.avatar = sanitizeAvatar(payload?.avatar)
-    // o painel salva nome e aparência juntos; sem isto o nome flutuante e a
-    // lista de presença ficariam com o valor do join
     const nomeNovo = payload?.name === undefined ? player.name : sanitizeName(payload.name)
     const nomeMudou = nomeNovo !== player.name
     player.name = nomeNovo
@@ -581,13 +559,6 @@ export class PresenceGateway
     }
   }
 
-  // ---- presença de amigo: online pra qualquer amigo, LUGAR só pra quem compartilha ----
-  //
-  // Não existe sala de socket.io aqui de propósito: sala entrega o mesmo payload a
-  // todo mundo dentro dela, e aqui o payload é DIFERENTE por destinatário — quem é
-  // membro do servidor do amigo recebe o lugar, quem não é recebe só "online". Por
-  // isso o envio é socket a socket, com a visibilidade recalculada em cada um.
-
   @SubscribeMessage('friendPresenceWatch')
   async handleFriendPresenceWatch(socket: Socket) {
     await this.identityReady.get(socket.id)
@@ -597,16 +568,12 @@ export class PresenceGateway
     if (now - (this.lastFriendWatchAt.get(socket.id) ?? 0) < FRIEND_WATCH_MIN_INTERVAL_MS) return
     this.lastFriendWatchAt.set(socket.id, now)
 
-    // convidado não tem @nome nem amizade — responde a lista vazia sem consultar
     if (this.socketGuest.has(socket.id)) {
       this.friendWatchers.set(socket.id, new Set<string>())
       socket.emit('friendPresenceState', { friends: [] })
       return
     }
 
-    // a membership do handshake decide o que aparece: entrar (ou sair) de um
-    // servidor não reconecta o socket, e o snapshot sairia com a visibilidade
-    // velha se ele confiasse no cache
     if (now - (this.lastMembershipCheckAt.get(socket.id) ?? 0) >= MEMBERSHIP_RECHECK_MIN_INTERVAL_MS) {
       await this.loadMemberships(socket.id, userId)
     }
@@ -627,9 +594,6 @@ export class PresenceGateway
     this.friendWatchers.delete(socket.id)
   }
 
-  // A ÚNICA porta por onde a localização de um amigo sai daqui. `viewerServers` é
-  // a membership de quem vai RECEBER, lida do banco no handshake/sweep — sem ela
-  // conter o servidor onde o amigo está, o payload não tem lugar nenhum dentro.
   private friendPresenceOf(
     player: Player | undefined,
     userId: string,
@@ -646,7 +610,6 @@ export class PresenceGateway
     }
   }
 
-  // só amigo ONLINE entra no snapshot; ausência é offline
   private friendSnapshotFor(socketId: string): FriendPresence[] {
     const friends = this.friendWatchers.get(socketId)
     if (!friends?.size) return []
@@ -729,9 +692,6 @@ export class PresenceGateway
   }
 
   // uma consulta só pra todos os observadores: quem perdeu a membership sai da
-  // sala de presença e é avisado, pra lista não congelar desatualizada na tela.
-  // Cobre também quem só observa amigos: lá a membership é o que libera o lugar
-  // do amigo, então sair de um servidor tem que apagar o lugar da lista sozinho.
   private async sweepMemberships() {
     const socketIds = new Set<string>([...this.watchedServers.keys(), ...this.friendWatchers.keys()])
     const userIds = new Set<string>()
@@ -776,9 +736,6 @@ export class PresenceGateway
     await this.sweepFriendWatchers(mudouMembership)
   }
 
-  // desfazer amizade, ser bloqueado ou sair de um servidor muda o que a pessoa
-  // pode ver sem que o socket dela receba nada — sem esta varredura o lugar do
-  // amigo continuaria pingando até a aba fechar
   private async sweepFriendWatchers(mudouMembership: Set<string>) {
     const userBySocket = new Map<string, string>()
     for (const socketId of this.friendWatchers.keys()) {

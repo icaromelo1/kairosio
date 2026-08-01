@@ -44,8 +44,6 @@ function rebuild() {
   place()
 }
 
-// vive dentro de um painel que fecha na tecla Esc: fechar antes do init assíncrono
-// terminar deixaria um ticker e um contexto de WebGL vivos pra sempre
 let gone = false
 
 onMounted(async () => {

@@ -70,7 +70,6 @@ class FakeRepo {
   }
 }
 
-// o perfil sai de um join com characters; o teste olha id e @nome, não o nome do avatar
 class FakeUserRepo extends FakeRepo {
   createQueryBuilder() {
     const qb: any = {
@@ -205,8 +204,6 @@ describe('FriendService — o par nunca duplica', () => {
     const b = await novaConta(users, 'isabelle')
 
     await service.request(a.id, 'isabelle')
-    // os dois passam juntos pela consulta (a linha do outro ainda não é visível) e
-    // quem chega depois no INSERT bate no UNIQUE
     friendships.escondeNoProximoFindOne = true
     friendships.falhaNoProximoSave = Object.assign(new Error('duplicate key'), { code: '23505' })
     const perdedor = await service.request(b.id, 'icaro')
@@ -421,8 +418,6 @@ describe('FriendService — teto de pedidos pendentes', () => {
     expect((await service.request(a.id, 'alvo.novo')).status).toBe('pendente')
   })
 
-  // no teto, responder 404 pra nome inexistente e "teto" pra nome existente diria
-  // quais contas existem
   it('barra pelo teto antes de olhar quem é o alvo', async () => {
     const { service, a } = await comPendentes(MAX_PEDIDOS_PENDENTES)
     await expectCode(service.request(a.id, 'ninguem.existe'), 'friend-pending-limit')

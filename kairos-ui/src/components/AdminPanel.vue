@@ -15,7 +15,6 @@
 
       <p v-if="err.load" class="ap-error">{{ err.load }}</p>
 
-      <!-- Membros -->
       <section v-if="tab === 'Membros'" class="ap-section">
         <h3 class="ap-title"><PixelIcon name="users" size="0.9375rem" />Membros ({{ members.length }})</h3>
         <ul class="ap-list">
@@ -45,7 +44,6 @@
         <p v-if="err.members" class="ap-error">{{ err.members }}</p>
       </section>
 
-      <!-- Convite -->
       <section v-if="tab === 'Convite'" class="ap-section">
         <h3 class="ap-title"><PixelIcon name="link" size="0.9375rem" />Link de convite</h3>
         <p class="k-hint-text ap-hint">
@@ -78,7 +76,6 @@
         <p v-if="err.invite" class="ap-error">{{ err.invite }}</p>
       </section>
 
-      <!-- Mundos -->
       <section v-if="tab === 'Mundos'" class="ap-section">
         <h3 class="ap-title">Mundos do servidor ({{ serverMaps.length }})</h3>
         <ul class="ap-list">
@@ -93,7 +90,6 @@
         <p v-if="err.maps" class="ap-error">{{ err.maps }}</p>
       </section>
 
-      <!-- Servidor -->
       <section v-if="tab === 'Servidor'" class="ap-section">
         <h3 class="ap-title">Configurações</h3>
 
@@ -172,8 +168,6 @@ import PixelIcon from '@/components/PixelIcon.vue'
 
 type Tab = 'Membros' | 'Convite' | 'Mundos' | 'Servidor'
 
-// server-changed: sair/arquivar mudam o servidor ativo no back, e o jogo atrás
-// precisa recarregar mundos e presença
 const emit = defineEmits<{ close: []; 'server-changed': []; 'open-servers': [] }>()
 
 const auth = useAuthStore()
@@ -209,8 +203,6 @@ function fail(key: string, e: unknown) {
   err.value = { ...err.value, [key]: (e as Error).message }
 }
 
-// o back só impede o admin de mexer em si mesmo; rebaixar/remover o dono deixaria
-// o servidor sem dono administrador, então o dono fica fora do alcance por aqui
 function canManage(m: ServerMember) {
   return isAdmin.value && m.id !== auth.userId && m.id !== server.value?.ownerId
 }
@@ -235,7 +227,6 @@ async function load() {
   serverNameEdit.value = server.value?.name || ''
   archivedServers.value = await getArchivedServers()
 
-  // sem servidor ativo e sem arquivado pra restaurar, o painel não tem o que mostrar
   if (!server.value && !archivedServers.value.length) { emit('open-servers'); return }
 
   if (!visibleTabs.value.includes(tab.value)) tab.value = visibleTabs.value[0]

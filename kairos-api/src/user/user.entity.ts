@@ -11,13 +11,9 @@ export class User {
   @Column({ nullable: true })
   password: string
 
-  // identidade pública (@nome), como a pessoa digitou. Nulo em convidado (a conta
-  // some ao sair) e nas contas criadas antes desta coluna existir
   @Column({ nullable: true })
   username: string | null
 
-  // o Postgres compara texto byte a byte: sem esta coluna em minúsculas o UNIQUE
-  // deixaria "Icaro" e "icaro" coexistirem como nomes diferentes
   @Column({ nullable: true, unique: true })
   usernameLower: string | null
 

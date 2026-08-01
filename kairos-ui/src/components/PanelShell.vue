@@ -1,6 +1,4 @@
 <template>
-  <!-- keydown no overlay: com o foco num campo do painel o Esc não chega ao
-       GamePage (o listener global ignora input/textarea), e o painel ficaria preso -->
   <div class="ps-overlay" @click="emit('close')" @keydown.esc="emit('close')">
     <div class="k-card ps-card" :class="`ps-card-${size}`" @click.stop>
       <header class="ps-head">
