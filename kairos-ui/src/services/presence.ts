@@ -1,5 +1,6 @@
-import { reactive, ref } from 'vue'
+import { computed, reactive, ref } from 'vue'
 import { io, type Socket } from 'socket.io-client'
+import type { DmMensagem, DmPerfil } from './dm.api'
 
 export type Facing = 'down' | 'up' | 'left' | 'right'
 export type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit'
@@ -76,10 +77,6 @@ export type PresenceDelta =
   | { serverId: string; type: 'join' | 'update'; person: PresencePerson }
   | { serverId: string; type: 'leave'; id: string }
 
-// Presença de um amigo. `online` vale pra qualquer amigo aceito; servidor, mundo,
-// microfone e tela só CHEGAM quando quem recebe também é membro do servidor onde
-// o amigo está — o backend não manda o resto, não é a tela que esconde. Amigo sem
-// servidor em comum chega aqui com dois campos e mais nada.
 export interface FriendPresence {
   userId: string
   online: boolean
@@ -87,6 +84,13 @@ export interface FriendPresence {
   map?: string
   micMuted?: boolean
   sharingScreen?: boolean
+}
+
+export interface DmEntrega {
+  conversaId: string
+  de: DmPerfil | null
+  naoLidas: number
+  mensagem: DmMensagem
 }
 
 export interface AvatarProps {
@@ -132,9 +136,13 @@ export const sessionKicked = ref(false)
 // em silêncio. A barra lateral lê isto direto; agrupar por mundo é com quem
 // desenha (peopleInWorld ajuda).
 export const presenceByServer = reactive(new Map<string, Map<string, PresencePerson>>())
-// Amigos ONLINE agora, por userId — estar ausente daqui é estar offline. Quem
-// desenha a lista casa isto com o `GET /friend` (que traz @nome e nome do avatar).
 export const friendPresence = reactive(new Map<string, FriendPresence>())
+export const dmUnread = reactive(new Map<string, number>())
+export const dmUnreadTotal = computed(() => {
+  let total = 0
+  for (const n of dmUnread.values()) total += n
+  return total
+})
 
 let socket: Socket | null = null
 let lastEmit = 0
@@ -148,8 +156,6 @@ let currentJoin: JoinOptions | null = null
 // porque a sala de presença vive no socket e some junto com ele
 let watchedServerIds: string[] = []
 
-// intenção de observar amigos: sobrevive à troca de mundo (que desconecta e
-// reconecta o socket), pra quem abriu o painel não precisar rearmar o observador
 let watchingFriends = false
 
 let currentBoardId: string | null = null
@@ -157,6 +163,7 @@ const boardStateListeners = new Set<(strokes: Stroke[]) => void>()
 const boardStrokeListeners = new Set<(stroke: Stroke) => void>()
 const boardClearListeners = new Set<() => void>()
 const screenShareListeners = new Set<(state: ScreenShareState) => void>()
+const dmListeners = new Set<(entrega: DmEntrega) => void>()
 
 export function connectPresence(opts: JoinOptions) {
   if (socket) return
@@ -194,8 +201,6 @@ export function connectPresence(opts: JoinOptions) {
     remotePlayers.delete(id)
   })
 
-  // alguém editou a própria aparência sem sair do mundo — o avatar do join
-  // envelheceria até a pessoa reconectar
   socket.on('playerAvatar', ({ id, avatar, name }: { id: string; avatar: AvatarProps; name?: string }) => {
     const p = remotePlayers.get(id)
     if (!p) return
@@ -242,8 +247,6 @@ export function connectPresence(opts: JoinOptions) {
     else byId.set(delta.person.id, delta.person)
   })
 
-  // lista cheia dos amigos online: chega ao começar a observar e de novo sempre
-  // que muda o que este usuário pode ver (amizade desfeita, entrou/saiu de servidor)
   socket.on('friendPresenceState', ({ friends }: { friends: FriendPresence[] }) => {
     friendPresence.clear()
     for (const friend of friends) friendPresence.set(friend.userId, friend)
@@ -252,6 +255,11 @@ export function connectPresence(opts: JoinOptions) {
   socket.on('friendPresenceDelta', ({ friend }: { friend: FriendPresence }) => {
     if (friend.online) friendPresence.set(friend.userId, friend)
     else friendPresence.delete(friend.userId)
+  })
+
+  socket.on('dmMessage', (entrega: DmEntrega) => {
+    setDmUnread(entrega.conversaId, entrega.naoLidas)
+    for (const cb of dmListeners) cb(entrega)
   })
 
   // perdeu a membership com o servidor observado (saiu ou foi removido)
@@ -301,11 +309,6 @@ export function watchServerPresence(serverIds: string[]) {
   socket?.emit('presenceWatch', { serverIds: watchedServerIds })
 }
 
-// ---- presença de amigo (painel de amigos) ----
-
-// Passa a acompanhar os amigos ACEITOS desta conta. Quem decide o que aparece é o
-// backend: amigo de outro servidor chega sem servidor e sem mundo. A intenção fica
-// guardada e é rearmada sozinha em cada reconexão (troca de mundo, blip de rede).
 export function watchFriendPresence() {
   watchingFriends = true
   socket?.emit('friendPresenceWatch')
@@ -321,12 +324,27 @@ export function isFriendOnline(userId: string): boolean {
   return friendPresence.has(userId)
 }
 
-// null = offline OU sem servidor em comum. As duas respostas são a mesma pra quem
-// desenha: não há para onde pular nem o que mostrar ao lado do nome.
 export function friendLocation(userId: string): { serverId: string; map: string } | null {
   const friend = friendPresence.get(userId)
   if (!friend?.serverId || !friend.map) return null
   return { serverId: friend.serverId, map: friend.map }
+}
+
+export function onDmMessage(cb: (entrega: DmEntrega) => void) {
+  dmListeners.add(cb)
+  return () => dmListeners.delete(cb)
+}
+
+export function syncDmUnread(conversas: { id: string; naoLidas: number }[]) {
+  dmUnread.clear()
+  for (const conversa of conversas) {
+    if (conversa.naoLidas > 0) dmUnread.set(conversa.id, conversa.naoLidas)
+  }
+}
+
+export function setDmUnread(conversaId: string, naoLidas: number) {
+  if (naoLidas > 0) dmUnread.set(conversaId, naoLidas)
+  else dmUnread.delete(conversaId)
 }
 
 // microfone aberto/fechado do PRÓPRIO usuário — o indicador ao lado do nome não
@@ -374,8 +392,6 @@ export function emitChat(text: string) {
   socket?.emit('chat', { text })
 }
 
-// anuncia a aparência nova pra sala. Também atualiza o join guardado: sem isso a
-// reconexão automática do socket.io reentraria com o look velho.
 export function emitAvatarUpdate(avatar: AvatarProps, name?: string) {
   if (currentJoin) {
     currentJoin.avatar = avatar
@@ -449,7 +465,5 @@ export function disconnectPresence() {
   socket = null
   remotePlayers.clear()
   presenceByServer.clear()
-  // watchingFriends fica: trocar de mundo passa por aqui, e o painel aberto não
-  // deve ter que rearmar o observador a cada troca
   friendPresence.clear()
 }

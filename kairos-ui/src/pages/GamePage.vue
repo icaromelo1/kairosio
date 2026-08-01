@@ -17,6 +17,7 @@
         @open-media="openMediaStage"
         @open-panel="openPanel"
         @open-friends="openFriends"
+        @open-dm="openDm()"
         @join-voice="joinVoice"
         @leave="leave"
       />
@@ -138,7 +139,6 @@
       <NotePanel v-if="noteOpen" :map-id="currentId" :object-id="noteObjectId" @close="closeModal" />
       <WhiteboardPanel v-if="boardOpen" :object-id="boardObjectId" @close="closeModal" />
 
-      <!-- Telas que viraram painel: uma por vez, sempre sobre o mapa rodando -->
       <ServersPanel v-if="panel === 'servidores'" :invite="panelInvite" @close="closeModal" @server-changed="onServerChanged" />
       <CharacterPanel v-if="panel === 'personagem'" @close="closeModal" />
       <AdminPanel
@@ -154,7 +154,9 @@
         @close="closeModal"
         @jump="jumpToFriend"
         @changed="sidebar?.reloadFriendRequests()"
+        @dm="openDm"
       />
+      <DmPanel v-if="dmOpen" :friend-id="dmFriendId" @close="closeModal" />
 
       <!-- Controles touch (mobile) -->
       <div class="touch-ctl gp-touch-ctl">
@@ -200,7 +202,7 @@ import { AvatarPuppet, sanitizeLook, type AvatarLook, type Facing } from '@/game
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, jukeboxState, voiceMode, emitVoiceSetMode, emitScreenShare, onScreenShare, sessionKicked, type AvatarProps, type ScreenShareState } from '@/services/presence'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, jukeboxState, voiceMode, emitVoiceSetMode, emitScreenShare, onScreenShare, sessionKicked, syncDmUnread, type AvatarProps, type ScreenShareState } from '@/services/presence'
 import { media } from '@/services/media'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
@@ -218,6 +220,7 @@ import CharacterPanel from '@/components/CharacterPanel.vue'
 import AdminPanel from '@/components/AdminPanel.vue'
 import FeedbackPanel from '@/components/FeedbackPanel.vue'
 import FriendsPanel from '@/components/FriendsPanel.vue'
+import DmPanel from '@/components/DmPanel.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -249,12 +252,11 @@ const noteOpen = ref(false)
 const noteObjectId = ref('')
 const boardOpen = ref(false)
 const boardObjectId = ref('')
-// telas que viraram painel (barra lateral / ?abrir=): uma por vez
 const panel = ref<GamePanel | null>(null)
 const panelInvite = ref('')
-// amigos fica fora do GamePanel: nenhuma rota antiga leva a ele e a entrada nunca
-// o escolhe sozinha, então não entra no vocabulário do ?abrir=
 const friendsOpen = ref(false)
+const dmOpen = ref(false)
+const dmFriendId = ref('')
 const JUKEBOX_RADIUS = 6 // tiles — alcance do modo "proximidade"
 
 const look = computed<AvatarLook>(() => ({
@@ -568,10 +570,10 @@ function closeModal() {
   panel.value = null
   panelInvite.value = ''
   friendsOpen.value = false
+  dmOpen.value = false
+  dmFriendId.value = ''
 }
 
-// abrir um painel fecha o que estiver aberto (inclusive uma estação): nada empilha,
-// e o isModalOpen congela o personagem enquanto o painel estiver na frente
 function openPanel(next: GamePanel, invite = '') {
   closeModal()
   panel.value = next
@@ -585,17 +587,19 @@ function openFriends() {
   gameStore.isModalOpen = true
 }
 
-// pular até o amigo é a troca que a barra lateral já sabe fazer: ela decide entre
-// só mudar de mundo e entrar noutro servidor antes
+function openDm(friendId = '') {
+  closeModal()
+  dmFriendId.value = friendId
+  dmOpen.value = true
+  gameStore.isModalOpen = true
+}
+
 function jumpToFriend(serverId: string, mapId: string) {
   closeModal()
   void sidebar.value?.jumpTo(serverId, mapId)
 }
 
-// o painel do personagem edita o avatar com o jogo rodando atrás; o AvatarPuppet
-// nasce com o look e não troca de peça, então o boneco é remontado no lugar
 watch([look, myPhotoUrl], () => {
-  // antes do onMounted montar o boneco não há o que trocar: ele já nasce com o look atual
   if (!scene?.avatar('me')) return
   scene.removeAvatar('me')
   const puppet = new AvatarPuppet(look.value)
@@ -629,8 +633,6 @@ function selectMap(id: string) {
 // aqui recarregam os mundos e a sessão. O socket lê o servidor no handshake e
 // não tem como atualizá-lo, então tem de reconectar — sem isso o avatar
 // continuaria na sala do servidor anterior.
-// mapId chega quando a troca veio de um "pular até o amigo": cair direto no mundo
-// dele evita entrar no mundo anterior e só então trocar de novo
 async function onServerChanged(_serverId?: string, mapId?: string) {
   error.value = ''
   try {
@@ -644,9 +646,6 @@ async function onServerChanged(_serverId?: string, mapId?: string) {
     // o histórico é da sala do servidor anterior
     messages.splice(0)
     connectPresence({ name: playerName.value, avatar: joinAvatarPayload.value, map: target.id, x: pos.x, y: pos.y })
-    // connectPresence nasce sem servidor observado nenhum; a lista da barra também
-    // envelheceu (criar/entrar/sair de servidor vem do painel, sem remontar nada) e o
-    // reload termina em syncPresence — o gateway só aceita um presenceWatch por vez
     void sidebar.value?.reloadServers()
     void enterVoice(target.id, true)
   } catch (e) {
@@ -692,8 +691,6 @@ function detectZone(map: MapDef) {
 }
 
 onMounted(async () => {
-  // ?abrir= diz qual painel a entrada (ou uma rota antiga) pediu; a query é
-  // consumida na hora pra um F5 não reabrir o painel eternamente
   const asked = panelFromQuery(route.query)
   const invite = route.query.invite
   if (asked) openPanel(asked, typeof invite === 'string' ? invite : '')
@@ -883,6 +880,7 @@ async function leave() {
   await logoutApi()
   useAuthStore().logout()
   characterStore.$reset() // limpa nome/avatar em memória (não vaza pra próxima conta)
+  syncDmUnread([])
   jukeboxAudio.stop()
   router.push('/login')
 }
@@ -989,9 +987,6 @@ onUnmounted(() => {
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
-
-
-
 
 .gp-nearby {
   top: 1rem;
