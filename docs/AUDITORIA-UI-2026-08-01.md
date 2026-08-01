@@ -18,6 +18,12 @@ Limiares: fonte mínima 10px · alvo mínimo 24×24 (WCAG 2.2 AA) · alvo recome
 | editor de mundo | 0 | 2 | 33 | 3 |
 | `/login` | 2 | 6 | 2 | 11 |
 | `/register` | 0 | 1 | 0 | 9 |
+| landing (deslogada) | 1 | 0 | 0 | 1 |
+| jukebox | 7 | 4 | 23 | 15 |
+| sala de voz | 9 | **7** | 20 | 11 |
+
+11 superfícies medidas. A landing é a mais limpa do produto; a sala de voz tem o
+maior número de alvos abaixo do mínimo.
 
 A sidebar contribui um piso constante de ~6 fontes miúdas e ~9 falhas de contraste
 em todo estado do jogo — corrigir nela derruba o número em todas as telas de uma vez.
@@ -89,13 +95,38 @@ Correção que resolve independente da posição: dar um fundo semitransparente 
 ao `.gp-chat`, ou contorno/sombra no texto. Isso torna o contraste independente do
 mapa — e é o que qualquer jogo com HUD sobre cenário faz.
 
+## Achados adicionais das superfícies novas
+
+11. **Sala de voz — 7 alvos abaixo de 24×24**, o pior índice do produto.
+    `button.ms-mode` ("perto") em 7px; `span.ms-tile-you` ("você") em 9px e 2.29:1.
+12. **Jukebox** — `div.jb-muted-4` ("vazia") em 2.11:1; `jb-muted` e `jb-label`
+    em 4.34:1 (4 elementos).
+13. **Landing** — `span.lp-bubble` ("olá!") em 8px e o rodapé em 2.29:1, mesmo
+    defeito do rodapé do login. Fora isso, limpa.
+
+## Responsivo
+
+`resize_window` não altera a viewport por esta ferramenta — ela ficou fixa em
+1470×835 e as media queries não disparam (`max-width:480px` = false). Números de
+320/375px por esse caminho seriam falsos.
+
+Caminho alternativo usado: constranger cada container a 320px e medir estouro
+intrínseco. Resultado: sidebar, chat e HUD superior cabem. O HUD inferior acusou
+estouro de 354px — **falso positivo**: `@media (max-width: 30rem)` esconde
+`.gp-hud-bottom`, então o caso não ocorre de verdade.
+
+Conclusão: nenhum estouro real encontrado, com a ressalva de que este método não
+exercita as media queries — só o limite intrínseco do conteúdo.
+
 ## O que NÃO foi medido
 
-- **Landing deslogada** — `/` redireciona para `/game` com sessão ativa.
-- **Varredura responsiva** — `resize_window` não alterou a viewport (seguiu
-  1470×835); qualquer número de 320/375px seria falso.
-- **6 painéis** — DM, jukebox, sala de voz, tarefas, notas, lousa.
+- **Painéis de tarefas, notas e lousa** — abrem por proximidade a objetos
+  específicos do mapa; exigem levar o avatar até cada um. O jukebox foi medido por
+  esse caminho e confirma o padrão, mas os outros três ficaram fora.
+- **Painel de DM** — a conta `voce@email.com` não tem conversa estabelecida; o
+  painel não é alcançável sem uma amizade com histórico.
 - **AccessLint** — plugin instalado nesta sessão; skills só registram na próxima.
+  Bloqueio real, não contornável aqui.
 - **Ordem de tab e visibilidade de foco** — o harness coleta os focáveis, mas
   validar a ordem exige interação real, não medição estática.
 
