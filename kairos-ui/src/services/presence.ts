@@ -7,6 +7,7 @@ export type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit'
 
 export interface ChatMessage {
   id: string
+  userId?: string
   name: string
   text: string
   ts: number

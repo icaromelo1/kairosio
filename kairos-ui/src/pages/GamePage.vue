@@ -62,7 +62,7 @@
       <div class="gp-chat">
         <div v-if="messages.length" ref="chatLog" class="gp-chat-log" @scroll="onChatScroll">
           <div v-for="(m, i) in messages" :key="i" class="gp-chat-msg">
-            <span class="gp-chat-name">{{ m.name }}:</span>
+            <span class="gp-chat-name" :style="{ color: chatColor(m) }">{{ m.name }}:</span>
             <span class="gp-chat-text"> {{ m.text }}</span>
           </div>
         </div>
@@ -202,7 +202,7 @@ import { AvatarPuppet, sanitizeLook, type AvatarLook, type Facing } from '@/game
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, jukeboxState, voiceMode, emitVoiceSetMode, emitScreenShare, onScreenShare, sessionKicked, syncDmUnread, type AvatarProps, type ScreenShareState } from '@/services/presence'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, jukeboxState, voiceMode, emitVoiceSetMode, emitScreenShare, onScreenShare, sessionKicked, syncDmUnread, type AvatarProps, type ChatMessage, type ScreenShareState } from '@/services/presence'
 import { media } from '@/services/media'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
@@ -285,6 +285,15 @@ const chatInput = ref('')
 const nearby = ref<string | null>(null)
 let emoteUntil = 0
 const messages = chatMessages
+const CHAT_NAME_COLORS = 10
+
+function chatColor(m: ChatMessage): string {
+  const key = m.userId || m.name
+  let hash = 0
+  for (let i = 0; i < key.length; i++) hash = (Math.imul(hash, 31) + key.charCodeAt(i)) >>> 0
+  return `var(--chat-name-${hash % CHAT_NAME_COLORS})`
+}
+
 const CHAT_MAX_LEN = 255
 const CHAT_COUNT_FROM = 200
 const CHAT_COOLDOWN_MS = 500
@@ -1074,7 +1083,7 @@ onUnmounted(() => {
   overflow-wrap: anywhere;
   text-shadow: 0 0.0625rem 0.125rem var(--bg-0);
 }
-.gp-chat-name { color: var(--accent); font-weight: 600; }
+.gp-chat-name { font-weight: 600; }
 .gp-chat-text { color: var(--text); }
 
 .gp-chat-field {
