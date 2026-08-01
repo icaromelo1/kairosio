@@ -1063,7 +1063,7 @@ onUnmounted(() => {
   overflow-y: auto;
   overscroll-behavior: contain;
   margin-bottom: 0.375rem;
-  padding: 0.4375rem 0.5rem;
+  padding: 0.5rem 0.5rem;
   background: var(--bg-1);
   background: color-mix(in srgb, var(--bg-1) 55%, transparent);
   border: 0.0625rem solid var(--border);

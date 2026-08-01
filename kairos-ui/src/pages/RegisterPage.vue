@@ -243,7 +243,7 @@ const REGISTER_ERRORS: Record<string, string> = {
   pointer-events: none;
 }
 .reg-user-input {
-  padding-left: 1.875rem;
+  padding-left: 2rem;
 }
 .reg-hint {
   font-size: 0.6875rem;

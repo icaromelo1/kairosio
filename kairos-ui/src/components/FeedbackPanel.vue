@@ -232,7 +232,7 @@ onUnmounted(() => clearInterval(nowTimer))
 }
 
 .fp-tag { font-size: 0.75rem; color: var(--text-2); display: inline-flex; align-items: center; gap: 0.375rem; }
-.fp-item-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.1875rem; }
+.fp-item-title { font-size: 0.875rem; font-weight: 600; margin-bottom: 0.25rem; }
 .fp-item-msg { font-size: 0.8125rem; color: var(--text-2); line-height: 1.5; white-space: pre-wrap; }
 .fp-item-meta { font-size: 0.6875rem; color: var(--text-4); margin-top: 0.5rem; }
 .fp-item-resolved { font-size: 0.6875rem; color: var(--ok); margin-top: 0.25rem; }
