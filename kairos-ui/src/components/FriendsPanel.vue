@@ -44,6 +44,11 @@
             {{ t.label }}
             <span v-if="t.count" class="fp-tab-count" :class="{ 'fp-tab-count-alert': t.alert }">{{ t.count }}</span>
           </button>
+
+          <button class="k-btn k-btn-ghost k-btn-xs fp-dm" title="Abrir suas conversas" @click="emit('dm', '')">
+            <PixelIcon name="message" size="0.75rem" />conversas
+            <span v-if="dmUnreadTotal" class="fp-tab-count fp-tab-count-alert">{{ dmUnreadTotal }}</span>
+          </button>
         </nav>
 
         <p v-if="error" class="fp-error">{{ error }}</p>
@@ -60,13 +65,18 @@
                 </span>
               </span>
 
-              <!-- lugar só existe quando o back mandou servidor E mundo (amigo que
-                   compartilha servidor comigo). Sem isso a linha fica em "online" seco. -->
               <span class="fp-state" :class="{ 'fp-state-on': row.online }">
                 {{ row.online ? (row.lugar ? `online · ${row.lugar}` : 'online') : 'offline' }}
               </span>
 
               <span class="fp-acts">
+                <button
+                  v-if="row.userId"
+                  class="k-btn k-btn-ghost k-btn-xs"
+                  title="Abrir a conversa"
+                  @click="emit('dm', row.userId)"
+                ><PixelIcon name="message" size="0.75rem" />conversar</button>
+
                 <button
                   v-if="row.local"
                   class="k-btn k-btn-ghost k-btn-xs"
@@ -211,7 +221,7 @@ import {
   type FriendServerInvite, type FriendUser, type FriendView,
 } from '@/services/friend.api'
 import { getMyServers, type MyServerSummary } from '@/services/server.api'
-import { friendLocation, isFriendOnline, unwatchFriendPresence, watchFriendPresence } from '@/services/presence'
+import { dmUnreadTotal, friendLocation, isFriendOnline, unwatchFriendPresence, watchFriendPresence } from '@/services/presence'
 import { useAuthStore } from '@/stores/useAuthStore'
 import type { MapDef } from '@/game/maps'
 import PanelShell from '@/components/PanelShell.vue'
@@ -221,10 +231,10 @@ type Tab = 'online' | 'todos' | 'pendentes' | 'bloqueados'
 
 interface FriendRow {
   id: string
+  userId: string
   nome: string
   handle: string
   online: boolean
-  // onde ele está, quando o servidor deixou eu ver — é o que habilita o "pular"
   local: { serverId: string; map: string } | null
   lugar: string
 }
@@ -235,6 +245,7 @@ const emit = defineEmits<{
   close: []
   jump: [serverId: string, mapId: string]
   changed: []
+  dm: [userId: string]
 }>()
 
 const router = useRouter()
@@ -292,6 +303,7 @@ function toRow(view: FriendView): FriendRow {
   const local = userId ? friendLocation(userId) : null
   return {
     id: view.id,
+    userId: userId ?? '',
     nome: view.usuario?.nome || 'sem nome',
     handle: handleOf(view.usuario),
     online: !!userId && isFriendOnline(userId),
@@ -339,8 +351,6 @@ async function load() {
   }
 }
 
-// a lista que o gateway observa é um retrato tirado na hora do watch: sem pedir de
-// novo, um amigo recém-aceito só apareceria online na varredura seguinte (30s)
 async function refresh() {
   await load()
   watchFriendPresence()
@@ -372,8 +382,6 @@ async function request() {
     const view = await requestFriend(nome)
     const quem = handleOf(view.usuario)
     alvo.value = ''
-    // pedir de volta pra quem já tinha pedido fecha a amizade na hora, sem passar
-    // por "pendente" — o back resolve isso sozinho e devolve a linha já aceita
     addOk.value = view.status === 'aceita'
       ? `${quem} também tinha te pedido: vocês já são amigos.`
       : `Pedido enviado para ${quem}.`
@@ -447,8 +455,6 @@ function jump(row: FriendRow) {
   emit('jump', row.local.serverId, row.local.map)
 }
 
-// o gateway descarta um friendPresenceWatch a menos de 1s do anterior: fechar e
-// reabrir o painel depressa cairia nesse descarte e a lista ficaria toda offline
 const REARM_MS = 1200
 let rearmTimer = 0
 
@@ -512,6 +518,8 @@ onUnmounted(() => {
   color: var(--text-3);
 }
 .fp-tab-count-alert { color: var(--accent); }
+
+.fp-dm { margin-left: auto; }
 
 .fp-list {
   list-style: none;
