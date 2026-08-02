@@ -60,12 +60,38 @@ Um móvel renderiza entre **32px e 96px** na tela. Detalhe abaixo de ~2px vira r
 - Silhueta acima de tudo: o objeto tem que ser reconhecível **pelo contorno**, porque
   é isso que se enxerga no tamanho real.
 
-## Proporção
+## Proporção — CORRIGIDO em 02/08 após o piloto
 
-Os tipos aparecem em proporções bem diferentes no mesmo mundo (estante `2×6` e `3×2`,
-cerca-viva `6×1` e `1×5`). O SVG é desenhado na proporção **canônica** de cada tipo
-(ver `catalog.ts`) e o carregador estica. Consequência prática: evitar elemento cuja
-deformação seja óbvia — círculo perfeito vira elipse ao esticar.
+A versão inicial deste contrato mandava `viewBox` quadrado (`0 0 100 100`) **e**
+"ocupar de x=0 a x=100". As duas regras juntas são contraditórias para qualquer
+objeto que não seja quadrado: uma cadeira `1×2` desenhada num quadrado e esticada
+para 40×80px é **comprimida 2× na horizontal** — no piloto ela virou um poste.
+
+Regra corrigida: o `viewBox` reflete a **proporção canônica** do tipo, e o desenho
+preenche esse viewBox. O carregador escala `w/viewBoxW` × `h/viewBoxH`, que na
+proporção canônica é uniforme.
+
+| Tipo | Canônico (tiles) | viewBox |
+|---|---|---|
+| chair | 1×2 | `0 0 50 100` |
+| desk | 4×2 | `0 0 200 100` |
+| shelf | 2×6 | `0 0 33 100` |
+| table | 3×2 | `0 0 150 100` |
+| column | 1×2 | `0 0 50 100` |
+| bench | 2×1 | `0 0 200 100` |
+| lamp | 1×1 | `0 0 100 100` |
+| plant | 1×2 | `0 0 50 100` |
+| tree | 3×3 | `0 0 100 100` |
+| fountain | 4×4 | `0 0 100 100` |
+| jukebox | 2×2 | `0 0 100 100` |
+| servers | 4×2 | `0 0 200 100` |
+| sofa | 3×2 | `0 0 150 100` |
+| hedge | 6×1 | `0 0 600 100` |
+| board | 4×1 | `0 0 400 100` |
+
+Quando o objeto no mapa foge da proporção canônica (estante `3×2` em vez de `2×6`),
+a deformação é aceita — mas o desenho não pode depender de círculo perfeito, que
+vira elipse óbvia ao esticar.
 
 ## Fora deste contrato
 
