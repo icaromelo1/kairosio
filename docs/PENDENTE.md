@@ -17,7 +17,16 @@
       (`GOOGLE_CLIENT_ID/SECRET`, `GITHUB_CLIENT_ID/SECRET`). Aí trocar os botões
       "em breve" por reais. O backend já registra as strategies quando as envs existem.
 
-## 🧹 3. Débitos técnicos conhecidos
+## 🔑 3. Sudo (admin geral) — decisões tomadas em 02/08/2026
+- Sudo é a coluna `users.isSudo`. Substituiu a allowlist de e-mail (`ADMIN_EMAILS`),
+  que ficava chumbada no código.
+- **Promoção só por banco, de propósito.** Sudo tem acesso a todos os servidores e
+  controle total — não deve haver endpoint nem botão que conceda isso. Um
+  `UPDATE kairos.users SET "isSudo" = true WHERE email = '...'` é o caminho, e o
+  atrito é intencional. Não criar rota de gestão de sudo.
+- [ ] **2FA** — a considerar, especialmente para contas sudo. Nada decidido ainda.
+
+## 🧹 4. Débitos técnicos conhecidos
 - [ ] **`synchronize: true` em produção** (TypeORM). Funciona hoje, mas uma mudança
       de entity mal feita altera o schema sozinha. Trocar por migrations quando o
       schema estabilizar.
