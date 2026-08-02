@@ -4,6 +4,7 @@
 import { Application, Container, Graphics, Text } from 'pixi.js'
 import type { MapDef, MapObject } from '../maps'
 import { criarSvgGraphics, varianteParaObjeto } from '../furniture/catalog'
+import { criarSuperficie, temSuperficie } from '../furniture/surfaces'
 import type { AvatarPuppet } from './avatar'
 
 // tamanho de um tile em px na tela (independe do schema, que conta em tiles)
@@ -131,6 +132,15 @@ export class MapScene {
     const shape = (gg: Graphics) => (circle ? gg.circle(cx, cy, r) : gg.rect(x, y, w, h))
 
     const variante = varianteParaObjeto(o)
+
+    if (!o.pixels?.length && !o.color && variante !== 'vector' && temSuperficie(o.kind)) {
+      const sup = criarSuperficie(o, this.app.renderer, { x, y, w, h }, TILE_PX)
+      if (sup) {
+        this.objectLayer.addChild(sup)
+        return
+      }
+    }
+
     const svgG = o.pixels?.length ? null : criarSvgGraphics(o, variante, { x, y, w, h })
 
     if (svgG) {

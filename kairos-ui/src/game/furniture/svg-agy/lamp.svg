@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<ellipse cx="50" cy="96" rx="50" ry="4" fill="#141024" opacity="0.5"/>
+<polygon points="26,96 74,96 70,90 30,90" fill="#1d1833"/>
+<polygon points="30,90 50,90 50,78 33,78" fill="#483c73"/>
+<polygon points="50,90 70,90 67,78 50,78" fill="#251f3d"/>
+<polygon points="31,78 69,78 65,75 35,75" fill="#7888a0"/>
+<polygon points="44,75 50,75 50,26 45,26" fill="#5d4e94"/>
+<polygon points="50,75 56,75 55,26 50,26" fill="#251f3d"/>
+<polygon points="44,75 46,75 46.5,26 45,26" fill="#7888a0"/>
+<polygon points="42,55 58,55 57,52 43,52" fill="#342b54"/>
+<polygon points="42,55 50,55 50,52 43,52" fill="#7362b3"/>
+<polygon points="42,29 58,29 57,26 43,26" fill="#7888a0"/>
+<polygon points="43,26 50,26 50,20 46,20" fill="#5d4e94"/>
+<polygon points="50,26 57,26 54,20 50,20" fill="#1d1833"/>
+<ellipse cx="50" cy="15" rx="16" ry="12" fill="#8c7ae6" opacity="0.3"/>
+<polygon points="40,20 60,20 63,10 37,10" fill="#8c7ae6"/>
+<ellipse cx="50" cy="15" rx="7" ry="4" fill="#7888a0"/>
+<polygon points="34,10 66,10 64,8 36,8" fill="#1d1833"/>
+<polygon points="36,8 50,8 50,3 40,3" fill="#5d4e94"/>
+<polygon points="50,8 64,8 60,3 50,3" fill="#251f3d"/>
+<polygon points="40,3 60,3 54,1 46,1" fill="#7888a0"/>
+<polygon points="48,1 52,1 50,0" fill="#7888a0"/>
+<rect x="37" y="19.5" width="26" height="1.5" fill="#141024"/>
+<rect x="49" y="10" width="2" height="10" fill="#1d1833"/>
+<polygon points="38,10 40,10 42,20 40,20" fill="#342b54"/>
+</svg>
