@@ -40,6 +40,12 @@ function obterContext(kind: string, variante: Exclude<FurnitureVariant, 'vector'
   return ctx
 }
 
+function viewBoxDe(kind: string, variante: Exclude<FurnitureVariant, 'vector'>): { w: number; h: number } {
+  const svg = SVG_POR_VARIANTE[variante][kind]
+  const m = svg && /viewBox="0 0 ([\d.]+) ([\d.]+)"/.exec(svg)
+  return m ? { w: parseFloat(m[1]), h: parseFloat(m[2]) } : { w: 100, h: 100 }
+}
+
 export function temSvg(kind: string, variante: FurnitureVariant): boolean {
   if (variante === 'vector') return false
   return obterContext(kind, variante) !== null
@@ -54,8 +60,9 @@ export function criarSvgGraphics(
   const ctx = obterContext(o.kind, variante)
   if (!ctx) return null
 
+  const vb = viewBoxDe(o.kind, variante)
   const g = new Graphics(ctx)
-  g.scale.set(caixa.w / 100, caixa.h / 100)
+  g.scale.set(caixa.w / vb.w, caixa.h / vb.h)
   g.position.set(caixa.x, caixa.y)
   return g
 }
