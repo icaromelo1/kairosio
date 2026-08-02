@@ -1,6 +1,6 @@
 <template>
   <div class="jb-overlay" @click="$emit('close')">
-    <div class="k-card jb-card q-pa-lg column q-gutter-md" @click.stop>
+    <div class="k-card jb-card q-pa-lg column" @click.stop>
       <div class="row items-center justify-between">
         <span class="k-chip"><PixelIcon name="music" size="0.6875rem" />jukebox</span>
         <button class="k-btn k-btn-ghost k-btn-sm" @click="$emit('close')">esc<PixelIcon name="close" size="0.75rem" /></button>
@@ -53,34 +53,32 @@
 
       <!-- biblioteca: músicas já baixadas antes, adiciona sem esperar download -->
       <div class="column q-gutter-xs">
-        <div class="row no-wrap q-gutter-xs">
-          <div class="col">
-            <button class="k-btn k-btn-ghost full-width k-btn-sm" @click="toggleLibrary">
-              <PixelIcon :name="libraryOpen ? 'chevron-up' : 'chevron-down'" size="0.75rem" />
-              <span class="ellipsis">{{ libraryOpen ? 'esconder biblioteca' : 'ver músicas já baixadas' }}</span>
-            </button>
-          </div>
-          <div class="col-auto row q-gutter-xs">
-            <button
-              v-if="isServerAdmin"
-              class="k-btn k-btn-ghost k-btn-sm"
-              :disabled="!!syncing"
-              title="rebaixar do Drive as músicas adicionadas neste servidor"
-              @click="syncServer"
-            >
-              <PixelIcon v-if="syncing !== 'server'" name="reload" size="0.75rem" />{{ syncing === 'server' ? 'sincronizando...' : 'sync deste servidor' }}
-            </button>
-            <button
-              v-if="isProductAdmin"
-              class="k-btn k-btn-ghost k-btn-sm"
-              :disabled="!!syncing"
-              title="rebaixar do Drive tudo que estiver faltando no cache local, de todos os servidores"
-              @click="syncFromDrive"
-            >
-              <PixelIcon v-if="syncing !== 'all'" name="reload" size="0.75rem" />{{ syncing === 'all' ? 'sincronizando...' : 'sync geral' }}
-            </button>
-          </div>
+        <button class="k-btn k-btn-ghost full-width k-btn-sm" @click="toggleLibrary">
+          <PixelIcon :name="libraryOpen ? 'chevron-up' : 'chevron-down'" size="0.75rem" />
+          <span class="ellipsis">{{ libraryOpen ? 'esconder biblioteca' : 'ver músicas já baixadas' }}</span>
+        </button>
+
+        <div v-if="isServerAdmin || isProductAdmin" class="jb-sync-row">
+          <button
+            v-if="isServerAdmin"
+            class="k-btn k-btn-ghost k-btn-sm jb-sync-btn"
+            :disabled="!!syncing"
+            title="rebaixar do Drive as músicas adicionadas neste servidor"
+            @click="syncServer"
+          >
+            <PixelIcon v-if="syncing !== 'server'" name="reload" size="0.75rem" />{{ syncing === 'server' ? 'sincronizando...' : 'sync deste servidor' }}
+          </button>
+          <button
+            v-if="isProductAdmin"
+            class="k-btn k-btn-ghost k-btn-sm jb-sync-btn"
+            :disabled="!!syncing"
+            title="rebaixar do Drive tudo que estiver faltando no cache local, de todos os servidores"
+            @click="syncFromDrive"
+          >
+            <PixelIcon v-if="syncing !== 'all'" name="reload" size="0.75rem" />{{ syncing === 'all' ? 'sincronizando...' : 'sync geral' }}
+          </button>
         </div>
+
         <p v-if="syncMessage" class="k-hint-text">{{ syncMessage }}</p>
 
         <div v-if="libraryOpen" class="column q-gutter-xs">
@@ -273,6 +271,7 @@ function syncServer() {
   max-height: 80vh;
   overflow-y: auto;
   overflow-x: hidden;
+  gap: var(--sp-16);
   /* causa raiz real do overflow: a classe global "column" do Quasar aplica
      flex-wrap:wrap (regra combinada .row,.column,.flex{display:flex;flex-wrap:wrap}).
      Num container column, isso faz o conteúdo que excede max-height "quebrar" pra
@@ -290,6 +289,17 @@ function syncServer() {
 .jb-card .column,
 .jb-card .col,
 .jb-card .col-auto {
+  min-width: 0;
+}
+
+.jb-sync-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+}
+
+.jb-sync-btn {
+  flex: 1 1 10rem;
   min-width: 0;
 }
 

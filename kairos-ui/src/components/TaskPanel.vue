@@ -1,6 +1,6 @@
 <template>
   <div class="jb-overlay" @click="$emit('close')">
-    <div class="k-card jb-card q-pa-lg column q-gutter-md" @click.stop>
+    <div class="k-card jb-card q-pa-lg column" @click.stop>
       <div class="row items-center justify-between">
         <span class="k-chip"><PixelIcon name="clipboard" size="0.6875rem" />tarefas</span>
         <button class="k-btn k-btn-ghost k-btn-sm" @click="$emit('close')">esc<PixelIcon name="close" size="0.75rem" /></button>
@@ -115,6 +115,7 @@ onMounted(load)
 }
 
 .jb-card {
+  gap: var(--sp-16);
   width: min(27.5rem, 100%);
   max-height: 80vh;
   overflow-y: auto;

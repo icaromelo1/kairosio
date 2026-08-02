@@ -1,6 +1,6 @@
 <template>
   <div class="wb-overlay" @click="$emit('close')">
-    <div class="k-card wb-card q-pa-lg column q-gutter-md" @click.stop>
+    <div class="k-card wb-card q-pa-lg column" @click.stop>
       <div class="row items-center justify-between">
         <span class="k-chip"><PixelIcon name="pencil" size="0.6875rem" />lousa</span>
         <button class="k-btn k-btn-ghost k-btn-sm" @click="$emit('close')">esc<PixelIcon name="close" size="0.75rem" /></button>
@@ -191,6 +191,7 @@ onUnmounted(() => {
 }
 
 .wb-card {
+  gap: var(--sp-16);
   width: min(45rem, 100%);
   max-height: 90vh;
   overflow-y: auto;
