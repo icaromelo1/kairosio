@@ -2,7 +2,7 @@ import { Controller, ForbiddenException, Get, Param, Post, Query, Request, Res, 
 import { AuthGuard } from '@nestjs/passport'
 import { Response } from 'express'
 import { JukeboxService } from './jukebox.service'
-import { isAdminEmail } from '../auth/admin'
+import { SudoGuard } from '../auth/sudo.guard'
 import { ServerAdminGuard } from '../server/server-admin.guard'
 
 @Controller('jukebox')
@@ -28,10 +28,9 @@ export class JukeboxController {
   // rebaixa do Drive pro cache local tudo que estiver faltando (ex: depois de perder
   // o volume de cache num redeploy) — não bate no YouTube, só no Drive. Operação
   // pesada (Drive + yt-dlp por arquivo órfão) → só admin
-  @UseGuards(AuthGuard('jwt'))
+  @UseGuards(AuthGuard('jwt'), SudoGuard)
   @Post('sync')
-  async sync(@Request() req: any) {
-    if (!isAdminEmail(req.user.email)) throw new ForbiddenException('Apenas administradores')
+  async sync() {
     return this.jukebox.syncFromDrive()
   }
 

@@ -23,6 +23,9 @@ export class User {
   @Column({ default: false })
   isGuest: boolean
 
+  @Column({ default: false })
+  isSudo: boolean
+
   // multi-tenancy: servidor atual do usuário e papel dentro dele
   @Column({ type: 'uuid', nullable: true })
   serverId: string | null

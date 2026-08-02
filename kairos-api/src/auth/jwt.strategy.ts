@@ -24,6 +24,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       sub: payload.sub,
       email: payload.email ?? user.email ?? null,
       isGuest: payload.isGuest ?? user.isGuest ?? false,
+      isSudo: user.isSudo ?? false,
       serverId: user.serverId ?? null,
       serverRole: user.serverRole ?? 'member',
     }

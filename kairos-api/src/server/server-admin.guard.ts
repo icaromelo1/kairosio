@@ -5,6 +5,7 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@
 export class ServerAdminGuard implements CanActivate {
   canActivate(ctx: ExecutionContext): boolean {
     const req = ctx.switchToHttp().getRequest()
+    if (req.user?.isSudo) return true
     if (!req.user?.serverId || req.user?.serverRole !== 'admin') {
       throw new ForbiddenException('Apenas administradores do servidor')
     }

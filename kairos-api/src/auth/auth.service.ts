@@ -11,7 +11,6 @@ import { JwtService } from '@nestjs/jwt'
 import * as bcrypt from 'bcrypt'
 import { User } from '../user/user.entity'
 import { ServerMembership } from '../server/server-membership.entity'
-import { isAdminEmail } from './admin'
 import {
   UsernameProblem,
   checkUsername,
@@ -135,13 +134,14 @@ export class AuthService {
         'username',
         'usernameChangedAt',
         'isGuest',
+        'isSudo',
         'serverId',
         'serverRole',
         'createdAt',
       ],
     })
     if (!user) return null
-    return { ...user, isAdmin: isAdminEmail(user.email) }
+    return { ...user, isAdmin: user.isSudo }
   }
 
   // convidado nunca fica pra trás no banco: ao sair (botão "Sair"), se for
