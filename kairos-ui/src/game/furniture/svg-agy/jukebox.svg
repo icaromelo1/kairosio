@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<ellipse cx="50" cy="97" rx="48" ry="3" fill="#141024" opacity="0.5"/>
+<path d="M 0,36 C 0,10 22,0 50,0 C 78,0 100,10 100,36 L 100,94 L 0,94 Z" fill="#251f3d"/>
+<path d="M 0,36 C 0,10 22,0 50,0 L 50,94 L 0,94 Z" fill="#342b54"/>
+<polygon points="0,92 20,92 18,100 0,100" fill="#483c73"/>
+<polygon points="80,92 100,92 100,100 82,100" fill="#141024"/>
+<path d="M 0,86 L 100,86 L 100,92 L 0,92 Z" fill="#1d1833"/>
+<path d="M 0,36 C 0,10 22,0 50,0 L 50,6 C 26,6 8,14 8,36 L 8,86 L 0,86 Z" fill="#7888a0"/>
+<path d="M 50,0 C 78,0 100,10 100,36 L 100,86 L 92,86 L 92,36 C 92,14 74,6 50,6 Z" fill="#2e3545"/>
+<rect x="3" y="24" width="5" height="58" rx="2" fill="#8c7ae6"/>
+<rect x="92" y="24" width="5" height="58" rx="2" fill="#5d4e94"/>
+<path d="M 12,36 C 12,18 28,11 50,11 C 72,11 88,18 88,36 L 88,86 L 12,86 Z" fill="#141024"/>
+<path d="M 16,36 C 16,21 31,14 50,14 C 69,14 84,21 84,36 L 84,39 L 16,39 Z" fill="#8c7ae6"/>
+<path d="M 24,36 C 24,25 35,19 50,19 C 65,19 76,25 76,36 L 76,38 L 24,38 Z" fill="#7362b3"/>
+<rect x="16" y="41" width="68" height="18" fill="#1d1833"/>
+<rect x="20" y="44" width="28" height="12" rx="1" fill="#5d4e94"/>
+<rect x="52" y="44" width="28" height="12" rx="1" fill="#483c73"/>
+<rect x="23" y="46" width="22" height="3" fill="#8c7ae6"/>
+<rect x="55" y="46" width="22" height="3" fill="#8c7ae6"/>
+<rect x="23" y="51" width="54" height="3" fill="#7362b3"/>
+<circle cx="50" cy="73" r="12" fill="#7888a0"/>
+<path d="M 50,61 A 12,12 0 0,1 50,85 Z" fill="#2e3545"/>
+<circle cx="50" cy="73" r="10" fill="#141024"/>
+<circle cx="50" cy="73" r="7" fill="#5a4a32"/>
+<circle cx="49" cy="72" r="3" fill="#8c7ae6"/>
+</svg>
