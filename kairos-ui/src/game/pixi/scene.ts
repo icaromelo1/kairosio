@@ -3,6 +3,7 @@
 
 import { Application, Container, Graphics, Text } from 'pixi.js'
 import type { MapDef, MapObject } from '../maps'
+import { criarSvgGraphics, varianteParaObjeto } from '../furniture/catalog'
 import type { AvatarPuppet } from './avatar'
 
 // tamanho de um tile em px na tela (independe do schema, que conta em tiles)
@@ -129,6 +130,15 @@ export class MapScene {
 
     const shape = (gg: Graphics) => (circle ? gg.circle(cx, cy, r) : gg.rect(x, y, w, h))
 
+    const variante = varianteParaObjeto(o)
+    const svgG = o.pixels?.length ? null : criarSvgGraphics(o, variante, { x, y, w, h })
+
+    if (svgG) {
+      g.addChild(svgG)
+      this.posicionarObjeto(o, g, { x, y, w, h, cx, cy, r })
+      return
+    }
+
     // base
     if (o.pixels && o.pixels.length) {
       // objeto customizado: desenha a matriz de pixels escalada
@@ -172,6 +182,14 @@ export class MapScene {
       this.jukeboxIcons.push(note)
     }
 
+    this.posicionarObjeto(o, g, { x, y, w, h, cx, cy, r })
+  }
+
+  private posicionarObjeto(
+    o: MapObject,
+    g: Graphics,
+    { y, w, h, cx, cy, r }: { x: number; y: number; w: number; h: number; cx: number; cy: number; r: number },
+  ) {
     const own = ((o.rotation || 0) * Math.PI) / 180
     const upright = UPRIGHT_KINDS.has(o.kind)
     if (upright) {
