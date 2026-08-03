@@ -127,6 +127,8 @@ export const jukeboxState = reactive<JukeboxState>({ areaId: null, alcanceGlobal
 export const jukeboxError = ref('')
 // Salas (áreas) trancadas do mapa atual — ids de área, alimentado pelo evento 'salaEstado'
 export const salasTrancadas = ref<Set<string>>(new Set())
+// hora forcada do mundo (0-24); null = segue a hora real
+export const horaDoMundo = ref<number | null>(null)
 // true quando esta aba foi derrubada por outra sessão da MESMA conta (login em
 // outro lugar) — a tela mostra um aviso em vez de deixar a conexão travada
 export const sessionKicked = ref(false)
@@ -219,6 +221,9 @@ export function connectPresence(opts: JoinOptions) {
     jukeboxState.current = s.current
     jukeboxState.startedAt = s.startedAt
     jukeboxState.status = s.status
+  })
+  socket.on('horaDoMundo', ({ hora }: { hora: number | null }) => {
+    horaDoMundo.value = hora
   })
   socket.on('jukeboxVolumeTodos', ({ volume }: { volume: number }) => {
     for (const fn of volumeTodosListeners) fn(volume)
@@ -376,6 +381,10 @@ export function emitJukeboxAdd(input: string, areaId: string | null) {
 export function emitJukeboxSkip() {
   socket?.emit('jukeboxSkip')
 }
+export function emitDefinirHora(hora: number | null) {
+  socket?.emit('definirHora', { hora })
+}
+
 export function emitJukeboxVolumeTodos(volume: number) {
   socket?.emit('jukeboxVolumeTodos', { volume })
 }
