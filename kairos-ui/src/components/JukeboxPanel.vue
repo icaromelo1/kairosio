@@ -8,10 +8,10 @@
 
       <!-- tocando agora -->
       <div class="jb-now-playing">
-        <template v-if="jukeboxState.current">
+        <template v-if="estado.current">
           <div class="jb-label">tocando agora</div>
-          <div class="jb-title ellipsis">{{ jukeboxState.current.title }}</div>
-          <div class="jb-subtext">adicionado por {{ jukeboxState.current.addedByName }}</div>
+          <div class="jb-title ellipsis">{{ estado.current.title }}</div>
+          <div class="jb-subtext">adicionado por {{ estado.current.addedByName }}</div>
         </template>
         <template v-else>
           <div class="jb-muted">nada tocando — cole um link do YouTube abaixo</div>
@@ -23,8 +23,8 @@
         <span class="jb-muted">alcance:</span>
         <button
           class="k-btn k-btn-ghost k-btn-xs"
-          :class="{ 'k-active': jukeboxState.alcanceGlobal }"
-          @click="emitJukeboxAlcanceGlobal(!jukeboxState.alcanceGlobal)"
+          :class="{ 'k-active': estado.alcanceGlobal }"
+          @click="emitJukeboxAlcanceGlobal(!estado.alcanceGlobal, props.jukeboxId)"
         >tocar para o mundo inteiro</button>
       </div>
 
@@ -35,15 +35,15 @@
           <div class="col">
             <input
               v-model="linkInput" placeholder="Cole o link do YouTube…" @keydown.enter="add"
-              :disabled="!!jukeboxState.status || !props.areaAtual"
+              :disabled="!!estado.status || !props.areaAtual"
               class="k-input full-width k-input-xs"
             />
           </div>
           <div class="col-auto">
-            <button class="k-btn k-btn-primary k-btn-sm" :disabled="adding || !!jukeboxState.status || !props.areaAtual" @click="add">{{ adding || jukeboxState.status ? '...' : 'add' }}</button>
+            <button class="k-btn k-btn-primary k-btn-sm" :disabled="adding || !!estado.status || !props.areaAtual" @click="add">{{ adding || estado.status ? '...' : 'add' }}</button>
           </div>
         </div>
-        <p v-if="jukeboxState.status" class="k-hint-text jb-status"><PixelIcon name="loader" size="0.75rem" />{{ jukeboxState.status }}</p>
+        <p v-if="estado.status" class="k-hint-text jb-status"><PixelIcon name="loader" size="0.75rem" />{{ estado.status }}</p>
         <p v-if="jukeboxError" class="jb-error">{{ jukeboxError }}</p>
       </div>
 
@@ -84,10 +84,10 @@
           />
           <div class="row no-wrap q-gutter-xs">
             <div class="col">
-              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!jukeboxState.status || !props.areaAtual" @click="addRandom"><PixelIcon name="shuffle" size="0.75rem" />aleatória</button>
+              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!estado.status || !props.areaAtual" @click="addRandom"><PixelIcon name="shuffle" size="0.75rem" />aleatória</button>
             </div>
             <div class="col">
-              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!jukeboxState.status || !props.areaAtual" @click="addAll"><PixelIcon name="play" size="0.75rem" />tocar todas</button>
+              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!estado.status || !props.areaAtual" @click="addAll"><PixelIcon name="play" size="0.75rem" />tocar todas</button>
             </div>
           </div>
           <div class="jb-list">
@@ -95,7 +95,7 @@
             <div v-else-if="!library.length" class="jb-muted-4 jb-text-sm">nenhuma música encontrada</div>
             <button
               v-for="t in library" :key="t.id" class="k-btn k-btn-ghost ellipsis q-py-md"
-              :disabled="!!jukeboxState.status || !props.areaAtual"
+              :disabled="!!estado.status || !props.areaAtual"
               @click="addFromLibrary(t.youtubeId)"
             >{{ t.title }}</button>
           </div>
@@ -117,28 +117,31 @@
 
       <!-- fila -->
       <div class="column q-gutter-xs jb-queue">
-        <div class="jb-label">fila ({{ jukeboxState.queue.length }})</div>
-        <div v-if="!jukeboxState.queue.length" class="jb-muted-4 jb-text-sm">vazia</div>
-        <div v-for="(t, i) in jukeboxState.queue" :key="t.trackId + i" class="row items-center justify-between q-gutter-xs jb-queue-item">
+        <div class="jb-label">fila ({{ estado.queue.length }})</div>
+        <div v-if="!estado.queue.length" class="jb-muted-4 jb-text-sm">vazia</div>
+        <div v-for="(t, i) in estado.queue" :key="t.trackId + i" class="row items-center justify-between q-gutter-xs jb-queue-item">
           <span class="ellipsis">{{ i + 1 }}. {{ t.title }}</span>
           <span class="jb-muted-4 jb-queue-added">{{ t.addedByName }}</span>
         </div>
       </div>
 
-      <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!jukeboxState.current" @click="emitJukeboxSkip()"><PixelIcon name="forward" size="0.75rem" />pular</button>
+      <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!estado.current" @click="emitJukeboxSkip(props.jukeboxId)"><PixelIcon name="forward" size="0.75rem" />pular</button>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue'
-import { jukeboxState, jukeboxError, emitJukeboxAdd, emitJukeboxSkip, emitJukeboxAlcanceGlobal, emitJukeboxVolumeTodos, onJukeboxVolumeTodos } from '@/services/presence'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { jukeboxError, emitJukeboxAdd, emitJukeboxSkip, emitJukeboxAlcanceGlobal, emitJukeboxVolumeTodos, onJukeboxVolumeTodos, estadoDoJukebox, type JukeboxState } from '@/services/presence'
 import { personalVolume } from '@/services/jukeboxAudio'
 import { apiFetch } from '@/services/http'
 import { me } from '@/services/auth.api'
 import PixelIcon from '@/components/PixelIcon.vue'
 
-const props = defineProps<{ areaAtual: string | null }>()
+const props = defineProps<{ areaAtual: string | null; jukeboxId: string }>()
+
+const ESTADO_VAZIO: JukeboxState = { areaId: null, alcanceGlobal: false, queue: [], current: null, startedAt: null, status: null }
+const estado = computed(() => estadoDoJukebox(props.jukeboxId) ?? ESTADO_VAZIO)
 
 function aplicarVolumeParaTodos() {
   emitJukeboxVolumeTodos(personalVolume.value)
@@ -157,7 +160,7 @@ function add() {
   if (!v || !props.areaAtual) return
   jukeboxError.value = ''
   adding.value = true
-  emitJukeboxAdd(v, props.areaAtual)
+  emitJukeboxAdd(v, props.areaAtual, props.jukeboxId)
   linkInput.value = ''
   // sem confirmação de servidor por evento dedicado — destrava após um instante,
   // o estado da fila chega via jukeboxState assim que pronto
@@ -196,7 +199,7 @@ watch(librarySearch, () => {
 function addFromLibrary(youtubeId: string) {
   if (!props.areaAtual) return
   jukeboxError.value = ''
-  emitJukeboxAdd(youtubeId, props.areaAtual)
+  emitJukeboxAdd(youtubeId, props.areaAtual, props.jukeboxId)
 }
 
 function addRandom() {
@@ -209,7 +212,7 @@ function addAll() {
   if (!props.areaAtual) return
   // fila de tocar aceita repetição — servidor processa um por vez, sem bloquear
   // duplicatas (o download em si já é dedupado por youtubeId no backend)
-  for (const t of library.value) emitJukeboxAdd(t.youtubeId, props.areaAtual)
+  for (const t of library.value) emitJukeboxAdd(t.youtubeId, props.areaAtual, props.jukeboxId)
 }
 
 const syncing = ref<'' | 'server' | 'all'>('')
