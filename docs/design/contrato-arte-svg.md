@@ -51,6 +51,37 @@ O roxo (`#8c7ae6`) é **só para tela e luz** — não é cor de móvel.
 **Sem sombra de chão dentro do SVG.** O motor já desenha a sombra elíptica na
 `shadowLayer`; incluir outra no SVG dava sombra dupla (bug encontrado em 03/08).
 
+## Escala — âncora no avatar
+
+> Acrescentado em 03/08 depois que a mesa de reunião saiu maior que o personagem.
+
+O avatar tem **1 tile de largura e ~1,5 de altura**. Desenhe o móvel na proporção que
+ele teria ao lado de uma pessoa desse tamanho — não na proporção que "fica bonita"
+isolada no viewBox.
+
+Referência prática:
+
+| Objeto | Largura em avatares |
+|---|---|
+| cadeira | 1 |
+| mesa de escritório | 2 a 3 |
+| mesa de reunião | 3 a 4 |
+| estante | 1 a 2 |
+
+## Projeção — a elipse é a armadilha
+
+Todo objeto redondo tende a virar top-down, porque círculo é mais fácil de desenhar
+que perspectiva. Mesa redonda, fonte e tapete são os candidatos naturais a errar.
+
+**Superfície horizontal aparece como elipse achatada: a altura da elipse é no máximo
+1/3 da largura.** Elipse mais alta que isso implica câmera de cima e briga com o
+personagem, que é desenhado de frente — o olho lê isso como escala errada mesmo
+quando o tamanho está correto.
+
+Nenhum validador automático pega isso: a checagem é geométrica (cabe no viewBox? toca
+a base? paleta certa?) e projeção não é medível assim. **Só olhando.** Por isso a
+crítica visual é etapa obrigatória antes de aceitar um lote, não opcional.
+
 ## Orçamento de detalhe — a regra mais importante
 
 Um móvel renderiza entre **32px e 96px** na tela. Detalhe abaixo de ~2px vira ruído.
