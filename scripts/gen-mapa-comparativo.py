@@ -45,7 +45,7 @@ def sala(ox, oy, larg, alt, nome):
     _ = nome
 
 
-def escritorio(ox, oy):
+def escritorio(ox, oy, indice):
     """Escritorio 26x22: parede externa, telhado que some ao entrar, salas e baias."""
     add("wall", ox - 1, oy - 1, 28, 1, solid=True)
     add("wall", ox - 1, oy + 22, 12, 1, solid=True)
@@ -54,7 +54,15 @@ def escritorio(ox, oy):
     add("wall", ox - 1, oy, 1, 22, solid=True)
     add("wall", ox + 26, oy, 1, 10, solid=True)
     add("wall", ox + 26, oy + 14, 1, 8, solid=True)
-    add("area", ox - 1, oy - 1, 28, 24)
+    add(
+        "area",
+        ox - 1,
+        oy - 1,
+        28,
+        24,
+        id=f"escritorio-{indice}",
+        name=f"Escritório {indice}",
+    )
     add("panel", ox, oy, 26, 22, color="#5a4632")
     add("door", ox + 26, oy + 10, 1, 4)
     sala(ox, oy, 12, 10, "reuniao")
@@ -101,10 +109,10 @@ def praca(ox, oy):
     add("hedge", ox + 19, oy + 20, 6, 1)
 
 
-def bloco(ox, oy):
+def bloco(ox, oy, indice_base):
     """Bloco urbano de 60x60: 2 escritorios + praca + tapete de ligacao."""
-    escritorio(ox + 2, oy + 2)
-    escritorio(ox + 32, oy + 2)
+    escritorio(ox + 2, oy + 2, indice_base)
+    escritorio(ox + 32, oy + 2, indice_base + 1)
     praca(ox + 17, oy + 26)
     add("rug", ox + 2, oy + 50, 12, 8)
     add("sofa", ox + 4, oy + 52, 3, 2)
@@ -114,9 +122,9 @@ def bloco(ox, oy):
     add("column", ox + 34, oy + 51, 1, 2)
 
 
-bloco(0, 0)
-bloco(0, 60)
-bloco(60, 60)
+bloco(0, 0, 1)
+bloco(0, 60, 3)
+bloco(60, 60, 5)
 praca(70, 10)
 add("path", 60, 32, 60, 2)
 
