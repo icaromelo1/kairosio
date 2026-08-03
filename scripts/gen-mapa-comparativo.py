@@ -15,8 +15,19 @@ import uuid
 objetos = []
 
 
+# Sólido por tipo. Chão, vãos e marcações ficam de fora; móvel físico bloqueia.
+# Cadeira/sofá SÃO sólidos por design — a regra de escape do GamePage (tile atual
+# sólido libera o movimento) impede o travamento ao sentar.
+SOLIDOS = {
+    "wall", "desk", "table", "shelf", "servers", "sofa", "chair", "bench",
+    "column", "jukebox", "fountain", "tree", "hedge", "board", "lamp", "plant",
+}
+
+
 def add(kind, x, y, w, h, **extra):
     o = {"id": str(uuid.uuid4())[:8], "kind": kind, "x": x, "y": y, "w": w, "h": h}
+    if kind in SOLIDOS:
+        o["solid"] = True
     o.update(extra)
     objetos.append(o)
 
@@ -37,7 +48,9 @@ def sala(ox, oy, larg, alt, nome):
 def escritorio(ox, oy):
     """Escritorio 26x22: parede externa, telhado que some ao entrar, salas e baias."""
     add("wall", ox - 1, oy - 1, 28, 1, solid=True)
-    add("wall", ox - 1, oy + 22, 28, 1, solid=True)
+    add("wall", ox - 1, oy + 22, 12, 1, solid=True)
+    add("wall", ox + 14, oy + 22, 13, 1, solid=True)
+    add("door", ox + 11, oy + 22, 3, 1)
     add("wall", ox - 1, oy, 1, 22, solid=True)
     add("wall", ox + 26, oy, 1, 10, solid=True)
     add("wall", ox + 26, oy + 14, 1, 8, solid=True)
@@ -45,11 +58,11 @@ def escritorio(ox, oy):
     add("panel", ox, oy, 26, 22, color="#5a4632")
     add("door", ox + 26, oy + 10, 1, 4)
     sala(ox, oy, 12, 10, "reuniao")
-    add("table", ox + 3, oy + 3, 6, 4)
-    for i in range(3):
-        add("chair", ox + 2 + i * 3, oy + 2, 1, 2)
-        add("chair", ox + 2 + i * 3, oy + 7, 1, 2)
-    add("board", ox + 1, oy + 1, 10, 1, glow="cyan", name="Lousa da reuniao")
+    add("table", ox + 4, oy + 4, 4, 3)
+    for i in range(2):
+        add("chair", ox + 4 + i * 3, oy + 2, 1, 2)
+        add("chair", ox + 4 + i * 3, oy + 8, 1, 2)
+    add("board", ox + 1, oy + 1, 6, 1, glow="cyan", name="Lousa da reuniao")
 
     sala(ox + 14, oy, 12, 10, "servidores")
     add("servers", ox + 16, oy + 2, 4, 2)
