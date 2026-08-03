@@ -33,7 +33,7 @@
         @contextmenu.prevent
       />
       <!-- HUD top-left -->
-      <div class="gp-hud gp-hud-topleft row items-center q-gutter-sm">
+      <div v-if="hudVisible" class="gp-hud gp-hud-topleft row items-center q-gutter-sm">
         <div class="gp-avatar-box">
           <PixelAvatar :scale="1.6" v-bind="look" :shadow="false" />
         </div>
@@ -85,7 +85,7 @@
       </div>
 
       <!-- HUD bottom -->
-      <div class="gp-hud gp-hud-bottom row items-center q-gutter-md">
+      <div v-if="hudVisible" class="gp-hud gp-hud-bottom row items-center q-gutter-md">
         <span class="row items-center q-gutter-xs"><span class="k-key">W</span><span class="k-key">A</span><span class="k-key">S</span><span class="k-key">D</span><span class="gp-hud-hint">mover</span></span>
         <span class="gp-hud-sep">·</span>
         <span class="row items-center q-gutter-xs"><span class="k-key">B</span><span class="gp-hud-hint">dançar</span></span>
@@ -97,6 +97,22 @@
           <span class="gp-hud-sep">·</span>
           <span class="row items-center q-gutter-xs"><span class="k-key">E</span><span class="gp-hud-action">{{ activeZone.action }}</span></span>
         </template>
+      </div>
+
+      <!-- Controles do HUD: o botão fica sempre visível, senão não há como voltar -->
+      <div class="gp-hud gp-hud-ctl">
+        <button class="gp-hud-ctl-btn" :title="hudVisible ? 'esconder dicas (H)' : 'mostrar dicas (H)'" @click="hudVisible = !hudVisible">
+          <PixelIcon :name="hudVisible ? 'chevron-down' : 'chevron-up'" size="0.75rem" />
+        </button>
+        <label v-if="hudVisible" class="gp-hud-turbo">
+          <span class="k-key">⇧</span>
+          <input
+            v-model.number="turboMult" type="range"
+            :min="TURBO_MIN" :max="TURBO_MAX" step="0.1"
+            class="gp-hud-turbo-range"
+          />
+          <span class="gp-hud-turbo-val">{{ turboMult.toFixed(1) }}×</span>
+        </label>
       </div>
 
       <!-- Modal de interação -->
@@ -282,6 +298,13 @@ let sitting = false
 let preSit: { x: number; y: number } | null = null
 const keys = new Set<string>()
 const chatInput = ref('')
+const TURBO_MIN = 1.5
+const TURBO_MAX = 5
+const turboMult = ref(parseFloat(localStorage.getItem('kairos_turbo') || '') || 2.8)
+const hudVisible = ref(localStorage.getItem('kairos_hud') !== 'off')
+
+watch(turboMult, (v) => localStorage.setItem('kairos_turbo', String(v)))
+watch(hudVisible, (v) => localStorage.setItem('kairos_hud', v ? 'on' : 'off'))
 const nearby = ref<string | null>(null)
 let emoteUntil = 0
 const messages = chatMessages
@@ -425,10 +448,11 @@ function onKeyDown(e: KeyboardEvent) {
   }
   // atalho da sala de voz não pode engolir Cmd/Ctrl+V (colar) nem Alt+V
   const voiceKey = k === 'v' && !e.ctrlKey && !e.metaKey && !e.altKey
-  if (voiceKey || ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'e', 'b', 'g', 'escape'].includes(k)) e.preventDefault()
+  if (voiceKey || ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'e', 'b', 'g', 'h', 'escape'].includes(k)) e.preventDefault()
   if (k === 'e') { tryInteract(); return }
   if (k === 'b') { dancing = !dancing; return }
   if (k === 'g') { emote(); return }
+  if (k === 'h') { hudVisible.value = !hudVisible.value; return }
   if (voiceKey) { toggleMediaStage(); return }
   if (k === 'escape') { closeModal(); return }
   keys.add(k)
@@ -760,7 +784,7 @@ onMounted(async () => {
     // Sessão derrubada (aberta em outro lugar) também congela — não faz
     // sentido continuar "andando" localmente já desconectado da sala.
     if (!gameStore.isModalOpen && !panMode.value && !sessionKicked.value) {
-      const sp = 5 * dt * (onWater(map, pos.x, pos.y) ? 0.5 : 1) * (boosting ? 1.8 : 1)
+      const sp = 5 * dt * (onWater(map, pos.x, pos.y) ? 0.5 : 1) * (boosting ? turboMult.value : 1)
       if (keys.has('w') || keys.has('arrowup')) dy -= sp
       if (keys.has('s') || keys.has('arrowdown')) dy += sp
       if (keys.has('a') || keys.has('arrowleft')) dx -= sp
@@ -1175,6 +1199,43 @@ onUnmounted(() => {
 .gp-hud-hint { color: var(--text-3); }
 .gp-hud-sep { color: var(--text-4); }
 .gp-hud-action { color: var(--accent); }
+
+.gp-hud-ctl {
+  position: absolute;
+  right: var(--sp-12);
+  bottom: var(--sp-12);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  padding: var(--sp-6) var(--sp-8);
+}
+
+.gp-hud-ctl-btn {
+  background: none;
+  border: 0.0625rem solid var(--border);
+  color: var(--text-3);
+  cursor: pointer;
+  padding: var(--sp-4) var(--sp-6);
+  display: flex;
+  align-items: center;
+}
+
+.gp-hud-ctl-btn:hover { color: var(--text); border-color: var(--text-3); }
+
+.gp-hud-turbo {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-6);
+}
+
+.gp-hud-turbo-range { width: 6rem; accent-color: var(--primary); }
+
+.gp-hud-turbo-val {
+  font-family: var(--f-mono);
+  font-size: 0.75rem;
+  color: var(--text-3);
+  min-width: 2.2rem;
+}
 
 .gp-modal-overlay {
   position: absolute;
