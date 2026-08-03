@@ -183,6 +183,8 @@ export class PresenceGateway
   private readonly jukebox = new Map<string, JukeboxRoomState>()
   // salas (áreas) trancadas por mapa (servidor:map) — ids de área, alternados por quem está dentro
   private readonly salasTrancadas = new Map<string, Set<string>>()
+  // hora forçada do mundo por mapa; null/ausente = segue a hora real
+  private readonly horaDoMundo = new Map<string, number | null>()
   private readonly whiteboards = new Map<string, WhiteboardState>()
   // quem está transmitindo a tela (socket.id) — só pra saber se a transição é
   // real e pra desfazer o aviso quando a aba cai sem mandar o 'off'
@@ -385,6 +387,7 @@ export class PresenceGateway
     socket.to(room).emit('playerJoined', player)
     socket.emit('jukeboxState', this.jukeboxSnapshot(room))
     socket.emit('salaEstado', { trancadas: [...(this.salasTrancadas.get(room) ?? [])] })
+    socket.emit('horaDoMundo', { hora: this.horaDoMundo.get(room) ?? null })
     // join repetido mantém o mesmo socket.id na lista de presença: é troca de
     // mundo pra quem observa, não uma pessoa nova
     this.emitPresence(player, existing ? 'update' : 'join')
@@ -484,6 +487,7 @@ export class PresenceGateway
     socket.to(room).emit('playerJoined', player)
     socket.emit('jukeboxState', this.jukeboxSnapshot(room))
     socket.emit('salaEstado', { trancadas: [...(this.salasTrancadas.get(room) ?? [])] })
+    socket.emit('horaDoMundo', { hora: this.horaDoMundo.get(room) ?? null })
     this.emitPresence(player, 'update')
     this.emitFriendPresence(player.userId, player)
   }
@@ -1002,6 +1006,22 @@ export class PresenceGateway
     const room = this.room(player.serverId, player.map)
     this.jukeboxStateFor(room).alcanceGlobal = payload.value
     this.broadcastJukebox(room)
+  }
+
+  @SubscribeMessage('definirHora')
+  async handleDefinirHora(socket: Socket, payload: { hora: number | null }) {
+    const player = this.players.get(socket.id)
+    if (!player) return
+    const bruta = payload?.hora
+    const hora = bruta === null ? null : Number(bruta)
+    if (hora !== null && (!Number.isFinite(hora) || hora < 0 || hora >= 24)) return
+    const userId = this.socketUserId.get(socket.id)
+    if (!userId) return
+    const user = await this.users.findOne({ where: { id: userId } })
+    if (!user?.isSudo) return
+    const room = this.room(player.serverId, player.map)
+    this.horaDoMundo.set(room, hora)
+    this.server.to(room).emit('horaDoMundo', { hora })
   }
 
   @SubscribeMessage('jukeboxVolumeTodos')

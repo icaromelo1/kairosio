@@ -105,6 +105,23 @@
         <button class="gp-hud-ctl-btn" :title="hudVisible ? 'esconder dicas (H)' : 'mostrar dicas (H)'" @click="hudVisible = !hudVisible">
           <PixelIcon :name="hudVisible ? 'chevron-down' : 'chevron-up'" size="0.75rem" />
         </button>
+        <label v-if="hudVisible && ehSudo" class="gp-hud-turbo" title="hora do mundo — vale para todos">
+          <span class="k-key">☀</span>
+          <input
+            v-model.number="horaEditavel" type="range"
+            min="0" max="23.5" step="0.5"
+            class="gp-hud-turbo-range"
+            @change="definirHora(horaEditavel)"
+          />
+          <span class="gp-hud-turbo-val">{{ String(Math.floor(horaEditavel)).padStart(2, '0') }}h</span>
+          <button
+            v-if="horaDoMundo !== null"
+            class="gp-hud-ctl-btn"
+            title="voltar a seguir a hora real"
+            @click="definirHora(null)"
+          >auto</button>
+        </label>
+
         <label v-if="hudVisible" class="gp-hud-turbo">
           <span class="k-key">⇧</span>
           <input
@@ -220,13 +237,14 @@ import { AvatarPuppet, sanitizeLook, type AvatarLook, type Facing } from '@/game
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, jukeboxState, salasTrancadas, emitSalaTrancar, emitScreenShare, onScreenShare, sessionKicked, syncDmUnread, type AvatarProps, type ChatMessage, type ScreenShareState } from '@/services/presence'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, jukeboxState, salasTrancadas, emitSalaTrancar, horaDoMundo, emitDefinirHora, emitScreenShare, onScreenShare, sessionKicked, syncDmUnread, type AvatarProps, type ChatMessage, type ScreenShareState } from '@/services/presence'
 import { media } from '@/services/media'
 import { ganhoDoPeer, salaDoPonto } from '@/game/audio/espacial'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
 import { panelFromQuery, type GamePanel } from '@/services/postAuth'
 import { estadoDeLuz } from '@/game/lighting'
+import { me } from '@/services/auth.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import JukeboxPanel from '@/components/JukeboxPanel.vue'
 import MediaStage from '@/components/MediaStage.vue'
@@ -307,6 +325,23 @@ const TURBO_MAX = 5
 const turboMult = ref(parseFloat(localStorage.getItem('kairos_turbo') || '') || 2.8)
 const hudVisible = ref(localStorage.getItem('kairos_hud') !== 'off')
 const horario = ref(estadoDeLuz().estagio)
+const ehSudo = ref(false)
+const horaEditavel = ref(12)
+
+function aplicarLuzDoMundo() {
+  const h = horaDoMundo.value ?? undefined
+  scene?.atualizarLuz(h)
+  horario.value = estadoDeLuz(h).estagio
+}
+
+function definirHora(h: number | null) {
+  emitDefinirHora(h)
+}
+
+watch(horaDoMundo, (h) => {
+  if (h !== null) horaEditavel.value = h
+  aplicarLuzDoMundo()
+})
 let relogioLuz = 0
 const salaAtualId = computed(() => {
   const map = currentMap.value
@@ -748,10 +783,8 @@ onMounted(async () => {
   if (savedZoom) scene.setZoom(savedZoom)
   scene.addAvatar('me', new AvatarPuppet(look.value))
   scene.avatar('me')?.setPhoto(myPhotoUrl.value)
-  relogioLuz = window.setInterval(() => {
-    scene?.atualizarLuz()
-    horario.value = estadoDeLuz().estagio
-  }, 30_000)
+  relogioLuz = window.setInterval(aplicarLuzDoMundo, 30_000)
+  me().then((p) => { ehSudo.value = p.isAdmin }).catch(() => { ehSudo.value = false })
 
   try {
     maps.value = await fetchMaps()
