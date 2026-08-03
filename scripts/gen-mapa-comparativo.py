@@ -41,7 +41,8 @@ def escritorio(ox, oy):
     add("wall", ox - 1, oy, 1, 22, solid=True)
     add("wall", ox + 26, oy, 1, 10, solid=True)
     add("wall", ox + 26, oy + 14, 1, 8, solid=True)
-    add("roof", ox - 1, oy - 1, 28, 24)
+    add("area", ox - 1, oy - 1, 28, 24)
+    add("panel", ox, oy, 26, 22, color="#5a4632")
     add("door", ox + 26, oy + 10, 1, 4)
     sala(ox, oy, 12, 10, "reuniao")
     add("table", ox + 3, oy + 3, 6, 4)
@@ -115,11 +116,11 @@ mapa = {
     "width": 120,
     "height": 120,
     "palette": {
-        "floor": ["#1a1a26", "#1d1d2a"],
-        "floorTrim": "#252535",
-        "wall": "#0d0d14",
-        "wallTop": "#252535",
-        "accent": "#7c3aed",
+        "floor": ["#3a3d44", "#33363c"],
+        "floorTrim": "#4a4e57",
+        "wall": "#23262c",
+        "wallTop": "#4a4e57",
+        "accent": "#d9c47a",
     },
     "spawn": {"x": 30, "y": 30},
     "objects": objetos,

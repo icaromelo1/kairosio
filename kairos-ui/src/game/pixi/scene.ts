@@ -44,8 +44,6 @@ const UPRIGHT_KINDS = new Set<MapObject['kind']>([
   'bench', 'lamp', 'table', 'column', 'chair', 'sofa', 'hedge', 'wall', 'custom',
 ])
 
-const COBERTURA_ALPHA_DENTRO = 0.12
-const COBERTURA_FADE = 0.12
 
 export class MapScene {
   app: Application
@@ -56,7 +54,8 @@ export class MapScene {
   private shadowLayer: Container // sombras dos objetos em pé (no chão, não giram)
   private entityLayer: Container // objetos em pé + avatares, ordenados por Y (profundidade)
   private roofLayer: Container
-  private roofs: { g: Graphics; x: number; y: number; w: number; h: number }[] = []
+  private areas: { x: number; y: number; w: number; h: number }[] = []
+  private areaAtual = -1
   private dentroDeCobertura = false
   private pulso = 0
   private lightingLayer: Container
@@ -108,7 +107,8 @@ export class MapScene {
     this.clearLayer(this.objectLayer)
     this.clearLayer(this.shadowLayer)
     this.clearLayer(this.roofLayer)
-    this.roofs = []
+    this.areas = []
+    this.areaAtual = -1
     // a entityLayer mistura objetos do mapa (descartáveis) com os avatares (vivos)
     const avatarRoots = new Set<Container>()
     for (const p of this.avatars.values()) avatarRoots.add(p.root)
@@ -131,6 +131,7 @@ export class MapScene {
       for (let x = 0; x < map.width; x++) {
         const isWall = x === 0 || y === 0 || x === map.width - 1 || y === map.height - 1
         const color = isWall ? wall : (x + y) % 2 === 0 ? floorA : floorB
+        void 0
         g.rect(x * TILE_PX, y * TILE_PX, TILE_PX, TILE_PX).fill({ color })
       }
     }
@@ -145,6 +146,42 @@ export class MapScene {
     this.montarIluminacao(map)
   }
 
+  // Modelo Gather: dentro de uma área, o lado de fora escurece; fora, os
+  // interiores escurecem. Regiões não se sobrepõem, então o multiply não empilha.
+  private redesenharMascara() {
+    const map = this.map
+    const dark = this.darkness
+    if (!map || !dark) return
+
+    const mw = map.width * TILE_PX
+    const mh = map.height * TILE_PX
+    const M = TILE_PX
+    dark.clear()
+
+    const dentro = this.areaAtual >= 0 ? this.areas[this.areaAtual] : null
+
+    if (dentro) {
+      const ax = dentro.x * TILE_PX
+      const ay = dentro.y * TILE_PX
+      const aw = dentro.w * TILE_PX
+      const ah = dentro.h * TILE_PX
+      const fora = { cor: this.luz.tint, alpha: Math.max(this.luz.alpha, 0.55) }
+      dark.rect(-M, -M, mw + M * 2, ay + M).fill({ color: fora.cor, alpha: fora.alpha })
+      dark.rect(-M, ay + ah, mw + M * 2, mh - ay - ah + M).fill({ color: fora.cor, alpha: fora.alpha })
+      dark.rect(-M, ay, ax + M, ah).fill({ color: fora.cor, alpha: fora.alpha })
+      dark.rect(ax + aw, ay, mw - ax - aw + M, ah).fill({ color: fora.cor, alpha: fora.alpha })
+      dark.rect(ax, ay, aw, ah).fill({ color: 0xffe6bd, alpha: 0.1 })
+      return
+    }
+
+    dark.rect(-M, -M, mw + M * 2, mh + M * 2).fill({ color: this.luz.tint, alpha: this.luz.alpha })
+    for (const a of this.areas) {
+      dark
+        .rect(a.x * TILE_PX, a.y * TILE_PX, a.w * TILE_PX, a.h * TILE_PX)
+        .fill({ color: 0x0d1020, alpha: 0.5 })
+    }
+  }
+
   private montarIluminacao(map: MapDef) {
     this.clearLayer(this.lightingLayer)
     this.darkness = null
@@ -154,8 +191,9 @@ export class MapScene {
     const mundoW = map.width * TILE_PX
     const mundoH = map.height * TILE_PX
 
+    void mundoW
+    void mundoH
     const dark = new Graphics()
-    dark.rect(-TILE_PX, -TILE_PX, mundoW + TILE_PX * 2, mundoH + TILE_PX * 2).fill({ color: 0xffffff })
     dark.blendMode = 'multiply'
     this.lightingLayer.addChild(dark)
     this.darkness = dark
@@ -180,29 +218,6 @@ export class MapScene {
     this.aplicarLuz()
   }
 
-  // telhado com ripas e beiral — retângulo chapado lia como bloco de cor,
-  // sem sugerir cobertura. o beiral escuro embaixo dá a espessura.
-  private desenharTelhado(o: MapObject, x: number, y: number, w: number, h: number): Graphics {
-    const g = new Graphics()
-    const base = o.color ? hexNum(o.color, 0x3a3350) : 0x3a3350
-    g.rect(x, y, w, h).fill({ color: base })
-
-    const passo = Math.max(TILE_PX * 0.75, 18)
-    for (let ly = y; ly < y + h; ly += passo) {
-      g.rect(x, ly, w, passo * 0.5).fill({ color: 0xffffff, alpha: 0.045 })
-      g.rect(x, ly + passo * 0.5, w, 1.5).fill({ color: 0x000000, alpha: 0.22 })
-    }
-
-    const beiral = Math.max(6, h * 0.06)
-    g.rect(x - 3, y - 3, w + 6, beiral).fill({ color: 0xffffff, alpha: 0.1 })
-    g.rect(x - 3, y + h - beiral, w + 6, beiral + 3).fill({ color: 0x000000, alpha: 0.34 })
-    g.rect(x - 3, y - 3, 3, h + 6).fill({ color: 0x000000, alpha: 0.2 })
-    g.rect(x + w, y - 3, 3, h + 6).fill({ color: 0x000000, alpha: 0.2 })
-
-    this.roofs.push({ g, x: o.x, y: o.y, w: o.w, h: o.h })
-    return g
-  }
-
   // poça de luz por círculos concêntricos — o alpha cai do centro pra borda.
   // gradiente de verdade exigiria textura; a aproximação some no blur do add.
   private desenharPoca(g: Graphics, cx: number, cy: number, raio: number, cor: number) {
@@ -225,12 +240,11 @@ export class MapScene {
   }
 
   private aplicarLuz() {
-    if (this.darkness) {
-      this.darkness.tint = this.dentroDeCobertura ? 0xffdcb0 : this.luz.tint
-      this.darkness.alpha = this.dentroDeCobertura ? Math.min(this.luz.alpha, 0.16) : this.luz.alpha
-    }
-    if (this.lightPools) this.lightPools.alpha = this.luz.raioLuz
-    if (this.playerLight) this.playerLight.alpha = this.luz.raioLuz * 0.8
+    this.redesenharMascara()
+    // interior tem luz acesa a qualquer hora — o sistema precisa ser visível de dia
+    const forca = this.areaAtual >= 0 ? Math.max(this.luz.raioLuz, 0.75) : this.luz.raioLuz
+    if (this.lightPools) this.lightPools.alpha = forca
+    if (this.playerLight) this.playerLight.alpha = forca * 0.8
   }
 
   atualizarLuz(hora?: number) {
@@ -245,16 +259,14 @@ export class MapScene {
   posicionarLuzDoJogador(x: number, y: number) {
     if (this.playerLight) this.playerLight.position.set(x * TILE_PX, y * TILE_PX)
 
-    let dentro = false
-    for (const r of this.roofs) {
-      const cobre = x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h
-      if (cobre) dentro = true
-      const alvo = cobre ? COBERTURA_ALPHA_DENTRO : 1
-      r.g.alpha += (alvo - r.g.alpha) * COBERTURA_FADE
+    let idx = -1
+    for (let i = 0; i < this.areas.length; i++) {
+      const a = this.areas[i]
+      if (x >= a.x && x < a.x + a.w && y >= a.y && y < a.y + a.h) { idx = i; break }
     }
-
-    if (dentro !== this.dentroDeCobertura) {
-      this.dentroDeCobertura = dentro
+    if (idx !== this.areaAtual) {
+      this.areaAtual = idx
+      this.dentroDeCobertura = idx >= 0
       this.aplicarLuz()
     }
   }
@@ -276,8 +288,8 @@ export class MapScene {
 
     const shape = (gg: Graphics) => (circle ? gg.circle(cx, cy, r) : gg.rect(x, y, w, h))
 
-    if (o.kind === 'roof') {
-      this.roofLayer.addChild(this.desenharTelhado(o, x, y, w, h))
+    if (o.kind === 'area') {
+      this.areas.push({ x: o.x, y: o.y, w: o.w, h: o.h })
       return
     }
 
