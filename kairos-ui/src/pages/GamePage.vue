@@ -573,7 +573,7 @@ function tryInteract() {
   if (!z || gameStore.isModalOpen) return
   // cadeira/sofá → sentar (em vez de modal); guarda de onde veio pra voltar
   // ao levantar — o objeto costuma ser sólido, levantar "dentro" dele travava
-  if (z.sittable || z.kind === 'chair' || z.kind === 'sofa') {
+  if (z.sittable || z.kind === 'chair' || z.kind === 'sofa' || z.kind === 'bench') {
     if (!sitting) preSit = { x: pos.x, y: pos.y }
     sitting = true
     pos.x = z.x + z.w / 2

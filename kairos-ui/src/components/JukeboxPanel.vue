@@ -107,6 +107,12 @@
         <span class="jb-muted">seu volume:</span>
         <input type="range" min="0" max="1" step="0.05" v-model.number="personalVolume" class="k-range col" />
         <span class="jb-muted jb-volume-value">{{ Math.round(personalVolume * 100) }}%</span>
+        <button
+          v-if="isProductAdmin"
+          class="k-btn k-btn-ghost k-btn-xs"
+          title="aplica o seu volume atual para todo mundo da sala"
+          @click="aplicarVolumeParaTodos"
+        >p/ todos</button>
       </div>
 
       <!-- fila -->
@@ -125,14 +131,21 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
-import { jukeboxState, jukeboxError, emitJukeboxAdd, emitJukeboxSkip, emitJukeboxAlcanceGlobal } from '@/services/presence'
+import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { jukeboxState, jukeboxError, emitJukeboxAdd, emitJukeboxSkip, emitJukeboxAlcanceGlobal, emitJukeboxVolumeTodos, onJukeboxVolumeTodos } from '@/services/presence'
 import { personalVolume } from '@/services/jukeboxAudio'
 import { apiFetch } from '@/services/http'
 import { me } from '@/services/auth.api'
 import PixelIcon from '@/components/PixelIcon.vue'
 
 const props = defineProps<{ areaAtual: string | null }>()
+
+function aplicarVolumeParaTodos() {
+  emitJukeboxVolumeTodos(personalVolume.value)
+}
+
+const pararDeOuvirVolume = onJukeboxVolumeTodos((v) => { personalVolume.value = v })
+onUnmounted(pararDeOuvirVolume)
 
 defineEmits(['close'])
 

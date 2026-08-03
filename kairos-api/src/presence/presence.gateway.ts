@@ -1004,6 +1004,18 @@ export class PresenceGateway
     this.broadcastJukebox(room)
   }
 
+  @SubscribeMessage('jukeboxVolumeTodos')
+  async handleJukeboxVolumeTodos(socket: Socket, payload: { volume: number }) {
+    const player = this.players.get(socket.id)
+    const volume = Number(payload?.volume)
+    if (!player || !Number.isFinite(volume) || volume < 0 || volume > 1) return
+    const userId = this.socketUserId.get(socket.id)
+    if (!userId) return
+    const user = await this.users.findOne({ where: { id: userId } })
+    if (!user?.isSudo) return
+    this.server.to(this.room(player.serverId, player.map)).emit('jukeboxVolumeTodos', { volume })
+  }
+
   private jukeboxStateFor(room: string): JukeboxRoomState {
     let state = this.jukebox.get(room)
     if (!state) {

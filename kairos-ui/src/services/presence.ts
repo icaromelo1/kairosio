@@ -163,6 +163,7 @@ const boardStrokeListeners = new Set<(stroke: Stroke) => void>()
 const boardClearListeners = new Set<() => void>()
 const screenShareListeners = new Set<(state: ScreenShareState) => void>()
 const dmListeners = new Set<(entrega: DmEntrega) => void>()
+const volumeTodosListeners = new Set<(volume: number) => void>()
 
 export function connectPresence(opts: JoinOptions) {
   if (socket) return
@@ -218,6 +219,9 @@ export function connectPresence(opts: JoinOptions) {
     jukeboxState.current = s.current
     jukeboxState.startedAt = s.startedAt
     jukeboxState.status = s.status
+  })
+  socket.on('jukeboxVolumeTodos', ({ volume }: { volume: number }) => {
+    for (const fn of volumeTodosListeners) fn(volume)
   })
   socket.on('jukeboxError', ({ message }: { message: string }) => {
     jukeboxError.value = message
@@ -372,6 +376,10 @@ export function emitJukeboxAdd(input: string, areaId: string | null) {
 export function emitJukeboxSkip() {
   socket?.emit('jukeboxSkip')
 }
+export function emitJukeboxVolumeTodos(volume: number) {
+  socket?.emit('jukeboxVolumeTodos', { volume })
+}
+
 export function emitJukeboxAlcanceGlobal(v: boolean) {
   socket?.emit('jukeboxAlcanceGlobal', { value: v })
 }
@@ -467,4 +475,9 @@ export function disconnectPresence() {
   remotePlayers.clear()
   presenceByServer.clear()
   friendPresence.clear()
+}
+
+export function onJukeboxVolumeTodos(fn: (volume: number) => void): () => void {
+  volumeTodosListeners.add(fn)
+  return () => volumeTodosListeners.delete(fn)
 }
