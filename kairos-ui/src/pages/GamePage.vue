@@ -40,6 +40,7 @@
         <div class="column gp-hud-tight">
           <span class="gp-hud-name">{{ playerName }}</span>
           <span class="gp-hud-mapname">● {{ currentMap?.name || '…' }}</span>
+          <span class="gp-hud-hora">{{ horario }}</span>
         </div>
       </div>
 
@@ -223,6 +224,7 @@ import { media } from '@/services/media'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
 import { panelFromQuery, type GamePanel } from '@/services/postAuth'
+import { estadoDeLuz } from '@/game/lighting'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import JukeboxPanel from '@/components/JukeboxPanel.vue'
 import MediaStage from '@/components/MediaStage.vue'
@@ -302,6 +304,8 @@ const TURBO_MIN = 1.5
 const TURBO_MAX = 5
 const turboMult = ref(parseFloat(localStorage.getItem('kairos_turbo') || '') || 2.8)
 const hudVisible = ref(localStorage.getItem('kairos_hud') !== 'off')
+const horario = ref(estadoDeLuz().estagio)
+let relogioLuz = 0
 
 watch(turboMult, (v) => localStorage.setItem('kairos_turbo', String(v)))
 watch(hudVisible, (v) => localStorage.setItem('kairos_hud', v ? 'on' : 'off'))
@@ -735,6 +739,10 @@ onMounted(async () => {
   if (savedZoom) scene.setZoom(savedZoom)
   scene.addAvatar('me', new AvatarPuppet(look.value))
   scene.avatar('me')?.setPhoto(myPhotoUrl.value)
+  relogioLuz = window.setInterval(() => {
+    scene?.atualizarLuz()
+    horario.value = estadoDeLuz().estagio
+  }, 30_000)
 
   try {
     maps.value = await fetchMaps()
@@ -810,6 +818,8 @@ onMounted(async () => {
       if ((stuck || !isSolid(map, Math.floor(nx), Math.floor(pos.y))) && !peerBlocks(nx, pos.y, pos.x, pos.y)) pos.x = nx
       if ((stuck || !isSolid(map, Math.floor(pos.x), Math.floor(ny))) && !peerBlocks(pos.x, ny, pos.x, pos.y)) pos.y = ny
     }
+    scene.posicionarLuzDoJogador(pos.x, pos.y)
+
     const onCart = boosting && moving
     const emoting = Date.now() < emoteUntil
     const pose: 'idle' | 'walk' | 'dance' | 'wave' | 'sit' = sitting ? 'sit' : moving ? 'walk' : emoting ? 'wave' : dancing ? 'dance' : 'idle'
@@ -919,6 +929,7 @@ async function leave() {
 }
 
 onUnmounted(() => {
+  window.clearInterval(relogioLuz)
   window.removeEventListener('keydown', onKeyDown)
   window.removeEventListener('keyup', onKeyUp)
   window.removeEventListener('blur', clearKeys)
@@ -1199,6 +1210,14 @@ onUnmounted(() => {
 .gp-hud-hint { color: var(--text-3); }
 .gp-hud-sep { color: var(--text-4); }
 .gp-hud-action { color: var(--accent); }
+
+.gp-hud-hora {
+  font-family: var(--f-pixel);
+  font-size: 0.5625rem;
+  color: var(--text-3);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 
 .gp-hud-ctl {
   position: absolute;
