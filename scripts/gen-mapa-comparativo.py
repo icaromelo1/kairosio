@@ -24,17 +24,23 @@ def add(kind, x, y, w, h, **extra):
 def sala(ox, oy, larg, alt, nome):
     """Paredes da sala via hedge (solido), com vao de porta no meio da parede sul."""
     meio = ox + larg // 2
-    add("hedge", ox, oy, larg, 1, solid=True)
-    add("hedge", ox, oy + alt - 1, meio - ox - 1, 1, solid=True)
-    add("hedge", meio + 1, oy + alt - 1, ox + larg - meio - 1, 1, solid=True)
-    add("hedge", ox, oy + 1, 1, alt - 2, solid=True)
-    add("hedge", ox + larg - 1, oy + 1, 1, alt - 2, solid=True)
+    add("wall", ox, oy, larg, 1, solid=True)
+    add("wall", ox, oy + alt - 1, meio - ox - 1, 1, solid=True)
+    add("wall", meio + 1, oy + alt - 1, ox + larg - meio - 1, 1, solid=True)
+    add("wall", ox, oy + 1, 1, alt - 2, solid=True)
+    add("wall", ox + larg - 1, oy + 1, 1, alt - 2, solid=True)
     add("panel", ox + 1, oy + 1, larg - 2, alt - 2, color="rgba(124,58,237,0.05)")
     _ = nome
 
 
 def escritorio(ox, oy):
-    """Escritorio 26x22: 3 salas + baias abertas."""
+    """Escritorio 26x22: parede externa, telhado que some ao entrar, salas e baias."""
+    add("wall", ox - 1, oy - 1, 28, 1, solid=True)
+    add("wall", ox - 1, oy + 22, 28, 1, solid=True)
+    add("wall", ox - 1, oy, 1, 22, solid=True)
+    add("wall", ox + 26, oy, 1, 10, solid=True)
+    add("wall", ox + 26, oy + 14, 1, 8, solid=True)
+    add("roof", ox - 1, oy - 1, 28, 24)
     sala(ox, oy, 12, 10, "reuniao")
     add("table", ox + 3, oy + 3, 6, 4)
     for i in range(3):

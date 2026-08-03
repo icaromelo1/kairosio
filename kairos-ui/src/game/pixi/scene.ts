@@ -41,8 +41,11 @@ const GLOW: Record<NonNullable<MapObject['glow']>, number> = {
 // são "de chão" e ficam na camada de baixo.
 const UPRIGHT_KINDS = new Set<MapObject['kind']>([
   'desk', 'board', 'jukebox', 'servers', 'shelf', 'plant', 'tree', 'fountain',
-  'bench', 'lamp', 'table', 'column', 'chair', 'sofa', 'hedge', 'custom',
+  'bench', 'lamp', 'table', 'column', 'chair', 'sofa', 'hedge', 'wall', 'custom',
 ])
+
+const COBERTURA_ALPHA_DENTRO = 0.12
+const COBERTURA_FADE = 0.12
 
 export class MapScene {
   app: Application
@@ -52,6 +55,10 @@ export class MapScene {
   private objectLayer: Container // objetos "de chão" (rug/água/caminho/grama) — sempre embaixo
   private shadowLayer: Container // sombras dos objetos em pé (no chão, não giram)
   private entityLayer: Container // objetos em pé + avatares, ordenados por Y (profundidade)
+  private roofLayer: Container
+  private roofs: { g: Graphics; x: number; y: number; w: number; h: number }[] = []
+  private dentroDeCobertura = false
+  private pulso = 0
   private lightingLayer: Container
   private darkness: Graphics | null = null
   private lightPools: Graphics | null = null
@@ -71,6 +78,8 @@ export class MapScene {
     this.entityLayer = new Container()
     this.entityLayer.sortableChildren = true // ordena por zIndex (= Y da base)
     this.ghostLayer = new Container()
+    this.roofLayer = new Container()
+    this.roofLayer.eventMode = 'none'
     this.lightingLayer = new Container()
     this.lightingLayer.eventMode = 'none'
   }
@@ -78,9 +87,13 @@ export class MapScene {
   async init(host: HTMLElement, background = '#0d0d14') {
     await this.app.init({ background, resizeTo: host, antialias: false })
     host.appendChild(this.app.canvas)
-    this.world.addChild(this.floorLayer, this.objectLayer, this.shadowLayer, this.entityLayer, this.lightingLayer, this.ghostLayer)
+    this.world.addChild(this.floorLayer, this.objectLayer, this.shadowLayer, this.entityLayer, this.roofLayer, this.lightingLayer, this.ghostLayer)
     this.app.stage.addChild(this.world)
     this.app.renderer.on('resize', () => this.setZoom(this.zoom))
+    this.app.ticker.add(() => {
+      this.pulso += this.app.ticker.deltaMS / 1000
+      this.aplicarPulso()
+    })
   }
 
   // removeChildren no Pixi 8 NÃO destrói — sem destroy explícito, cada troca de
@@ -94,6 +107,8 @@ export class MapScene {
     this.clearLayer(this.floorLayer)
     this.clearLayer(this.objectLayer)
     this.clearLayer(this.shadowLayer)
+    this.clearLayer(this.roofLayer)
+    this.roofs = []
     // a entityLayer mistura objetos do mapa (descartáveis) com os avatares (vivos)
     const avatarRoots = new Set<Container>()
     for (const p of this.avatars.values()) avatarRoots.add(p.root)
@@ -175,10 +190,21 @@ export class MapScene {
     }
   }
 
+  // respiração das poças de luz — duas senoides fora de fase, pra não parecer
+  // um piscar mecânico. amplitude some junto com a luz durante o dia.
+  private aplicarPulso() {
+    if (!this.lightPools && !this.playerLight) return
+    const base = this.luz.raioLuz
+    if (base <= 0.001) return
+    const onda = 1 + Math.sin(this.pulso * 1.7) * 0.05 + Math.sin(this.pulso * 0.6) * 0.03
+    if (this.lightPools) this.lightPools.alpha = base * onda
+    if (this.playerLight) this.playerLight.alpha = base * 0.8 * (2 - onda)
+  }
+
   private aplicarLuz() {
     if (this.darkness) {
-      this.darkness.tint = this.luz.tint
-      this.darkness.alpha = this.luz.alpha
+      this.darkness.tint = this.dentroDeCobertura ? 0xffdcb0 : this.luz.tint
+      this.darkness.alpha = this.dentroDeCobertura ? Math.min(this.luz.alpha, 0.16) : this.luz.alpha
     }
     if (this.lightPools) this.lightPools.alpha = this.luz.raioLuz
     if (this.playerLight) this.playerLight.alpha = this.luz.raioLuz * 0.8
@@ -195,6 +221,23 @@ export class MapScene {
 
   posicionarLuzDoJogador(x: number, y: number) {
     if (this.playerLight) this.playerLight.position.set(x * TILE_PX, y * TILE_PX)
+
+    let dentro = false
+    for (const r of this.roofs) {
+      const cobre = x >= r.x && x < r.x + r.w && y >= r.y && y < r.y + r.h
+      if (cobre) dentro = true
+      const alvo = cobre ? COBERTURA_ALPHA_DENTRO : 1
+      r.g.alpha += (alvo - r.g.alpha) * COBERTURA_FADE
+    }
+
+    if (dentro !== this.dentroDeCobertura) {
+      this.dentroDeCobertura = dentro
+      this.aplicarLuz()
+    }
+  }
+
+  estaDentro(): boolean {
+    return this.dentroDeCobertura
   }
 
   private drawObject(o: MapObject) {
@@ -209,6 +252,17 @@ export class MapScene {
     const r = Math.min(w, h) / 2
 
     const shape = (gg: Graphics) => (circle ? gg.circle(cx, cy, r) : gg.rect(x, y, w, h))
+
+    if (o.kind === 'roof') {
+      const teto = new Graphics()
+      const cor = o.color ? hexNum(o.color, 0x2a2440) : 0x241f38
+      teto.rect(x, y, w, h).fill({ color: cor })
+      teto.rect(x, y, w, Math.max(4, h * 0.12)).fill({ color: 0xffffff, alpha: 0.06 })
+      teto.rect(x, y + h - Math.max(4, h * 0.08), w, Math.max(4, h * 0.08)).fill({ color: 0x000000, alpha: 0.28 })
+      this.roofLayer.addChild(teto)
+      this.roofs.push({ g: teto, x: o.x, y: o.y, w: o.w, h: o.h })
+      return
+    }
 
     const variante = varianteParaObjeto(o)
 

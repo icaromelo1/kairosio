@@ -37,6 +37,8 @@ export type ObjectKind =
   | 'column'
   | 'chair'
   | 'sofa'
+  | 'wall'
+  | 'roof'
   | 'custom'
 
 export interface MapObject {
