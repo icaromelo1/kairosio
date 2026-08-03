@@ -122,8 +122,8 @@ const MOVE_INTERVAL = 80
 export const remotePlayers = reactive(new Map<string, RemotePlayer>())
 // Histórico recente de chat da sala (cap 50)
 export const chatMessages = reactive<ChatMessage[]>([])
-// Estado do jukebox da sala atual (fila/faixa tocando/área/alcance)
-export const jukeboxState = reactive<JukeboxState>({ areaId: null, alcanceGlobal: false, queue: [], current: null, startedAt: null, status: null })
+// Estado de cada jukebox do mapa atual (fila/faixa tocando/área/alcance), por jukeboxId
+export const jukeboxStates = reactive(new Map<string, JukeboxState>())
 export const jukeboxError = ref('')
 // Salas (áreas) trancadas do mapa atual — ids de área, alimentado pelo evento 'salaEstado'
 export const salasTrancadas = ref<Set<string>>(new Set())
@@ -214,13 +214,15 @@ export function connectPresence(opts: JoinOptions) {
     if (chatMessages.length > 50) chatMessages.splice(0, chatMessages.length - 50)
   })
 
-  socket.on('jukeboxState', (s: JukeboxState) => {
-    jukeboxState.areaId = s.areaId
-    jukeboxState.alcanceGlobal = s.alcanceGlobal
-    jukeboxState.queue = s.queue
-    jukeboxState.current = s.current
-    jukeboxState.startedAt = s.startedAt
-    jukeboxState.status = s.status
+  socket.on('jukeboxState', (s: JukeboxState & { jukeboxId: string }) => {
+    jukeboxStates.set(s.jukeboxId, {
+      areaId: s.areaId,
+      alcanceGlobal: s.alcanceGlobal,
+      queue: s.queue,
+      current: s.current,
+      startedAt: s.startedAt,
+      status: s.status,
+    })
   })
   socket.on('horaDoMundo', ({ hora }: { hora: number | null }) => {
     horaDoMundo.value = hora
@@ -375,11 +377,11 @@ export function serverOnlineCount(serverId: string): number {
 }
 
 // ---- jukebox ----
-export function emitJukeboxAdd(input: string, areaId: string | null) {
-  socket?.emit('jukeboxAdd', { input, areaId })
+export function emitJukeboxAdd(input: string, areaId: string | null, jukeboxId: string) {
+  socket?.emit('jukeboxAdd', { input, areaId, jukeboxId })
 }
-export function emitJukeboxSkip() {
-  socket?.emit('jukeboxSkip')
+export function emitJukeboxSkip(jukeboxId: string) {
+  socket?.emit('jukeboxSkip', { jukeboxId })
 }
 export function emitDefinirHora(hora: number | null) {
   socket?.emit('definirHora', { hora })
@@ -389,8 +391,12 @@ export function emitJukeboxVolumeTodos(volume: number) {
   socket?.emit('jukeboxVolumeTodos', { volume })
 }
 
-export function emitJukeboxAlcanceGlobal(v: boolean) {
-  socket?.emit('jukeboxAlcanceGlobal', { value: v })
+export function emitJukeboxAlcanceGlobal(v: boolean, jukeboxId: string) {
+  socket?.emit('jukeboxAlcanceGlobal', { value: v, jukeboxId })
+}
+
+export function estadoDoJukebox(id: string | null): JukeboxState | null {
+  return id ? jukeboxStates.get(id) ?? null : null
 }
 
 // ---- salas trancadas ----

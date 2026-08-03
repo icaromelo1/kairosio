@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue'
-import { jukeboxState } from './presence'
+import type { JukeboxState } from './presence'
 
 const API_URL = import.meta.env.VITE_API_URL || window.location.origin
 const STREAM_BASE = `${API_URL}/kairos-api/jukebox/stream`
@@ -29,8 +29,8 @@ class JukeboxAudio {
     return this.audio
   }
 
-  sync() {
-    const track = jukeboxState.current
+  sync(estado: JukeboxState | null) {
+    const track = estado?.current ?? null
     const a = this.ensureAudio()
     if (!track) {
       if (this.currentKey) {
@@ -40,11 +40,11 @@ class JukeboxAudio {
       }
       return
     }
-    const key = `${track.trackId}:${jukeboxState.startedAt ?? 0}`
+    const key = `${track.trackId}:${estado?.startedAt ?? 0}`
     if (key !== this.currentKey) {
       this.currentKey = key
       a.src = `${STREAM_BASE}/${track.trackId}`
-      const offset = jukeboxState.startedAt ? (Date.now() - jukeboxState.startedAt) / 1000 : 0
+      const offset = estado?.startedAt ? (Date.now() - estado.startedAt) / 1000 : 0
       a.currentTime = Math.max(0, offset)
       a.play().catch(() => {
         // autoplay bloqueado até o usuário interagir — toca quando ele apertar [E]
@@ -52,10 +52,10 @@ class JukeboxAudio {
     }
   }
 
-  setVolume(v: number) {
+  setVolume(v: number, estado: JukeboxState | null) {
     if (!this.audio) return
     const dentroDoAlcance =
-      jukeboxState.alcanceGlobal || !jukeboxState.areaId || this.areaDoOuvinte === jukeboxState.areaId
+      !!estado?.alcanceGlobal || !estado?.areaId || this.areaDoOuvinte === estado.areaId
     this.audio.volume = dentroDoAlcance ? Math.max(0, Math.min(1, v)) * personalVolume.value : 0
   }
 

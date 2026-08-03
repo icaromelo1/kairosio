@@ -179,7 +179,7 @@ export class PresenceGateway
   // aberta em várias abas (localStorage compartilha o token) só fica com UM
   // personagem visível — a aba nova derruba a antiga.
   private readonly userSocket = new Map<string, string>()
-  // estado do jukebox por sala (servidor:map) — fila/faixa atual/área, em memória
+  // estado do jukebox por objeto (servidor:map::jukeboxId) — fila/faixa atual/área, em memória
   private readonly jukebox = new Map<string, JukeboxRoomState>()
   // salas (áreas) trancadas por mapa (servidor:map) — ids de área, alternados por quem está dentro
   private readonly salasTrancadas = new Map<string, Set<string>>()
@@ -385,7 +385,7 @@ export class PresenceGateway
     socket.join(room)
     socket.emit('players', this.peersInRoom(serverId, player.map, socket.id))
     socket.to(room).emit('playerJoined', player)
-    socket.emit('jukeboxState', this.jukeboxSnapshot(room))
+    this.emitActiveJukeboxes(socket, room)
     socket.emit('salaEstado', { trancadas: [...(this.salasTrancadas.get(room) ?? [])] })
     socket.emit('horaDoMundo', { hora: this.horaDoMundo.get(room) ?? null })
     // join repetido mantém o mesmo socket.id na lista de presença: é troca de
@@ -485,7 +485,7 @@ export class PresenceGateway
     socket.join(room)
     socket.emit('players', this.peersInRoom(player.serverId, player.map, socket.id))
     socket.to(room).emit('playerJoined', player)
-    socket.emit('jukeboxState', this.jukeboxSnapshot(room))
+    this.emitActiveJukeboxes(socket, room)
     socket.emit('salaEstado', { trancadas: [...(this.salasTrancadas.get(room) ?? [])] })
     socket.emit('horaDoMundo', { hora: this.horaDoMundo.get(room) ?? null })
     this.emitPresence(player, 'update')
@@ -911,25 +911,30 @@ export class PresenceGateway
       if (p.serverId === serverId && p.map === map) return
     }
     const room = this.room(serverId, map)
-    const juke = this.jukebox.get(room)
-    if (juke?.timer) clearTimeout(juke.timer)
-    this.jukebox.delete(room)
+    const prefix = `${room}::`
+    for (const [key, state] of this.jukebox) {
+      if (!key.startsWith(prefix)) continue
+      if (state.timer) clearTimeout(state.timer)
+      this.jukebox.delete(key)
+    }
     this.salasTrancadas.delete(room)
   }
 
-  // ---- jukebox: fila por sala (servidor:map), sincronizada por startedAt ----
+  // ---- jukebox: fila por objeto (servidor:map::jukeboxId), sincronizada por startedAt ----
 
   @SubscribeMessage('jukeboxAdd')
-  async handleJukeboxAdd(socket: Socket, payload: { input: string; areaId?: string }) {
+  async handleJukeboxAdd(socket: Socket, payload: { input: string; areaId?: string; jukeboxId?: string }) {
     const player = this.players.get(socket.id)
     if (!player) return
+    const jukeboxId = this.sanitizeObjectId(payload?.jukeboxId)
+    if (!jukeboxId) return
     const userId = this.socketUserId.get(socket.id)
     if (!userId) {
       socket.emit('jukeboxError', { message: 'Faça login para adicionar música' })
       return
     }
     const room = this.room(player.serverId, player.map)
-    const state = this.jukeboxStateFor(room)
+    const state = this.jukeboxStateFor(room, jukeboxId)
     // fila nova (nada tocando, nada na fila): a área de origem grava aqui —
     // adicionar numa fila já em andamento não muda de onde ela "pertence"
     const startingNewQueue = !state.current && state.queue.length === 0
@@ -962,10 +967,10 @@ export class PresenceGateway
     // concorrentes pra essa música).
     try {
       state.status = 'buscando informações...'
-      this.broadcastJukebox(room)
+      this.broadcastJukebox(room, jukeboxId)
       const track = await this.jukeboxService.resolveTrack(youtubeId, userId, player.name, player.serverId, (label) => {
         state.status = label
-        this.broadcastJukebox(room)
+        this.broadcastJukebox(room, jukeboxId)
       })
       const item: JukeboxQueueItem = {
         trackId: track.id,
@@ -977,35 +982,39 @@ export class PresenceGateway
       if (startingNewQueue) state.areaId = areaId
       state.queue.push(item)
       state.status = null
-      if (!state.current) this.advanceJukebox(room)
-      else this.broadcastJukebox(room)
+      if (!state.current) this.advanceJukebox(room, jukeboxId)
+      else this.broadcastJukebox(room, jukeboxId)
     } catch (e) {
       state.status = null
-      this.broadcastJukebox(room)
+      this.broadcastJukebox(room, jukeboxId)
       socket.emit('jukeboxError', { message: (e as Error).message || 'Falha ao adicionar música' })
     }
   }
 
   @SubscribeMessage('jukeboxSkip')
-  handleJukeboxSkip(socket: Socket) {
+  handleJukeboxSkip(socket: Socket, payload: { jukeboxId?: string }) {
     const player = this.players.get(socket.id)
     if (!player) return
-    this.advanceJukebox(this.room(player.serverId, player.map))
+    const jukeboxId = this.sanitizeObjectId(payload?.jukeboxId)
+    if (!jukeboxId) return
+    this.advanceJukebox(this.room(player.serverId, player.map), jukeboxId)
   }
 
   // só quem é sudo altera o alcance da sala pra além da proximidade — vale pra
-  // todos os que ouvem o jukebox dessa sala
+  // todos os que ouvem esse jukebox
   @SubscribeMessage('jukeboxAlcanceGlobal')
-  async handleJukeboxAlcanceGlobal(socket: Socket, payload: { value: boolean }) {
+  async handleJukeboxAlcanceGlobal(socket: Socket, payload: { value: boolean; jukeboxId?: string }) {
     const player = this.players.get(socket.id)
     if (!player || typeof payload?.value !== 'boolean') return
+    const jukeboxId = this.sanitizeObjectId(payload?.jukeboxId)
+    if (!jukeboxId) return
     const userId = this.socketUserId.get(socket.id)
     if (!userId) return
     const user = await this.users.findOne({ where: { id: userId } })
     if (!user?.isSudo) return
     const room = this.room(player.serverId, player.map)
-    this.jukeboxStateFor(room).alcanceGlobal = payload.value
-    this.broadcastJukebox(room)
+    this.jukeboxStateFor(room, jukeboxId).alcanceGlobal = payload.value
+    this.broadcastJukebox(room, jukeboxId)
   }
 
   @SubscribeMessage('definirHora')
@@ -1036,18 +1045,23 @@ export class PresenceGateway
     this.server.to(this.room(player.serverId, player.map)).emit('jukeboxVolumeTodos', { volume })
   }
 
-  private jukeboxStateFor(room: string): JukeboxRoomState {
-    let state = this.jukebox.get(room)
+  private jukeboxKey(room: string, jukeboxId: string): string {
+    return `${room}::${jukeboxId}`
+  }
+
+  private jukeboxStateFor(room: string, jukeboxId: string): JukeboxRoomState {
+    const key = this.jukeboxKey(room, jukeboxId)
+    let state = this.jukebox.get(key)
     if (!state) {
       state = { areaId: null, alcanceGlobal: false, queue: [], current: null, startedAt: null, timer: null, status: null }
-      this.jukebox.set(room, state)
+      this.jukebox.set(key, state)
     }
     return state
   }
 
-  private jukeboxSnapshot(room: string) {
-    const s = this.jukeboxStateFor(room)
+  private jukeboxPayload(s: JukeboxRoomState, jukeboxId: string) {
     return {
+      jukeboxId,
       areaId: s.areaId,
       alcanceGlobal: s.alcanceGlobal,
       queue: s.queue,
@@ -1057,31 +1071,44 @@ export class PresenceGateway
     }
   }
 
-  private broadcastJukebox(room: string) {
-    this.server.to(room).emit('jukeboxState', this.jukeboxSnapshot(room))
+  private broadcastJukebox(room: string, jukeboxId: string) {
+    const s = this.jukeboxStateFor(room, jukeboxId)
+    this.server.to(room).emit('jukeboxState', this.jukeboxPayload(s, jukeboxId))
+  }
+
+  // ao entrar/trocar de mapa: entrega o estado de toda jukebox já em memória
+  // pra essa sala — só as que alguém já mexeu, o gateway não conhece a geometria
+  // do mapa pra saber quais objetos existem
+  private emitActiveJukeboxes(socket: Socket, room: string) {
+    const prefix = `${room}::`
+    for (const [key, state] of this.jukebox) {
+      if (!key.startsWith(prefix)) continue
+      socket.emit('jukeboxState', this.jukeboxPayload(state, key.slice(prefix.length)))
+    }
   }
 
   // toca a próxima da fila (chamado ao terminar a atual, pular, ou ao chegar a 1ª música)
-  private advanceJukebox(room: string) {
+  private advanceJukebox(room: string, jukeboxId: string) {
+    const key = this.jukeboxKey(room, jukeboxId)
     // sala vazia (ex: download terminou depois de todo mundo sair) → descarta o
     // estado em vez de agendar timer tocando pra ninguém
     if (!(this.server.sockets.adapter.rooms.get(room)?.size ?? 0)) {
-      const stale = this.jukebox.get(room)
+      const stale = this.jukebox.get(key)
       if (stale?.timer) clearTimeout(stale.timer)
-      this.jukebox.delete(room)
+      this.jukebox.delete(key)
       return
     }
-    const state = this.jukeboxStateFor(room)
+    const state = this.jukeboxStateFor(room, jukeboxId)
     if (state.timer) {
       clearTimeout(state.timer)
       state.timer = null
     }
     state.current = state.queue.shift() || null
     state.startedAt = state.current ? Date.now() : null
-    this.broadcastJukebox(room)
+    this.broadcastJukebox(room, jukeboxId)
     if (state.current) {
       const ms = Math.max(5000, state.current.durationSec * 1000)
-      state.timer = setTimeout(() => this.advanceJukebox(room), ms)
+      state.timer = setTimeout(() => this.advanceJukebox(room, jukeboxId), ms)
     }
   }
 

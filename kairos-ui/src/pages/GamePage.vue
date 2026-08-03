@@ -168,7 +168,7 @@
       />
 
       <!-- Painel do jukebox -->
-      <JukeboxPanel v-if="jukeboxOpen" :area-atual="salaAtualId" @close="closeModal" />
+      <JukeboxPanel v-if="jukeboxOpen" :area-atual="salaAtualId" :jukebox-id="jukeboxObjectId" @close="closeModal" />
 
       <TaskPanel v-if="taskOpen" :map-id="currentId" :object-id="taskObjectId" @close="closeModal" />
       <NotePanel v-if="noteOpen" :map-id="currentId" :object-id="noteObjectId" @close="closeModal" />
@@ -237,7 +237,7 @@ import { AvatarPuppet, sanitizeLook, type AvatarLook, type Facing } from '@/game
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, jukeboxState, salasTrancadas, emitSalaTrancar, horaDoMundo, emitDefinirHora, emitScreenShare, onScreenShare, sessionKicked, syncDmUnread, type AvatarProps, type ChatMessage, type ScreenShareState } from '@/services/presence'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, estadoDoJukebox, salasTrancadas, emitSalaTrancar, horaDoMundo, emitDefinirHora, emitScreenShare, onScreenShare, sessionKicked, syncDmUnread, type AvatarProps, type ChatMessage, type ScreenShareState } from '@/services/presence'
 import { media } from '@/services/media'
 import { ganhoDoPeer, salaDoPonto } from '@/game/audio/espacial'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
@@ -284,6 +284,7 @@ const error = ref('')
 const activeZone = ref<MapObject | null>(null)
 const activeModal = ref<MapObject | null>(null)
 const jukeboxOpen = ref(false)
+const jukeboxObjectId = ref('')
 const taskOpen = ref(false)
 const taskObjectId = ref('')
 const noteOpen = ref(false)
@@ -616,6 +617,7 @@ function tryInteract() {
     return
   }
   if (z.kind === 'jukebox') {
+    jukeboxObjectId.value = z.id
     jukeboxOpen.value = true
     gameStore.isModalOpen = true
     return
@@ -771,6 +773,25 @@ function detectZone(map: MapDef) {
   activeZone.value = nearest
 }
 
+// qual jukebox tocar: dentro de uma área, só a que está nela (senão silêncio —
+// não vaza pra fora); fora de área, a mais próxima entre as de fila "solta"
+// (sem sala própria), senão silêncio
+function jukeboxAtiva(map: MapDef): MapObject | null {
+  const caixas = map.objects.filter((o) => o.kind === 'jukebox')
+  if (!caixas.length) return null
+  if (salaAtualId.value) {
+    return caixas.find((o) => salaDoPonto(map, o.x + o.w / 2, o.y + o.h / 2) === salaAtualId.value) ?? null
+  }
+  let escolhida: MapObject | null = null
+  let melhor = Infinity
+  for (const o of caixas) {
+    if (estadoDoJukebox(o.id)?.areaId) continue
+    const d = Math.hypot(o.x + o.w / 2 - pos.x, o.y + o.h / 2 - pos.y)
+    if (d < melhor) { melhor = d; escolhida = o }
+  }
+  return escolhida
+}
+
 onMounted(async () => {
   const asked = panelFromQuery(route.query)
   const invite = route.query.invite
@@ -922,20 +943,17 @@ onMounted(async () => {
 
     // dentro da sala do jukebox o volume é cheio — é ambiente, não proximidade.
     // a queda por distância só vale para fila sem sala (mundo aberto).
+    const caixaAtiva = jukeboxAtiva(map)
+    const estadoJukeboxAtivo = estadoDoJukebox(caixaAtiva?.id ?? null)
     jukeboxAudio.setAreaDoOuvinte(salaAtualId.value)
-    jukeboxAudio.sync()
-    scene.setJukeboxPlaying(!!jukeboxState.current)
-    if (jukeboxState.current) {
-      if (jukeboxState.alcanceGlobal || jukeboxState.areaId) {
-        jukeboxAudio.setVolume(1)
-      } else {
-        let nearestBox = Infinity
-        for (const o of map.objects) {
-          if (o.kind !== 'jukebox') continue
-          const d = Math.hypot(o.x + o.w / 2 - pos.x, o.y + o.h / 2 - pos.y)
-          if (d < nearestBox) nearestBox = d
-        }
-        jukeboxAudio.setVolume(Math.max(0, 1 - nearestBox / JUKEBOX_RADIUS))
+    jukeboxAudio.sync(estadoJukeboxAtivo)
+    scene.setJukeboxPlaying(!!estadoJukeboxAtivo?.current)
+    if (estadoJukeboxAtivo?.current) {
+      if (estadoJukeboxAtivo.alcanceGlobal || estadoJukeboxAtivo.areaId) {
+        jukeboxAudio.setVolume(1, estadoJukeboxAtivo)
+      } else if (caixaAtiva) {
+        const d = Math.hypot(caixaAtiva.x + caixaAtiva.w / 2 - pos.x, caixaAtiva.y + caixaAtiva.h / 2 - pos.y)
+        jukeboxAudio.setVolume(Math.max(0, 1 - d / JUKEBOX_RADIUS), estadoJukeboxAtivo)
       }
     }
   })
