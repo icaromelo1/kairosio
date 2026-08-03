@@ -920,12 +920,13 @@ onMounted(async () => {
     nearby.value = near
     if (voiceLive) media.syncSubscriptions(voiceIds)
 
-    // ---- jukebox: toca sincronizado, volume por distância (modo proximidade) ----
+    // dentro da sala do jukebox o volume é cheio — é ambiente, não proximidade.
+    // a queda por distância só vale para fila sem sala (mundo aberto).
     jukeboxAudio.setAreaDoOuvinte(salaAtualId.value)
     jukeboxAudio.sync()
     scene.setJukeboxPlaying(!!jukeboxState.current)
     if (jukeboxState.current) {
-      if (jukeboxState.alcanceGlobal) {
+      if (jukeboxState.alcanceGlobal || jukeboxState.areaId) {
         jukeboxAudio.setVolume(1)
       } else {
         let nearestBox = Infinity
