@@ -20,8 +20,6 @@ import { jwtSecret } from '../auth/jwt-secret'
 type MapId = string
 type Facing = 'down' | 'up' | 'left' | 'right'
 type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit'
-type JukeboxMode = 'proximity' | 'room'
-type VoiceMode = 'proximity' | 'room'
 
 interface JukeboxQueueItem {
   trackId: string
@@ -32,7 +30,8 @@ interface JukeboxQueueItem {
 }
 
 interface JukeboxRoomState {
-  mode: JukeboxMode
+  areaId: string | null
+  alcanceGlobal: boolean
   queue: JukeboxQueueItem[]
   current: JukeboxQueueItem | null
   startedAt: number | null
@@ -180,10 +179,10 @@ export class PresenceGateway
   // aberta em várias abas (localStorage compartilha o token) só fica com UM
   // personagem visível — a aba nova derruba a antiga.
   private readonly userSocket = new Map<string, string>()
-  // estado do jukebox por sala (servidor:map) — fila/faixa atual/modo, em memória
+  // estado do jukebox por sala (servidor:map) — fila/faixa atual/área, em memória
   private readonly jukebox = new Map<string, JukeboxRoomState>()
-  // modo de voz por sala (servidor:map) — qualquer membro pode alternar, vale pra todos
-  private readonly voiceMode = new Map<string, VoiceMode>()
+  // salas (áreas) trancadas por mapa (servidor:map) — ids de área, alternados por quem está dentro
+  private readonly salasTrancadas = new Map<string, Set<string>>()
   private readonly whiteboards = new Map<string, WhiteboardState>()
   // quem está transmitindo a tela (socket.id) — só pra saber se a transição é
   // real e pra desfazer o aviso quando a aba cai sem mandar o 'off'
@@ -385,7 +384,7 @@ export class PresenceGateway
     socket.emit('players', this.peersInRoom(serverId, player.map, socket.id))
     socket.to(room).emit('playerJoined', player)
     socket.emit('jukeboxState', this.jukeboxSnapshot(room))
-    socket.emit('voiceState', { mode: this.voiceMode.get(room) || 'proximity' })
+    socket.emit('salaEstado', { trancadas: [...(this.salasTrancadas.get(room) ?? [])] })
     // join repetido mantém o mesmo socket.id na lista de presença: é troca de
     // mundo pra quem observa, não uma pessoa nova
     this.emitPresence(player, existing ? 'update' : 'join')
@@ -484,7 +483,7 @@ export class PresenceGateway
     socket.emit('players', this.peersInRoom(player.serverId, player.map, socket.id))
     socket.to(room).emit('playerJoined', player)
     socket.emit('jukeboxState', this.jukeboxSnapshot(room))
-    socket.emit('voiceState', { mode: this.voiceMode.get(room) || 'proximity' })
+    socket.emit('salaEstado', { trancadas: [...(this.salasTrancadas.get(room) ?? [])] })
     this.emitPresence(player, 'update')
     this.emitFriendPresence(player.userId, player)
   }
@@ -762,15 +761,23 @@ export class PresenceGateway
     }
   }
 
-  // ---- voz: modo por sala (servidor:map) — proximidade (padrão) ou sala inteira ----
+  // ---- salas trancadas: ids de área por mapa (servidor:map), alternados por quem está dentro ----
+  //
+  // O servidor não conhece a geometria do mapa — não valida se quem trancou
+  // estava de fato dentro da área. Isso é responsabilidade da UI, que só
+  // oferece o botão a quem está dentro.
 
-  @SubscribeMessage('voiceSetMode')
-  handleVoiceSetMode(socket: Socket, payload: { mode: VoiceMode }) {
+  @SubscribeMessage('salaTrancar')
+  handleSalaTrancar(socket: Socket, payload: { areaId: string; trancada: boolean }) {
     const player = this.players.get(socket.id)
-    if (!player || (payload?.mode !== 'proximity' && payload?.mode !== 'room')) return
+    const areaId = typeof payload?.areaId === 'string' ? payload.areaId.trim().slice(0, 64) : ''
+    if (!player || !areaId || typeof payload?.trancada !== 'boolean') return
     const room = this.room(player.serverId, player.map)
-    this.voiceMode.set(room, payload.mode)
-    this.server.to(room).emit('voiceState', { mode: payload.mode })
+    const trancadas = this.salasTrancadas.get(room) ?? new Set<string>()
+    if (payload.trancada) trancadas.add(areaId)
+    else trancadas.delete(areaId)
+    this.salasTrancadas.set(room, trancadas)
+    this.server.to(room).emit('salaEstado', { trancadas: [...trancadas] })
   }
 
   // ---- transmissão de tela: aviso pra sala inteira do MAPA ----
@@ -892,9 +899,9 @@ export class PresenceGateway
     return state
   }
 
-  // sala esvaziou → para o timer do jukebox e descarta fila/modo de voz (música
-  // tocando pra ninguém e estado acumulando pra sempre); as lousas ficam — são o
-  // "conteúdo" da sala e já têm cap próprio
+  // sala esvaziou → para o timer do jukebox e descarta fila/salas trancadas
+  // (música tocando pra ninguém e estado acumulando pra sempre); as lousas
+  // ficam — são o "conteúdo" da sala e já têm cap próprio
   private cleanupRoomIfEmpty(serverId: string | null, map: MapId) {
     for (const p of this.players.values()) {
       if (p.serverId === serverId && p.map === map) return
@@ -903,13 +910,13 @@ export class PresenceGateway
     const juke = this.jukebox.get(room)
     if (juke?.timer) clearTimeout(juke.timer)
     this.jukebox.delete(room)
-    this.voiceMode.delete(room)
+    this.salasTrancadas.delete(room)
   }
 
   // ---- jukebox: fila por sala (servidor:map), sincronizada por startedAt ----
 
   @SubscribeMessage('jukeboxAdd')
-  async handleJukeboxAdd(socket: Socket, payload: { input: string }) {
+  async handleJukeboxAdd(socket: Socket, payload: { input: string; areaId?: string }) {
     const player = this.players.get(socket.id)
     if (!player) return
     const userId = this.socketUserId.get(socket.id)
@@ -919,6 +926,10 @@ export class PresenceGateway
     }
     const room = this.room(player.serverId, player.map)
     const state = this.jukeboxStateFor(room)
+    // fila nova (nada tocando, nada na fila): a área de origem grava aqui —
+    // adicionar numa fila já em andamento não muda de onde ela "pertence"
+    const startingNewQueue = !state.current && state.queue.length === 0
+    const areaId = typeof payload?.areaId === 'string' ? payload.areaId.trim().slice(0, 64) || null : null
 
     let youtubeId: string
     try {
@@ -959,6 +970,7 @@ export class PresenceGateway
         durationSec: track.durationSec,
         addedByName: player.name,
       }
+      if (startingNewQueue) state.areaId = areaId
       state.queue.push(item)
       state.status = null
       if (!state.current) this.advanceJukebox(room)
@@ -977,19 +989,25 @@ export class PresenceGateway
     this.advanceJukebox(this.room(player.serverId, player.map))
   }
 
-  @SubscribeMessage('jukeboxSetMode')
-  handleJukeboxSetMode(socket: Socket, payload: { mode: JukeboxMode }) {
+  // só quem é sudo altera o alcance da sala pra além da proximidade — vale pra
+  // todos os que ouvem o jukebox dessa sala
+  @SubscribeMessage('jukeboxAlcanceGlobal')
+  async handleJukeboxAlcanceGlobal(socket: Socket, payload: { value: boolean }) {
     const player = this.players.get(socket.id)
-    if (!player || (payload?.mode !== 'proximity' && payload?.mode !== 'room')) return
+    if (!player || typeof payload?.value !== 'boolean') return
+    const userId = this.socketUserId.get(socket.id)
+    if (!userId) return
+    const user = await this.users.findOne({ where: { id: userId } })
+    if (!user?.isSudo) return
     const room = this.room(player.serverId, player.map)
-    this.jukeboxStateFor(room).mode = payload.mode
+    this.jukeboxStateFor(room).alcanceGlobal = payload.value
     this.broadcastJukebox(room)
   }
 
   private jukeboxStateFor(room: string): JukeboxRoomState {
     let state = this.jukebox.get(room)
     if (!state) {
-      state = { mode: 'proximity', queue: [], current: null, startedAt: null, timer: null, status: null }
+      state = { areaId: null, alcanceGlobal: false, queue: [], current: null, startedAt: null, timer: null, status: null }
       this.jukebox.set(room, state)
     }
     return state
@@ -997,7 +1015,14 @@ export class PresenceGateway
 
   private jukeboxSnapshot(room: string) {
     const s = this.jukeboxStateFor(room)
-    return { mode: s.mode, queue: s.queue, current: s.current, startedAt: s.startedAt, status: s.status }
+    return {
+      areaId: s.areaId,
+      alcanceGlobal: s.alcanceGlobal,
+      queue: s.queue,
+      current: s.current,
+      startedAt: s.startedAt,
+      status: s.status,
+    }
   }
 
   private broadcastJukebox(room: string) {

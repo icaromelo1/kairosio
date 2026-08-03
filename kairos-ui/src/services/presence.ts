@@ -13,9 +13,6 @@ export interface ChatMessage {
   ts: number
 }
 
-export type JukeboxMode = 'proximity' | 'room'
-export type VoiceMode = 'proximity' | 'room'
-
 export interface Stroke {
   id: string
   color: string
@@ -31,7 +28,8 @@ export interface JukeboxQueueItem {
 }
 
 export interface JukeboxState {
-  mode: JukeboxMode
+  areaId: string | null
+  alcanceGlobal: boolean
   queue: JukeboxQueueItem[]
   current: JukeboxQueueItem | null
   startedAt: number | null
@@ -124,11 +122,11 @@ const MOVE_INTERVAL = 80
 export const remotePlayers = reactive(new Map<string, RemotePlayer>())
 // Histórico recente de chat da sala (cap 50)
 export const chatMessages = reactive<ChatMessage[]>([])
-// Estado do jukebox da sala atual (fila/faixa tocando/modo)
-export const jukeboxState = reactive<JukeboxState>({ mode: 'proximity', queue: [], current: null, startedAt: null, status: null })
+// Estado do jukebox da sala atual (fila/faixa tocando/área/alcance)
+export const jukeboxState = reactive<JukeboxState>({ areaId: null, alcanceGlobal: false, queue: [], current: null, startedAt: null, status: null })
 export const jukeboxError = ref('')
-// Modo de voz da sala atual (proximidade ou sala inteira) — qualquer membro pode alternar
-export const voiceMode = ref<VoiceMode>('proximity')
+// Salas (áreas) trancadas do mapa atual — ids de área, alimentado pelo evento 'salaEstado'
+export const salasTrancadas = ref<Set<string>>(new Set())
 // true quando esta aba foi derrubada por outra sessão da MESMA conta (login em
 // outro lugar) — a tela mostra um aviso em vez de deixar a conexão travada
 export const sessionKicked = ref(false)
@@ -214,7 +212,8 @@ export function connectPresence(opts: JoinOptions) {
   })
 
   socket.on('jukeboxState', (s: JukeboxState) => {
-    jukeboxState.mode = s.mode
+    jukeboxState.areaId = s.areaId
+    jukeboxState.alcanceGlobal = s.alcanceGlobal
     jukeboxState.queue = s.queue
     jukeboxState.current = s.current
     jukeboxState.startedAt = s.startedAt
@@ -224,8 +223,8 @@ export function connectPresence(opts: JoinOptions) {
     jukeboxError.value = message
   })
 
-  socket.on('voiceState', ({ mode }: { mode: VoiceMode }) => {
-    voiceMode.value = mode
+  socket.on('salaEstado', ({ trancadas }: { trancadas: string[] }) => {
+    salasTrancadas.value = new Set(trancadas)
   })
 
   socket.on('screenShareState', (state: ScreenShareState) => {
@@ -367,18 +366,19 @@ export function serverOnlineCount(serverId: string): number {
 }
 
 // ---- jukebox ----
-export function emitJukeboxAdd(input: string) {
-  socket?.emit('jukeboxAdd', { input })
+export function emitJukeboxAdd(input: string, areaId: string | null) {
+  socket?.emit('jukeboxAdd', { input, areaId })
 }
 export function emitJukeboxSkip() {
   socket?.emit('jukeboxSkip')
 }
-export function emitJukeboxSetMode(mode: JukeboxMode) {
-  socket?.emit('jukeboxSetMode', { mode })
+export function emitJukeboxAlcanceGlobal(v: boolean) {
+  socket?.emit('jukeboxAlcanceGlobal', { value: v })
 }
 
-export function emitVoiceSetMode(mode: VoiceMode) {
-  socket?.emit('voiceSetMode', { mode })
+// ---- salas trancadas ----
+export function emitSalaTrancar(areaId: string, trancada: boolean): void {
+  socket?.emit('salaTrancar', { areaId, trancada })
 }
 
 export function emitScreenShare(on: boolean) {
