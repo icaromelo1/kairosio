@@ -90,14 +90,43 @@ export function interactableObjects(map: MapDef): MapObject[] {
   return map.objects.filter((o) => o.name)
 }
 
+function tocaOuSobrepoe(a: MapObject, b: MapObject, tolerancia: number): boolean {
+  return (
+    a.x < b.x + b.w + tolerancia &&
+    a.x + a.w + tolerancia > b.x &&
+    a.y < b.y + b.h + tolerancia &&
+    a.y + a.h + tolerancia > b.y
+  )
+}
+
+function salaDaPorta(map: MapDef, porta: MapObject): MapObject | undefined {
+  return map.objects.find((o) => o.kind === 'area' && tocaOuSobrepoe(porta, o, 1))
+}
+
 /**
  * Colisão por tile. A borda do mapa é sempre sólida; objetos `solid` bloqueiam
  * suas células. Base do movimento com hitbox do Épico 2.
+ * Se `trancadas` marca a sala de uma porta como trancada, a porta vira sólida
+ * para quem não está em `salaDoMovedor` (quem já está dentro continua saindo).
  */
-export function isSolid(map: MapDef, x: number, y: number): boolean {
+export function isSolid(
+  map: MapDef,
+  x: number,
+  y: number,
+  trancadas?: Set<string>,
+  salaDoMovedor?: string | null,
+): boolean {
   if (x < 1 || y < 1 || x > map.width - 2 || y > map.height - 2) return true
   for (const o of map.objects) {
     if (o.solid && x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h) return true
+  }
+  if (trancadas) {
+    for (const o of map.objects) {
+      if (o.kind !== 'door') continue
+      if (!(x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h)) continue
+      const sala = salaDaPorta(map, o)
+      if (sala?.id && trancadas.has(sala.id) && salaDoMovedor !== sala.id) return true
+    }
   }
   return false
 }
