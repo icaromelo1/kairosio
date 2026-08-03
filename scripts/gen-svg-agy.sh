@@ -38,6 +38,7 @@ REGRAS OBRIGATORIAS:
 8. Sem stroke com largura menor que 1. Prefira forma preenchida a contorno fino.
 9. PALETA FECHADA — use SOMENTE estas cores, nenhuma outra:
    #141024 #1d1833 #2a2438 #6b4f2a #8a6a3a #4a3520 #6e7a8f #9aa8bd #3d4654 #4a5d8f #6b7fb5 #7d4a52 #3f6b3a #5c9152 #8c7ae6 #d9c47a
+   PROIBIDO USAR: #251f3d #342b54 #483c73 #5d4e94 #7362b3 #352b1a #5a4a32 #2e3545 #7888a0 (paleta antiga, nao use nenhuma dessas).
    Use a cor do MATERIAL real do objeto: madeira (#6b4f2a #8a6a3a #4a3520), metal (#6e7a8f #9aa8bd #3d4654), tecido/estofado (#4a5d8f #6b7fb5 #7d4a52), vegetacao (#3f6b3a #5c9152), tela/luz (#8c7ae6 #d9c47a). NAO pinte tudo de roxo — o roxo e so para telas e luzes.
 10. O viewBox JA esta na proporcao canonica do objeto — preencha-o por inteiro, sem deixar sobra lateral.
 
@@ -57,7 +58,7 @@ out = data.get('structured_output')
 if not out:
     print('ERRO: sem structured_output'); print(raw[:400]); sys.exit(1)
 svg = out['svg']
-PALETA = {'#141024','#1d1833','#251f3d','#342b54','#483c73','#5d4e94','#7362b3','#8c7ae6','#352b1a','#5a4a32','#2e3545','#7888a0'}
+PALETA = {'#141024','#1d1833','#2a2438','#6b4f2a','#8a6a3a','#4a3520','#6e7a8f','#9aa8bd','#3d4654','#4a5d8f','#6b7fb5','#7d4a52','#3f6b3a','#5c9152','#8c7ae6','#d9c47a'}
 usadas = set(c.lower() for c in re.findall(r'#[0-9a-fA-F]{6}', svg))
 fora = usadas - PALETA
 proibidas = [t for t in ('<defs','<filter','<mask','<clipPath','Gradient','<svg','<?xml') if t in svg]
