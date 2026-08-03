@@ -7,6 +7,7 @@ import { criarSvgGraphics, varianteParaObjeto } from '../furniture/catalog'
 import { criarSuperficie, temSuperficie } from '../furniture/surfaces'
 import type { AvatarPuppet } from './avatar'
 import { estadoDeLuz, type EstadoLuz } from '../lighting'
+import { Minimap } from './minimap'
 
 // tamanho de um tile em px na tela (independe do schema, que conta em tiles)
 export const TILE_PX = 40
@@ -63,6 +64,7 @@ export class MapScene {
   private lightPools: Graphics | null = null
   private playerLight: Graphics | null = null
   private luz: EstadoLuz = estadoDeLuz()
+  private minimap: Minimap
   private ghostLayer: Container
   private avatars = new Map<string, AvatarPuppet>()
   private jukeboxIcons: Container[] = [] // notas ♪ sobre objetos jukebox — visíveis só enquanto toca
@@ -77,6 +79,7 @@ export class MapScene {
     this.entityLayer = new Container()
     this.entityLayer.sortableChildren = true // ordena por zIndex (= Y da base)
     this.ghostLayer = new Container()
+    this.minimap = new Minimap()
     this.roofLayer = new Container()
     this.roofLayer.eventMode = 'none'
     this.lightingLayer = new Container()
@@ -88,7 +91,12 @@ export class MapScene {
     host.appendChild(this.app.canvas)
     this.world.addChild(this.floorLayer, this.objectLayer, this.shadowLayer, this.entityLayer, this.roofLayer, this.lightingLayer, this.ghostLayer)
     this.app.stage.addChild(this.world)
-    this.app.renderer.on('resize', () => this.setZoom(this.zoom))
+    this.app.stage.addChild(this.minimap.root)
+    this.minimap.posicionar(this.app.screen.width, this.app.screen.height)
+    this.app.renderer.on('resize', () => {
+      this.setZoom(this.zoom)
+      this.minimap.posicionar(this.app.screen.width, this.app.screen.height)
+    })
     this.app.ticker.add(() => {
       this.pulso += this.app.ticker.deltaMS / 1000
       this.aplicarPulso()
@@ -144,6 +152,8 @@ export class MapScene {
 
     this.setZoom(this.zoom)
     this.montarIluminacao(map)
+    this.minimap.construir(map)
+    this.minimap.posicionar(this.app.screen.width, this.app.screen.height)
   }
 
   // Modelo Gather: dentro de uma área, o lado de fora escurece; fora, os
@@ -256,6 +266,14 @@ export class MapScene {
 
   estadoLuz(): EstadoLuz {
     return this.luz
+  }
+
+  atualizarMinimapa(eu: { x: number; y: number }, outros: { x: number; y: number }[]) {
+    this.minimap.atualizar(eu, outros)
+  }
+
+  mostrarMinimapa(v: boolean) {
+    this.minimap.root.visible = v
   }
 
   posicionarLuzDoJogador(x: number, y: number) {
@@ -542,18 +560,14 @@ export class MapScene {
   private panX = 0
   private panY = 0
 
+  // faixa estreita de propósito: o minimapa assumiu a navegação, então o zoom
+  // não precisa mais afastar até o mapa inteiro — e faixa curta mantém nitidez.
   zoomMinimo(): number {
-    if (!this.map) return 0.6
-    const mundoW = this.map.width * TILE_PX
-    const mundoH = this.map.height * TILE_PX
-    const tela = this.app.screen
-    if (!tela.width || !tela.height) return 0.6
-    const cabe = Math.min(tela.width / mundoW, tela.height / mundoH)
-    return Math.min(0.6, cabe / 1.2)
+    return 0.75
   }
 
   setZoom(z: number) {
-    this.zoom = Math.max(this.zoomMinimo(), Math.min(2, z))
+    this.zoom = Math.max(this.zoomMinimo(), Math.min(1.5, z))
   }
   getZoom() {
     return this.zoom
