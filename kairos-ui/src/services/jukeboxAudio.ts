@@ -18,6 +18,11 @@ class JukeboxAudio {
   // trackId + startedAt: a mesma música duas vezes seguidas na fila é uma
   // reprodução NOVA (só o trackId não recomeçava o <audio> já terminado)
   private currentKey: string | null = null
+  private areaDoOuvinte: string | null = null
+
+  setAreaDoOuvinte(id: string | null) {
+    this.areaDoOuvinte = id
+  }
 
   private ensureAudio(): HTMLAudioElement {
     if (!this.audio) this.audio = new Audio()
@@ -48,7 +53,9 @@ class JukeboxAudio {
   }
 
   setVolume(v: number) {
-    if (this.audio) this.audio.volume = Math.max(0, Math.min(1, v)) * personalVolume.value
+    if (!this.audio) return
+    const dentroDoAlcance = jukeboxState.alcanceGlobal || this.areaDoOuvinte === jukeboxState.areaId
+    this.audio.volume = dentroDoAlcance ? Math.max(0, Math.min(1, v)) * personalVolume.value : 0
   }
 
   stop() {

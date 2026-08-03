@@ -18,33 +18,29 @@
         </template>
       </div>
 
-      <!-- modo sala/proximidade -->
-      <div class="row items-center q-gutter-xs jb-text-sm">
+      <!-- alcance global (sudo) -->
+      <div v-if="isProductAdmin" class="row items-center q-gutter-xs jb-text-sm">
         <span class="jb-muted">alcance:</span>
         <button
           class="k-btn k-btn-ghost k-btn-xs"
-          :class="{ 'k-active': jukeboxState.mode === 'proximity' }"
-          @click="emitJukeboxSetMode('proximity')"
-        >proximidade</button>
-        <button
-          class="k-btn k-btn-ghost k-btn-xs"
-          :class="{ 'k-active': jukeboxState.mode === 'room' }"
-          @click="emitJukeboxSetMode('room')"
-        >sala inteira</button>
+          :class="{ 'k-active': jukeboxState.alcanceGlobal }"
+          @click="emitJukeboxAlcanceGlobal(!jukeboxState.alcanceGlobal)"
+        >tocar para o mundo inteiro</button>
       </div>
 
       <!-- adicionar -->
       <div class="column q-gutter-xs">
+        <p v-if="!props.areaAtual" class="jb-muted jb-text-sm">entre em uma sala para usar o jukebox</p>
         <div class="row no-wrap q-gutter-xs">
           <div class="col">
             <input
               v-model="linkInput" placeholder="Cole o link do YouTube…" @keydown.enter="add"
-              :disabled="!!jukeboxState.status"
+              :disabled="!!jukeboxState.status || !props.areaAtual"
               class="k-input full-width k-input-xs"
             />
           </div>
           <div class="col-auto">
-            <button class="k-btn k-btn-primary k-btn-sm" :disabled="adding || !!jukeboxState.status" @click="add">{{ adding || jukeboxState.status ? '...' : 'add' }}</button>
+            <button class="k-btn k-btn-primary k-btn-sm" :disabled="adding || !!jukeboxState.status || !props.areaAtual" @click="add">{{ adding || jukeboxState.status ? '...' : 'add' }}</button>
           </div>
         </div>
         <p v-if="jukeboxState.status" class="k-hint-text jb-status"><PixelIcon name="loader" size="0.75rem" />{{ jukeboxState.status }}</p>
@@ -88,10 +84,10 @@
           />
           <div class="row no-wrap q-gutter-xs">
             <div class="col">
-              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!jukeboxState.status" @click="addRandom"><PixelIcon name="shuffle" size="0.75rem" />aleatória</button>
+              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!jukeboxState.status || !props.areaAtual" @click="addRandom"><PixelIcon name="shuffle" size="0.75rem" />aleatória</button>
             </div>
             <div class="col">
-              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!jukeboxState.status" @click="addAll"><PixelIcon name="play" size="0.75rem" />tocar todas</button>
+              <button class="k-btn k-btn-ghost full-width k-btn-sm" :disabled="!library.length || !!jukeboxState.status || !props.areaAtual" @click="addAll"><PixelIcon name="play" size="0.75rem" />tocar todas</button>
             </div>
           </div>
           <div class="jb-list">
@@ -99,7 +95,7 @@
             <div v-else-if="!library.length" class="jb-muted-4 jb-text-sm">nenhuma música encontrada</div>
             <button
               v-for="t in library" :key="t.id" class="k-btn k-btn-ghost ellipsis q-py-md"
-              :disabled="!!jukeboxState.status"
+              :disabled="!!jukeboxState.status || !props.areaAtual"
               @click="addFromLibrary(t.youtubeId)"
             >{{ t.title }}</button>
           </div>
@@ -130,11 +126,13 @@
 
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import { jukeboxState, jukeboxError, emitJukeboxAdd, emitJukeboxSkip, emitJukeboxSetMode } from '@/services/presence'
+import { jukeboxState, jukeboxError, emitJukeboxAdd, emitJukeboxSkip, emitJukeboxAlcanceGlobal } from '@/services/presence'
 import { personalVolume } from '@/services/jukeboxAudio'
 import { apiFetch } from '@/services/http'
 import { me } from '@/services/auth.api'
 import PixelIcon from '@/components/PixelIcon.vue'
+
+const props = defineProps<{ areaAtual: string | null }>()
 
 defineEmits(['close'])
 
@@ -143,10 +141,10 @@ const adding = ref(false)
 
 function add() {
   const v = linkInput.value.trim()
-  if (!v) return
+  if (!v || !props.areaAtual) return
   jukeboxError.value = ''
   adding.value = true
-  emitJukeboxAdd(v)
+  emitJukeboxAdd(v, props.areaAtual)
   linkInput.value = ''
   // sem confirmação de servidor por evento dedicado — destrava após um instante,
   // o estado da fila chega via jukeboxState assim que pronto
@@ -183,8 +181,9 @@ watch(librarySearch, () => {
 })
 
 function addFromLibrary(youtubeId: string) {
+  if (!props.areaAtual) return
   jukeboxError.value = ''
-  emitJukeboxAdd(youtubeId)
+  emitJukeboxAdd(youtubeId, props.areaAtual)
 }
 
 function addRandom() {
@@ -194,9 +193,10 @@ function addRandom() {
 }
 
 function addAll() {
+  if (!props.areaAtual) return
   // fila de tocar aceita repetição — servidor processa um por vez, sem bloquear
   // duplicatas (o download em si já é dedupado por youtubeId no backend)
-  for (const t of library.value) emitJukeboxAdd(t.youtubeId)
+  for (const t of library.value) emitJukeboxAdd(t.youtubeId, props.areaAtual)
 }
 
 const syncing = ref<'' | 'server' | 'all'>('')
