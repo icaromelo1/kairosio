@@ -38,7 +38,7 @@ export type ObjectKind =
   | 'chair'
   | 'sofa'
   | 'wall'
-  | 'roof'
+  | 'area'
   | 'door'
   | 'custom'
 
