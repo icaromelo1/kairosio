@@ -1241,7 +1241,7 @@ onUnmounted(() => {
 .gp-hud-ctl {
   position: absolute;
   right: var(--sp-12);
-  bottom: var(--sp-12);
+  bottom: calc(11rem + var(--sp-12));
   display: flex;
   align-items: center;
   gap: var(--sp-8);

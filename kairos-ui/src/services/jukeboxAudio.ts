@@ -54,7 +54,8 @@ class JukeboxAudio {
 
   setVolume(v: number) {
     if (!this.audio) return
-    const dentroDoAlcance = jukeboxState.alcanceGlobal || this.areaDoOuvinte === jukeboxState.areaId
+    const dentroDoAlcance =
+      jukeboxState.alcanceGlobal || !jukeboxState.areaId || this.areaDoOuvinte === jukeboxState.areaId
     this.audio.volume = dentroDoAlcance ? Math.max(0, Math.min(1, v)) * personalVolume.value : 0
   }
 
