@@ -86,8 +86,10 @@ export interface MapDef {
 }
 
 /** Objetos com os quais se pode interagir ([E]). */
+const SENTAVEIS = new Set<MapObject['kind']>(['chair', 'sofa', 'bench'])
+
 export function interactableObjects(map: MapDef): MapObject[] {
-  return map.objects.filter((o) => o.name)
+  return map.objects.filter((o) => o.name || SENTAVEIS.has(o.kind))
 }
 
 function tocaOuSobrepoe(a: MapObject, b: MapObject, tolerancia: number): boolean {
