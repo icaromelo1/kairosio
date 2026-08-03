@@ -19,14 +19,6 @@
 
       <span class="ms-bar-acts">
         <button
-          type="button"
-          class="ms-mode"
-          :class="{ 'ms-mode-room': mode === 'room' }"
-          :title="mode === 'room' ? 'Voz alcança a sala inteira — clique pra voltar à proximidade' : 'Voz alcança quem está perto — clique pra falar com a sala toda'"
-          @click="emit('setMode', mode === 'room' ? 'proximity' : 'room')"
-        >{{ mode === 'room' ? 'sala' : 'perto' }}</button>
-
-        <button
           v-if="connected"
           type="button"
           class="ms-wbtn"
@@ -288,7 +280,6 @@ const props = defineProps<{
   selfName: string
   selfLook: AvatarLook
   peerLooks: Record<string, PeerLook>
-  mode: 'proximity' | 'room'
   connecting?: boolean
 }>()
 
@@ -297,7 +288,6 @@ const emit = defineEmits<{
   connect: []
   leave: []
   reconnect: []
-  setMode: [mode: 'proximity' | 'room']
 }>()
 
 const STORAGE_KEY = 'kairos_media_stage'
@@ -815,23 +805,6 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 0.25rem;
   flex: none;
-}
-
-.ms-mode {
-  appearance: none;
-  font-family: var(--f-pixel);
-  font-size: 0.4375rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-2);
-  background: var(--bg-4);
-  border: 0.0625rem solid var(--border-strong);
-  padding: 0.25rem 0.375rem;
-  cursor: pointer;
-}
-.ms-mode-room {
-  color: var(--accent);
-  border-color: var(--accent-lo);
 }
 
 .ms-wbtn {
