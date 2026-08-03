@@ -456,7 +456,7 @@ function onKeyDown(e: KeyboardEvent) {
   if (k === 'e') { tryInteract(); return }
   if (k === 'b') { dancing = !dancing; return }
   if (k === 'g') { emote(); return }
-  if (k === 'h') { hudVisible.value = !hudVisible.value; return }
+  if (k === 'h') { hudVisible.value = !hudVisible.value; scene?.mostrarMinimapa(hudVisible.value); return }
   if (voiceKey) { toggleMediaStage(); return }
   if (k === 'escape') { closeModal(); return }
   keys.add(k)
@@ -819,6 +819,7 @@ onMounted(async () => {
       if ((stuck || !isSolid(map, Math.floor(pos.x), Math.floor(ny))) && !peerBlocks(pos.x, ny, pos.x, pos.y)) pos.y = ny
     }
     scene.posicionarLuzDoJogador(pos.x, pos.y)
+    scene.atualizarMinimapa(pos, [...remotePlayers.values()].map((p) => ({ x: p.x, y: p.y })))
 
     const onCart = boosting && moving
     const emoting = Date.now() < emoteUntil
