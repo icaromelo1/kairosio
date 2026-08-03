@@ -268,8 +268,12 @@ export class MapScene {
     return this.luz
   }
 
-  atualizarMinimapa(eu: { x: number; y: number }, outros: { x: number; y: number }[]) {
-    this.minimap.atualizar(eu, outros)
+  atualizarMinimapa(
+    eu: { x: number; y: number },
+    outros: { x: number; y: number; falando?: boolean }[],
+    trancadas?: Set<string>,
+  ) {
+    this.minimap.atualizar(eu, outros, trancadas)
   }
 
   mostrarMinimapa(v: boolean) {
