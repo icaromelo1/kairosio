@@ -16,6 +16,16 @@ const COR_AREA = 0x2a2438
 const COR_FUNDO = 0x14161c
 const COR_VOCE = 0xd9c47a
 const COR_PEER = 0x8c7ae6
+const COR_FALANDO = 0x6be675
+const COR_TRANCADA = 0xd9534f
+
+interface AreaGeom {
+  id: string
+  x: number
+  y: number
+  w: number
+  h: number
+}
 
 export class Minimap {
   root: Container
@@ -24,6 +34,7 @@ export class Minimap {
   private escala = 1
   private largura = 0
   private altura = 0
+  private areas: AreaGeom[] = []
 
   constructor(private ladoMax = 160) {
     this.root = new Container()
@@ -43,10 +54,12 @@ export class Minimap {
     g.rect(-3, -3, this.largura + 6, this.altura + 6).fill({ color: COR_FUNDO, alpha: 0.85 })
     g.rect(-3, -3, this.largura + 6, this.altura + 6).stroke({ width: 1, color: 0x6e7a8f, alpha: 0.5 })
 
+    this.areas = []
     for (const o of map.objects) {
       if (o.kind === 'area') {
         g.rect(o.x * this.escala, o.y * this.escala, o.w * this.escala, o.h * this.escala)
           .fill({ color: COR_AREA, alpha: 0.9 })
+        this.areas.push({ id: o.id, x: o.x, y: o.y, w: o.w, h: o.h })
       }
     }
 
@@ -63,11 +76,27 @@ export class Minimap {
     }
   }
 
-  atualizar(eu: { x: number; y: number }, outros: { x: number; y: number }[]) {
+  atualizar(
+    eu: { x: number; y: number },
+    outros: { x: number; y: number; falando?: boolean }[],
+    trancadas?: Set<string>,
+  ) {
     const g = this.pontos
     g.clear()
+
+    if (trancadas && trancadas.size > 0) {
+      for (const a of this.areas) {
+        if (!trancadas.has(a.id)) continue
+        g.rect(a.x * this.escala, a.y * this.escala, a.w * this.escala, a.h * this.escala)
+          .stroke({ width: 1.5, color: COR_TRANCADA, alpha: 0.9 })
+      }
+    }
+
     for (const p of outros) {
       g.circle(p.x * this.escala, p.y * this.escala, 2).fill({ color: COR_PEER })
+      if (p.falando) {
+        g.circle(p.x * this.escala, p.y * this.escala, 4).stroke({ width: 1, color: COR_FALANDO, alpha: 0.85 })
+      }
     }
     g.circle(eu.x * this.escala, eu.y * this.escala, 3).fill({ color: COR_VOCE })
     g.circle(eu.x * this.escala, eu.y * this.escala, 5).stroke({ width: 1, color: COR_VOCE, alpha: 0.6 })
