@@ -26,27 +26,30 @@ O Kairos é 2.5D com billboards ancorados na base e profundidade por Y.
 
 - **Uma** direção só: topo-esquerda.
 - Face esquerda mais clara, direita mais escura, topo mais claro que a frente.
-- Sombra de contato: elipse achatada em `y≈97`, escura, `opacity` entre 0.4 e 0.6.
+- **Sem sombra de chão no SVG** — o motor desenha na `shadowLayer`.
 
 ## Paleta — enumerada, não livre
 
 Usar **somente** estes valores. Cor fora da lista quebra o tema e impede a camada de
 iluminação futura de tintar de forma previsível.
 
-| Papel | Cor |
+> **Revisto em 03/08.** A primeira paleta tinha 8 de 12 cores roxas — o resultado
+> foi todo móvel saindo do mesmo tom, e a cena inteira lendo como Habbo Hotel.
+> A paleta agora é organizada por **material**, não por luminosidade.
+
+| Material | Cores |
 |---|---|
-| Sombra/contorno | `#141024` |
-| Escuro | `#1d1833` |
-| Base | `#251f3d` |
-| Médio | `#342b54` |
-| Claro | `#483c73` |
-| Destaque | `#5d4e94` |
-| Luz | `#7362b3` |
-| Brilho | `#8c7ae6` |
-| Madeira escura | `#352b1a` |
-| Madeira clara | `#5a4a32` |
-| Metal escuro | `#2e3545` |
-| Metal claro | `#7888a0` |
+| Sombra/contorno | `#141024` `#1d1833` `#2a2438` |
+| Madeira | `#4a3520` `#6b4f2a` `#8a6a3a` |
+| Metal | `#3d4654` `#6e7a8f` `#9aa8bd` |
+| Tecido/estofado | `#4a5d8f` `#6b7fb5` `#7d4a52` |
+| Vegetação | `#3f6b3a` `#5c9152` |
+| Tela e luz | `#8c7ae6` `#d9c47a` |
+
+O roxo (`#8c7ae6`) é **só para tela e luz** — não é cor de móvel.
+
+**Sem sombra de chão dentro do SVG.** O motor já desenha a sombra elíptica na
+`shadowLayer`; incluir outra no SVG dava sombra dupla (bug encontrado em 03/08).
 
 ## Orçamento de detalhe — a regra mais importante
 

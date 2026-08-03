@@ -7,11 +7,11 @@ export interface PresetLuz {
 }
 
 export const PRESETS: Record<Horario, PresetLuz> = {
-  amanhecer: { tint: 0xffc896, alpha: 0.3, raioLuz: 0 },
-  dia: { tint: 0xffffff, alpha: 0.0, raioLuz: 0 },
-  tarde: { tint: 0xffe1b4, alpha: 0.14, raioLuz: 0 },
-  entardecer: { tint: 0xc1592f, alpha: 0.36, raioLuz: 0.35 },
-  noite: { tint: 0x141c3c, alpha: 0.74, raioLuz: 1 },
+  amanhecer: { tint: 0xffb478, alpha: 0.34, raioLuz: 0.1 },
+  dia: { tint: 0xfff2cc, alpha: 0.28, raioLuz: 0 },
+  tarde: { tint: 0xffdc9a, alpha: 0.26, raioLuz: 0 },
+  entardecer: { tint: 0xd9612a, alpha: 0.42, raioLuz: 0.4 },
+  noite: { tint: 0x2a3f7a, alpha: 0.72, raioLuz: 1 },
 }
 
 const ORDEM: { hora: number; estagio: Horario }[] = [

@@ -180,6 +180,29 @@ export class MapScene {
     this.aplicarLuz()
   }
 
+  // telhado com ripas e beiral — retângulo chapado lia como bloco de cor,
+  // sem sugerir cobertura. o beiral escuro embaixo dá a espessura.
+  private desenharTelhado(o: MapObject, x: number, y: number, w: number, h: number): Graphics {
+    const g = new Graphics()
+    const base = o.color ? hexNum(o.color, 0x3a3350) : 0x3a3350
+    g.rect(x, y, w, h).fill({ color: base })
+
+    const passo = Math.max(TILE_PX * 0.75, 18)
+    for (let ly = y; ly < y + h; ly += passo) {
+      g.rect(x, ly, w, passo * 0.5).fill({ color: 0xffffff, alpha: 0.045 })
+      g.rect(x, ly + passo * 0.5, w, 1.5).fill({ color: 0x000000, alpha: 0.22 })
+    }
+
+    const beiral = Math.max(6, h * 0.06)
+    g.rect(x - 3, y - 3, w + 6, beiral).fill({ color: 0xffffff, alpha: 0.1 })
+    g.rect(x - 3, y + h - beiral, w + 6, beiral + 3).fill({ color: 0x000000, alpha: 0.34 })
+    g.rect(x - 3, y - 3, 3, h + 6).fill({ color: 0x000000, alpha: 0.2 })
+    g.rect(x + w, y - 3, 3, h + 6).fill({ color: 0x000000, alpha: 0.2 })
+
+    this.roofs.push({ g, x: o.x, y: o.y, w: o.w, h: o.h })
+    return g
+  }
+
   // poça de luz por círculos concêntricos — o alpha cai do centro pra borda.
   // gradiente de verdade exigiria textura; a aproximação some no blur do add.
   private desenharPoca(g: Graphics, cx: number, cy: number, raio: number, cor: number) {
@@ -254,13 +277,17 @@ export class MapScene {
     const shape = (gg: Graphics) => (circle ? gg.circle(cx, cy, r) : gg.rect(x, y, w, h))
 
     if (o.kind === 'roof') {
-      const teto = new Graphics()
-      const cor = o.color ? hexNum(o.color, 0x2a2440) : 0x241f38
-      teto.rect(x, y, w, h).fill({ color: cor })
-      teto.rect(x, y, w, Math.max(4, h * 0.12)).fill({ color: 0xffffff, alpha: 0.06 })
-      teto.rect(x, y + h - Math.max(4, h * 0.08), w, Math.max(4, h * 0.08)).fill({ color: 0x000000, alpha: 0.28 })
-      this.roofLayer.addChild(teto)
-      this.roofs.push({ g: teto, x: o.x, y: o.y, w: o.w, h: o.h })
+      this.roofLayer.addChild(this.desenharTelhado(o, x, y, w, h))
+      return
+    }
+
+    if (o.kind === 'door') {
+      const porta = new Graphics()
+      porta.rect(x, y, w, h).fill({ color: 0x3a2f1e })
+      porta.rect(x, y, w, Math.max(3, h * 0.18)).fill({ color: 0x6b5636 })
+      porta.rect(x + w * 0.5 - 2, y + h * 0.45, 4, 4).fill({ color: 0xffd9a0 })
+      porta.rect(x - w * 0.15, y - h * 0.12, w * 1.3, h * 0.16).fill({ color: 0x8c7ae6, alpha: 0.5 })
+      this.roofLayer.addChild(porta)
       return
     }
 
@@ -332,15 +359,18 @@ export class MapScene {
     o: MapObject,
     g: Graphics,
     { y, w, h, cx, cy, r }: { x: number; y: number; w: number; h: number; cx: number; cy: number; r: number },
+    sombraPropria = true,
   ) {
     const own = ((o.rotation || 0) * Math.PI) / 180
     const upright = UPRIGHT_KINDS.has(o.kind)
     if (upright) {
       // sombra elíptica no chão, na base (fica na shadowLayer, não gira/sobe)
-      const sh = new Graphics()
-      const shadowRx = o.kind === 'tree' ? r * 1.05 : w * 0.42
-      sh.ellipse(cx, y + h, shadowRx, Math.max(4, h * 0.14)).fill({ color: 0x000000, alpha: 0.22 })
-      this.shadowLayer.addChild(sh)
+      if (sombraPropria) {
+        const sh = new Graphics()
+        const shadowRx = o.kind === 'tree' ? r * 1.05 : w * 0.42
+        sh.ellipse(cx, y + h, shadowRx, Math.max(4, h * 0.14)).fill({ color: 0x000000, alpha: 0.22 })
+        this.shadowLayer.addChild(sh)
+      }
       // billboard ancorado na BASE; vai pra entityLayer ordenada por Y
       const oc = new Container()
       oc.addChild(g)
