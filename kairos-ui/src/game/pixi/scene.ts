@@ -72,6 +72,7 @@ export class MapScene {
     host.appendChild(this.app.canvas)
     this.world.addChild(this.floorLayer, this.objectLayer, this.shadowLayer, this.entityLayer, this.ghostLayer)
     this.app.stage.addChild(this.world)
+    this.app.renderer.on('resize', () => this.setZoom(this.zoom))
   }
 
   // removeChildren no Pixi 8 NÃO destrói — sem destroy explícito, cada troca de
@@ -116,6 +117,8 @@ export class MapScene {
 
     // objetos
     for (const o of map.objects) this.drawObject(o)
+
+    this.setZoom(this.zoom)
   }
 
   private drawObject(o: MapObject) {
@@ -365,8 +368,18 @@ export class MapScene {
   private panX = 0
   private panY = 0
 
+  zoomMinimo(): number {
+    if (!this.map) return 0.6
+    const mundoW = this.map.width * TILE_PX
+    const mundoH = this.map.height * TILE_PX
+    const tela = this.app.screen
+    if (!tela.width || !tela.height) return 0.6
+    const cabe = Math.min(tela.width / mundoW, tela.height / mundoH)
+    return Math.min(0.6, cabe / 1.2)
+  }
+
   setZoom(z: number) {
-    this.zoom = Math.max(0.6, Math.min(2, z))
+    this.zoom = Math.max(this.zoomMinimo(), Math.min(2, z))
   }
   getZoom() {
     return this.zoom
