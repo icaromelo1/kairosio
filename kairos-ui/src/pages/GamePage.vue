@@ -114,6 +114,9 @@
           />
           <span class="gp-hud-turbo-val">{{ turboMult.toFixed(1) }}×</span>
         </label>
+        <button v-if="salaAtualId" class="gp-hud-lock-btn" @click="toggleSalaTrancada">
+          {{ salaTrancada ? 'destrancar sala' : 'trancar sala' }}
+        </button>
       </div>
 
       <!-- Modal de interação -->
@@ -140,17 +143,15 @@
         :self-name="playerName"
         :self-look="look"
         :peer-looks="peerLooks"
-        :mode="voiceMode"
         :connecting="voiceConnecting"
         @close="mediaStageOpen = false"
         @connect="joinVoice"
         @leave="leaveVoice"
         @reconnect="reconnectVoice"
-        @set-mode="setVoiceModeUi"
       />
 
       <!-- Painel do jukebox -->
-      <JukeboxPanel v-if="jukeboxOpen" @close="closeModal" />
+      <JukeboxPanel v-if="jukeboxOpen" :area-atual="salaAtualId" @close="closeModal" />
 
       <TaskPanel v-if="taskOpen" :map-id="currentId" :object-id="taskObjectId" @close="closeModal" />
       <NotePanel v-if="noteOpen" :map-id="currentId" :object-id="noteObjectId" @close="closeModal" />
@@ -219,8 +220,9 @@ import { AvatarPuppet, sanitizeLook, type AvatarLook, type Facing } from '@/game
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
 import { fetchMaps } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, jukeboxState, voiceMode, emitVoiceSetMode, emitScreenShare, onScreenShare, sessionKicked, syncDmUnread, type AvatarProps, type ChatMessage, type ScreenShareState } from '@/services/presence'
+import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, jukeboxState, salasTrancadas, emitSalaTrancar, emitScreenShare, onScreenShare, sessionKicked, syncDmUnread, type AvatarProps, type ChatMessage, type ScreenShareState } from '@/services/presence'
 import { media } from '@/services/media'
+import { ganhoDoPeer, salaDoPonto } from '@/game/audio/espacial'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
 import { panelFromQuery, type GamePanel } from '@/services/postAuth'
@@ -306,6 +308,16 @@ const turboMult = ref(parseFloat(localStorage.getItem('kairos_turbo') || '') || 
 const hudVisible = ref(localStorage.getItem('kairos_hud') !== 'off')
 const horario = ref(estadoDeLuz().estagio)
 let relogioLuz = 0
+const salaAtualId = computed(() => {
+  const map = currentMap.value
+  return map ? salaDoPonto(map, pos.x, pos.y) : null
+})
+const salaTrancada = computed(() => !!salaAtualId.value && salasTrancadas.value.has(salaAtualId.value))
+function toggleSalaTrancada() {
+  const id = salaAtualId.value
+  if (!id) return
+  emitSalaTrancar(id, !salasTrancadas.value.has(id))
+}
 
 watch(turboMult, (v) => localStorage.setItem('kairos_turbo', String(v)))
 watch(hudVisible, (v) => localStorage.setItem('kairos_hud', v ? 'on' : 'off'))
@@ -433,9 +445,6 @@ async function reconnectVoice() {
   await media.reconnect(currentId.value)
 }
 
-function setVoiceModeUi(mode: 'proximity' | 'room') {
-  emitVoiceSetMode(mode)
-}
 const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' | 'wave' | 'sit', boost: false }
 // ids dos avatares remotos presentes na cena
 const peerIds = new Set<string>()
@@ -812,14 +821,23 @@ onMounted(async () => {
       facing = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down')
       const nx = pos.x + dx
       const ny = pos.y + dy
+      const salaAtual = salaDoPonto(map, pos.x, pos.y)
       // escape: se o tile ATUAL já é sólido (sentou/spawnou dentro), libera o
       // movimento — regra anti-travamento, nunca deixa o personagem preso
-      const stuck = isSolid(map, Math.floor(pos.x), Math.floor(pos.y))
-      if ((stuck || !isSolid(map, Math.floor(nx), Math.floor(pos.y))) && !peerBlocks(nx, pos.y, pos.x, pos.y)) pos.x = nx
-      if ((stuck || !isSolid(map, Math.floor(pos.x), Math.floor(ny))) && !peerBlocks(pos.x, ny, pos.x, pos.y)) pos.y = ny
+      const stuck = isSolid(map, Math.floor(pos.x), Math.floor(pos.y), salasTrancadas.value, salaAtual)
+      if ((stuck || !isSolid(map, Math.floor(nx), Math.floor(pos.y), salasTrancadas.value, salaAtual)) && !peerBlocks(nx, pos.y, pos.x, pos.y)) pos.x = nx
+      if ((stuck || !isSolid(map, Math.floor(pos.x), Math.floor(ny), salasTrancadas.value, salaAtual)) && !peerBlocks(pos.x, ny, pos.x, pos.y)) pos.y = ny
     }
     scene.posicionarLuzDoJogador(pos.x, pos.y)
-    scene.atualizarMinimapa(pos, [...remotePlayers.values()].map((p) => ({ x: p.x, y: p.y })))
+    scene.atualizarMinimapa(
+      pos,
+      [...remotePlayers.values()].map((p) => ({ x: p.x, y: p.y, falando: media.peers.get(p.userId)?.speaking })),
+      salasTrancadas.value,
+    )
+    for (const p of remotePlayers.values()) {
+      const ganho = ganhoDoPeer({ map, falante: { x: p.x, y: p.y }, ouvinte: pos, trancadas: salasTrancadas.value })
+      media.setPeerGain(p.userId, ganho)
+    }
 
     const onCart = boosting && moving
     const emoting = Date.now() < emoteUntil
@@ -861,20 +879,20 @@ onMounted(async () => {
       // histerese na voz: assina a ≤4, mas quem já está assinado só cai a >5 —
       // sem isso, dançar na borda do raio gera assina/desassina em loop
       const keepConnected = voiceLive && media.isSubscribed(peer.userId) && d <= 5
-      // no modo "sala", a voz alcança todo mundo — o raio some, só regula nomes flutuantes
       // (userId vazio não deveria acontecer — o gateway recusa socket sem usuário —
       // mas se acontecer o peer só fica sem mídia, sem quebrar o frame)
-      if (peer.userId && (voiceMode.value === 'room' || inRange || keepConnected)) voiceIds.push(peer.userId)
+      if (peer.userId && (inRange || keepConnected)) voiceIds.push(peer.userId)
       scene.avatar(peer.id)?.setNameVisible(inRange)
     }
     nearby.value = near
     if (voiceLive) media.syncSubscriptions(voiceIds)
 
     // ---- jukebox: toca sincronizado, volume por distância (modo proximidade) ----
+    jukeboxAudio.setAreaDoOuvinte(salaAtualId.value)
     jukeboxAudio.sync()
     scene.setJukeboxPlaying(!!jukeboxState.current)
     if (jukeboxState.current) {
-      if (jukeboxState.mode === 'room') {
+      if (jukeboxState.alcanceGlobal) {
         jukeboxAudio.setVolume(1)
       } else {
         let nearestBox = Infinity
@@ -1256,6 +1274,18 @@ onUnmounted(() => {
   color: var(--text-3);
   min-width: 2.2rem;
 }
+
+.gp-hud-lock-btn {
+  background: none;
+  border: 0.0625rem solid var(--border);
+  color: var(--text-3);
+  cursor: pointer;
+  padding: var(--sp-4) var(--sp-8);
+  font-size: 0.6875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.gp-hud-lock-btn:hover { color: var(--text); border-color: var(--text-3); }
 
 .gp-modal-overlay {
   position: absolute;
