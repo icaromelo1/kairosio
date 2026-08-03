@@ -6,6 +6,7 @@ import type { MapDef, MapObject } from '../maps'
 import { criarSvgGraphics, varianteParaObjeto } from '../furniture/catalog'
 import { criarSuperficie, temSuperficie } from '../furniture/surfaces'
 import type { AvatarPuppet } from './avatar'
+import { estadoDeLuz, type EstadoLuz } from '../lighting'
 
 // tamanho de um tile em px na tela (independe do schema, que conta em tiles)
 export const TILE_PX = 40
@@ -51,6 +52,11 @@ export class MapScene {
   private objectLayer: Container // objetos "de chão" (rug/água/caminho/grama) — sempre embaixo
   private shadowLayer: Container // sombras dos objetos em pé (no chão, não giram)
   private entityLayer: Container // objetos em pé + avatares, ordenados por Y (profundidade)
+  private lightingLayer: Container
+  private darkness: Graphics | null = null
+  private lightPools: Graphics | null = null
+  private playerLight: Graphics | null = null
+  private luz: EstadoLuz = estadoDeLuz()
   private ghostLayer: Container
   private avatars = new Map<string, AvatarPuppet>()
   private jukeboxIcons: Container[] = [] // notas ♪ sobre objetos jukebox — visíveis só enquanto toca
@@ -65,12 +71,14 @@ export class MapScene {
     this.entityLayer = new Container()
     this.entityLayer.sortableChildren = true // ordena por zIndex (= Y da base)
     this.ghostLayer = new Container()
+    this.lightingLayer = new Container()
+    this.lightingLayer.eventMode = 'none'
   }
 
   async init(host: HTMLElement, background = '#0d0d14') {
     await this.app.init({ background, resizeTo: host, antialias: false })
     host.appendChild(this.app.canvas)
-    this.world.addChild(this.floorLayer, this.objectLayer, this.shadowLayer, this.entityLayer, this.ghostLayer)
+    this.world.addChild(this.floorLayer, this.objectLayer, this.shadowLayer, this.entityLayer, this.lightingLayer, this.ghostLayer)
     this.app.stage.addChild(this.world)
     this.app.renderer.on('resize', () => this.setZoom(this.zoom))
   }
@@ -119,6 +127,74 @@ export class MapScene {
     for (const o of map.objects) this.drawObject(o)
 
     this.setZoom(this.zoom)
+    this.montarIluminacao(map)
+  }
+
+  private montarIluminacao(map: MapDef) {
+    this.clearLayer(this.lightingLayer)
+    this.darkness = null
+    this.lightPools = null
+    this.playerLight = null
+
+    const mundoW = map.width * TILE_PX
+    const mundoH = map.height * TILE_PX
+
+    const dark = new Graphics()
+    dark.rect(-TILE_PX, -TILE_PX, mundoW + TILE_PX * 2, mundoH + TILE_PX * 2).fill({ color: 0xffffff })
+    dark.blendMode = 'multiply'
+    this.lightingLayer.addChild(dark)
+    this.darkness = dark
+
+    const pools = new Graphics()
+    pools.blendMode = 'add'
+    for (const o of map.objects) {
+      if (o.kind !== 'lamp' && o.kind !== 'jukebox') continue
+      const cx = (o.x + o.w / 2) * TILE_PX
+      const cy = (o.y + o.h / 2) * TILE_PX
+      this.desenharPoca(pools, cx, cy, TILE_PX * 3.6, 0xffd9a0)
+    }
+    this.lightingLayer.addChild(pools)
+    this.lightPools = pools
+
+    const pl = new Graphics()
+    pl.blendMode = 'add'
+    this.desenharPoca(pl, 0, 0, TILE_PX * 4.2, 0xbfd4ff)
+    this.lightingLayer.addChild(pl)
+    this.playerLight = pl
+
+    this.aplicarLuz()
+  }
+
+  // poça de luz por círculos concêntricos — o alpha cai do centro pra borda.
+  // gradiente de verdade exigiria textura; a aproximação some no blur do add.
+  private desenharPoca(g: Graphics, cx: number, cy: number, raio: number, cor: number) {
+    const passos = 7
+    for (let i = passos; i >= 1; i--) {
+      const t = i / passos
+      g.circle(cx, cy, raio * t).fill({ color: cor, alpha: 0.055 * (1 - t) + 0.02 })
+    }
+  }
+
+  private aplicarLuz() {
+    if (this.darkness) {
+      this.darkness.tint = this.luz.tint
+      this.darkness.alpha = this.luz.alpha
+    }
+    if (this.lightPools) this.lightPools.alpha = this.luz.raioLuz
+    if (this.playerLight) this.playerLight.alpha = this.luz.raioLuz * 0.8
+  }
+
+  atualizarLuz(hora?: number) {
+    this.luz = estadoDeLuz(hora)
+    this.aplicarLuz()
+  }
+
+  estadoLuz(): EstadoLuz {
+    return this.luz
+  }
+
+  posicionarLuzDoJogador(x: number, y: number) {
+    if (this.playerLight) this.playerLight.position.set(x * TILE_PX, y * TILE_PX)
   }
 
   private drawObject(o: MapObject) {
