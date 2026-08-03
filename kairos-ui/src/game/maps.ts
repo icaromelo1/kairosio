@@ -39,6 +39,7 @@ export type ObjectKind =
   | 'sofa'
   | 'wall'
   | 'roof'
+  | 'door'
   | 'custom'
 
 export interface MapObject {

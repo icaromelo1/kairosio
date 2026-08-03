@@ -33,11 +33,12 @@ REGRAS OBRIGATORIAS:
 3. Projecao: vista FRONTAL levemente elevada. NUNCA top-down puro, NUNCA isometrico.
 4. O objeto apoia em y=${VBH} (pes/base/rodas tocam essa linha). Ocupa de x=0 a x=${VBW} sem sobra.
 5. Luz vindo do TOPO-ESQUERDA: face esquerda mais clara, direita mais escura.
-6. Inclua uma sombra de contato: elipse achatada perto de y=${VBH}, cor #141024, opacity 0.5.
+6. NAO inclua sombra de chao — o motor desenha a sombra separadamente.
 7. MAXIMO DE 24 FORMAS. Detalhe abaixo de 2px vira ruido a 32px — priorize a SILHUETA, que e o que se enxerga no tamanho real. Sem costura, parafuso, textura ou reflexo pequeno.
 8. Sem stroke com largura menor que 1. Prefira forma preenchida a contorno fino.
 9. PALETA FECHADA — use SOMENTE estas cores, nenhuma outra:
-   #141024 #1d1833 #251f3d #342b54 #483c73 #5d4e94 #7362b3 #8c7ae6 #352b1a #5a4a32 #2e3545 #7888a0
+   #141024 #1d1833 #2a2438 #6b4f2a #8a6a3a #4a3520 #6e7a8f #9aa8bd #3d4654 #4a5d8f #6b7fb5 #7d4a52 #3f6b3a #5c9152 #8c7ae6 #d9c47a
+   Use a cor do MATERIAL real do objeto: madeira (#6b4f2a #8a6a3a #4a3520), metal (#6e7a8f #9aa8bd #3d4654), tecido/estofado (#4a5d8f #6b7fb5 #7d4a52), vegetacao (#3f6b3a #5c9152), tela/luz (#8c7ae6 #d9c47a). NAO pinte tudo de roxo — o roxo e so para telas e luzes.
 10. O viewBox JA esta na proporcao canonica do objeto — preencha-o por inteiro, sem deixar sobra lateral.
 
 Informe em shapeCount o numero real de formas que voce usou."

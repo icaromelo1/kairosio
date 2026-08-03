@@ -29,6 +29,7 @@ def sala(ox, oy, larg, alt, nome):
     add("wall", meio + 1, oy + alt - 1, ox + larg - meio - 1, 1, solid=True)
     add("wall", ox, oy + 1, 1, alt - 2, solid=True)
     add("wall", ox + larg - 1, oy + 1, 1, alt - 2, solid=True)
+    add("door", meio - 1, oy + alt - 1, 2, 1)
     add("panel", ox + 1, oy + 1, larg - 2, alt - 2, color="rgba(124,58,237,0.05)")
     _ = nome
 
@@ -41,6 +42,7 @@ def escritorio(ox, oy):
     add("wall", ox + 26, oy, 1, 10, solid=True)
     add("wall", ox + 26, oy + 14, 1, 8, solid=True)
     add("roof", ox - 1, oy - 1, 28, 24)
+    add("door", ox + 26, oy + 10, 1, 4)
     sala(ox, oy, 12, 10, "reuniao")
     add("table", ox + 3, oy + 3, 6, 4)
     for i in range(3):
