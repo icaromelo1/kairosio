@@ -165,7 +165,9 @@ export class MapScene {
       const ay = dentro.y * TILE_PX
       const aw = dentro.w * TILE_PX
       const ah = dentro.h * TILE_PX
-      const fora = { cor: this.luz.tint, alpha: Math.max(this.luz.alpha, 0.55) }
+      // escurecer exige cor ESCURA: multiply por quase-branco (o tom do céu de dia)
+      // não altera nada — o tint só tinge, quem escurece é o valor baixo do canal.
+      const fora = { cor: 0x1b2030, alpha: Math.max(this.luz.alpha, 0.62) }
       dark.rect(-M, -M, mw + M * 2, ay + M).fill({ color: fora.cor, alpha: fora.alpha })
       dark.rect(-M, ay + ah, mw + M * 2, mh - ay - ah + M).fill({ color: fora.cor, alpha: fora.alpha })
       dark.rect(-M, ay, ax + M, ah).fill({ color: fora.cor, alpha: fora.alpha })
