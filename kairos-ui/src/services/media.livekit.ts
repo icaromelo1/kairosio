@@ -117,6 +117,7 @@ export class MediaRoom {
   private statsTimer = 0
   private statsPrev = new Map<string, { frames: number; at: number }>()
   private sampling = false
+  private appliedGain = new Map<string, number>()
 
   // apelidos dos containers de `media.state.ts`: são os MESMOS objetos reativos
   // que a fachada publica, então o que a classe escreve aqui a UI já está vendo
@@ -378,6 +379,21 @@ export class MediaRoom {
     if (!peer) return
     this.room?.remoteParticipants.get(identity)?.setVolume(muted ? 0 : 1)
     peer.mutedByMe = muted
+    this.appliedGain.delete(identity)
+  }
+
+  // ganho fracionário por proximidade (0..1). Nunca ressuscita quem foi
+  // silenciado em `setPeerMuted` — o limiar só compara contra o último ganho
+  // realmente aplicado, e `setPeerMuted` invalida essa entrada ao mudar
+  // `mutedByMe` pra este valor não ficar preso a um estado anterior
+  setPeerGain(identity: string, gain: number): void {
+    const peer = this.peers.get(identity)
+    if (!peer || peer.mutedByMe) return
+    const clamped = Math.min(1, Math.max(0, gain))
+    const previous = this.appliedGain.get(identity)
+    if (previous !== undefined && Math.abs(clamped - previous) <= 0.02) return
+    this.room?.remoteParticipants.get(identity)?.setVolume(clamped)
+    this.appliedGain.set(identity, clamped)
   }
 
   // desligar TODO o som é `muted` no elemento; silenciar UMA pessoa é `volume`
@@ -620,6 +636,7 @@ export class MediaRoom {
     this.releaseElement(this.audioEls, identity)
     this.refreshVideoElements()
     this.dropRemoteScreen(identity)
+    this.appliedGain.delete(identity)
   }
 
   private dropRemoteScreen(identity: string) {
@@ -762,6 +779,7 @@ export class MediaRoom {
     this.statsPrev.clear()
     this.clearSelfScreen()
     this.peers.clear()
+    this.appliedGain.clear()
     this.state.connected = false
     this.state.micAvailable = false
     this.state.micMuted = true

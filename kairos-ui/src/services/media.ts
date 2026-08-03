@@ -169,6 +169,10 @@ export const media = {
     impl?.setPeerMuted(identity, muted)
   },
 
+  setPeerGain(identity: string, gain: number): void {
+    impl?.setPeerGain(identity, gain)
+  },
+
   // roda no ticker do Pixi, a cada frame: lê o estado compartilhado direto, sem
   // depender do SDK ter carregado
   isSubscribed(identity: string): boolean {
