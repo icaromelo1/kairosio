@@ -182,6 +182,15 @@
           </button>
         </div>
         <p v-if="spawnErro" class="gp-sudo-erro">{{ spawnErro }}</p>
+
+        <div v-if="roomPeers.length" class="gp-sudo-pessoas">
+          <span class="gp-sudo-label">pessoas aqui</span>
+          <div v-for="p in roomPeers" :key="p.id" class="gp-sudo-pessoa">
+            <span class="gp-sudo-pessoa-nome">{{ p.name }}</span>
+            <button class="k-btn k-btn-ghost k-btn-xs" @click="puxarPara(p.id)">puxar</button>
+            <button class="k-btn k-btn-ghost k-btn-xs" @click="irAte(p.x, p.y)">ir até</button>
+          </div>
+        </div>
       </div>
 
       <!-- Modal de interação -->
@@ -291,7 +300,7 @@ import {
   estadoDoJukebox, salasTrancadas, emitSalaTrancar, horaDoMundo, emitDefinirHora, emitScreenShare,
   onScreenShare, sessionKicked, syncDmUnread, emitAvatarUpdate,
   sudoInvisivel, sudoNoclip, sudoEspectador, sudoEscala,
-  emitSudoInvisivel, emitSudoFesta, emitSudoTeleporte, onPuxado, onFesta,
+  emitSudoInvisivel, emitSudoFesta, emitSudoTeleporte, emitSudoPuxar, onPuxado, onFesta,
   type AvatarProps, type ChatMessage, type ScreenShareState,
 } from '@/services/presence'
 import { media } from '@/services/media'
@@ -911,6 +920,15 @@ function aoClicarMinimapa(x: number, y: number) {
   pos.x = x
   pos.y = y
   emitSudoTeleporte(x, y)
+}
+
+function puxarPara(alvoId: string) {
+  if (!ehSudo.value) return
+  emitSudoPuxar(alvoId)
+}
+
+function irAte(x: number, y: number) {
+  aoClicarMinimapa(x, y)
 }
 
 function alternarInvisivel() {
@@ -1571,6 +1589,10 @@ onUnmounted(() => {
 }
 
 .gp-sudo-select { flex: 1; min-width: 0; }
+.gp-sudo-pessoas { display: flex; flex-direction: column; gap: var(--sp-4); }
+.gp-sudo-label { font-size: 0.6875rem; opacity: 0.7; }
+.gp-sudo-pessoa { display: flex; align-items: center; gap: var(--sp-4); }
+.gp-sudo-pessoa-nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75rem; }
 .gp-sudo-erro { color: var(--k-danger, #d9534f); font-size: 0.75rem; margin: 0; }
 .gp-sudo-escala-val {
   font-family: var(--f-mono);
