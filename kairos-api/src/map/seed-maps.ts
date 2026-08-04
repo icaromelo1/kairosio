@@ -2,6 +2,7 @@
 // A partir daqui o banco é a fonte da verdade; o editor in-game só edita registros.
 
 import { CIDADE } from './cidade'
+import { TESTE_ARTE } from './teste-arte'
 
 export const SEED_MAPS = [
   {
@@ -26,4 +27,5 @@ export const SEED_MAPS = [
     ],
   },
   CIDADE,
+  TESTE_ARTE,
 ]

@@ -3,7 +3,7 @@
 
 import { Application, Container, Graphics, Text } from 'pixi.js'
 import type { MapDef, MapObject } from '../maps'
-import { criarSvgGraphics } from '../furniture/catalog'
+import { carregarPacks, criarSpriteDoPack, criarSvgGraphics } from '../furniture/catalog'
 import { criarSuperficie, temSuperficie } from '../furniture/surfaces'
 import type { AvatarPuppet } from './avatar'
 import { estadoDeLuz, lerpCor, type EstadoLuz } from '../lighting'
@@ -92,6 +92,7 @@ export class MapScene {
 
   async init(host: HTMLElement, background = '#0d0d14') {
     await this.app.init({ background, resizeTo: host, antialias: false })
+    await carregarPacks()
     host.appendChild(this.app.canvas)
     this.world.addChild(this.floorLayer, this.objectLayer, this.shadowLayer, this.entityLayer, this.roofLayer, this.lightingLayer, this.ghostLayer)
     this.app.stage.addChild(this.world)
@@ -351,7 +352,18 @@ export class MapScene {
 
     const hDesenho = (o.hVis ?? o.h) * TILE_PX
     const yDesenho = y + h - hDesenho
-    const svgG = o.pixels?.length ? null : criarSvgGraphics(o, { x, y: yDesenho, w, h: hDesenho })
+    const caixaArte = { x, y: yDesenho, w, h: hDesenho }
+
+    if (o.arte && !o.pixels?.length) {
+      const sprite = criarSpriteDoPack(o.kind, o.arte, caixaArte)
+      if (sprite) {
+        g.addChild(sprite)
+        this.posicionarObjeto(o, g, { x, y, w, h, cx, cy, r })
+        return
+      }
+    }
+
+    const svgG = o.pixels?.length ? null : criarSvgGraphics(o, caixaArte)
 
     if (svgG) {
       g.addChild(svgG)
