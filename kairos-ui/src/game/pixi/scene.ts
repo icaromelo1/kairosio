@@ -3,7 +3,7 @@
 
 import { Application, Container, Graphics, Text } from 'pixi.js'
 import type { MapDef, MapObject } from '../maps'
-import { criarSvgGraphics, varianteParaObjeto } from '../furniture/catalog'
+import { criarSvgGraphics } from '../furniture/catalog'
 import { criarSuperficie, temSuperficie } from '../furniture/surfaces'
 import type { AvatarPuppet } from './avatar'
 import { estadoDeLuz, lerpCor, type EstadoLuz } from '../lighting'
@@ -335,9 +335,7 @@ export class MapScene {
       return
     }
 
-    const variante = varianteParaObjeto(o)
-
-    if (!o.pixels?.length && !o.color && variante !== 'vector' && temSuperficie(o.kind)) {
+    if (!o.pixels?.length && !o.color && temSuperficie(o.kind)) {
       const sup = criarSuperficie(o, this.app.renderer, { x, y, w, h }, TILE_PX)
       if (sup) {
         this.objectLayer.addChild(sup)
@@ -345,7 +343,7 @@ export class MapScene {
       }
     }
 
-    const svgG = o.pixels?.length ? null : criarSvgGraphics(o, variante, { x, y, w, h })
+    const svgG = o.pixels?.length ? null : criarSvgGraphics(o, { x, y, w, h })
 
     if (svgG) {
       g.addChild(svgG)
