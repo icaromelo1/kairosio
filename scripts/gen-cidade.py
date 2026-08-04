@@ -7,9 +7,18 @@ estreitas), com 10 predios institucionais — cada um com salas pequenas
 mobiliadas e um saguao/salao proprio (area + porta + mobilia densa) — e
 6 pracas/jardins com identidade propria e alta densidade de mobiliario.
 O prédio dos Correios tem planta em L (quarteirao de formato irregular).
-Clima diurno e quente: paleta terrosa, sem tons roxos ou frios.
+Todo movel tem w/h/hVis lidos de kairos-ui/src/game/furniture/canonico.json
+— a pegada de colisao (w x h) e a altura desenhada (w x hVis) vem sempre da
+fonte canonica, nunca de numero fixo no gerador. Clima diurno e quente:
+paleta terrosa, sem tons roxos ou frios.
 """
 import json
+import os
+
+RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+CANONICO_PATH = os.path.join(RAIZ, "kairos-ui/src/game/furniture/canonico.json")
+with open(CANONICO_PATH) as f:
+    CANONICO = json.load(f)
 
 objetos = []
 
@@ -41,9 +50,45 @@ def add(kind, x, y, w, h, **extra):
     objetos.append(o)
 
 
-def mobiliar(rx, ry, itens):
-    for kind, dx, dy, w, h, extra in itens:
-        add(kind, rx + dx, ry + dy, w, h, **extra)
+def dims(kind):
+    d = CANONICO[kind]
+    return d["w"], d["h"], d["hVis"]
+
+
+def mob(kind, x, y, **extra):
+    w, h, hv = dims(kind)
+    add(kind, round(x, 2), round(y, 2), w, h, hVis=hv, **extra)
+
+
+def mesa_com_cadeiras(x, y, n=4, **extra_mesa):
+    tw, th, _ = dims("table")
+    mob("table", x, y, **extra_mesa)
+    cw, ch, _ = dims("chair")
+    vagas = [
+        (x + (tw - cw) / 2, y - ch - 0.2),
+        (x + (tw - cw) / 2, y + th + 0.2),
+        (x - cw - 0.2, y + (th - ch) / 2),
+        (x + tw + 0.2, y + (th - ch) / 2),
+    ]
+    for vx, vy in vagas[:n]:
+        mob("chair", vx, vy)
+
+
+def balcao_com_cadeira(x, y, **extra_desk):
+    dw, dh, _ = dims("desk")
+    mob("desk", x, y, **extra_desk)
+    cw, ch, _ = dims("chair")
+    mob("chair", x + (dw - cw) / 2, y + dh + 0.2)
+
+
+def fileira(kind, x, y, n, passo=None, vertical=False, **extra):
+    w, h, _ = dims(kind)
+    p = passo if passo else ((h if vertical else w) + 0.3)
+    for i in range(n):
+        if vertical:
+            mob(kind, x, y + i * p, **extra)
+        else:
+            mob(kind, x + i * p, y, **extra)
 
 
 def envelope_de_celula(col, row, margem=MARGEM):
@@ -113,11 +158,11 @@ def conectar_avenida(row, porta_x, oy, altura, lado):
             add("path", porta_x, y0, 2, h)
 
 
-def predio_uma_sala(col, row, area_id, nome, cor, mob):
+def predio_uma_sala(col, row, area_id, nome, cor, mob_fn):
     ox, oy, largura, altura = envelope_de_celula(col, row)
     lado = "sul" if row < 3 else "norte"
     sala(ox, oy, largura, altura, area_id, nome, lado, cor)
-    mob(ox, oy, largura, altura)
+    mob_fn(ox, oy, largura, altura)
     porta_x = ox + largura // 2 - 1
     conectar_avenida(row, porta_x, oy, altura, lado)
 
@@ -151,346 +196,213 @@ def predio_duas_salas(col, row, id1, nome1, mob1, id2, nome2, mob2, id_sag, nome
 
 
 def mob_prefeitura_reuniao(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("table", 4, 4, 3, 2, {}),
-        ("chair", 3, 3, 1, 2, {}),
-        ("chair", 7, 3, 1, 2, {}),
-        ("chair", 3, 6, 1, 2, {}),
-        ("chair", 7, 6, 1, 2, {}),
-        ("board", 4, 1, 4, 1, {"glow": "cyan", "name": "Pauta da Reunião"}),
-        ("plant", 1, 1, 1, 2, {}),
-        ("plant", 10, 1, 1, 2, {}),
-        ("lamp", 1, 8, 1, 1, {}),
-        ("lamp", 10, 8, 1, 1, {}),
-    ])
+    mesa_com_cadeiras(rx + 5, ry + 4, n=4)
+    mob("board", rx + 3.5, ry + 1.1, glow="cyan", name="Pauta da Reunião")
+    mob("plant", rx + 1.2, ry + 1.1)
+    mob("plant", rx + 9.8, ry + 1.1)
+    mob("lamp", rx + 1.2, ry + 8.2)
+    mob("lamp", rx + 8.2, ry + 8.2)
 
 
 def mob_prefeitura_protocolo(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("desk", 1, 2, 4, 2, {"name": "Balcão de Protocolo", "action": "Abrir Protocolo", "glow": "gold"}),
-        ("chair", 2, 4, 1, 2, {}),
-        ("desk", 7, 2, 4, 2, {}),
-        ("chair", 8, 4, 1, 2, {}),
-        ("shelf", 1, 7, 1, 3, {}),
-        ("shelf", 3, 7, 1, 3, {}),
-        ("shelf", 5, 7, 1, 3, {}),
-        ("shelf", 7, 7, 1, 3, {}),
-        ("lamp", 10, 1, 1, 1, {}),
-        ("plant", 10, 7, 1, 2, {}),
-    ])
+    balcao_com_cadeira(rx + 2, ry + 2.5, name="Balcão de Protocolo", action="Abrir Protocolo", glow="gold")
+    balcao_com_cadeira(rx + 7, ry + 2.5)
+    fileira("shelf", rx + 1.2, ry + 6.5, 4, passo=1.1)
+    mob("lamp", rx + 8.3, ry + 7.5)
+    mob("plant", rx + 9.8, ry + 1.3)
 
 
 def mob_prefeitura_saguao(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("table", 2, 5, 3, 2, {}),
-        ("chair", 1, 5, 1, 2, {}),
-        ("chair", 6, 5, 1, 2, {}),
-        ("bench", 2, 9, 2, 1, {}),
-        ("bench", 23, 9, 2, 1, {}),
-        ("shelf", 24, 4, 1, 3, {}),
-        ("shelf", 1, 1, 1, 3, {}),
-        ("plant", 24, 1, 1, 2, {}),
-        ("lamp", 9, 10, 1, 1, {}),
-        ("lamp", 17, 10, 1, 1, {}),
-        ("rug", 10, 4, 7, 5, {"color": "rgba(217,164,65,0.15)"}),
-        ("sofa", 23, 10, 3, 2, {}),
-        ("column", 13, 1, 1, 2, {}),
-    ])
+    mesa_com_cadeiras(rx + 12, ry + 6, n=4)
+    fileira("shelf", rx + 2, ry + 1.3, 3, passo=1.1)
+    fileira("shelf", rx + 23, ry + 1.3, 3, passo=1.1)
+    mob("bench", rx + 2, ry + 10.5)
+    mob("bench", rx + 23, ry + 10.5)
+    mob("column", rx + 1.2, ry + 7)
+    add("rug", rx + 10, ry + 3, 8, 6, color="rgba(217,164,65,0.15)")
 
 
 def mob_biblioteca_leitura(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("table", 1, 2, 3, 2, {}),
-        ("table", 1, 6, 3, 2, {}),
-        ("chair", 4, 2, 1, 2, {}),
-        ("chair", 4, 6, 1, 2, {}),
-        ("lamp", 5, 1, 1, 1, {}),
-        ("lamp", 5, 9, 1, 1, {}),
-        ("plant", 1, 8, 1, 2, {}),
-        ("shelf", 6, 1, 1, 3, {}),
-    ])
-
-
-def mob_biblioteca_acervo(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("shelf", 1, 1, 1, 3, {"name": "Acervo Geral"}),
-        ("shelf", 1, 5, 1, 3, {}),
-        ("shelf", 4, 1, 1, 3, {}),
-        ("shelf", 4, 5, 1, 3, {}),
-        ("chair", 6, 2, 1, 2, {}),
-        ("lamp", 6, 6, 1, 1, {}),
-        ("table", 1, 8, 3, 2, {}),
-        ("plant", 6, 8, 1, 2, {}),
-    ])
+    mesa_com_cadeiras(rx + 2.5, ry + 2.5, n=2)
+    mesa_com_cadeiras(rx + 2.5, ry + 6.2, n=2)
+    mob("shelf", rx + 1.2, ry + 1.1)
+    mob("shelf", rx + 5.5, ry + 1.1)
+    mob("lamp", rx + 1.2, ry + 8.6)
+    mob("plant", rx + 5.5, ry + 8.6)
 
 
 def mob_biblioteca_saguao(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("table", 2, 4, 3, 2, {}),
-        ("chair", 1, 4, 1, 2, {}),
-        ("chair", 6, 4, 1, 2, {}),
-        ("shelf", 15, 2, 1, 3, {}),
-        ("shelf", 17, 2, 1, 3, {}),
-        ("bench", 2, 9, 2, 1, {}),
-        ("bench", 15, 9, 2, 1, {}),
-        ("lamp", 8, 1, 1, 1, {}),
-        ("lamp", 8, 11, 1, 1, {}),
-        ("plant", 1, 9, 1, 2, {}),
-        ("rug", 9, 4, 6, 4, {"color": "rgba(184,134,80,0.15)"}),
-        ("column", 12, 1, 1, 2, {}),
-    ])
+    mesa_com_cadeiras(rx + 8, ry + 6, n=4)
+    fileira("shelf", rx + 15, ry + 1.3, 3, passo=1.1)
+    mob("bench", rx + 2, ry + 10.5)
+    mob("column", rx + 1.2, ry + 7)
+    mob("plant", rx + 17, ry + 3)
+
+
+def mob_biblioteca_acervo(rx, ry, rw, rh):
+    fileira("shelf", rx + 1.2, ry + 1.3, 4, passo=1.3)
+    fileira("shelf", rx + 1.2, ry + 4.3, 4, passo=1.3)
+    mesa_com_cadeiras(rx + 2.5, ry + 7.2, n=1, name="Mesa de Consulta")
+    mob("lamp", rx + 4.2, ry + 8.3)
 
 
 def mob_hospital_consultorio(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("desk", 1, 2, 4, 2, {"name": "Consultório", "action": "Consulta", "glow": "green"}),
-        ("chair", 2, 4, 1, 2, {}),
-        ("shelf", 6, 1, 1, 3, {"name": "Remédios"}),
-        ("shelf", 6, 5, 1, 3, {}),
-        ("plant", 1, 6, 1, 2, {}),
-        ("lamp", 4, 7, 1, 1, {}),
-        ("chair", 5, 5, 1, 2, {}),
-        ("lamp", 1, 1, 1, 1, {}),
-    ])
+    balcao_com_cadeira(rx + 2, ry + 2, name="Consultório", action="Consulta", glow="green")
+    mob("shelf", rx + 1.2, ry + 5.5, name="Remédios")
+    mob("shelf", rx + 2.5, ry + 5.5)
+    mob("shelf", rx + 3.8, ry + 5.5)
+    mob("plant", rx + 5.8, ry + 2)
+    mob("chair", rx + 5.8, ry + 5.5)
+    mob("lamp", rx + 4.1, ry + 7.8)
 
 
 def mob_hospital_recepcao(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("table", 1, 2, 3, 2, {}),
-        ("chair", 4, 2, 1, 2, {}),
-        ("chair", 1, 5, 1, 2, {}),
-        ("plant", 5, 5, 1, 2, {}),
-        ("shelf", 6, 1, 1, 3, {}),
-        ("lamp", 1, 7, 1, 1, {}),
-        ("lamp", 5, 7, 1, 1, {}),
-        ("bench", 3, 5, 2, 1, {}),
-    ])
+    mesa_com_cadeiras(rx + 3, ry + 3, n=2)
+    mob("shelf", rx + 1.2, ry + 1.2)
+    mob("plant", rx + 5.8, ry + 1.2)
+    mob("bench", rx + 1, ry + 6.5)
+    mob("chair", rx + 4.5, ry + 6.6)
+    mob("lamp", rx + 4, ry + 7.8)
 
 
 def mob_hospital_saguao(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("table", 2, 4, 3, 2, {}),
-        ("chair", 1, 4, 1, 2, {}),
-        ("chair", 6, 4, 1, 2, {}),
-        ("bench", 2, 8, 2, 1, {}),
-        ("bench", 15, 8, 2, 1, {}),
-        ("shelf", 15, 2, 1, 3, {"name": "Suprimentos"}),
-        ("plant", 17, 2, 1, 2, {}),
-        ("plant", 1, 8, 1, 2, {}),
-        ("lamp", 8, 1, 1, 1, {}),
-        ("lamp", 8, 10, 1, 1, {}),
-        ("rug", 9, 4, 6, 4, {"color": "rgba(224,113,106,0.15)"}),
-        ("column", 12, 1, 1, 2, {}),
-    ])
+    mesa_com_cadeiras(rx + 8, ry + 5, n=4)
+    fileira("shelf", rx + 15, ry + 1.3, 3, passo=1.1, name="Suprimentos")
+    mob("bench", rx + 2, ry + 9.5)
+    mob("plant", rx + 17, ry + 9.5)
+    mob("column", rx + 1.2, ry + 6)
 
 
 def mob_banco_atendimento(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("desk", 1, 2, 4, 2, {"name": "Guichê do Banco", "action": "Abrir Conta", "glow": "gold"}),
-        ("chair", 2, 4, 1, 2, {}),
-        ("desk", 1, 6, 4, 2, {}),
-        ("chair", 2, 8, 1, 2, {}),
-        ("plant", 7, 1, 1, 2, {}),
-        ("shelf", 7, 4, 1, 3, {}),
-        ("plant", 7, 7, 1, 2, {}),
-        ("lamp", 4, 9, 1, 1, {}),
-    ])
+    balcao_com_cadeira(rx + 2, ry + 2, name="Guichê do Banco", action="Abrir Conta", glow="gold")
+    balcao_com_cadeira(rx + 2, ry + 5)
+    fileira("shelf", rx + 7, ry + 1.3, 3, passo=1.1, vertical=True)
+    mob("plant", rx + 7, ry + 6)
+    mob("lamp", rx + 3, ry + 8.5)
 
 
 def mob_banco_cofre(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("shelf", 1, 1, 1, 3, {"name": "Cofre", "glow": "gold"}),
-        ("shelf", 1, 5, 1, 3, {}),
-        ("shelf", 4, 1, 1, 3, {}),
-        ("shelf", 4, 5, 1, 3, {}),
-        ("shelf", 7, 1, 1, 3, {}),
-        ("shelf", 7, 5, 1, 3, {}),
-        ("lamp", 4, 8, 1, 1, {}),
-        ("column", 8, 8, 1, 2, {}),
-    ])
+    mob("shelf", rx + 1.2, ry + 1.3, name="Cofre", glow="gold")
+    mob("shelf", rx + 2.3, ry + 1.3)
+    mob("shelf", rx + 3.4, ry + 1.3)
+    mob("shelf", rx + 1.2, ry + 3.6)
+    mob("shelf", rx + 2.3, ry + 3.6)
+    mob("shelf", rx + 3.4, ry + 3.6)
+    mob("lamp", rx + 5.5, ry + 2)
+    mob("column", rx + 6.5, ry + 7)
 
 
 def mob_banco_saguao(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("table", 2, 4, 3, 2, {}),
-        ("chair", 1, 4, 1, 2, {}),
-        ("chair", 6, 4, 1, 2, {}),
-        ("bench", 2, 9, 2, 1, {}),
-        ("bench", 19, 9, 2, 1, {}),
-        ("shelf", 18, 2, 1, 3, {}),
-        ("shelf", 20, 2, 1, 3, {}),
-        ("plant", 1, 9, 1, 2, {}),
-        ("plant", 21, 9, 1, 2, {}),
-        ("lamp", 10, 1, 1, 1, {}),
-        ("lamp", 10, 11, 1, 1, {}),
-        ("rug", 9, 4, 8, 4, {"color": "rgba(143,174,107,0.15)"}),
-        ("column", 15, 1, 1, 2, {}),
-    ])
+    mesa_com_cadeiras(rx + 10, ry + 6, n=4)
+    fileira("shelf", rx + 2, ry + 1.3, 3, passo=1.1)
+    fileira("shelf", rx + 19, ry + 1.3, 3, passo=1.1)
+    mob("bench", rx + 2, ry + 10.5)
+    mob("bench", rx + 19, ry + 10.5)
+    mob("column", rx + 1.2, ry + 7)
+    mob("column", rx + 21, ry + 7)
+    mob("plant", rx + 1.2, ry + 3.5)
 
 
 def mob_mercado(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("table", 2, 3, 3, 2, {"name": "Mercado Municipal", "glow": "gold"}),
-        ("table", 7, 3, 3, 2, {}),
-        ("table", 12, 3, 3, 2, {}),
-        ("table", 17, 3, 3, 2, {}),
-        ("bench", 2, 8, 2, 1, {}),
-        ("bench", 6, 8, 2, 1, {}),
-        ("bench", 10, 8, 2, 1, {}),
-        ("bench", 14, 8, 2, 1, {}),
-        ("plant", 19, 3, 1, 2, {}),
-        ("plant", 19, 8, 1, 2, {}),
-        ("shelf", 1, 12, 1, 3, {}),
-        ("shelf", 3, 12, 1, 3, {}),
-        ("lamp", 10, 14, 1, 1, {}),
-        ("lamp", 15, 14, 1, 1, {}),
-    ])
+    mesa_com_cadeiras(rx + 3, ry + 3, n=2, name="Mercado Municipal", glow="gold")
+    mesa_com_cadeiras(rx + 8, ry + 3, n=2)
+    mesa_com_cadeiras(rx + 13, ry + 3, n=2)
+    fileira("bench", rx + 2, ry + 9, 3, passo=3)
+    fileira("shelf", rx + 1.2, ry + 13, 2, passo=1.1)
+    mob("plant", rx + 20, ry + 9)
+    mob("lamp", rx + 10, ry + 16)
+    mob("lamp", rx + 16, ry + 16)
 
 
 def mob_teatro_palco(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("table", 2, 3, 3, 2, {"name": "Palco", "action": "Assistir Espetáculo", "glow": "gold"}),
-        ("lamp", 1, 1, 1, 1, {}),
-        ("lamp", 8, 1, 1, 1, {}),
-        ("chair", 1, 6, 1, 2, {}),
-        ("chair", 3, 6, 1, 2, {}),
-        ("chair", 5, 6, 1, 2, {}),
-        ("chair", 7, 6, 1, 2, {}),
-        ("plant", 8, 6, 1, 2, {}),
-    ])
+    mob("table", rx + 3, ry + 2, name="Palco", action="Assistir Espetáculo", glow="gold")
+    mob("lamp", rx + 1, ry + 1)
+    mob("lamp", rx + 6, ry + 1)
+    fileira("chair", rx + 1.5, ry + 6, 4, passo=1.3)
+    mob("plant", rx + 7.5, ry + 6)
 
 
 def mob_teatro_coxia(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("shelf", 1, 1, 1, 3, {"name": "Figurinos"}),
-        ("shelf", 3, 1, 1, 3, {}),
-        ("chair", 6, 2, 1, 2, {}),
-        ("table", 1, 6, 3, 2, {}),
-        ("chair", 5, 6, 1, 2, {}),
-        ("lamp", 8, 1, 1, 1, {}),
-        ("plant", 8, 6, 1, 2, {}),
-        ("column", 5, 1, 1, 2, {}),
-    ])
+    mob("shelf", rx + 1.2, ry + 1.3, name="Figurinos")
+    mob("shelf", rx + 2.3, ry + 1.3)
+    mob("shelf", rx + 3.4, ry + 1.3)
+    mob("chair", rx + 6, ry + 2)
+    mesa_com_cadeiras(rx + 3, ry + 6, n=2)
+    mob("lamp", rx + 6.3, ry + 6.5)
 
 
 def mob_teatro_saguao(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("table", 2, 4, 3, 2, {}),
-        ("chair", 1, 4, 1, 2, {}),
-        ("chair", 6, 4, 1, 2, {}),
-        ("bench", 2, 8, 2, 1, {}),
-        ("bench", 19, 8, 2, 1, {}),
-        ("shelf", 18, 2, 1, 3, {"name": "Adereços"}),
-        ("plant", 21, 2, 1, 2, {}),
-        ("plant", 1, 8, 1, 2, {}),
-        ("lamp", 10, 1, 1, 1, {}),
-        ("lamp", 10, 10, 1, 1, {}),
-        ("rug", 9, 4, 8, 4, {"color": "rgba(194,80,74,0.15)"}),
-        ("column", 15, 1, 1, 2, {}),
-    ])
+    mesa_com_cadeiras(rx + 10, ry + 5, n=4)
+    fileira("shelf", rx + 19, ry + 1.3, 3, passo=1.1, name="Adereços")
+    mob("bench", rx + 2, ry + 9.5)
+    mob("bench", rx + 19, ry + 9.5)
+    mob("column", rx + 1.2, ry + 6)
+    mob("plant", rx + 21, ry + 6)
 
 
 def mob_estacao_hall(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("bench", 1, 1, 2, 1, {}),
-        ("bench", 4, 1, 2, 1, {}),
-        ("bench", 1, 3, 2, 1, {}),
-        ("bench", 4, 3, 2, 1, {}),
-        ("plant", 7, 1, 1, 2, {}),
-        ("lamp", 7, 4, 1, 1, {}),
-        ("plant", 4, 4, 1, 2, {}),
-        ("lamp", 1, 5, 1, 1, {}),
-    ])
+    fileira("bench", rx + 1, ry + 1.5, 2, passo=2.3)
+    fileira("bench", rx + 1, ry + 3.5, 2, passo=2.3)
+    mob("plant", rx + 7, ry + 1.5)
+    mob("lamp", rx + 6.3, ry + 3.8)
+    mob("chair", rx + 1, ry + 5)
+    mob("chair", rx + 2, ry + 5)
 
 
 def mob_estacao_bilheteria(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("desk", 1, 1, 4, 2, {"name": "Bilheteria", "action": "Comprar Passagem", "glow": "gold"}),
-        ("chair", 2, 3, 1, 2, {}),
-        ("shelf", 7, 1, 1, 3, {}),
-        ("lamp", 4, 4, 1, 1, {}),
-        ("plant", 6, 4, 1, 2, {}),
-        ("column", 8, 1, 1, 2, {}),
-        ("bench", 7, 5, 2, 1, {}),
-        ("lamp", 1, 4, 1, 1, {}),
-    ])
+    balcao_com_cadeira(rx + 2, ry + 2, name="Bilheteria", action="Comprar Passagem", glow="gold")
+    mob("shelf", rx + 6.5, ry + 1.3)
+    mob("column", rx + 6.8, ry + 3.5)
+    mob("plant", rx + 1, ry + 4.5)
+    mob("bench", rx + 3.5, ry + 4.5)
+    mob("lamp", rx + 1, ry + 1)
+    mob("chair", rx + 4.5, ry + 1.3)
 
 
 def mob_estacao_saguao(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("bench", 2, 3, 2, 1, {}),
-        ("bench", 6, 3, 2, 1, {}),
-        ("bench", 14, 3, 2, 1, {}),
-        ("bench", 18, 3, 2, 1, {}),
-        ("plant", 1, 6, 1, 2, {}),
-        ("plant", 21, 6, 1, 2, {}),
-        ("lamp", 10, 1, 1, 1, {}),
-        ("lamp", 10, 8, 1, 1, {}),
-        ("shelf", 10, 4, 1, 3, {"name": "Informações"}),
-        ("table", 2, 6, 3, 2, {}),
-        ("chair", 6, 6, 1, 2, {}),
-        ("column", 18, 6, 1, 2, {}),
-    ])
+    mesa_com_cadeiras(rx + 10, ry + 5, n=4)
+    fileira("bench", rx + 2, ry + 1.5, 3, passo=2.3)
+    fileira("shelf", rx + 19, ry + 2, 3, passo=1.1)
+    mob("column", rx + 1.2, ry + 7)
+    mob("plant", rx + 21, ry + 7)
 
 
 def mob_escola_sala(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("desk", 1, 2, 4, 2, {}),
-        ("chair", 2, 4, 1, 2, {}),
-        ("board", 1, 1, 4, 1, {"glow": "cyan", "name": "Quadro da Sala"}),
-        ("plant", 5, 4, 1, 2, {}),
-        ("lamp", 5, 1, 1, 1, {}),
-        ("bench", 1, 6, 2, 1, {}),
-        ("lamp", 4, 6, 1, 1, {}),
-        ("chair", 3, 5, 1, 2, {}),
-    ])
+    balcao_com_cadeira(rx + 1.5, ry + 2)
+    mob("board", rx + 1, ry + 1, glow="cyan", name="Quadro da Sala")
+    mob("plant", rx + 4.5, ry + 2)
+    mob("lamp", rx + 3, ry + 5.5)
+    mob("bench", rx + 1, ry + 5.5)
+    mob("shelf", rx + 4.8, ry + 4.5)
+    mob("chair", rx + 1, ry + 4)
 
 
 def mob_escola_professores(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("table", 1, 2, 3, 2, {}),
-        ("chair", 4, 2, 1, 2, {}),
-        ("shelf", 5, 4, 1, 3, {}),
-        ("lamp", 1, 5, 1, 1, {}),
-        ("plant", 5, 1, 1, 2, {}),
-        ("board", 1, 1, 4, 1, {}),
-        ("chair", 2, 5, 1, 2, {}),
-        ("lamp", 3, 6, 1, 1, {}),
-    ])
+    mesa_com_cadeiras(rx + 2.5, ry + 3.6, n=2)
+    mob("shelf", rx + 4.8, ry + 2.3)
+    mob("lamp", rx + 1, ry + 5.8)
+    mob("board", rx + 1, ry + 1)
+    mob("plant", rx + 4.8, ry + 5.8)
+    mob("chair", rx + 5.3, ry + 3.6)
 
 
 def mob_escola_saguao(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("table", 2, 3, 3, 2, {}),
-        ("chair", 1, 3, 1, 2, {}),
-        ("chair", 6, 3, 1, 2, {}),
-        ("shelf", 12, 2, 1, 3, {}),
-        ("bench", 2, 7, 2, 1, {}),
-        ("bench", 10, 7, 2, 1, {}),
-        ("lamp", 7, 1, 1, 1, {}),
-        ("lamp", 7, 8, 1, 1, {}),
-        ("plant", 14, 7, 1, 2, {}),
-        ("column", 9, 1, 1, 2, {}),
-    ])
+    mesa_com_cadeiras(rx + 7, ry + 5, n=4)
+    fileira("shelf", rx + 13, ry + 1.3, 2, passo=1.1)
+    mob("bench", rx + 1.2, ry + 8)
+    mob("lamp", rx + 1.5, ry + 4)
 
 
 def mob_delegacia(rx, ry, rw, rh):
-    mobiliar(rx, ry, [
-        ("desk", 2, 3, 4, 2, {"name": "Mesa de Investigação", "action": "Abrir Ocorrência", "glow": "purple"}),
-        ("chair", 3, 5, 1, 2, {}),
-        ("desk", 20, 3, 4, 2, {}),
-        ("chair", 21, 5, 1, 2, {}),
-        ("board", 2, 8, 4, 1, {"glow": "cyan", "name": "Quadro de Pistas"}),
-        ("board", 20, 8, 4, 1, {}),
-        ("shelf", 9, 3, 1, 3, {"name": "Arquivo"}),
-        ("shelf", 11, 3, 1, 3, {}),
-        ("shelf", 9, 8, 1, 3, {}),
-        ("shelf", 11, 8, 1, 3, {}),
-        ("lamp", 6, 12, 1, 1, {}),
-        ("lamp", 20, 12, 1, 1, {}),
-        ("table", 13, 12, 3, 2, {}),
-        ("chair", 12, 12, 1, 2, {}),
-    ])
+    balcao_com_cadeira(rx + 3, ry + 3, name="Mesa de Investigação", action="Abrir Ocorrência", glow="purple")
+    balcao_com_cadeira(rx + 3, ry + 7)
+    mob("shelf", rx + 9, ry + 3, name="Arquivo")
+    mob("shelf", rx + 9, ry + 4.3)
+    mob("shelf", rx + 9, ry + 5.6)
+    mob("board", rx + 12, ry + 3, glow="cyan", name="Quadro de Pistas")
+    mesa_com_cadeiras(rx + 18, ry + 12, n=2)
+    mob("lamp", rx + 3, ry + 15)
+    mob("lamp", rx + 20, ry + 15)
 
 
 add("grass", 1, 1, 118, 118)
@@ -502,33 +414,33 @@ for x0, x1 in AVENUE_V:
 
 predio_duas_salas(0, 0, "prefeitura-reuniao", "Prefeitura — Sala de Reunião", mob_prefeitura_reuniao,
                    "prefeitura-protocolo", "Prefeitura — Protocolo", mob_prefeitura_protocolo,
-                   "prefeitura-saguao", "Prefeitura — Saguão", mob_prefeitura_saguao, "#c9ae76")
+                   "prefeitura-saguao", "Prefeitura — Saguão", mob_prefeitura_saguao, "#d9a441")
 
 predio_duas_salas(1, 0, "biblioteca-leitura", "Biblioteca — Sala de Leitura", mob_biblioteca_leitura,
                    "biblioteca-acervo", "Biblioteca — Acervo", mob_biblioteca_acervo,
-                   "biblioteca-saguao", "Biblioteca — Saguão", mob_biblioteca_saguao, "#ae865b")
+                   "biblioteca-saguao", "Biblioteca — Saguão", mob_biblioteca_saguao, "#b98650")
 
 predio_duas_salas(1, 2, "hospital-consultorio", "Hospital — Consultório", mob_hospital_consultorio,
                    "hospital-recepcao", "Hospital — Recepção", mob_hospital_recepcao,
-                   "hospital-saguao", "Hospital — Saguão", mob_hospital_saguao, "#c48a86")
+                   "hospital-saguao", "Hospital — Saguão", mob_hospital_saguao, "#e0716a")
 
 predio_duas_salas(2, 0, "banco-atendimento", "Banco — Atendimento", mob_banco_atendimento,
                    "banco-cofre", "Banco — Cofre", mob_banco_cofre,
                    "banco-saguao", "Banco — Saguão", mob_banco_saguao, "#8fae6b")
 
-predio_uma_sala(2, 1, "mercado-armazem", "Mercado — Armazém", "#c2ab82", mob_mercado)
+predio_uma_sala(2, 1, "mercado-armazem", "Mercado — Armazém", "#e0b464", mob_mercado)
 
 predio_duas_salas(2, 2, "teatro-palco", "Teatro — Palco", mob_teatro_palco,
                    "teatro-coxia", "Teatro — Coxia", mob_teatro_coxia,
-                   "teatro-saguao", "Teatro — Saguão", mob_teatro_saguao, "#af615d")
+                   "teatro-saguao", "Teatro — Saguão", mob_teatro_saguao, "#c2504a")
 
 predio_duas_salas(2, 3, "estacao-hall", "Estação — Hall", mob_estacao_hall,
                    "estacao-bilheteria", "Estação — Bilheteria", mob_estacao_bilheteria,
-                   "estacao-saguao", "Estação — Saguão", mob_estacao_saguao, "#b5866c")
+                   "estacao-saguao", "Estação — Saguão", mob_estacao_saguao, "#b5603f")
 
 predio_duas_salas(3, 1, "escola-sala", "Escola — Sala de Aula", mob_escola_sala,
                    "escola-professores", "Escola — Sala dos Professores", mob_escola_professores,
-                   "escola-saguao", "Escola — Saguão", mob_escola_saguao, "#b78f6c")
+                   "escola-saguao", "Escola — Saguão", mob_escola_saguao, "#d98c4a")
 
 predio_uma_sala(0, 3, "delegacia-investigacao", "Delegacia — Investigação", "#8a7f6e", mob_delegacia)
 
@@ -547,189 +459,166 @@ add("wall", co_porta_x + 2, co_oy + co_altura - 1, co_ox + co_largura - (co_port
 add("door", co_porta_x, co_oy + co_altura - 1, 2, 1)
 add("area", co_ox + 1, co_oy + co_notch_h + 1, co_largura - 2, co_altura - co_notch_h - 1,
     id="correios-triagem", name="Correios — Triagem")
-add("panel", co_ox + 1, co_oy + 1, co_largura - co_notch_w - 2, co_notch_h - 1, color="#b18062")
-add("panel", co_ox + 1, co_oy + co_notch_h + 1, co_largura - 2, co_altura - co_notch_h - 2, color="#b18062")
+add("panel", co_ox + 1, co_oy + 1, co_largura - co_notch_w - 2, co_notch_h - 1, color="#c97b4a")
+add("panel", co_ox + 1, co_oy + co_notch_h + 1, co_largura - 2, co_altura - co_notch_h - 2, color="#c97b4a")
 
-add("shelf", co_ox + 5, co_oy + 1, 1, 3)
-add("shelf", co_ox + 8, co_oy + 1, 1, 3)
-add("table", co_ox + 12, co_oy + 1, 3, 2)
-add("chair", co_ox + 11, co_oy + 1, 1, 2)
-add("lamp", co_ox + 18, co_oy + 1, 1, 1)
-add("desk", co_ox + 5, co_oy + co_notch_h + 2, 4, 2, name="Balcão dos Correios", action="Enviar Encomenda", glow="gold")
-add("chair", co_ox + 6, co_oy + co_notch_h + 5, 1, 2)
-add("table", co_ox + 12, co_oy + co_notch_h + 2, 3, 2)
-add("chair", co_ox + 13, co_oy + co_notch_h + 5, 1, 2)
-add("shelf", co_ox + 22, co_oy + co_notch_h + 2, 1, 3)
-add("shelf", co_ox + 24, co_oy + co_notch_h + 2, 1, 3)
-add("shelf", co_ox + 26, co_oy + co_notch_h + 2, 1, 3)
-add("bench", co_ox + 5, co_oy + co_notch_h + 8, 2, 1)
-add("bench", co_ox + 12, co_oy + co_notch_h + 8, 2, 1)
-add("plant", co_ox + 26, co_oy + co_notch_h + 8, 1, 2)
-add("lamp", co_ox + 9, co_oy + co_notch_h + 8, 1, 1)
+mob("shelf", co_ox + 2, co_oy + 1.3)
+mob("shelf", co_ox + 3.2, co_oy + 1.3)
+mesa_com_cadeiras(co_ox + 8, co_oy + 2.3, n=1)
+mob("lamp", co_ox + 13, co_oy + 1.3)
+
+balcao_com_cadeira(co_ox + 3, co_oy + co_notch_h + 2, name="Balcão dos Correios", action="Enviar Encomenda", glow="gold")
+mesa_com_cadeiras(co_ox + 9, co_oy + co_notch_h + 2, n=2)
+fileira("shelf", co_ox + 18, co_oy + co_notch_h + 2, 4, passo=1.1)
+fileira("bench", co_ox + 3, co_oy + co_notch_h + 7, 2, passo=3)
+mob("plant", co_ox + 22, co_oy + co_notch_h + 7)
+mob("lamp", co_ox + 9, co_oy + co_notch_h + 7)
 
 co_porta_x_final = co_ox + co_largura // 2 - 1
 conectar_avenida(1, co_porta_x_final, co_oy, co_altura, "sul")
 
 jn_x0, jn_y0, jn_x1, jn_y1 = bounds(3, 0)
-add("tree", jn_x0 + 2, jn_y0 + 3, 3, 3)
-add("tree", jn_x0 + 16, jn_y0 + 3, 3, 3)
-add("tree", jn_x0 + 2, jn_y0 + 24, 3, 3)
-add("tree", jn_x0 + 16, jn_y0 + 24, 3, 3)
-add("tree", jn_x0 + 9, jn_y0 + 13, 3, 3)
-add("hedge", jn_x0 + 2, jn_y0 + 8, 6, 1)
-add("hedge", jn_x0 + 13, jn_y0 + 8, 6, 1)
-add("hedge", jn_x0 + 2, jn_y0 + 19, 6, 1)
-add("hedge", jn_x0 + 13, jn_y0 + 19, 6, 1)
+mob("tree", jn_x0 + 1, jn_y0 + 2)
+mob("tree", jn_x0 + 14, jn_y0 + 2)
+mob("tree", jn_x0 + 1, jn_y0 + 24)
+mob("tree", jn_x0 + 14, jn_y0 + 24)
+mob("tree", jn_x0 + 7.5, jn_y0 + 13)
+mob("hedge", jn_x0 + 2, jn_y0 + 9)
+mob("hedge", jn_x0 + 13, jn_y0 + 9)
+mob("hedge", jn_x0 + 2, jn_y0 + 19)
+mob("hedge", jn_x0 + 13, jn_y0 + 19)
 add("flower", jn_x0 + 7, jn_y0 + 3, 3, 2)
 add("flower", jn_x0 + 7, jn_y0 + 24, 3, 2)
-add("flower", jn_x0 + 2, jn_y0 + 13, 3, 2)
-add("flower", jn_x0 + 16, jn_y0 + 13, 3, 2)
-add("bench", jn_x0 + 5, jn_y0 + 10, 2, 1)
-add("bench", jn_x0 + 14, jn_y0 + 10, 2, 1)
-add("bench", jn_x0 + 5, jn_y0 + 17, 2, 1)
-add("bench", jn_x0 + 14, jn_y0 + 17, 2, 1)
-add("lamp", jn_x0 + 1, jn_y0 + 6, 1, 1)
-add("lamp", jn_x0 + 19, jn_y0 + 6, 1, 1)
-add("lamp", jn_x0 + 1, jn_y0 + 23, 1, 1)
-add("lamp", jn_x0 + 19, jn_y0 + 23, 1, 1)
-add("plant", jn_x0 + 9, jn_y0 + 1, 1, 2)
-add("plant", jn_x0 + 9, jn_y0 + 27, 1, 2)
-add("column", jn_x0 + 9, jn_y0 + 9, 1, 2)
-add("column", jn_x0 + 11, jn_y0 + 9, 1, 2)
+mob("bench", jn_x0 + 5, jn_y0 + 10.5)
+mob("bench", jn_x0 + 14, jn_y0 + 10.5)
+mob("bench", jn_x0 + 5, jn_y0 + 17.5)
+mob("bench", jn_x0 + 14, jn_y0 + 17.5)
+mob("lamp", jn_x0 + 1, jn_y0 + 6)
+mob("lamp", jn_x0 + 17, jn_y0 + 6)
+mob("lamp", jn_x0 + 1, jn_y0 + 23)
+mob("lamp", jn_x0 + 17, jn_y0 + 23)
+mob("plant", jn_x0 + 9.5, jn_y0 + 1)
+mob("plant", jn_x0 + 9.5, jn_y0 + 27.5)
+mob("column", jn_x0 + 9, jn_y0 + 9)
+mob("column", jn_x0 + 11, jn_y0 + 9)
 
 pc_x0, pc_y0, pc_x1, pc_y1 = bounds(1, 1)
-add("fountain", pc_x0 + 10, pc_y0 + 10, 4, 4, shape="circle", glow="gold", name="Fonte Central", action="Fazer um pedido")
-add("bench", pc_x0 + 7, pc_y0 + 7, 2, 1)
-add("bench", pc_x0 + 15, pc_y0 + 7, 2, 1)
-add("bench", pc_x0 + 7, pc_y0 + 16, 2, 1)
-add("bench", pc_x0 + 15, pc_y0 + 16, 2, 1)
-add("bench", pc_x0 + 3, pc_y0 + 10, 2, 1)
-add("bench", pc_x0 + 19, pc_y0 + 10, 2, 1)
-add("bench", pc_x0 + 3, pc_y0 + 13, 2, 1)
-add("bench", pc_x0 + 19, pc_y0 + 13, 2, 1)
-add("hedge", pc_x0 + 3, pc_y0 + 2, 6, 1)
-add("hedge", pc_x0 + 15, pc_y0 + 2, 6, 1)
-add("hedge", pc_x0 + 3, pc_y0 + 21, 6, 1)
-add("hedge", pc_x0 + 15, pc_y0 + 21, 6, 1)
+mob("fountain", pc_x0 + 11.2, pc_y0 + 11, shape="circle", glow="gold", name="Fonte Central", action="Fazer um pedido")
+mob("bench", pc_x0 + 11, pc_y0 + 4)
+mob("bench", pc_x0 + 11, pc_y0 + 19)
+mob("bench", pc_x0 + 3, pc_y0 + 11.5)
+mob("bench", pc_x0 + 19, pc_y0 + 11.5)
+mob("bench", pc_x0 + 6, pc_y0 + 6)
+mob("bench", pc_x0 + 16, pc_y0 + 6)
+mob("bench", pc_x0 + 6, pc_y0 + 17)
+mob("bench", pc_x0 + 16, pc_y0 + 17)
+mob("bench", pc_x0 + 3, pc_y0 + 3)
+mob("bench", pc_x0 + 19, pc_y0 + 3)
+mob("bench", pc_x0 + 3, pc_y0 + 20)
+mob("bench", pc_x0 + 19, pc_y0 + 20)
+mob("hedge", pc_x0 + 2, pc_y0 + 2)
+mob("hedge", pc_x0 + 16, pc_y0 + 2)
+mob("hedge", pc_x0 + 2, pc_y0 + 21)
+mob("hedge", pc_x0 + 16, pc_y0 + 21)
 add("flower", pc_x0 + 1, pc_y0 + 9, 3, 2)
 add("flower", pc_x0 + 20, pc_y0 + 9, 3, 2)
-add("flower", pc_x0 + 1, pc_y0 + 14, 3, 2)
-add("flower", pc_x0 + 20, pc_y0 + 14, 3, 2)
-add("lamp", pc_x0 + 10, pc_y0 + 3, 1, 1)
-add("lamp", pc_x0 + 13, pc_y0 + 3, 1, 1)
-add("lamp", pc_x0 + 10, pc_y0 + 20, 1, 1)
-add("lamp", pc_x0 + 13, pc_y0 + 20, 1, 1)
-add("column", pc_x0 + 9, pc_y0 + 8, 1, 2)
-add("column", pc_x0 + 14, pc_y0 + 8, 1, 2)
-add("bench", pc_x0 + 11, pc_y0 + 3, 2, 1)
-add("column", pc_x0 + 9, pc_y0 + 13, 1, 2)
+mob("lamp", pc_x0 + 9, pc_y0 + 2.2)
+mob("lamp", pc_x0 + 13, pc_y0 + 2.2)
+mob("column", pc_x0 + 11, pc_y0 + 9)
+mob("column", pc_x0 + 14, pc_y0 + 9)
 
 pm_x0, pm_y0, pm_x1, pm_y1 = bounds(0, 2)
-add("jukebox", pm_x0 + 4, pm_y0 + 4, 2, 2, name="Jukebox da Praça", action="Tocar playlist", glow="gold")
-add("bench", pm_x0 + 1, pm_y0 + 3, 2, 1)
-add("bench", pm_x0 + 8, pm_y0 + 3, 2, 1)
-add("bench", pm_x0 + 1, pm_y0 + 6, 2, 1)
-add("bench", pm_x0 + 8, pm_y0 + 6, 2, 1)
-add("bench", pm_x0 + 14, pm_y0 + 13, 2, 1)
-add("bench", pm_x0 + 20, pm_y0 + 13, 2, 1)
-add("bench", pm_x0 + 2, pm_y0 + 13, 2, 1)
-add("bench", pm_x0 + 26, pm_y0 + 13, 2, 1)
-add("table", pm_x0 + 14, pm_y0 + 3, 3, 2)
-add("table", pm_x0 + 19, pm_y0 + 3, 3, 2)
-add("table", pm_x0 + 24, pm_y0 + 3, 3, 2)
-add("table", pm_x0 + 14, pm_y0 + 8, 3, 2)
-add("table", pm_x0 + 19, pm_y0 + 8, 3, 2)
-add("table", pm_x0 + 24, pm_y0 + 8, 3, 2)
-add("lamp", pm_x0 + 12, pm_y0 + 1, 1, 1)
-add("lamp", pm_x0 + 28, pm_y0 + 1, 1, 1)
-add("lamp", pm_x0 + 12, pm_y0 + 20, 1, 1)
-add("lamp", pm_x0 + 28, pm_y0 + 20, 1, 1)
+mob("jukebox", pm_x0 + 4, pm_y0 + 4, name="Jukebox da Praça", action="Tocar playlist", glow="gold")
+mob("bench", pm_x0 + 1, pm_y0 + 2)
+mob("bench", pm_x0 + 7, pm_y0 + 2)
+mob("bench", pm_x0 + 1, pm_y0 + 6)
+mob("bench", pm_x0 + 7, pm_y0 + 6)
+mesa_com_cadeiras(pm_x0 + 13, pm_y0 + 3, n=2, name="Mercado Municipal", glow="gold")
+mesa_com_cadeiras(pm_x0 + 18, pm_y0 + 3, n=2)
+mesa_com_cadeiras(pm_x0 + 13, pm_y0 + 8, n=2)
+mesa_com_cadeiras(pm_x0 + 18, pm_y0 + 8, n=2)
+mob("bench", pm_x0 + 14, pm_y0 + 13)
+mob("bench", pm_x0 + 20, pm_y0 + 13)
+mob("lamp", pm_x0 + 9, pm_y0 + 1)
+mob("lamp", pm_x0 + 28, pm_y0 + 1)
+mob("lamp", pm_x0 + 11, pm_y0 + 20)
+mob("lamp", pm_x0 + 28, pm_y0 + 20)
 add("flower", pm_x0 + 2, pm_y0 + 20, 3, 2)
-add("flower", pm_x0 + 10, pm_y0 + 20, 3, 2)
 add("flower", pm_x0 + 18, pm_y0 + 20, 3, 2)
-add("flower", pm_x0 + 26, pm_y0 + 20, 3, 2)
-add("plant", pm_x0 + 30, pm_y0 + 4, 1, 2)
-add("plant", pm_x0 + 30, pm_y0 + 10, 1, 2)
-add("rug", pm_x0 + 13, pm_y0 + 2, 15, 9, color="rgba(217,164,65,0.15)")
+mob("plant", pm_x0 + 30, pm_y0 + 4)
+mob("plant", pm_x0 + 30, pm_y0 + 10)
+add("rug", pm_x0 + 12, pm_y0 + 2, 10, 9, color="rgba(217,164,65,0.15)")
 
 js_x0, js_y0, js_x1, js_y1 = bounds(3, 2)
 add("water", js_x0 + 2, js_y0 + 3, 6, 5)
-add("tree", js_x0 + 10, js_y0 + 2, 3, 3)
-add("tree", js_x0 + 15, js_y0 + 2, 3, 3)
-add("tree", js_x0 + 9, js_y0 + 9, 3, 3)
-add("tree", js_x0 + 14, js_y0 + 9, 3, 3)
-add("tree", js_x0 + 2, js_y0 + 15, 3, 3)
-add("tree", js_x0 + 9, js_y0 + 20, 3, 3)
-add("tree", js_x0 + 15, js_y0 + 20, 3, 3)
-add("hedge", js_x0 + 2, js_y0 + 12, 6, 1)
-add("hedge", js_x0 + 2, js_y0 + 24, 6, 1)
+mob("tree", js_x0 + 9, js_y0 + 1)
+mob("tree", js_x0 + 14, js_y0 + 1)
+mob("tree", js_x0 + 8, js_y0 + 9)
+mob("tree", js_x0 + 13, js_y0 + 9)
+mob("tree", js_x0 + 1, js_y0 + 16)
+mob("tree", js_x0 + 9, js_y0 + 20)
+mob("tree", js_x0 + 14, js_y0 + 20)
+mob("hedge", js_x0 + 1, js_y0 + 13)
+mob("hedge", js_x0 + 1, js_y0 + 25)
 add("flower", js_x0 + 11, js_y0 + 15, 3, 2)
 add("flower", js_x0 + 4, js_y0 + 22, 3, 2)
-add("bench", js_x0 + 5, js_y0 + 10, 2, 1)
-add("bench", js_x0 + 13, js_y0 + 13, 2, 1)
-add("bench", js_x0 + 5, js_y0 + 24, 2, 1)
-add("bench", js_x0 + 15, js_y0 + 24, 2, 1)
-add("lamp", js_x0 + 1, js_y0 + 1, 1, 1)
-add("lamp", js_x0 + 19, js_y0 + 1, 1, 1)
-add("lamp", js_x0 + 1, js_y0 + 26, 1, 1)
-add("lamp", js_x0 + 19, js_y0 + 26, 1, 1)
-add("plant", js_x0 + 17, js_y0 + 10, 1, 2)
-add("plant", js_x0 + 17, js_y0 + 17, 1, 2)
-add("bench", js_x0 + 9, js_y0 + 17, 2, 1)
-add("lamp", js_x0 + 10, js_y0 + 13, 1, 1)
+mob("bench", js_x0 + 5, js_y0 + 11)
+mob("bench", js_x0 + 13, js_y0 + 13.5)
+mob("bench", js_x0 + 5, js_y0 + 24)
+mob("bench", js_x0 + 15, js_y0 + 24)
+mob("lamp", js_x0 + 1, js_y0 + 1)
+mob("lamp", js_x0 + 17, js_y0 + 4.5)
+mob("lamp", js_x0 + 1, js_y0 + 26)
+mob("lamp", js_x0 + 17, js_y0 + 26)
+mob("plant", js_x0 + 18, js_y0 + 10)
+mob("plant", js_x0 + 17, js_y0 + 17)
+mob("column", js_x0 + 10, js_y0 + 13.5)
 
 pf_x0, pf_y0, pf_x1, pf_y1 = bounds(1, 3)
-add("fountain", pf_x0 + 9, pf_y0 + 8, 4, 4, shape="circle", glow="gold", name="Fonte das Flores")
+mob("fountain", pf_x0 + 9, pf_y0 + 8, shape="circle", glow="gold", name="Fonte das Flores")
+mob("hedge", pf_x0 + 8, pf_y0 + 1)
+mob("hedge", pf_x0 + 8, pf_y0 + 20)
 add("flower", pf_x0 + 2, pf_y0 + 2, 3, 2)
 add("flower", pf_x0 + 16, pf_y0 + 2, 3, 2)
-add("flower", pf_x0 + 2, pf_y0 + 9, 3, 2)
-add("flower", pf_x0 + 16, pf_y0 + 9, 3, 2)
 add("flower", pf_x0 + 2, pf_y0 + 16, 3, 2)
-add("flower", pf_x0 + 9, pf_y0 + 16, 3, 2)
 add("flower", pf_x0 + 16, pf_y0 + 16, 3, 2)
-add("hedge", pf_x0 + 8, pf_y0 + 1, 6, 1)
-add("hedge", pf_x0 + 8, pf_y0 + 20, 6, 1)
-add("bench", pf_x0 + 5, pf_y0 + 6, 2, 1)
-add("bench", pf_x0 + 17, pf_y0 + 6, 2, 1)
-add("bench", pf_x0 + 5, pf_y0 + 14, 2, 1)
-add("bench", pf_x0 + 17, pf_y0 + 14, 2, 1)
-add("bench", pf_x0 + 10, pf_y0 + 18, 2, 1)
-add("lamp", pf_x0 + 1, pf_y0 + 10, 1, 1)
-add("lamp", pf_x0 + 21, pf_y0 + 10, 1, 1)
-add("plant", pf_x0 + 1, pf_y0 + 5, 1, 2)
-add("plant", pf_x0 + 21, pf_y0 + 5, 1, 2)
-add("plant", pf_x0 + 1, pf_y0 + 18, 1, 2)
-add("plant", pf_x0 + 21, pf_y0 + 18, 1, 2)
-add("bench", pf_x0 + 10, pf_y0 + 3, 2, 1)
-add("bench", pf_x0 + 3, pf_y0 + 18, 2, 1)
-add("column", pf_x0 + 14, pf_y0 + 8, 1, 2)
-add("column", pf_x0 + 6, pf_y0 + 8, 1, 2)
-add("lamp", pf_x0 + 9, pf_y0 + 21, 1, 1)
-add("lamp", pf_x0 + 13, pf_y0 + 21, 1, 1)
+mob("bench", pf_x0 + 5, pf_y0 + 6)
+mob("bench", pf_x0 + 17, pf_y0 + 6)
+mob("bench", pf_x0 + 5, pf_y0 + 14)
+mob("bench", pf_x0 + 17, pf_y0 + 14)
+mob("bench", pf_x0 + 10, pf_y0 + 18)
+mob("bench", pf_x0 + 2, pf_y0 + 2)
+mob("bench", pf_x0 + 19, pf_y0 + 2)
+mob("lamp", pf_x0 + 1, pf_y0 + 10)
+mob("lamp", pf_x0 + 20, pf_y0 + 10)
+mob("plant", pf_x0 + 1, pf_y0 + 5)
+mob("plant", pf_x0 + 21, pf_y0 + 5)
+mob("plant", pf_x0 + 1, pf_y0 + 18)
+mob("plant", pf_x0 + 21, pf_y0 + 18)
+mob("column", pf_x0 + 6, pf_y0 + 8)
+mob("column", pf_x0 + 15, pf_y0 + 8)
+mob("column", pf_x0 + 2, pf_y0 + 11)
+mob("column", pf_x0 + 21, pf_y0 + 11)
 
 ps_x0, ps_y0, ps_x1, ps_y1 = bounds(3, 3)
-add("table", ps_x0 + 3, ps_y0 + 3, 3, 2)
-add("table", ps_x0 + 14, ps_y0 + 3, 3, 2)
-add("table", ps_x0 + 8, ps_y0 + 10, 3, 2)
-add("bench", ps_x0 + 2, ps_y0 + 6, 2, 1)
-add("bench", ps_x0 + 6, ps_y0 + 6, 2, 1)
-add("bench", ps_x0 + 13, ps_y0 + 6, 2, 1)
-add("bench", ps_x0 + 17, ps_y0 + 6, 2, 1)
-add("bench", ps_x0 + 7, ps_y0 + 13, 2, 1)
-add("bench", ps_x0 + 11, ps_y0 + 13, 2, 1)
-add("tree", ps_x0 + 1, ps_y0 + 10, 3, 3)
-add("tree", ps_x0 + 17, ps_y0 + 10, 3, 3)
-add("tree", ps_x0 + 1, ps_y0 + 18, 3, 3)
-add("tree", ps_x0 + 17, ps_y0 + 18, 3, 3)
+mesa_com_cadeiras(ps_x0 + 4, ps_y0 + 3, n=2)
+mesa_com_cadeiras(ps_x0 + 13, ps_y0 + 3, n=2)
+mesa_com_cadeiras(ps_x0 + 8, ps_y0 + 10, n=2)
+mob("tree", ps_x0 + 1, ps_y0 + 15)
+mob("tree", ps_x0 + 15, ps_y0 + 15)
+mob("bench", ps_x0 + 2, ps_y0 + 7)
+mob("bench", ps_x0 + 13, ps_y0 + 7)
+mob("bench", ps_x0 + 6, ps_y0 + 14)
+mob("bench", ps_x0 + 10, ps_y0 + 14)
+mob("lamp", ps_x0 + 1, ps_y0 + 1)
+mob("lamp", ps_x0 + 17, ps_y0 + 1)
+mob("lamp", ps_x0 + 1, ps_y0 + 20)
+mob("lamp", ps_x0 + 17, ps_y0 + 20)
 add("flower", ps_x0 + 7, ps_y0 + 17, 3, 2)
 add("flower", ps_x0 + 11, ps_y0 + 17, 3, 2)
-add("lamp", ps_x0 + 1, ps_y0 + 1, 1, 1)
-add("lamp", ps_x0 + 19, ps_y0 + 1, 1, 1)
-add("lamp", ps_x0 + 1, ps_y0 + 20, 1, 1)
-add("lamp", ps_x0 + 19, ps_y0 + 20, 1, 1)
-add("plant", ps_x0 + 9, ps_y0 + 6, 1, 2)
-add("plant", ps_x0 + 9, ps_y0 + 20, 1, 2)
-add("column", ps_x0 + 9, ps_y0 + 1, 1, 2)
+mob("plant", ps_x0 + 9, ps_y0 + 7)
+mob("plant", ps_x0 + 9, ps_y0 + 20)
+mob("column", ps_x0 + 9, ps_y0 + 1)
 
 mapa = {
     "id": "cidade",
