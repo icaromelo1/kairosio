@@ -1,0 +1,7934 @@
+{
+ "pack": "rpg-urban",
+ "tile": 16,
+ "cols": 27,
+ "categorias": [
+  "decoracao",
+  "item",
+  "janela",
+  "movel",
+  "natureza",
+  "parede",
+  "personagem",
+  "piso",
+  "porta",
+  "sinal",
+  "vazio",
+  "veiculo"
+ ],
+ "tiles": [
+  {
+   "i": 0,
+   "nome": "borda de piscina (canto superior esquerdo)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "canto",
+    "pedra"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 1,
+   "nome": "borda de piscina (topo)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "topo",
+    "pedra"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 2,
+   "nome": "borda de piscina (canto superior direito)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "canto",
+    "pedra"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 3,
+   "nome": "borda de piscina (canto superior esquerdo, variante)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "canto",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 4,
+   "nome": "borda de piscina (canto superior direito, variante)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "canto",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 5,
+   "nome": "água com pedra no canto inferior direito",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "piscina",
+    "pedra",
+    "canto",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 6,
+   "nome": "água com pedra no canto inferior esquerdo",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "piscina",
+    "pedra",
+    "canto",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 7,
+   "nome": "borda de piscina (topo de canal estreito)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "canal",
+    "borda",
+    "topo"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 8,
+   "nome": "pavimento de pedra",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "calcada",
+    "pavimento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 9,
+   "nome": "pavimento de pedra",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "calcada",
+    "pavimento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 10,
+   "nome": "pavimento de pedra (brilho na lateral direita)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "calcada",
+    "brilho",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 11,
+   "nome": "pavimento de pedra com mancha/rachadura",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "rachadura",
+    "mancha",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 12,
+   "nome": "pavimento de pedra com mancha/rachadura (espelhada)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "rachadura",
+    "mancha",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 13,
+   "nome": "pavimento de pedra com rachadura pequena",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "rachadura",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 14,
+   "nome": "pavimento de pedra com rachadura pequena (espelhada)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "rachadura",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 15,
+   "nome": "pavimento de pedra emoldurado (bordas laterais)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "moldura",
+    "borda",
+    "calcada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 16,
+   "nome": "parede de tijolo (topo, pilastra de pedra na lateral esquerda)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "topo",
+    "pilastra",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 17,
+   "nome": "parede de tijolo (topo, junta decorativa na lateral esquerda)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "topo",
+    "junta",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 18,
+   "nome": "parede de tijolo (topo)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "topo",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 19,
+   "nome": "parede de tijolo (topo, variante)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "topo",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 20,
+   "nome": "parede de tijolo (topo, sulco escuro na lateral esquerda)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "topo",
+    "sulco",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 21,
+   "nome": "parede de tijolo (topo, variante)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "topo",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 22,
+   "nome": "parede de tijolo (topo, borda direita escura)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "topo",
+    "borda",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 23,
+   "nome": "personagem parado (virado para a esquerda)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "parado",
+    "esquerda"
+   ],
+   "opaco": {
+    "w": 9,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 24,
+   "nome": "personagem parado (virado para baixo)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "parado",
+    "frente"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 25,
+   "nome": "personagem parado (virado para cima)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "parado",
+    "costas"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 26,
+   "nome": "personagem parado (virado para a direita)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "parado",
+    "direita"
+   ],
+   "opaco": {
+    "w": 9,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 27,
+   "nome": "borda de piscina (lateral esquerda)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "lateral",
+    "pedra"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 28,
+   "nome": "água (centro da piscina)",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "piscina",
+    "centro",
+    "chao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 29,
+   "nome": "borda de piscina (lateral direita)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "lateral",
+    "pedra"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 30,
+   "nome": "borda de piscina (canto inferior esquerdo, variante)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "canto",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 31,
+   "nome": "borda de piscina (canto inferior direito, variante)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "canto",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 32,
+   "nome": "água com pedra no canto superior direito",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "piscina",
+    "pedra",
+    "canto",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 33,
+   "nome": "água com pedra no canto superior esquerdo",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "piscina",
+    "pedra",
+    "canto",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 34,
+   "nome": "borda de piscina (lateral de canal estreito)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "canal",
+    "borda",
+    "lateral"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 35,
+   "nome": "pavimento de pedra",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "calcada",
+    "pavimento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 36,
+   "nome": "pavimento de pedra",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "calcada",
+    "pavimento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 37,
+   "nome": "pavimento de pedra (brilho na lateral direita)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "calcada",
+    "brilho",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 38,
+   "nome": "pavimento de pedra com mancha/rachadura",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "rachadura",
+    "mancha",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 39,
+   "nome": "pavimento de pedra com mancha/rachadura (espelhada)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "rachadura",
+    "mancha",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 40,
+   "nome": "pavimento de pedra com rachadura pequena",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "rachadura",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 41,
+   "nome": "pavimento de pedra com rachadura pequena (espelhada)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "rachadura",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 42,
+   "nome": "pavimento de pedra emoldurado (bordas laterais)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "moldura",
+    "borda",
+    "calcada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 43,
+   "nome": "parede de tijolo (meio, junta decorativa na lateral esquerda)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "meio",
+    "junta",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 44,
+   "nome": "parede de tijolo com friso decorativo horizontal",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "friso",
+    "faixa",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 45,
+   "nome": "parede de tijolo com friso decorativo horizontal (variante)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "friso",
+    "faixa",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 46,
+   "nome": "parede de tijolo com friso decorativo horizontal (variante)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "friso",
+    "faixa",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 47,
+   "nome": "parede de tijolo com friso e sulco escuro na lateral esquerda",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "friso",
+    "sulco",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 48,
+   "nome": "parede de tijolo com friso decorativo horizontal (variante)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "friso",
+    "faixa",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 49,
+   "nome": "parede de tijolo com friso decorativo horizontal (variante)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "friso",
+    "faixa",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 50,
+   "nome": "personagem andando, quadro 1 (virado para a esquerda)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "andando",
+    "esquerda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 51,
+   "nome": "personagem andando, quadro 1 (virado para baixo)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "andando",
+    "frente"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 52,
+   "nome": "personagem andando, quadro 1 (virado para cima)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "andando",
+    "costas"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 53,
+   "nome": "personagem andando, quadro 1 (virado para a direita)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "andando",
+    "direita"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 54,
+   "nome": "borda de piscina (canto inferior esquerdo)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "canto",
+    "pedra"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 55,
+   "nome": "borda de piscina (base)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "base",
+    "pedra"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 56,
+   "nome": "borda de piscina (canto inferior direito)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "canto",
+    "pedra"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 57,
+   "nome": "borda de piscina (extremidade arredondada esquerda)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "arredondada",
+    "capsula"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 58,
+   "nome": "borda de piscina (base, variante)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "base",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 59,
+   "nome": "borda de piscina (extremidade arredondada direita)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "arredondada",
+    "capsula"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 60,
+   "nome": "piscina circular pequena (anel com moldura de pedra)",
+   "cat": "decoracao",
+   "tags": [
+    "piscina",
+    "fonte",
+    "circular",
+    "agua",
+    "decoracao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 61,
+   "nome": "borda de piscina (base de canal estreito)",
+   "cat": "parede",
+   "tags": [
+    "piscina",
+    "agua",
+    "canal",
+    "borda",
+    "base"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 62,
+   "nome": "pavimento de pedra (borda inferior)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "calcada",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 63,
+   "nome": "pavimento de pedra (borda inferior)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "calcada",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 64,
+   "nome": "pavimento de pedra (borda inferior, brilho lateral)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "calcada",
+    "brilho",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 65,
+   "nome": "pavimento de pedra com remendo retangular (esquerda)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "remendo",
+    "textura",
+    "calcada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 66,
+   "nome": "pavimento de pedra com remendo retangular (meio)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "remendo",
+    "textura",
+    "calcada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 67,
+   "nome": "pavimento de pedra com remendo retangular (direita)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "remendo",
+    "textura",
+    "calcada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 68,
+   "nome": "pavimento de pedra com remendo quadrado pequeno",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "remendo",
+    "textura",
+    "calcada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 69,
+   "nome": "pavimento de pedra emoldurado (borda inferior)",
+   "cat": "piso",
+   "tags": [
+    "chao",
+    "pedra",
+    "moldura",
+    "borda",
+    "calcada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 70,
+   "nome": "parede de tijolo (base, junta decorativa na lateral esquerda)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "base",
+    "junta",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 71,
+   "nome": "parede de tijolo (base, variante)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "base",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 72,
+   "nome": "parede de tijolo (base, variante)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "base",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 73,
+   "nome": "parede de tijolo (base, variante)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "base",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 74,
+   "nome": "parede de tijolo (base, sulco escuro na lateral esquerda)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "base",
+    "sulco",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 75,
+   "nome": "parede de tijolo (base, variante)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "base",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 76,
+   "nome": "parede de tijolo (base, borda direita escura)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "base",
+    "borda",
+    "construcao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 77,
+   "nome": "personagem andando, quadro 2 (virado para a esquerda)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "andando",
+    "esquerda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 78,
+   "nome": "personagem andando, quadro 2 (virado para baixo)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "andando",
+    "frente"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 79,
+   "nome": "personagem andando, quadro 2 (virado para cima)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "andando",
+    "costas"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 80,
+   "nome": "personagem andando, quadro 2 (virado para a direita)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "andando",
+    "direita"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 81,
+   "nome": "tapete lavanda (canto superior esquerdo)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "canto",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 82,
+   "nome": "tapete lavanda (borda superior)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "borda",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 83,
+   "nome": "tapete lavanda (canto superior direito)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "canto",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 84,
+   "nome": "tapete lavanda (peça estreita, canto superior direito)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "estreito",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 85,
+   "nome": "tapete lavanda (peça estreita, canto superior esquerdo)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "estreito",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 86,
+   "nome": "tapete lavanda (conector estreito)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "conector",
+    "estreito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 87,
+   "nome": "tapete lavanda (conector estreito, variação)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "conector",
+    "estreito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 88,
+   "nome": "tapete lavanda (canto superior esquerdo, variação)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "canto",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 89,
+   "nome": "tapete cinza (canto superior esquerdo)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "canto",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 90,
+   "nome": "tapete cinza (piso central sem borda)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "piso",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 91,
+   "nome": "tapete cinza (canto superior esquerdo, variação)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "canto",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 92,
+   "nome": "tapete cinza (peça estreita, canto superior direito)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "estreito",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 93,
+   "nome": "tapete cinza (peça estreita, canto superior esquerdo)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "estreito",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 94,
+   "nome": "tapete cinza (conector estreito)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "conector",
+    "estreito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 95,
+   "nome": "tapete cinza (conector estreito, variação)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "conector",
+    "estreito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 96,
+   "nome": "tapete cinza (canto superior esquerdo, variação 2)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "canto",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 97,
+   "nome": "parede de tijolo vermelho (canto esquerdo)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "vermelho",
+    "canto",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 98,
+   "nome": "parede de tijolo vermelho",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "vermelho",
+    "construção",
+    "fachada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 99,
+   "nome": "parede de tijolo vermelho",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "vermelho",
+    "construção",
+    "fachada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 100,
+   "nome": "parede de tijolo vermelho",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "vermelho",
+    "construção",
+    "fachada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 101,
+   "nome": "parede de tijolo vermelho",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "vermelho",
+    "construção",
+    "fachada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 102,
+   "nome": "parede de tijolo vermelho",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "vermelho",
+    "construção",
+    "fachada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 103,
+   "nome": "parede de tijolo vermelho (canto direito)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "vermelho",
+    "canto",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 104,
+   "nome": "personagem (perfil direita, parado)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "menina",
+    "perfil",
+    "parado"
+   ],
+   "opaco": {
+    "w": 9,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 105,
+   "nome": "personagem (de frente, parado)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "menina",
+    "frente",
+    "parado"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 106,
+   "nome": "personagem (de costas, parado)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "menina",
+    "costas",
+    "parado"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 107,
+   "nome": "personagem (perfil esquerda, parado)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "menina",
+    "perfil",
+    "parado"
+   ],
+   "opaco": {
+    "w": 9,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 108,
+   "nome": "tapete lavanda (borda esquerda)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "borda",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 109,
+   "nome": "tapete lavanda (piso central sem borda)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "piso",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 110,
+   "nome": "tapete lavanda (borda direita)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "borda",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 111,
+   "nome": "tapete lavanda (peça estreita completa, variação A)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "estreito",
+    "peça única"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 112,
+   "nome": "tapete lavanda (peça estreita completa, variação B)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "estreito",
+    "peça única"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 113,
+   "nome": "tapete lavanda (conector estreito superior)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "conector",
+    "estreito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 114,
+   "nome": "tapete lavanda (conector estreito superior, variação)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "conector",
+    "estreito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 115,
+   "nome": "tapete lavanda (corredor estreito, bordas dos dois lados)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "corredor",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 116,
+   "nome": "tapete cinza (borda esquerda)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "borda",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 117,
+   "nome": "tapete cinza (piso central sem borda)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "piso",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 118,
+   "nome": "tapete cinza (borda direita)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "borda",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 119,
+   "nome": "tapete cinza (peça estreita completa, variação A)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "estreito",
+    "peça única"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 120,
+   "nome": "tapete cinza (peça estreita completa, variação B)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "estreito",
+    "peça única"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 121,
+   "nome": "tapete cinza (conector estreito superior)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "conector",
+    "estreito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 122,
+   "nome": "tapete cinza (conector estreito superior, variação)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "conector",
+    "estreito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 123,
+   "nome": "tapete cinza (corredor estreito, bordas dos dois lados)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "corredor",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 124,
+   "nome": "porta de madeira (topo, com moldura de pedra)",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "madeira",
+    "entrada",
+    "construção",
+    "moldura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 125,
+   "nome": "parede de tijolo laranja (topo, canto esquerdo)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "laranja",
+    "canto",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 126,
+   "nome": "parede de tijolo laranja (topo)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "laranja",
+    "construção",
+    "fachada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 127,
+   "nome": "parede de tijolo laranja (topo)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "laranja",
+    "construção",
+    "fachada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 128,
+   "nome": "parede de tijolo laranja (topo)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "laranja",
+    "construção",
+    "fachada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 129,
+   "nome": "parede de tijolo laranja (topo)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "laranja",
+    "construção",
+    "fachada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 130,
+   "nome": "parede de tijolo laranja (topo, canto direito)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "laranja",
+    "canto",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 131,
+   "nome": "personagem (perfil direita, andando)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "menina",
+    "perfil",
+    "andando"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 132,
+   "nome": "personagem (de frente, andando)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "menina",
+    "frente",
+    "andando"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 133,
+   "nome": "personagem (de costas, andando)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "menina",
+    "costas",
+    "andando"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 134,
+   "nome": "personagem (perfil esquerda, andando)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "menina",
+    "perfil",
+    "andando"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 135,
+   "nome": "tapete lavanda (canto inferior esquerdo)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "canto",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 136,
+   "nome": "tapete lavanda (borda inferior)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "borda",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 137,
+   "nome": "tapete lavanda (canto inferior direito)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "canto",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 138,
+   "nome": "tapete lavanda pequeno (peça isolada, variação 1)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "peça isolada",
+    "tapete pequeno"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 139,
+   "nome": "tapete lavanda pequeno (peça isolada, variação 2)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "peça isolada",
+    "tapete pequeno"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 140,
+   "nome": "tapete lavanda pequeno (peça isolada, variação 3)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "peça isolada",
+    "tapete pequeno"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 141,
+   "nome": "tapete lavanda pequeno (peça isolada, estreita)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "peça isolada",
+    "estreito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 142,
+   "nome": "tapete lavanda (canto inferior esquerdo, variação)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "lavanda",
+    "canto",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 143,
+   "nome": "tapete cinza (canto inferior esquerdo)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "canto",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 144,
+   "nome": "tapete cinza (borda inferior)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "borda",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 145,
+   "nome": "tapete cinza (canto inferior direito)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "canto",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 146,
+   "nome": "tapete cinza pequeno (peça isolada, variação 1)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "peça isolada",
+    "tapete pequeno"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 147,
+   "nome": "tapete cinza pequeno (peça isolada, variação 2)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "peça isolada",
+    "tapete pequeno"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 148,
+   "nome": "tapete cinza pequeno (peça isolada, variação 3)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "peça isolada",
+    "tapete pequeno"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 149,
+   "nome": "tapete cinza pequeno (peça isolada, estreita)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "peça isolada",
+    "estreito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 150,
+   "nome": "tapete cinza (canto inferior esquerdo, variação)",
+   "cat": "decoracao",
+   "tags": [
+    "tapete",
+    "carpete",
+    "cinza",
+    "canto",
+    "interior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 151,
+   "nome": "parede de tijolo laranja (base, pilar com moldura)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "laranja",
+    "base",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 152,
+   "nome": "parede de tijolo laranja (base)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "laranja",
+    "base",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 153,
+   "nome": "parede de tijolo laranja (base)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "laranja",
+    "base",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 154,
+   "nome": "parede de tijolo laranja (base)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "laranja",
+    "base",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 155,
+   "nome": "parede de tijolo laranja (base)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "laranja",
+    "base",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 156,
+   "nome": "parede de tijolo laranja (base)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "laranja",
+    "base",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 157,
+   "nome": "parede de tijolo laranja (base, canto direito)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tijolo",
+    "laranja",
+    "base",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 158,
+   "nome": "personagem (perfil direita, andando 2)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "menina",
+    "perfil",
+    "andando"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 159,
+   "nome": "personagem (de frente, andando 2)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "menina",
+    "frente",
+    "andando"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 160,
+   "nome": "personagem (de costas, andando 2)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "menina",
+    "costas",
+    "andando"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 161,
+   "nome": "personagem (perfil esquerda, andando 2)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "npc",
+    "menina",
+    "perfil",
+    "andando"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 162,
+   "nome": "cano (cotovelo listrado)",
+   "cat": "decoracao",
+   "tags": [
+    "cano",
+    "cotovelo",
+    "metal",
+    "tubulacao"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 163,
+   "nome": "cano (cotovelo pequeno)",
+   "cat": "decoracao",
+   "tags": [
+    "cano",
+    "cotovelo",
+    "metal",
+    "pequeno"
+   ],
+   "opaco": {
+    "w": 9,
+    "h": 6
+   },
+   "solido": true
+  },
+  {
+   "i": 164,
+   "nome": "grade/cano (canto 90°)",
+   "cat": "decoracao",
+   "tags": [
+    "grade",
+    "cano",
+    "canto",
+    "metal"
+   ],
+   "opaco": {
+    "w": 13,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 165,
+   "nome": "grade/cano (junção T)",
+   "cat": "decoracao",
+   "tags": [
+    "grade",
+    "cano",
+    "juncao",
+    "metal"
+   ],
+   "opaco": {
+    "w": 15,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 166,
+   "nome": "placa de trânsito vermelha no poste",
+   "cat": "sinal",
+   "tags": [
+    "placa",
+    "poste",
+    "vermelho",
+    "transito"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 167,
+   "nome": "placa verde com seta no poste",
+   "cat": "sinal",
+   "tags": [
+    "placa",
+    "seta",
+    "poste",
+    "verde"
+   ],
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 168,
+   "nome": "placa azul informativa no poste",
+   "cat": "sinal",
+   "tags": [
+    "placa",
+    "poste",
+    "azul",
+    "informativa"
+   ],
+   "opaco": {
+    "w": 7,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 169,
+   "nome": "poste com sinalizador no topo",
+   "cat": "sinal",
+   "tags": [
+    "poste",
+    "luz",
+    "sinalizador",
+    "verde"
+   ],
+   "opaco": {
+    "w": 7,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 170,
+   "nome": "piscina - canto superior esquerdo",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "canto",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 171,
+   "nome": "piscina - borda superior",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "topo"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 172,
+   "nome": "piscina - canto superior direito",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "canto",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 173,
+   "nome": "piscina - canto superior esquerdo (variação)",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "canto",
+    "variacao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 174,
+   "nome": "piscina - canto superior direito (variação)",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "canto",
+    "variacao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 175,
+   "nome": "piscina - água (interior)",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "interior",
+    "liso"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 176,
+   "nome": "piscina - água (transição de borda)",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "transicao",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 177,
+   "nome": "piscina - topo arredondado estreito",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "arco",
+    "estreito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 178,
+   "nome": "piso de tijolos (caminho estreito)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "caminho"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 179,
+   "nome": "piso de tijolos (borda esquerda)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 180,
+   "nome": "piso de tijolos",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "liso"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 181,
+   "nome": "piso de tijolos (borda direita)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 182,
+   "nome": "piso de tijolos (borda escura esquerda)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "borda escura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 183,
+   "nome": "piso de tijolos (variação)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "variacao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 184,
+   "nome": "piso de tijolos (borda escura direita)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "borda escura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 185,
+   "nome": "personagem parado (idle 1)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "idle",
+    "cabelo lilas",
+    "civil"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 186,
+   "nome": "personagem parado (idle 2)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "idle",
+    "cabelo lilas",
+    "civil"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 187,
+   "nome": "personagem parado (idle 3)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "idle",
+    "cabelo lilas",
+    "civil"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 188,
+   "nome": "personagem parado (idle 4)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "idle",
+    "cabelo lilas",
+    "civil"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 189,
+   "nome": "poste (segmento base vermelho)",
+   "cat": "sinal",
+   "tags": [
+    "poste",
+    "segmento",
+    "base",
+    "vermelho"
+   ],
+   "opaco": {
+    "w": 3,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 190,
+   "nome": "poste (topo com sensor)",
+   "cat": "sinal",
+   "tags": [
+    "poste",
+    "topo",
+    "sensor",
+    "luz"
+   ],
+   "opaco": {
+    "w": 7,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 191,
+   "nome": "poste (segmento do meio)",
+   "cat": "sinal",
+   "tags": [
+    "poste",
+    "segmento",
+    "meio",
+    "metal"
+   ],
+   "opaco": {
+    "w": 5,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 192,
+   "nome": "poste (segmento do meio, variação)",
+   "cat": "sinal",
+   "tags": [
+    "poste",
+    "segmento",
+    "meio",
+    "variacao"
+   ],
+   "opaco": {
+    "w": 5,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 193,
+   "nome": "poste (junção do meio)",
+   "cat": "sinal",
+   "tags": [
+    "poste",
+    "segmento",
+    "juncao",
+    "metal"
+   ],
+   "opaco": {
+    "w": 5,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 194,
+   "nome": "poste (segmento base liso)",
+   "cat": "sinal",
+   "tags": [
+    "poste",
+    "segmento",
+    "base",
+    "liso"
+   ],
+   "opaco": {
+    "w": 3,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 195,
+   "nome": "poste (segmento com painéis verdes)",
+   "cat": "sinal",
+   "tags": [
+    "poste",
+    "segmento",
+    "painel",
+    "verde"
+   ],
+   "opaco": {
+    "w": 7,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 196,
+   "nome": "poste (base verde)",
+   "cat": "sinal",
+   "tags": [
+    "poste",
+    "segmento",
+    "base",
+    "verde"
+   ],
+   "opaco": {
+    "w": 5,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 197,
+   "nome": "piscina - borda esquerda",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "lateral"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 198,
+   "nome": "piscina - água (fill)",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "interior",
+    "liso"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 199,
+   "nome": "piscina - borda direita",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "lateral"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 200,
+   "nome": "piscina - canto inferior esquerdo",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "canto",
+    "inferior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 201,
+   "nome": "piscina - canto inferior direito",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "canto",
+    "inferior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 202,
+   "nome": "piscina - canto superior direito (pequeno)",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "canto",
+    "pequeno"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 203,
+   "nome": "piscina - canto superior esquerdo (pequeno)",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "canto",
+    "pequeno"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 204,
+   "nome": "piscina - coluna estreita (duas bordas)",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "estreito",
+    "coluna"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 205,
+   "nome": "piso de tijolos - borda inferior",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "borda inferior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 206,
+   "nome": "piso de tijolos - borda inferior (variação)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "borda inferior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 207,
+   "nome": "piso de tijolos - borda inferior (variação 2)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "borda inferior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 208,
+   "nome": "piso de tijolos - borda inferior + direita",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 209,
+   "nome": "piso de tijolos - borda inferior (variação 3)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "borda inferior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 210,
+   "nome": "piso de tijolos - borda inferior (variação 4)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "borda inferior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 211,
+   "nome": "piso de tijolos - borda inferior + direita escura",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "tijolos",
+    "terra",
+    "canto escuro"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 212,
+   "nome": "personagem parado (idle 5)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "idle",
+    "cabelo lilas",
+    "civil"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 213,
+   "nome": "personagem parado (idle 6)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "idle",
+    "cabelo lilas",
+    "civil"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 214,
+   "nome": "personagem parado (idle 7)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "idle",
+    "cabelo lilas",
+    "civil"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 215,
+   "nome": "personagem parado (idle 8)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "idle",
+    "cabelo lilas",
+    "civil"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 216,
+   "nome": "poste (base vermelha)",
+   "cat": "sinal",
+   "tags": [
+    "poste",
+    "segmento",
+    "base",
+    "vermelho"
+   ],
+   "opaco": {
+    "w": 3,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 217,
+   "nome": "grade/cano (curva descendente)",
+   "cat": "decoracao",
+   "tags": [
+    "grade",
+    "cano",
+    "curva",
+    "metal"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 7
+   },
+   "solido": true
+  },
+  {
+   "i": 218,
+   "nome": "grade/cano (reto horizontal)",
+   "cat": "decoracao",
+   "tags": [
+    "grade",
+    "cano",
+    "reto",
+    "metal"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 3
+   },
+   "solido": true
+  },
+  {
+   "i": 219,
+   "nome": "grade/cano (curva ascendente)",
+   "cat": "decoracao",
+   "tags": [
+    "grade",
+    "cano",
+    "curva",
+    "metal"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 7
+   },
+   "solido": true
+  },
+  {
+   "i": 220,
+   "nome": "poste (topo vermelho)",
+   "cat": "sinal",
+   "tags": [
+    "poste",
+    "segmento",
+    "topo",
+    "vermelho"
+   ],
+   "opaco": {
+    "w": 3,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 221,
+   "nome": "barreira de trânsito (cavalete alto)",
+   "cat": "sinal",
+   "tags": [
+    "barreira",
+    "cavalete",
+    "listrado",
+    "transito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 222,
+   "nome": "barreira de trânsito (cavalete baixo)",
+   "cat": "sinal",
+   "tags": [
+    "barreira",
+    "cavalete",
+    "listrado",
+    "transito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 11
+   },
+   "solido": false
+  },
+  {
+   "i": 223,
+   "nome": "caixa de correio",
+   "cat": "decoracao",
+   "tags": [
+    "caixa",
+    "correio",
+    "poste",
+    "urbano"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 224,
+   "nome": "piscina - água com borda inferior",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "borda",
+    "inferior"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 225,
+   "nome": "piscina - canto inferior direito (variação)",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "canto",
+    "variacao"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 226,
+   "nome": "piscina - canto inferior direito (fechamento)",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "canto",
+    "fechamento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 227,
+   "nome": "piscina - tampa arredondada esquerda",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "capsula",
+    "arredondado"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 228,
+   "nome": "piscina - segmento reto estreito",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "capsula",
+    "estreito"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 229,
+   "nome": "piscina - tampa arredondada direita",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "capsula",
+    "arredondado"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 230,
+   "nome": "piscina circular pequena",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "circular",
+    "lago"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 231,
+   "nome": "piscina - tampa arredondada inferior",
+   "cat": "piso",
+   "tags": [
+    "piscina",
+    "agua",
+    "capsula",
+    "arredondado"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 232,
+   "nome": "arbusto pontiagudo grande",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "planta",
+    "verde",
+    "pontiagudo"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 233,
+   "nome": "arbusto pontiagudo pequeno",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "planta",
+    "verde",
+    "pequeno"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 234,
+   "nome": "arbusto alto (pico único)",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "planta",
+    "verde",
+    "pico"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 235,
+   "nome": "sebe (dois picos)",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "sebe",
+    "planta",
+    "verde"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 236,
+   "nome": "arbusto alto (pico único, variação)",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "planta",
+    "verde",
+    "pico"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 237,
+   "nome": "arbusto (bulbo com haste)",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "planta",
+    "verde",
+    "bulbo"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 238,
+   "nome": "arbusto arredondado pequeno",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "planta",
+    "verde",
+    "arredondado"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 239,
+   "nome": "personagem parado (idle 9)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "idle",
+    "cabelo lilas",
+    "civil"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 240,
+   "nome": "personagem parado (idle 10)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "idle",
+    "cabelo lilas",
+    "civil"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 241,
+   "nome": "personagem parado (idle 11)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "idle",
+    "cabelo lilas",
+    "civil"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 242,
+   "nome": "personagem parado (idle 12)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "idle",
+    "cabelo lilas",
+    "civil"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 243,
+   "nome": "suporte com cano metálico entre postes",
+   "cat": "decoracao",
+   "tags": [
+    "poste",
+    "cano",
+    "metal",
+    "suporte",
+    "urbano"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 244,
+   "nome": "tubulação de parede (fatia 1)",
+   "cat": "decoracao",
+   "tags": [
+    "cano",
+    "tubulação",
+    "duto",
+    "parede",
+    "metal"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 245,
+   "nome": "duto metálico pendurado",
+   "cat": "decoracao",
+   "tags": [
+    "duto",
+    "cano",
+    "metal",
+    "tubulação"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 246,
+   "nome": "tubulação de parede (fatia 2)",
+   "cat": "decoracao",
+   "tags": [
+    "cano",
+    "tubulação",
+    "duto",
+    "metal"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 247,
+   "nome": "suporte de cano (segmento)",
+   "cat": "decoracao",
+   "tags": [
+    "cano",
+    "suporte",
+    "metal",
+    "fragmento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 5
+   },
+   "solido": true
+  },
+  {
+   "i": 248,
+   "nome": "cavalete de obra listrado (laranja)",
+   "cat": "sinal",
+   "tags": [
+    "barreira",
+    "obra",
+    "cavalete",
+    "aviso",
+    "listrado"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 249,
+   "nome": "cavalete de obra listrado (baixo)",
+   "cat": "sinal",
+   "tags": [
+    "barreira",
+    "obra",
+    "cavalete",
+    "aviso",
+    "listrado"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 11
+   },
+   "solido": false
+  },
+  {
+   "i": 250,
+   "nome": "banco de madeira com base metálica",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "madeira",
+    "assento",
+    "praça"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 11
+   },
+   "solido": true
+  },
+  {
+   "i": 251,
+   "nome": "lata/extintor vermelho",
+   "cat": "item",
+   "tags": [
+    "lata",
+    "extintor",
+    "vermelho",
+    "cilindro"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 252,
+   "nome": "lata cinza com base roxa",
+   "cat": "item",
+   "tags": [
+    "lata",
+    "cilindro",
+    "cinza",
+    "recipiente"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 253,
+   "nome": "lata cinza com base laranja",
+   "cat": "item",
+   "tags": [
+    "lata",
+    "cilindro",
+    "cinza",
+    "recipiente"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 11
+   },
+   "solido": false
+  },
+  {
+   "i": 254,
+   "nome": "pilha de carvão",
+   "cat": "item",
+   "tags": [
+    "carvão",
+    "pilha",
+    "recurso",
+    "minério"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 11
+   },
+   "solido": false
+  },
+  {
+   "i": 255,
+   "nome": "porta de vidro fechada (clara)",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "vidro",
+    "entrada",
+    "fechada"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 256,
+   "nome": "porta de vidro fechada (variante)",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "vidro",
+    "entrada",
+    "fechada"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 257,
+   "nome": "porta com vidro verde (fechada)",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "vidro",
+    "verde",
+    "entrada"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 258,
+   "nome": "porta com vidro verde (variante)",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "vidro",
+    "verde",
+    "entrada"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 259,
+   "nome": "árvore de copa arredondada",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "copa",
+    "tronco",
+    "verde"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 260,
+   "nome": "árvore de copa arredondada (variante)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "copa",
+    "tronco",
+    "verde"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 261,
+   "nome": "árvore grande (fatia esquerda)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "copa",
+    "grande",
+    "fatia"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 262,
+   "nome": "árvore grande (topo duplo)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "copa",
+    "grande",
+    "topo"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 263,
+   "nome": "árvore grande (fatia direita)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "copa",
+    "grande",
+    "fatia"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 264,
+   "nome": "árvore grande (pico central)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "copa",
+    "grande",
+    "pico"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 265,
+   "nome": "pinheiro pequeno",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "pinheiro",
+    "conífera",
+    "pequeno"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 266,
+   "nome": "personagem trabalhador (vira direita)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "trabalhador",
+    "chapéu",
+    "capacete"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 267,
+   "nome": "personagem trabalhador (de frente)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "trabalhador",
+    "chapéu",
+    "frente"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 268,
+   "nome": "personagem trabalhador (de costas)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "trabalhador",
+    "chapéu",
+    "costas"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 269,
+   "nome": "personagem trabalhador (vira esquerda)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "trabalhador",
+    "chapéu",
+    "esquerda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 270,
+   "nome": "sofá cinza (almofadas)",
+   "cat": "movel",
+   "tags": [
+    "sofá",
+    "cinza",
+    "estofado",
+    "sala"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 11
+   },
+   "solido": true
+  },
+  {
+   "i": 271,
+   "nome": "sofá cinza (variante)",
+   "cat": "movel",
+   "tags": [
+    "sofá",
+    "cinza",
+    "estofado",
+    "sala"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 11
+   },
+   "solido": true
+  },
+  {
+   "i": 272,
+   "nome": "armário/painel cinza estreito",
+   "cat": "movel",
+   "tags": [
+    "armário",
+    "painel",
+    "cinza",
+    "estreito"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 273,
+   "nome": "caixa de madeira fechada",
+   "cat": "decoracao",
+   "tags": [
+    "caixa",
+    "madeira",
+    "engradado",
+    "fechada"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 274,
+   "nome": "baú de madeira (aberto)",
+   "cat": "movel",
+   "tags": [
+    "baú",
+    "madeira",
+    "armazenamento",
+    "aberto"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 275,
+   "nome": "baú de madeira (fechado)",
+   "cat": "movel",
+   "tags": [
+    "baú",
+    "madeira",
+    "armazenamento",
+    "fechado"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 276,
+   "nome": "caixa aberta com tomates e verduras",
+   "cat": "decoracao",
+   "tags": [
+    "caixa",
+    "feira",
+    "tomate",
+    "produtos"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 10
+   },
+   "solido": true
+  },
+  {
+   "i": 277,
+   "nome": "prateleira com produtos (feira)",
+   "cat": "decoracao",
+   "tags": [
+    "prateleira",
+    "feira",
+    "produtos",
+    "loja"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 278,
+   "nome": "saco vermelho",
+   "cat": "item",
+   "tags": [
+    "saco",
+    "vermelho",
+    "bolsa",
+    "item"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 11
+   },
+   "solido": false
+  },
+  {
+   "i": 279,
+   "nome": "lixeira cinza",
+   "cat": "decoracao",
+   "tags": [
+    "lixeira",
+    "lixo",
+    "cinza",
+    "urbano"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 11
+   },
+   "solido": true
+  },
+  {
+   "i": 280,
+   "nome": "lixeira cinza (estreita)",
+   "cat": "decoracao",
+   "tags": [
+    "lixeira",
+    "lixo",
+    "cinza",
+    "urbano"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 11
+   },
+   "solido": true
+  },
+  {
+   "i": 281,
+   "nome": "vitrine/balcão de loja",
+   "cat": "janela",
+   "tags": [
+    "vitrine",
+    "loja",
+    "balcão",
+    "janela"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 282,
+   "nome": "porta vermelha com janela pequena",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "vermelha",
+    "janela",
+    "entrada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 283,
+   "nome": "porta laranja fechada",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "laranja",
+    "madeira",
+    "fechada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 284,
+   "nome": "porta dupla laranja",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "dupla",
+    "laranja",
+    "entrada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 285,
+   "nome": "porta dupla de vidro cinza",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "dupla",
+    "vidro",
+    "cinza"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 286,
+   "nome": "árvore de copa arredondada (clara)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "copa",
+    "tronco",
+    "verde"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 287,
+   "nome": "árvore de copa arredondada (clara variante)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "copa",
+    "tronco",
+    "verde"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 288,
+   "nome": "árvore grande (fatia esquerda com tronco)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "copa",
+    "grande",
+    "tronco"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 10
+   },
+   "solido": true
+  },
+  {
+   "i": 289,
+   "nome": "árvore grande (topo duplo 2)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "copa",
+    "grande",
+    "topo"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 290,
+   "nome": "árvore grande (fatia direita com tronco)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "copa",
+    "grande",
+    "tronco"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 10
+   },
+   "solido": true
+  },
+  {
+   "i": 291,
+   "nome": "pinheiro pequeno (variante 1)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "pinheiro",
+    "conífera",
+    "pequeno"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 292,
+   "nome": "pinheiro pequeno (variante 2)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "pinheiro",
+    "conífera",
+    "pequeno"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 293,
+   "nome": "personagem trabalhador (vira direita) 2",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "trabalhador",
+    "chapéu",
+    "capacete"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 294,
+   "nome": "personagem trabalhador (de frente) 2",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "trabalhador",
+    "chapéu",
+    "frente"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 295,
+   "nome": "personagem trabalhador (de costas) 2",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "trabalhador",
+    "chapéu",
+    "costas"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 296,
+   "nome": "personagem trabalhador (vira esquerda) 2",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "trabalhador",
+    "chapéu",
+    "esquerda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 297,
+   "nome": "banco de pedra cinza",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "pedra",
+    "cinza",
+    "assento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 11
+   },
+   "solido": true
+  },
+  {
+   "i": 298,
+   "nome": "bancada/prateleira cinza estreita",
+   "cat": "movel",
+   "tags": [
+    "bancada",
+    "prateleira",
+    "cinza",
+    "estreita"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 6
+   },
+   "solido": true
+  },
+  {
+   "i": 299,
+   "nome": "painel/porta de armário cinza vertical",
+   "cat": "movel",
+   "tags": [
+    "armário",
+    "painel",
+    "cinza",
+    "vertical"
+   ],
+   "opaco": {
+    "w": 4,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 300,
+   "nome": "armário de madeira (vazio)",
+   "cat": "movel",
+   "tags": [
+    "armário",
+    "madeira",
+    "gaveta",
+    "vazio"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 10
+   },
+   "solido": true
+  },
+  {
+   "i": 301,
+   "nome": "caixa com tomates",
+   "cat": "decoracao",
+   "tags": [
+    "caixa",
+    "tomate",
+    "feira",
+    "produtos"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 10
+   },
+   "solido": true
+  },
+  {
+   "i": 302,
+   "nome": "caixa com produtos verdes",
+   "cat": "decoracao",
+   "tags": [
+    "caixa",
+    "verdura",
+    "feira",
+    "produtos"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 10
+   },
+   "solido": true
+  },
+  {
+   "i": 303,
+   "nome": "estante de madeira com prateleiras",
+   "cat": "movel",
+   "tags": [
+    "estante",
+    "madeira",
+    "prateleira",
+    "armazenamento"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 304,
+   "nome": "prateleira com mercadorias variadas",
+   "cat": "decoracao",
+   "tags": [
+    "prateleira",
+    "mercadoria",
+    "feira",
+    "loja"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 305,
+   "nome": "mochila azul (fechada)",
+   "cat": "item",
+   "tags": [
+    "mochila",
+    "azul",
+    "bolsa",
+    "item"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 306,
+   "nome": "mochila azul (aberta)",
+   "cat": "item",
+   "tags": [
+    "mochila",
+    "azul",
+    "bolsa",
+    "item"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 307,
+   "nome": "bolsa/pouch marrom",
+   "cat": "item",
+   "tags": [
+    "bolsa",
+    "pouch",
+    "marrom",
+    "item"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 10
+   },
+   "solido": false
+  },
+  {
+   "i": 308,
+   "nome": "porta com tábua de madeira (barricada)",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "barricada",
+    "tábua",
+    "interditada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 309,
+   "nome": "porta interditada com tábuas em X",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "barricada",
+    "tábua",
+    "interditada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 310,
+   "nome": "porta laranja entreaberta",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "laranja",
+    "entreaberta",
+    "madeira"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 311,
+   "nome": "porta dupla laranja aberta",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "dupla",
+    "aberta",
+    "laranja"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 312,
+   "nome": "porta dupla de vidro aberta",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "dupla",
+    "aberta",
+    "vidro"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 313,
+   "nome": "rocha alaranjada grande",
+   "cat": "natureza",
+   "tags": [
+    "rocha",
+    "pedra",
+    "laranja",
+    "grande"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 314,
+   "nome": "rocha alaranjada pequena",
+   "cat": "natureza",
+   "tags": [
+    "rocha",
+    "pedra",
+    "laranja",
+    "pequena"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 315,
+   "nome": "formação rochosa (fatia esquerda)",
+   "cat": "natureza",
+   "tags": [
+    "rocha",
+    "pedra",
+    "laranja",
+    "fatia"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 316,
+   "nome": "formação rochosa (topo duplo)",
+   "cat": "natureza",
+   "tags": [
+    "rocha",
+    "pedra",
+    "laranja",
+    "topo"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 317,
+   "nome": "formação rochosa (fatia direita)",
+   "cat": "natureza",
+   "tags": [
+    "rocha",
+    "pedra",
+    "laranja",
+    "fatia"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 318,
+   "nome": "monte de pedra alaranjado",
+   "cat": "natureza",
+   "tags": [
+    "rocha",
+    "pedra",
+    "laranja",
+    "monte"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 319,
+   "nome": "pedra alaranjada pequena",
+   "cat": "natureza",
+   "tags": [
+    "rocha",
+    "pedra",
+    "laranja",
+    "pequena"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 320,
+   "nome": "personagem trabalhador (vira direita) 3",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "trabalhador",
+    "chapéu",
+    "capacete"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 321,
+   "nome": "personagem trabalhador (de frente) 3",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "trabalhador",
+    "chapéu",
+    "frente"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 322,
+   "nome": "personagem trabalhador (de costas) 3",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "trabalhador",
+    "chapéu",
+    "costas"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 323,
+   "nome": "personagem trabalhador (vira esquerda) 3",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "trabalhador",
+    "chapéu",
+    "esquerda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 324,
+   "nome": "canto de telhado escalonado (esquerda)",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "rocha",
+    "escada",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 325,
+   "nome": "canto de telhado escalonado (direita)",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "rocha",
+    "escada",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 326,
+   "nome": "base de telhado escalonado",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "rocha",
+    "escada",
+    "base"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 327,
+   "nome": "cabine/guarita pequena",
+   "cat": "decoracao",
+   "tags": [
+    "cabine",
+    "guarita",
+    "madeira",
+    "poste"
+   ],
+   "opaco": {
+    "w": 9,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 328,
+   "nome": "banco verde (ponta esquerda)",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "verde",
+    "jardim",
+    "assento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 329,
+   "nome": "banco verde (segmento central)",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "verde",
+    "jardim",
+    "assento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 330,
+   "nome": "banco verde (ponta direita)",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "verde",
+    "jardim",
+    "assento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 331,
+   "nome": "banco verde completo (com base)",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "verde",
+    "jardim",
+    "assento"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 332,
+   "nome": "banco verde completo",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "verde",
+    "jardim",
+    "assento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 333,
+   "nome": "cofre (caixa-forte)",
+   "cat": "decoracao",
+   "tags": [
+    "cofre",
+    "seguranca",
+    "roxo",
+    "caixa"
+   ],
+   "opaco": {
+    "w": 13,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 334,
+   "nome": "máquina/caixa eletrônica",
+   "cat": "decoracao",
+   "tags": [
+    "maquina",
+    "eletronico",
+    "caixa",
+    "urbano"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 335,
+   "nome": "quadro pequeno na parede",
+   "cat": "decoracao",
+   "tags": [
+    "quadro",
+    "moldura",
+    "decoracao",
+    "pintura"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 11
+   },
+   "solido": true
+  },
+  {
+   "i": 336,
+   "nome": "entrada em arco com marquise 1",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "arco",
+    "marquise",
+    "entrada",
+    "loja"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 337,
+   "nome": "entrada em arco com marquise 2",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "arco",
+    "marquise",
+    "entrada",
+    "loja"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 338,
+   "nome": "entrada em arco com marquise 3",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "arco",
+    "marquise",
+    "entrada",
+    "loja"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 339,
+   "nome": "porta dupla fechada (escura)",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "dupla",
+    "madeira",
+    "fechada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 340,
+   "nome": "árvore pequena redonda 1",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "outono",
+    "copa",
+    "tronco"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 341,
+   "nome": "árvore pequena redonda 2",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "outono",
+    "copa",
+    "tronco"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 342,
+   "nome": "árvore grande (topo, fatia esquerda)",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "copa",
+    "fatia",
+    "grande"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 343,
+   "nome": "árvore grande (topo, fatia central)",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "copa",
+    "fatia",
+    "grande"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 344,
+   "nome": "árvore grande (topo, fatia direita)",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "copa",
+    "fatia",
+    "grande"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 345,
+   "nome": "árvore grande compacta",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "copa",
+    "tronco",
+    "outono"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 346,
+   "nome": "árvore pontuda pequena",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "pinheiro",
+    "copa",
+    "tronco"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 347,
+   "nome": "npc idoso (perfil)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "personagem",
+    "vila",
+    "idoso"
+   ],
+   "opaco": {
+    "w": 9,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 348,
+   "nome": "npc idoso (frente)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "personagem",
+    "vila",
+    "idoso"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 349,
+   "nome": "npc idoso (frente, parado)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "personagem",
+    "vila",
+    "idoso"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 350,
+   "nome": "npc idoso (perfil, andando)",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "personagem",
+    "vila",
+    "caminhando"
+   ],
+   "opaco": {
+    "w": 9,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 351,
+   "nome": "canto de telhado escalonado (esquerda) 2",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "rocha",
+    "escada",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 352,
+   "nome": "canto de telhado escalonado (direita) 2",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "rocha",
+    "escada",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 353,
+   "nome": "base de telhado escalonado 2",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "rocha",
+    "escada",
+    "base"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 354,
+   "nome": "cabine/guarita pequena 2",
+   "cat": "decoracao",
+   "tags": [
+    "cabine",
+    "guarita",
+    "madeira",
+    "poste"
+   ],
+   "opaco": {
+    "w": 9,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 355,
+   "nome": "cerca com trama (ponta)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "grade",
+    "treliça",
+    "jardim"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 356,
+   "nome": "cerca com trama (poste central)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "grade",
+    "treliça",
+    "jardim"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 357,
+   "nome": "cerca com trama (poste direito)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "grade",
+    "treliça",
+    "jardim"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 358,
+   "nome": "poste fino de cerca",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "grade",
+    "poste",
+    "ferro"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 359,
+   "nome": "janela grande (fatia esquerda)",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "vidro",
+    "fatia",
+    "predio"
+   ],
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 360,
+   "nome": "janela grande (fatia central)",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "vidro",
+    "fatia",
+    "predio"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 361,
+   "nome": "janela grande (fatia direita)",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "vidro",
+    "fatia",
+    "predio"
+   ],
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 362,
+   "nome": "quadro pequeno",
+   "cat": "decoracao",
+   "tags": [
+    "quadro",
+    "moldura",
+    "pintura",
+    "parede"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 11
+   },
+   "solido": true
+  },
+  {
+   "i": 363,
+   "nome": "quadro com prateleira",
+   "cat": "decoracao",
+   "tags": [
+    "quadro",
+    "moldura",
+    "pintura",
+    "estante"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 364,
+   "nome": "quadro/espelho grande",
+   "cat": "decoracao",
+   "tags": [
+    "quadro",
+    "moldura",
+    "espelho",
+    "pintura"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 365,
+   "nome": "janela alta em arco",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "vidro",
+    "arco",
+    "retrato"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 366,
+   "nome": "porta dupla fechada (escura) 2",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "dupla",
+    "madeira",
+    "fechada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 367,
+   "nome": "árvore pequena em vaso 1",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "vaso",
+    "base",
+    "copa"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 368,
+   "nome": "árvore pequena em vaso 2",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "vaso",
+    "base",
+    "copa"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 369,
+   "nome": "árvore grande (base, fatia esquerda)",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "tronco",
+    "fatia",
+    "grande"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 10
+   },
+   "solido": true
+  },
+  {
+   "i": 370,
+   "nome": "árvore grande (base, fatia central com tronco)",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "tronco",
+    "fatia",
+    "grande"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 371,
+   "nome": "árvore grande (base, fatia direita)",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "tronco",
+    "fatia",
+    "grande"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 10
+   },
+   "solido": true
+  },
+  {
+   "i": 372,
+   "nome": "árvore pontuda pequena 2",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "pinheiro",
+    "copa",
+    "tronco"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 373,
+   "nome": "árvore redonda pequena",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "copa",
+    "redonda",
+    "tronco"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 374,
+   "nome": "npc idoso (perfil) 2",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "personagem",
+    "vila",
+    "idoso"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 375,
+   "nome": "npc idoso (frente) 2",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "personagem",
+    "vila",
+    "idoso"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 376,
+   "nome": "npc idoso (frente, parado) 2",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "personagem",
+    "vila",
+    "idoso"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 377,
+   "nome": "npc idoso (perfil, andando) 2",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "personagem",
+    "vila",
+    "caminhando"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 378,
+   "nome": "canto de telhado escalonado (esquerda) 3",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "rocha",
+    "escada",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 379,
+   "nome": "canto de telhado escalonado (direita) 3",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "rocha",
+    "escada",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 380,
+   "nome": "base de telhado escalonado 3",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "rocha",
+    "escada",
+    "base"
+   ],
+   "opaco": {
+    "w": 13,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 381,
+   "nome": "caixote de madeira (ponta)",
+   "cat": "decoracao",
+   "tags": [
+    "caixote",
+    "madeira",
+    "caixa",
+    "baú"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 382,
+   "nome": "caixote de madeira (painel esquerdo)",
+   "cat": "decoracao",
+   "tags": [
+    "caixote",
+    "madeira",
+    "caixa",
+    "baú"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 383,
+   "nome": "caixote de madeira (painel central)",
+   "cat": "decoracao",
+   "tags": [
+    "caixote",
+    "madeira",
+    "caixa",
+    "baú"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 384,
+   "nome": "caixote de madeira (painel central) 2",
+   "cat": "decoracao",
+   "tags": [
+    "caixote",
+    "madeira",
+    "caixa",
+    "baú"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 385,
+   "nome": "caixote de madeira (borda fina)",
+   "cat": "decoracao",
+   "tags": [
+    "caixote",
+    "madeira",
+    "caixa",
+    "baú"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 386,
+   "nome": "janela com friso verde (fatia esquerda)",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "vidro",
+    "friso",
+    "verde"
+   ],
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 387,
+   "nome": "janela com friso verde (fatia central)",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "vidro",
+    "friso",
+    "verde"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 388,
+   "nome": "janela com friso verde (fatia direita)",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "vidro",
+    "friso",
+    "verde"
+   ],
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 389,
+   "nome": "indefinido",
+   "cat": "vazio",
+   "tags": [
+    "vazio",
+    "indefinido"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 3
+   },
+   "solido": false
+  },
+  {
+   "i": 390,
+   "nome": "quadro com duas faixas",
+   "cat": "decoracao",
+   "tags": [
+    "quadro",
+    "moldura",
+    "pintura",
+    "parede"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 11
+   },
+   "solido": true
+  },
+  {
+   "i": 391,
+   "nome": "quadro/mapa grande",
+   "cat": "decoracao",
+   "tags": [
+    "quadro",
+    "moldura",
+    "mapa",
+    "pintura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 392,
+   "nome": "janela estreita (retrato)",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "vidro",
+    "retrato",
+    "predio"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 393,
+   "nome": "cadeira/poltrona (canto) 1",
+   "cat": "movel",
+   "tags": [
+    "cadeira",
+    "poltrona",
+    "canto",
+    "estofado"
+   ],
+   "opaco": {
+    "w": 7,
+    "h": 6
+   },
+   "solido": true
+  },
+  {
+   "i": 394,
+   "nome": "cadeira/poltrona (canto) 2",
+   "cat": "movel",
+   "tags": [
+    "cadeira",
+    "poltrona",
+    "canto",
+    "estofado"
+   ],
+   "opaco": {
+    "w": 7,
+    "h": 6
+   },
+   "solido": true
+  },
+  {
+   "i": 395,
+   "nome": "banco/cadeira completo (madeira)",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "cadeira",
+    "madeira",
+    "assento"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 5
+   },
+   "solido": true
+  },
+  {
+   "i": 396,
+   "nome": "cadeira/poltrona (canto) 3",
+   "cat": "movel",
+   "tags": [
+    "cadeira",
+    "poltrona",
+    "canto",
+    "estofado"
+   ],
+   "opaco": {
+    "w": 7,
+    "h": 6
+   },
+   "solido": true
+  },
+  {
+   "i": 397,
+   "nome": "cadeira/poltrona (canto) 4",
+   "cat": "movel",
+   "tags": [
+    "cadeira",
+    "poltrona",
+    "canto",
+    "estofado"
+   ],
+   "opaco": {
+    "w": 7,
+    "h": 6
+   },
+   "solido": true
+  },
+  {
+   "i": 398,
+   "nome": "banco completo (laranja)",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "laranja",
+    "madeira",
+    "assento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 5
+   },
+   "solido": true
+  },
+  {
+   "i": 399,
+   "nome": "banco completo (verde escuro)",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "verde",
+    "assento",
+    "jardim"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 4
+   },
+   "solido": true
+  },
+  {
+   "i": 400,
+   "nome": "banco completo (verde-água)",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "verde-agua",
+    "assento",
+    "jardim"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 4
+   },
+   "solido": true
+  },
+  {
+   "i": 401,
+   "nome": "npc idoso (perfil) 3",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "personagem",
+    "vila",
+    "idoso"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 402,
+   "nome": "npc idoso (frente) 3",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "personagem",
+    "vila",
+    "idoso"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 403,
+   "nome": "npc idoso (frente, parado) 3",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "personagem",
+    "vila",
+    "idoso"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 404,
+   "nome": "npc idoso (perfil, andando) 3",
+   "cat": "personagem",
+   "tags": [
+    "npc",
+    "personagem",
+    "vila",
+    "caminhando"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 405,
+   "nome": "parede com veneziana horizontal",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "veneziana",
+    "painel claro",
+    "predio"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 406,
+   "nome": "parede lisa escura pontilhada",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "textura",
+    "escura",
+    "concreto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 407,
+   "nome": "parede com cruzamento de tubo",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "tubo",
+    "cano",
+    "cruz"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 408,
+   "nome": "semáforo de poste aceso (voltado à esquerda)",
+   "cat": "sinal",
+   "tags": [
+    "semaforo",
+    "poste",
+    "trânsito",
+    "luz vermelha"
+   ],
+   "opaco": {
+    "w": 13,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 409,
+   "nome": "semáforo de poste aceso (variante)",
+   "cat": "sinal",
+   "tags": [
+    "semaforo",
+    "poste",
+    "trânsito",
+    "luzes"
+   ],
+   "opaco": {
+    "w": 13,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 410,
+   "nome": "poste de semáforo apagado",
+   "cat": "sinal",
+   "tags": [
+    "semaforo",
+    "poste",
+    "apagado",
+    "trânsito"
+   ],
+   "opaco": {
+    "w": 13,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 411,
+   "nome": "semáforo de poste aceso (voltado à direita)",
+   "cat": "sinal",
+   "tags": [
+    "semaforo",
+    "poste",
+    "trânsito",
+    "luz verde"
+   ],
+   "opaco": {
+    "w": 13,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 412,
+   "nome": "vitrine de loja (metade esquerda)",
+   "cat": "janela",
+   "tags": [
+    "vitrine",
+    "loja",
+    "vidro",
+    "metade"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 413,
+   "nome": "vitrine de loja (metade direita)",
+   "cat": "janela",
+   "tags": [
+    "vitrine",
+    "loja",
+    "vidro",
+    "metade"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 414,
+   "nome": "porta de vidro estreita (metade esquerda)",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "vidro",
+    "entrada",
+    "metade"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 415,
+   "nome": "porta de vidro estreita (metade direita)",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "vidro",
+    "entrada",
+    "metade"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 416,
+   "nome": "janela pequena com duas divisórias",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "pequena",
+    "vidro",
+    "predio"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 11
+   },
+   "solido": false
+  },
+  {
+   "i": 417,
+   "nome": "porta em arco arredondado",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "arco",
+    "entrada",
+    "loja"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 418,
+   "nome": "porta em arco com moldura escalonada",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "arco",
+    "moldura",
+    "entrada"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 419,
+   "nome": "porta retangular com vidro",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "vidro",
+    "entrada",
+    "retangular"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 420,
+   "nome": "caminhão laranja - frente (metade esquerda)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "laranja",
+    "frente",
+    "roda"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 421,
+   "nome": "caminhão laranja - frente (metade direita)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "laranja",
+    "frente",
+    "roda"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 422,
+   "nome": "caminhão laranja - cabine com para-brisa",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "laranja",
+    "cabine",
+    "janela"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 423,
+   "nome": "caminhão laranja - lateral esquerda",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "laranja",
+    "lateral",
+    "roda"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 424,
+   "nome": "caminhão laranja - lateral direita",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "laranja",
+    "lateral",
+    "roda"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 425,
+   "nome": "caminhão laranja - topo/telhado",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "laranja",
+    "topo",
+    "telhado"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 426,
+   "nome": "van verde - frente com para-brisa",
+   "cat": "veiculo",
+   "tags": [
+    "van",
+    "verde",
+    "frente",
+    "janela"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 427,
+   "nome": "van verde - traseira com compartimento de carga",
+   "cat": "veiculo",
+   "tags": [
+    "van",
+    "verde",
+    "traseira",
+    "carga"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 428,
+   "nome": "personagem de moletom marrom (perfil esquerdo)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "moletom",
+    "bandana laranja",
+    "esquerda"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 429,
+   "nome": "personagem de moletom marrom (frente)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "moletom",
+    "bandana laranja",
+    "frente"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 430,
+   "nome": "personagem de moletom marrom (costas)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "moletom",
+    "capuz",
+    "costas"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 431,
+   "nome": "personagem de moletom marrom (perfil direito)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "moletom",
+    "bandana laranja",
+    "direita"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 432,
+   "nome": "parede com veneziana horizontal",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "veneziana",
+    "painel claro",
+    "predio"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 433,
+   "nome": "parede escura com faixa clara fina",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "faixa",
+    "textura",
+    "escura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 434,
+   "nome": "grade metálica com fendas verticais",
+   "cat": "parede",
+   "tags": [
+    "grade",
+    "portao",
+    "metal",
+    "fenda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 435,
+   "nome": "grade metálica com fendas verticais (variante)",
+   "cat": "parede",
+   "tags": [
+    "grade",
+    "portao",
+    "metal",
+    "fenda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 436,
+   "nome": "grade metálica com fendas verticais (variante 2)",
+   "cat": "parede",
+   "tags": [
+    "grade",
+    "portao",
+    "metal",
+    "fenda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 437,
+   "nome": "parede - canto curvo (superior esquerdo)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "canto",
+    "curva",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 438,
+   "nome": "parede - canto curvo (superior direito)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "canto",
+    "curva",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 439,
+   "nome": "parede escura com fragmento de canto (inferior direito)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "canto",
+    "fragmento",
+    "curva"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 440,
+   "nome": "parede escura com fragmento de canto (inferior esquerdo)",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "canto",
+    "fragmento",
+    "curva"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 441,
+   "nome": "parede lisa escura sem detalhes",
+   "cat": "parede",
+   "tags": [
+    "parede",
+    "lisa",
+    "escura",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 442,
+   "nome": "placa de estacionamento (letra P)",
+   "cat": "sinal",
+   "tags": [
+    "placa",
+    "estacionamento",
+    "letra P",
+    "sinal"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 443,
+   "nome": "janela pequena com peitoril",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "pequena",
+    "peitoril",
+    "predio"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 11
+   },
+   "solido": false
+  },
+  {
+   "i": 444,
+   "nome": "janela quadrada com duas divisórias",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "quadrada",
+    "vidro",
+    "predio"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 445,
+   "nome": "janela quadrada com vidro único",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "quadrada",
+    "vidro",
+    "predio"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 446,
+   "nome": "janela alta estreita com várias divisórias",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "alta",
+    "estreita",
+    "predio"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 447,
+   "nome": "toldo vermelho - canto superior esquerdo",
+   "cat": "decoracao",
+   "tags": [
+    "toldo",
+    "vermelho",
+    "canto",
+    "loja"
+   ],
+   "opaco": {
+    "w": 7,
+    "h": 6
+   },
+   "solido": true
+  },
+  {
+   "i": 448,
+   "nome": "toldo vermelho - canto superior direito",
+   "cat": "decoracao",
+   "tags": [
+    "toldo",
+    "vermelho",
+    "canto",
+    "loja"
+   ],
+   "opaco": {
+    "w": 7,
+    "h": 6
+   },
+   "solido": true
+  },
+  {
+   "i": 449,
+   "nome": "toldo vermelho - seção reta central",
+   "cat": "decoracao",
+   "tags": [
+    "toldo",
+    "vermelho",
+    "reto",
+    "loja"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 5
+   },
+   "solido": true
+  },
+  {
+   "i": 450,
+   "nome": "toldo vermelho - fragmento inferior esquerdo",
+   "cat": "decoracao",
+   "tags": [
+    "toldo",
+    "vermelho",
+    "fragmento",
+    "borda"
+   ],
+   "opaco": {
+    "w": 7,
+    "h": 6
+   },
+   "solido": true
+  },
+  {
+   "i": 451,
+   "nome": "toldo vermelho - seção com pico central",
+   "cat": "decoracao",
+   "tags": [
+    "toldo",
+    "vermelho",
+    "pico",
+    "loja"
+   ],
+   "opaco": {
+    "w": 7,
+    "h": 6
+   },
+   "solido": true
+  },
+  {
+   "i": 452,
+   "nome": "toldo vermelho - seção reta larga",
+   "cat": "decoracao",
+   "tags": [
+    "toldo",
+    "vermelho",
+    "reto",
+    "loja"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 5
+   },
+   "solido": true
+  },
+  {
+   "i": 453,
+   "nome": "van verde - lateral esquerda (traseira)",
+   "cat": "veiculo",
+   "tags": [
+    "van",
+    "verde",
+    "lateral",
+    "roda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 454,
+   "nome": "van verde - lateral direita (traseira)",
+   "cat": "veiculo",
+   "tags": [
+    "van",
+    "verde",
+    "lateral",
+    "roda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 455,
+   "nome": "personagem de moletom marrom (perfil esquerdo)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "moletom",
+    "calca azul",
+    "esquerda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 456,
+   "nome": "personagem de moletom marrom (frente)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "moletom",
+    "bandana laranja",
+    "frente"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 457,
+   "nome": "personagem de moletom marrom (costas)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "moletom",
+    "capuz",
+    "costas"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 458,
+   "nome": "personagem de moletom marrom (perfil direito)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "moletom",
+    "calca azul",
+    "direita"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 459,
+   "nome": "calçada/asfalto com meio-fio claro",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "asfalto",
+    "calcada",
+    "meio-fio"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 460,
+   "nome": "asfalto escuro com linha de guia fina",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "asfalto",
+    "linha",
+    "rua"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 461,
+   "nome": "asfalto com linha vertical à esquerda",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "asfalto",
+    "linha",
+    "rua"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 462,
+   "nome": "asfalto com faixa tracejada vertical",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "asfalto",
+    "tracejado",
+    "faixa"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 463,
+   "nome": "asfalto com linha vertical à direita",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "asfalto",
+    "linha",
+    "rua"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 464,
+   "nome": "asfalto - curva de meio-fio (superior esquerda)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "asfalto",
+    "curva",
+    "meio-fio"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 465,
+   "nome": "asfalto - curva de meio-fio (superior direita)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "asfalto",
+    "curva",
+    "meio-fio"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 466,
+   "nome": "asfalto escuro com fragmento de curva (superior direito)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "asfalto",
+    "curva",
+    "fragmento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 467,
+   "nome": "asfalto escuro com fragmento de curva (superior esquerdo)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "asfalto",
+    "curva",
+    "fragmento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 468,
+   "nome": "asfalto escuro liso, sem marcações",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "asfalto",
+    "liso",
+    "rua"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 469,
+   "nome": "asfalto com símbolo de bicicleta",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "ciclofaixa",
+    "bicicleta",
+    "rua"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 470,
+   "nome": "fresta/vitrine estreita alta (fragmento)",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "fresta",
+    "fragmento",
+    "topo"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 3
+   },
+   "solido": false
+  },
+  {
+   "i": 471,
+   "nome": "janela com veneziana fechada",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "veneziana",
+    "persiana",
+    "predio"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 11
+   },
+   "solido": false
+  },
+  {
+   "i": 472,
+   "nome": "quadro decorativo pendurado",
+   "cat": "decoracao",
+   "tags": [
+    "quadro",
+    "moldura",
+    "decoracao",
+    "parede"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 473,
+   "nome": "janela alta estreita com várias divisórias",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "alta",
+    "estreita",
+    "predio"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 474,
+   "nome": "caminhão vermelho - frente (metade esquerda)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "vermelho",
+    "frente",
+    "roda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 475,
+   "nome": "caminhão vermelho - frente (metade direita)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "vermelho",
+    "frente",
+    "roda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 476,
+   "nome": "caminhão vermelho - cabine com para-brisa",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "vermelho",
+    "cabine",
+    "janela"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 477,
+   "nome": "caminhão vermelho - lateral esquerda",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "vermelho",
+    "lateral",
+    "roda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 478,
+   "nome": "caminhão vermelho - lateral direita",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "vermelho",
+    "lateral",
+    "roda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 479,
+   "nome": "caminhão vermelho - topo/telhado",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "vermelho",
+    "topo",
+    "telhado"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 480,
+   "nome": "van verde - lateral esquerda (traseira)",
+   "cat": "veiculo",
+   "tags": [
+    "van",
+    "verde",
+    "lateral",
+    "roda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 481,
+   "nome": "van verde - lateral direita (traseira)",
+   "cat": "veiculo",
+   "tags": [
+    "van",
+    "verde",
+    "lateral",
+    "roda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 482,
+   "nome": "personagem de moletom marrom (perfil esquerdo)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "moletom",
+    "bandana laranja",
+    "esquerda"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 483,
+   "nome": "personagem de moletom marrom (frente)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "moletom",
+    "bandana laranja",
+    "frente"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 484,
+   "nome": "personagem de moletom marrom (costas)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "moletom",
+    "capuz",
+    "costas"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 485,
+   "nome": "personagem de moletom marrom (perfil direito)",
+   "cat": "personagem",
+   "tags": [
+    "personagem",
+    "moletom",
+    "bandana laranja",
+    "direita"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 15
+   },
+   "solido": false
+  }
+ ]
+}
