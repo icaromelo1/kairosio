@@ -6,7 +6,7 @@ import type { MapDef, MapObject } from '../maps'
 import { criarSvgGraphics, varianteParaObjeto } from '../furniture/catalog'
 import { criarSuperficie, temSuperficie } from '../furniture/surfaces'
 import type { AvatarPuppet } from './avatar'
-import { estadoDeLuz, type EstadoLuz } from '../lighting'
+import { estadoDeLuz, lerpCor, type EstadoLuz } from '../lighting'
 import { Minimap } from './minimap'
 
 // tamanho de um tile em px na tela (independe do schema, que conta em tiles)
@@ -177,12 +177,20 @@ export class MapScene {
       const ah = dentro.h * TILE_PX
       // escurecer exige cor ESCURA: multiply por quase-branco (o tom do céu de dia)
       // não altera nada — o tint só tinge, quem escurece é o valor baixo do canal.
-      const fora = { cor: 0x1b2030, alpha: Math.max(this.luz.alpha, 0.62) }
+      // por isso a cor de fora fica fixa e escura; só o alpha acompanha a noite,
+      // com piso pra manter o contraste dentro/fora mesmo em pleno dia.
+      const fora = { cor: 0x1b2030, alpha: Math.max(0.4, this.luz.alpha) }
       dark.rect(-M, -M, mw + M * 2, ay + M).fill({ color: fora.cor, alpha: fora.alpha })
       dark.rect(-M, ay + ah, mw + M * 2, mh - ay - ah + M).fill({ color: fora.cor, alpha: fora.alpha })
       dark.rect(-M, ay, ax + M, ah).fill({ color: fora.cor, alpha: fora.alpha })
       dark.rect(ax + aw, ay, mw - ax - aw + M, ah).fill({ color: fora.cor, alpha: fora.alpha })
-      dark.rect(ax, ay, aw, ah).fill({ color: 0xffe6bd, alpha: 0.1 })
+
+      // luz artificial da sala: legível a qualquer hora, mas mais fria e um
+      // pouco mais fechada de madrugada — nunca escurece de verdade.
+      const t = Math.min(1, this.luz.alpha / 0.72)
+      const dentroCor = lerpCor(0xffe6bd, this.luz.tint, 0.35 * t)
+      const dentroAlpha = 0.08 + 0.14 * t
+      dark.rect(ax, ay, aw, ah).fill({ color: dentroCor, alpha: dentroAlpha })
       return
     }
 
