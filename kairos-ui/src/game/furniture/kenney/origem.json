@@ -9,7 +9,8 @@
   "px": [
    14,
    30
-  ]
+  ],
+  "alturaM": 3.9
  },
  "hedge": {
   "pack": "rpg",
@@ -21,7 +22,8 @@
   "px": [
    16,
    15
-  ]
+  ],
+  "alturaM": 0.9
  },
  "sofa": {
   "pack": "rpg",
@@ -33,7 +35,8 @@
   "px": [
    16,
    11
-  ]
+  ],
+  "alturaM": 0.85
  },
  "bench": {
   "pack": "rpg",
@@ -45,7 +48,8 @@
   "px": [
    16,
    11
-  ]
+  ],
+  "alturaM": 0.85
  },
  "shelf": {
   "pack": "rpg",
@@ -57,7 +61,8 @@
   "px": [
    12,
    15
-  ]
+  ],
+  "alturaM": 1.9
  },
  "table": {
   "pack": "rpg",
@@ -69,7 +74,34 @@
   "px": [
    16,
    16
-  ]
+  ],
+  "alturaM": 0.9
+ },
+ "chair": {
+  "pack": "rpg",
+  "i": 393,
+  "tiles": [
+   1,
+   1
+  ],
+  "px": [
+   7,
+   6
+  ],
+  "alturaM": 0.95
+ },
+ "board": {
+  "pack": "rpg",
+  "i": 391,
+  "tiles": [
+   1,
+   1
+  ],
+  "px": [
+   16,
+   16
+  ],
+  "alturaM": 1.2
  },
  "plant": {
   "pack": "mod",
@@ -81,7 +113,8 @@
   "px": [
    16,
    16
-  ]
+  ],
+  "alturaM": 0.8
  },
  "jukebox": {
   "pack": "mod",
@@ -93,7 +126,8 @@
   "px": [
    12,
    16
-  ]
+  ],
+  "alturaM": 1.8
  },
  "desk": {
   "pack": "mod",
@@ -105,6 +139,59 @@
   "px": [
    16,
    16
-  ]
+  ],
+  "alturaM": 1.8
+ },
+ "servers": {
+  "pack": "mod",
+  "i": 146,
+  "tiles": [
+   1,
+   1
+  ],
+  "px": [
+   16,
+   16
+  ],
+  "alturaM": 1.6
+ },
+ "lamp": {
+  "pack": "mod",
+  "i": 368,
+  "tiles": [
+   1,
+   1
+  ],
+  "px": [
+   10,
+   8
+  ],
+  "alturaM": 1.0
+ },
+ "column": {
+  "pack": "tin",
+  "i": 56,
+  "tiles": [
+   1,
+   1
+  ],
+  "px": [
+   8,
+   16
+  ],
+  "alturaM": 2.5
+ },
+ "fountain": {
+  "pack": "tin",
+  "i": 104,
+  "tiles": [
+   1,
+   1
+  ],
+  "px": [
+   16,
+   16
+  ],
+  "alturaM": 1.6
  }
 }
