@@ -64,7 +64,7 @@ export class MapScene {
   private lightPools: Graphics | null = null
   private playerLight: Graphics | null = null
   private luz: EstadoLuz = estadoDeLuz()
-  private minimap: Minimap
+  readonly minimap: Minimap
   private ghostLayer: Container
   private avatars = new Map<string, AvatarPuppet>()
   private jukeboxIcons: Container[] = [] // notas ♪ sobre objetos jukebox — visíveis só enquanto toca
