@@ -4,7 +4,6 @@ export type HairStyle = 'short' | 'curly' | 'ponytail' | 'mohawk' | 'helmet' | '
 export type Accessory = 'none' | 'glasses' | 'hat'
 
 const INITIAL_STATE = {
-  name: '',
   hairStyle: 'short' as HairStyle,
   hairColor: '#3d2817',
   skin: '#e8b894',

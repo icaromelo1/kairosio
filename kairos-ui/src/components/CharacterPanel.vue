@@ -1,5 +1,5 @@
 <template>
-  <PanelShell title="personagem" icon="user" size="lg" @close="emit('close')">
+  <PanelShell title="personagem" icon="user" size="lg" :bloqueado="obrigatorio" @close="emit('close')">
     <div class="cp-grid">
       <div class="cp-stage">
         <span class="cp-eyebrow">seu avatar</span>
@@ -181,6 +181,8 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import { emitNomeAtualizado } from '@/services/presence'
 import { getCharacter, saveCharacter, uploadPhoto, removePhoto, photoUrl } from '@/services/character.api'
 import { changeUsername, me, UsernameError } from '@/services/auth.api'
+
+withDefaults(defineProps<{ obrigatorio?: boolean }>(), { obrigatorio: false })
 
 const emit = defineEmits<{ close: [] }>()
 
