@@ -16,7 +16,7 @@ export interface AvatarLook {
 }
 
 export type Facing = 'down' | 'up' | 'left' | 'right'
-export type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit'
+export type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit' | 'giro' | 'pulo' | 'robo'
 
 // 1 unidade = 1 "pixel" da arte 16x20. UNIT controla o tamanho final do avatar.
 // (reduzido de 5 → 4: personagem menor, mais proporcional aos objetos do mapa)
@@ -92,6 +92,8 @@ export class AvatarPuppet {
   private t = 0
   private pose: Pose = 'idle'
   private facing: Facing = 'down'
+  private mirror = 1
+  private escala = 1
   private nameLabel: Text
   private photoLayer: Container
   private photoSprite: Sprite | null = null
@@ -325,12 +327,32 @@ export class AvatarPuppet {
     if (facing === this.facing) return
     this.facing = facing
     // esquerda/direita = espelhar o rosto de frente; cima = de costas (mostra a nuca)
-    if (facing === 'left') this.root.scale.x = -1
-    else if (facing === 'right') this.root.scale.x = 1
+    if (facing === 'left') this.mirror = -1
+    else if (facing === 'right') this.mirror = 1
+    this.updateRootScale()
     this.face.visible = facing !== 'up'
     this.backHead.visible = facing === 'up'
-    // contra-espelha o nome pra não ficar de trás pra frente junto com o boneco
-    this.nameLabel.scale.x = this.root.scale.x
+  }
+
+  /** Escala visual do puppet (sudo pode aumentar/diminuir). Clampada pra não sumir
+   *  nem estourar a cena. Composta com o espelhamento de setFacing (mirror), nunca
+   *  o sobrescreve. */
+  setEscala(valor: number) {
+    this.escala = Math.max(0.4, Math.min(3, valor))
+    this.updateRootScale()
+  }
+
+  /** Aplica mirror + escala na raiz, e contra-ajusta o nameLabel pra ele continuar
+   *  do mesmo tamanho/legível e sem espelhar, independente do tamanho do boneco. */
+  private updateRootScale() {
+    this.root.scale.set(this.mirror * this.escala, this.escala)
+    this.nameLabel.scale.set(this.mirror / this.escala, 1 / this.escala)
+  }
+
+  /** Oculta visualmente o avatar (usado pra invisibilidade) — o próprio jogador
+   *  invisível continua se enxergando, só com alpha reduzido como indicação. */
+  setOculto(v: boolean) {
+    this.root.alpha = v ? 0.35 : 1
   }
 
   /** Nome exibido flutuando sobre o boneco (some por padrão, aparece por proximidade). */
@@ -429,6 +451,44 @@ export class AvatarPuppet {
       this.torso.rotation = s * 0.14
       this.torso.position.y = (9 - Math.abs(s) * 0.6) * UNIT
       this.head.rotation = -s * 0.12
+    } else if (this.pose === 'giro') {
+      // giro — corpo gira em torno do próprio eixo, braços abertos acompanhando
+      const spin = t * 3.2
+      const sp = Math.sin(spin)
+      this.armL.rotation = -1.6 + sp * 0.5
+      this.armR.rotation = 1.6 + Math.sin(spin + Math.PI) * 0.5
+      this.legL.position.y = HIP_Y
+      this.legR.position.y = HIP_Y
+      this.legL.rotation = sp * 0.18
+      this.legR.rotation = -sp * 0.18
+      this.torso.rotation = sp * 0.35
+      this.torso.position.y = (9 - Math.abs(sp) * 0.3) * UNIT
+      this.head.rotation = sp * 0.25
+    } else if (this.pose === 'pulo') {
+      // pulo — pulso vertical forte, todo o corpo sobe e desce junto
+      const bounce = Math.abs(Math.sin(t * 7))
+      this.armL.rotation = -2.6 + bounce * 0.3
+      this.armR.rotation = 2.6 - bounce * 0.3
+      this.legL.rotation = -0.3 * bounce
+      this.legR.rotation = -0.3 * bounce
+      this.legL.position.y = HIP_Y - bounce * 1.6 * UNIT
+      this.legR.position.y = HIP_Y - bounce * 1.6 * UNIT
+      this.torso.rotation = 0
+      this.torso.position.y = (9 - bounce * 1.8) * UNIT
+      this.head.rotation = 0
+    } else if (this.pose === 'robo') {
+      // robô — movimento mecânico, em degraus (onda quadrada) em vez de suave
+      const step = Math.sin(t * 3) >= 0 ? 1 : -1
+      const stepSlow = Math.sin(t * 1.5) >= 0 ? 1 : -1
+      this.armL.rotation = step > 0 ? -2.4 : -0.3
+      this.armR.rotation = step > 0 ? 0.3 : 2.4
+      this.legL.position.y = HIP_Y
+      this.legR.position.y = HIP_Y
+      this.legL.rotation = 0
+      this.legR.rotation = 0
+      this.torso.rotation = stepSlow * 0.12
+      this.torso.position.y = 9 * UNIT
+      this.head.rotation = step * 0.2
     } else if (this.pose === 'wave') {
       // acenar — braço direito levantado balançando
       const s = Math.sin(t * 9)
