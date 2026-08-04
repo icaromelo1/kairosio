@@ -1,0 +1,17 @@
+{
+  "chair":    { "tiles": [1, 2], "viewBox": [50, 100] },
+  "column":   { "tiles": [1, 2], "viewBox": [50, 100] },
+  "plant":    { "tiles": [1, 2], "viewBox": [50, 100] },
+  "lamp":     { "tiles": [1, 1], "viewBox": [100, 100] },
+  "tree":     { "tiles": [3, 3], "viewBox": [100, 100] },
+  "fountain": { "tiles": [4, 4], "viewBox": [100, 100] },
+  "jukebox":  { "tiles": [2, 2], "viewBox": [100, 100] },
+  "bench":    { "tiles": [2, 1], "viewBox": [200, 100] },
+  "desk":     { "tiles": [4, 2], "viewBox": [200, 100] },
+  "servers":  { "tiles": [4, 2], "viewBox": [200, 100] },
+  "table":    { "tiles": [3, 2], "viewBox": [150, 100] },
+  "sofa":     { "tiles": [3, 2], "viewBox": [150, 100] },
+  "board":    { "tiles": [4, 1], "viewBox": [400, 100] },
+  "hedge":    { "tiles": [6, 1], "viewBox": [600, 100] },
+  "shelf":    { "tiles": [2, 6], "viewBox": [33, 100] }
+}
