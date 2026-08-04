@@ -12,6 +12,10 @@ import { Minimap } from './minimap'
 // tamanho de um tile em px na tela (independe do schema, que conta em tiles)
 export const TILE_PX = 40
 
+// luz vem de cima à esquerda, como a arte dos móveis — a sombra cai pro lado oposto
+const SOL_X = 0.72
+const SOL_Y = 0.34
+
 function hexNum(c: string, fallback: number): number {
   const m = /^#?([0-9a-f]{6})$/i.exec(c.trim())
   return m ? parseInt(m[1], 16) : fallback
@@ -411,8 +415,16 @@ export class MapScene {
       // sombra elíptica no chão, na base (fica na shadowLayer, não gira/sobe)
       if (sombraPropria) {
         const sh = new Graphics()
-        const shadowRx = o.kind === 'tree' ? r * 1.05 : w * 0.42
-        sh.ellipse(cx, y + h, shadowRx, Math.max(4, h * 0.14)).fill({ color: 0x000000, alpha: 0.22 })
+        const alturaTiles = (o.hVis ?? o.h) || 1
+        const desloc = Math.min(0.55, alturaTiles * 0.11) * TILE_PX
+        const base = o.kind === 'tree' ? r * 1.05 : w * 0.42
+        const rx = base * (1 + alturaTiles * 0.05)
+        const ry = Math.max(4, h * 0.14) * (1 + alturaTiles * 0.03)
+        const px = cx + desloc * SOL_X
+        const py = y + h + desloc * SOL_Y
+        const alpha = Math.max(0.09, 0.24 - alturaTiles * 0.018)
+        sh.ellipse(px, py, rx * 1.28, ry * 1.28).fill({ color: 0x000000, alpha: alpha * 0.42 })
+        sh.ellipse(px, py, rx, ry).fill({ color: 0x000000, alpha })
         this.shadowLayer.addChild(sh)
       }
       // billboard ancorado na BASE; vai pra entityLayer ordenada por Y
