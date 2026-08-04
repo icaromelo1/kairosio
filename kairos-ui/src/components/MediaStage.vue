@@ -52,7 +52,7 @@
     </div>
 
     <template v-if="!minimized">
-      <div class="ms-tiles">
+      <div class="ms-tiles" :class="{ 'ms-tiles-foco': emFoco }">
         <template v-for="tile in tiles" :key="tile.key">
           <button
             v-if="tile.kind === 'person'"
@@ -389,6 +389,12 @@ const tiles = computed<StageTile[]>(() => {
     if (peer.screen) list.push(screenTile(peer.identity, name, false, !peer.subscribed, peer.watching))
   }
   return list
+})
+
+const emFoco = computed(() => tiles.value.some((t) => t.kind === 'screen' && t.video))
+
+watch(emFoco, (agora, antes) => {
+  if (agora && !antes) minimized.value = false
 })
 
 const stripLabel = computed(() => {
@@ -876,6 +882,21 @@ onBeforeUnmount(() => {
 .ms-tile-screen {
   border-color: var(--accent-lo);
   background: var(--bg-0);
+}
+
+.ms-tiles-foco {
+  grid-template-columns: repeat(auto-fit, minmax(5rem, 1fr));
+}
+.ms-tiles-foco .ms-tile-screen {
+  grid-column: 1 / -1;
+  aspect-ratio: 16 / 9;
+  max-height: 62vh;
+  border-color: var(--accent);
+  border-width: 0.1875rem;
+  order: -1;
+}
+.ms-tiles-foco .ms-tile-screen .ms-tile-video :deep(.ms-video-screen) {
+  object-fit: contain;
 }
 .ms-tile-screen:fullscreen {
   aspect-ratio: auto;
