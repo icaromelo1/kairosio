@@ -38,7 +38,7 @@ export class Minimap {
   private areas: AreaGeom[] = []
   private cliqueCb: ((x: number, y: number) => void) | null = null
 
-  constructor(private ladoMax = 160) {
+  constructor(private ladoMax = 200) {
     this.root = new Container()
     this.root.eventMode = 'none'
     this.root.cursor = 'default'
@@ -143,7 +143,7 @@ export class Minimap {
     g.circle(eu.x * this.escala, eu.y * this.escala, 5).stroke({ width: 1, color: COR_VOCE, alpha: 0.6 })
   }
 
-  posicionar(telaW: number, telaH: number, margem = 16) {
+  posicionar(telaW: number, telaH: number, margem = 20) {
     this.root.position.set(telaW - this.largura - margem, telaH - this.altura - margem)
   }
 }

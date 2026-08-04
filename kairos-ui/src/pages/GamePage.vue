@@ -963,6 +963,11 @@ watch(sudoEscala, (v) => {
   emitEscalaAoServidor(v)
 })
 watch(sudoInvisivel, (v) => scene?.avatar('me')?.setOculto(v))
+
+watch(() => gameStore.sidebarOpen, () => {
+  scene?.redimensionar()
+  window.setTimeout(() => scene?.redimensionar(), 300)
+})
 watch(ehSudo, (v) => minimapDoScene()?.permitirClique(v))
 
 const FESTA_DURACAO_MS = 5000
@@ -1517,7 +1522,7 @@ onUnmounted(() => {
 .gp-hud-ctl {
   position: absolute;
   right: var(--sp-12);
-  bottom: calc(11rem + var(--sp-12));
+  top: 8.5rem;
   display: flex;
   align-items: center;
   gap: var(--sp-8);
