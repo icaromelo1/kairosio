@@ -1,0 +1,2136 @@
+{
+ "pack": "tiny-town",
+ "tile": 16,
+ "cols": 12,
+ "tiles": [
+  {
+   "i": 0,
+   "nome": "grama lisa",
+   "cat": "piso",
+   "tags": [
+    "grama",
+    "verde",
+    "chão",
+    "natural"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 1,
+   "nome": "grama com brotos",
+   "cat": "piso",
+   "tags": [
+    "grama",
+    "textura",
+    "verde",
+    "detalhe"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 2,
+   "nome": "grama com flores brancas",
+   "cat": "piso",
+   "tags": [
+    "grama",
+    "flor",
+    "margarida",
+    "verde"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 3,
+   "nome": "copa de pinheiro laranja (outono)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "pinheiro",
+    "outono",
+    "tile único"
+   ],
+   "opaco": {
+    "w": 13,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 4,
+   "nome": "copa de pinheiro verde",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "pinheiro",
+    "verde",
+    "tile único"
+   ],
+   "opaco": {
+    "w": 13,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 5,
+   "nome": "copa de árvore redonda verde",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "arbusto",
+    "redonda",
+    "verde"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 6,
+   "nome": "borda de floresta verde (autotile: canto direito)",
+   "cat": "natureza",
+   "tags": [
+    "floresta",
+    "arbusto",
+    "autotile",
+    "borda"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 7,
+   "nome": "moita verde pequena centralizada",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "moita",
+    "verde",
+    "pequena"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 8,
+   "nome": "borda de floresta verde (autotile: canto esquerdo)",
+   "cat": "natureza",
+   "tags": [
+    "floresta",
+    "arbusto",
+    "autotile",
+    "borda"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 9,
+   "nome": "borda de floresta laranja (autotile: canto direito)",
+   "cat": "natureza",
+   "tags": [
+    "floresta",
+    "outono",
+    "autotile",
+    "borda"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 10,
+   "nome": "moita laranja pequena centralizada",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "outono",
+    "laranja",
+    "pequena"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 11,
+   "nome": "borda de floresta laranja (autotile: canto esquerdo)",
+   "cat": "natureza",
+   "tags": [
+    "floresta",
+    "outono",
+    "autotile",
+    "borda"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 12,
+   "nome": "trilha de terra com grama (autotile: canto superior esquerdo)",
+   "cat": "piso",
+   "tags": [
+    "terra",
+    "trilha",
+    "grama",
+    "autotile",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 13,
+   "nome": "trilha de terra com grama no topo (autotile: borda superior)",
+   "cat": "piso",
+   "tags": [
+    "terra",
+    "trilha",
+    "grama",
+    "autotile",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 14,
+   "nome": "trilha de terra com grama (autotile: canto superior direito)",
+   "cat": "piso",
+   "tags": [
+    "terra",
+    "trilha",
+    "grama",
+    "autotile",
+    "canto"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 15,
+   "nome": "árvore pequena completa laranja com tronco",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "outono",
+    "tronco",
+    "tile único"
+   ],
+   "opaco": {
+    "w": 15,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 16,
+   "nome": "árvore pequena completa verde com tronco",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "verde",
+    "tronco",
+    "tile único"
+   ],
+   "opaco": {
+    "w": 15,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 17,
+   "nome": "arbusto sinuoso verde (formato de cobra)",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "moita",
+    "sinuoso",
+    "verde"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 18,
+   "nome": "sebe verde com passagem (fatia: esquerda)",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "sebe",
+    "passagem",
+    "fatia"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 19,
+   "nome": "sebe verde com passagem (fatia: meio, abertura)",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "sebe",
+    "entrada",
+    "fatia"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 20,
+   "nome": "sebe verde com passagem (fatia: direita)",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "sebe",
+    "passagem",
+    "fatia"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 21,
+   "nome": "sebe laranja com passagem (fatia: esquerda)",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "outono",
+    "passagem",
+    "fatia"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 22,
+   "nome": "sebe laranja com passagem (fatia: meio, abertura)",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "outono",
+    "entrada",
+    "fatia"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 23,
+   "nome": "sebe laranja com passagem (fatia: direita)",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "outono",
+    "passagem",
+    "fatia"
+   ],
+   "opaco": {
+    "w": 6,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 24,
+   "nome": "trilha de terra (autotile: borda esquerda com grama)",
+   "cat": "piso",
+   "tags": [
+    "terra",
+    "trilha",
+    "grama",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 25,
+   "nome": "trilha de terra lisa (autotile: meio)",
+   "cat": "piso",
+   "tags": [
+    "terra",
+    "trilha",
+    "autotile",
+    "meio"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 26,
+   "nome": "trilha de terra (autotile: borda direita com grama)",
+   "cat": "piso",
+   "tags": [
+    "terra",
+    "trilha",
+    "grama",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 27,
+   "nome": "arbusto ovalado laranja",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "oval",
+    "laranja",
+    "tile único"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 28,
+   "nome": "arbusto ovalado verde",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "oval",
+    "verde",
+    "tile único"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 29,
+   "nome": "par de cogumelos vermelhos",
+   "cat": "natureza",
+   "tags": [
+    "cogumelo",
+    "vermelho",
+    "floresta",
+    "tile único"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 30,
+   "nome": "árvore verde com borda de moita (fatia: direita)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "tronco",
+    "moita",
+    "fatia",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 31,
+   "nome": "árvore pequena completa verde isolada",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "verde",
+    "tronco",
+    "tile único"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 7
+   },
+   "solido": true
+  },
+  {
+   "i": 32,
+   "nome": "árvore verde com borda de moita (fatia: esquerda)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "tronco",
+    "moita",
+    "fatia",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 33,
+   "nome": "árvore laranja com borda de moita (fatia: direita)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "outono",
+    "moita",
+    "fatia",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 34,
+   "nome": "árvore pequena completa laranja isolada",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "outono",
+    "tronco",
+    "tile único"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 7
+   },
+   "solido": true
+  },
+  {
+   "i": 35,
+   "nome": "árvore laranja com borda de moita (fatia: esquerda)",
+   "cat": "natureza",
+   "tags": [
+    "árvore",
+    "outono",
+    "moita",
+    "fatia",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 36,
+   "nome": "trilha de terra (autotile: canto interno superior esquerdo)",
+   "cat": "piso",
+   "tags": [
+    "terra",
+    "trilha",
+    "autotile",
+    "canto interno"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 37,
+   "nome": "trilha de terra (autotile: borda inferior com grama)",
+   "cat": "piso",
+   "tags": [
+    "terra",
+    "trilha",
+    "grama",
+    "autotile",
+    "borda"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 38,
+   "nome": "trilha de terra (autotile: canto interno superior direito)",
+   "cat": "piso",
+   "tags": [
+    "terra",
+    "trilha",
+    "autotile",
+    "canto interno"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 39,
+   "nome": "trilha de terra (autotile: canto externo superior esquerdo)",
+   "cat": "piso",
+   "tags": [
+    "terra",
+    "trilha",
+    "autotile",
+    "canto externo"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 40,
+   "nome": "trilha de terra (autotile: canto externo superior direito)",
+   "cat": "piso",
+   "tags": [
+    "terra",
+    "trilha",
+    "autotile",
+    "canto externo"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 41,
+   "nome": "trilha de terra (autotile: canto externo inferior direito)",
+   "cat": "piso",
+   "tags": [
+    "terra",
+    "trilha",
+    "autotile",
+    "canto externo"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 42,
+   "nome": "trilha de terra (autotile: canto externo inferior esquerdo)",
+   "cat": "piso",
+   "tags": [
+    "terra",
+    "trilha",
+    "autotile",
+    "canto externo"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 43,
+   "nome": "piso de pedra circular no gramado",
+   "cat": "piso",
+   "tags": [
+    "pedra",
+    "círculo",
+    "praça",
+    "gramado"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 44,
+   "nome": "cruzamento de cerca de madeira (T abrindo à direita)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "autotile",
+    "junção"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 45,
+   "nome": "cruzamento de cerca de madeira (cruz completa)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "autotile",
+    "cruzamento"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 46,
+   "nome": "cruzamento de cerca de madeira (T abrindo à esquerda)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "autotile",
+    "junção"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 47,
+   "nome": "poste reto de cerca de madeira (vertical)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "poste",
+    "reto",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 48,
+   "nome": "parede de pedra cinza",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "cinza",
+    "textura",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 49,
+   "nome": "parede de pedra cinza (variante)",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "cinza",
+    "textura",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 50,
+   "nome": "parede de pedra cinza (borda direita)",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "cinza",
+    "borda",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 51,
+   "nome": "janela com veneziana em parede de pedra",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "pedra",
+    "veneziana",
+    "cinza"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 52,
+   "nome": "parede de tijolo laranja",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "laranja",
+    "textura",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 53,
+   "nome": "parede de tijolo laranja (variante)",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "laranja",
+    "textura",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 54,
+   "nome": "parede de tijolo laranja (borda direita)",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "laranja",
+    "borda",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 55,
+   "nome": "janela com veneziana em parede de tijolo",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "tijolo",
+    "veneziana",
+    "laranja"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 56,
+   "nome": "poste reto de cerca de madeira (vertical)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "poste",
+    "reto"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 57,
+   "nome": "poço com roldana de madeira",
+   "cat": "decoracao",
+   "tags": [
+    "poço",
+    "madeira",
+    "roldana",
+    "estrutura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 58,
+   "nome": "poste reto de cerca de madeira (vertical, variante)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "poste",
+    "reto"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 59,
+   "nome": "poste reto de cerca de madeira (vertical, variante)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "poste",
+    "reto"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 60,
+   "nome": "parede de pedra cinza com azulejos claros",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "cinza",
+    "textura",
+    "azulejo"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 61,
+   "nome": "parede de pedra cinza com azulejos claros (variante)",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "cinza",
+    "textura",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 62,
+   "nome": "parede de pedra cinza (borda direita, variante)",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "cinza",
+    "borda",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 63,
+   "nome": "telhado cinza, ápice do frontão",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "cinza",
+    "frontão",
+    "ápice"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 64,
+   "nome": "parede de tijolo vermelho (variante)",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "vermelho",
+    "textura",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 65,
+   "nome": "parede de tijolo vermelho (variante 2)",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "vermelho",
+    "textura",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 66,
+   "nome": "parede de tijolo vermelho (borda direita)",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "vermelho",
+    "borda",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 67,
+   "nome": "telhado laranja, ápice do frontão",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "laranja",
+    "frontão",
+    "ápice"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 68,
+   "nome": "curva de cerca de madeira (canto: desce e vira à direita)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "canto",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 69,
+   "nome": "cerca de madeira dupla (segmento reto largo)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "reto",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 70,
+   "nome": "curva de cerca de madeira (canto: desce e vira à esquerda)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "canto",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 71,
+   "nome": "poste reto de cerca de madeira (vertical)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "poste",
+    "reto"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 72,
+   "nome": "parede de madeira marrom",
+   "cat": "parede",
+   "tags": [
+    "madeira",
+    "marrom",
+    "textura",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 73,
+   "nome": "parede de madeira marrom (variante)",
+   "cat": "parede",
+   "tags": [
+    "madeira",
+    "marrom",
+    "textura",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 74,
+   "nome": "arco de entrada em parede de madeira marrom",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "arco",
+    "entrada",
+    "marrom"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 75,
+   "nome": "parede de madeira marrom (borda direita)",
+   "cat": "parede",
+   "tags": [
+    "madeira",
+    "marrom",
+    "borda",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 76,
+   "nome": "parede de pedra azulada",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "azul",
+    "textura",
+    "construção"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 77,
+   "nome": "parede de pedra azulada (variante)",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "azul",
+    "textura",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 78,
+   "nome": "arco de entrada em parede de pedra azulada",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "arco",
+    "entrada",
+    "azul"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 79,
+   "nome": "parede de pedra azulada (borda direita)",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "azul",
+    "borda",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 80,
+   "nome": "cruzamento de cerca de madeira (T abrindo à direita)",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "autotile",
+    "junção"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 81,
+   "nome": "segmento reto horizontal de cerca de madeira",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "reto",
+    "horizontal"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 8
+   },
+   "solido": true
+  },
+  {
+   "i": 82,
+   "nome": "canto de cerca de madeira",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "canto",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 83,
+   "nome": "placa de aviso de madeira",
+   "cat": "sinal",
+   "tags": [
+    "placa",
+    "madeira",
+    "aviso",
+    "sinal"
+   ],
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 84,
+   "nome": "janela dupla em moldura marrom",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "vidro",
+    "marrom",
+    "dupla"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 85,
+   "nome": "porta de madeira em moldura marrom",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "madeira",
+    "marrom",
+    "maçaneta"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 86,
+   "nome": "porta de madeira em moldura marrom (variante escura)",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "madeira",
+    "marrom",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 87,
+   "nome": "porta de madeira em moldura marrom (variante 2)",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "madeira",
+    "marrom",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 88,
+   "nome": "janela dupla em moldura marrom ornamentada",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "vidro",
+    "marrom",
+    "ornamentada"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 89,
+   "nome": "porta de madeira em moldura azulada",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "madeira",
+    "azul",
+    "maçaneta"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 90,
+   "nome": "porta de madeira em moldura azulada (variante)",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "madeira",
+    "azul",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 91,
+   "nome": "porta de madeira em moldura azulada (variante 2)",
+   "cat": "porta",
+   "tags": [
+    "porta",
+    "madeira",
+    "azul",
+    "variante"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 92,
+   "nome": "monte de terra marrom",
+   "cat": "natureza",
+   "tags": [
+    "monte",
+    "terra",
+    "elevação",
+    "natural"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 8
+   },
+   "solido": true
+  },
+  {
+   "i": 93,
+   "nome": "gema dourada",
+   "cat": "item",
+   "tags": [
+    "gema",
+    "moeda",
+    "dourado",
+    "tesouro"
+   ],
+   "opaco": {
+    "w": 10,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 94,
+   "nome": "colmeia de abelhas",
+   "cat": "natureza",
+   "tags": [
+    "colmeia",
+    "abelha",
+    "favo",
+    "amarelo"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 95,
+   "nome": "alvo circular vermelho e branco",
+   "cat": "sinal",
+   "tags": [
+    "alvo",
+    "tiro",
+    "vermelho",
+    "treino"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 96,
+   "nome": "piso de muralha com ameias (autotile: borda esquerda)",
+   "cat": "piso",
+   "tags": [
+    "muralha",
+    "pedra",
+    "ameia",
+    "castelo",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 97,
+   "nome": "piso de muralha com ameias (autotile: meio)",
+   "cat": "piso",
+   "tags": [
+    "muralha",
+    "pedra",
+    "ameia",
+    "castelo",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 98,
+   "nome": "piso de muralha com ameias (autotile: borda direita)",
+   "cat": "piso",
+   "tags": [
+    "muralha",
+    "pedra",
+    "ameia",
+    "castelo",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 99,
+   "nome": "piso de muralha com grade de madeira (autotile: borda esquerda)",
+   "cat": "piso",
+   "tags": [
+    "muralha",
+    "pedra",
+    "grade",
+    "madeira",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 100,
+   "nome": "piso de muralha com grade de madeira (autotile: meio)",
+   "cat": "piso",
+   "tags": [
+    "muralha",
+    "pedra",
+    "grade",
+    "madeira",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 101,
+   "nome": "piso de muralha com grade de madeira (autotile: borda direita)",
+   "cat": "piso",
+   "tags": [
+    "muralha",
+    "pedra",
+    "grade",
+    "madeira",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 102,
+   "nome": "piso de muralha com grade de madeira estreita",
+   "cat": "piso",
+   "tags": [
+    "muralha",
+    "pedra",
+    "grade",
+    "madeira"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 103,
+   "nome": "escada de madeira embutida na parede",
+   "cat": "decoracao",
+   "tags": [
+    "escada",
+    "madeira",
+    "parede",
+    "subir"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 104,
+   "nome": "poço de água com telhado de madeira",
+   "cat": "decoracao",
+   "tags": [
+    "poço",
+    "água",
+    "madeira",
+    "telhado"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 105,
+   "nome": "bola de ferro pendurada",
+   "cat": "item",
+   "tags": [
+    "bola",
+    "ferro",
+    "corrente",
+    "pendurado"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 106,
+   "nome": "baú fechado com fechadura",
+   "cat": "decoracao",
+   "tags": [
+    "baú",
+    "madeira",
+    "fechado",
+    "fechadura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 107,
+   "nome": "baú do tesouro aberto",
+   "cat": "decoracao",
+   "tags": [
+    "baú",
+    "tesouro",
+    "aberto",
+    "madeira"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 108,
+   "nome": "piso claro de interior (autotile: borda esquerda)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "interior",
+    "claro",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 109,
+   "nome": "piso claro de interior (autotile: meio)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "interior",
+    "claro",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 110,
+   "nome": "piso claro de interior (autotile: borda direita)",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "interior",
+    "claro",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 111,
+   "nome": "entrada de caverna rochosa (autotile: superior esquerda)",
+   "cat": "natureza",
+   "tags": [
+    "caverna",
+    "rocha",
+    "entrada",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 112,
+   "nome": "entrada de caverna rochosa (autotile: superior direita)",
+   "cat": "natureza",
+   "tags": [
+    "caverna",
+    "rocha",
+    "entrada",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 113,
+   "nome": "entrada de caverna rochosa (autotile: inferior esquerda)",
+   "cat": "natureza",
+   "tags": [
+    "caverna",
+    "rocha",
+    "entrada",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 114,
+   "nome": "entrada de caverna rochosa (autotile: inferior direita)",
+   "cat": "natureza",
+   "tags": [
+    "caverna",
+    "rocha",
+    "entrada",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 115,
+   "nome": "picareta",
+   "cat": "item",
+   "tags": [
+    "ferramenta",
+    "picareta",
+    "mineração",
+    "madeira"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 116,
+   "nome": "forquilha de jardim",
+   "cat": "item",
+   "tags": [
+    "ferramenta",
+    "forquilha",
+    "jardim",
+    "ancinho"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 117,
+   "nome": "chave dourada",
+   "cat": "item",
+   "tags": [
+    "chave",
+    "dourado",
+    "ferramenta",
+    "tesouro"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 118,
+   "nome": "alaúde (instrumento de corda)",
+   "cat": "item",
+   "tags": [
+    "instrumento",
+    "música",
+    "corda",
+    "madeira"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 119,
+   "nome": "picareta de pedra (variante)",
+   "cat": "item",
+   "tags": [
+    "ferramenta",
+    "picareta",
+    "pedra",
+    "mineração"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 120,
+   "nome": "piso de muralha com ameias, borda inferior (autotile: esquerda)",
+   "cat": "piso",
+   "tags": [
+    "muralha",
+    "pedra",
+    "ameia",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 121,
+   "nome": "piso de muralha com ameias, borda inferior (autotile: meio)",
+   "cat": "piso",
+   "tags": [
+    "muralha",
+    "pedra",
+    "ameia",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 122,
+   "nome": "piso de muralha com ameias, borda inferior (autotile: direita)",
+   "cat": "piso",
+   "tags": [
+    "muralha",
+    "pedra",
+    "ameia",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 123,
+   "nome": "buraco/escada na muralha (fatia: esquerda)",
+   "cat": "decoracao",
+   "tags": [
+    "escada",
+    "buraco",
+    "muralha",
+    "fatia",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 124,
+   "nome": "buraco/escada na muralha (fatia: direita)",
+   "cat": "decoracao",
+   "tags": [
+    "escada",
+    "buraco",
+    "muralha",
+    "fatia",
+    "autotile"
+   ],
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 125,
+   "nome": "janela estreita (seteira) em parede de pedra",
+   "cat": "janela",
+   "tags": [
+    "janela",
+    "seteira",
+    "pedra",
+    "defesa"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 126,
+   "nome": "parede de pedra cinza lisa",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "cinza",
+    "tijolo",
+    "textura"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 127,
+   "nome": "martelo de cabeça redonda",
+   "cat": "item",
+   "tags": [
+    "ferramenta",
+    "martelo",
+    "pedra",
+    "madeira"
+   ],
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 128,
+   "nome": "pá com cabo vermelho",
+   "cat": "item",
+   "tags": [
+    "ferramenta",
+    "pá",
+    "jardim",
+    "cabo"
+   ],
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 129,
+   "nome": "machado",
+   "cat": "item",
+   "tags": [
+    "ferramenta",
+    "machado",
+    "madeira",
+    "corte"
+   ],
+   "opaco": {
+    "w": 13,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 130,
+   "nome": "barril de madeira fechado",
+   "cat": "decoracao",
+   "tags": [
+    "barril",
+    "madeira",
+    "fechado",
+    "alça"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 131,
+   "nome": "barril de madeira com água",
+   "cat": "decoracao",
+   "tags": [
+    "barril",
+    "madeira",
+    "água",
+    "líquido"
+   ],
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  }
+ ]
+}
