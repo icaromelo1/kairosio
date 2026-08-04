@@ -8,6 +8,7 @@ import { ServerMembership } from '../server/server-membership.entity'
 import { JukeboxModule } from '../jukebox/jukebox.module'
 import { DmModule } from '../dm/dm.module'
 import { FriendModule } from '../friend/friend.module'
+import { MapModule } from '../map/map.module'
 import { jwtSecret } from '../auth/jwt-secret'
 
 @Module({
@@ -20,6 +21,7 @@ import { jwtSecret } from '../auth/jwt-secret'
     JukeboxModule,
     DmModule,
     FriendModule,
+    MapModule,
   ],
   providers: [PresenceGateway],
   controllers: [PresenceController],

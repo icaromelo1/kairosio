@@ -15,11 +15,12 @@ import { ServerMembership } from '../server/server-membership.entity'
 import { JukeboxService } from '../jukebox/jukebox.service'
 import { FriendService } from '../friend/friend.service'
 import { DmDelivery } from '../dm/dm-delivery'
+import { MapService } from '../map/map.service'
 import { jwtSecret } from '../auth/jwt-secret'
 
 type MapId = string
 type Facing = 'down' | 'up' | 'left' | 'right'
-type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit'
+type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit' | 'giro' | 'pulo' | 'robo'
 
 interface JukeboxQueueItem {
   trackId: string
@@ -98,6 +99,14 @@ interface WhiteboardState {
   strokes: Stroke[]
 }
 
+interface AreaRect {
+  id: string
+  x: number
+  y: number
+  w: number
+  h: number
+}
+
 const MOVE_MIN_INTERVAL_MS = 50
 const CHAT_MIN_INTERVAL_MS = 500
 const SCREEN_MIN_INTERVAL_MS = 1000
@@ -117,7 +126,7 @@ const COORD_LIMIT = 100000
 const JUKEBOX_ADD_COOLDOWN_MS = 5000
 const JUKEBOX_MAX_QUEUE = 50
 const FACING_VALUES: Facing[] = ['down', 'up', 'left', 'right']
-const POSE_VALUES: Pose[] = ['idle', 'walk', 'dance', 'wave', 'sit']
+const POSE_VALUES: Pose[] = ['idle', 'walk', 'dance', 'wave', 'sit', 'giro', 'pulo', 'robo']
 const HAIR_STYLES = new Set(['short', 'curly', 'ponytail', 'mohawk', 'helmet', 'buzz', 'long'])
 const ACCESSORIES = new Set(['none', 'glasses', 'hat'])
 const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/
@@ -183,6 +192,13 @@ export class PresenceGateway
   private readonly jukebox = new Map<string, JukeboxRoomState>()
   // salas (áreas) trancadas por mapa (servidor:map) — ids de área, alternados por quem está dentro
   private readonly salasTrancadas = new Map<string, Set<string>>()
+  // geometria das áreas por mapa (não por servidor: a forma do mapa é a mesma
+  // pra todo mundo que o usa), carregada sob demanda e mantida em cache — muda raramente
+  private readonly areasPorMapa = new Map<MapId, AreaRect[]>()
+  // área ocupada agora por cada socket, pra só recalcular no passo em que ela muda
+  private readonly areaAtualDoSocket = new Map<string, string | null>()
+  // sudo invisível: some de players/playerJoined/playerMoved/presença pros outros
+  private readonly invisiveis = new Set<string>()
   // hora forçada do mundo por mapa; null/ausente = segue a hora real
   private readonly horaDoMundo = new Map<string, number | null>()
   private readonly whiteboards = new Map<string, WhiteboardState>()
@@ -220,6 +236,7 @@ export class PresenceGateway
     private readonly jukeboxService: JukeboxService,
     private readonly friends: FriendService,
     private readonly dmDelivery: DmDelivery,
+    private readonly mapService: MapService,
   ) {}
 
   // revalidação periódica das memberships de quem está observando: sair de um
@@ -314,8 +331,9 @@ export class PresenceGateway
       // o player ainda ocupa
       this.stopScreenShareFor(player)
       this.players.delete(socket.id)
-      this.server.to(this.room(player.serverId, player.map)).emit('playerLeft', { id: socket.id })
+      this.emitPlayerLeft(player)
       this.emitPresenceLeave(player)
+      this.saiDaAreaAtual(player)
       this.cleanupRoomIfEmpty(player.serverId, player.map)
     }
     const userId = this.socketUserId.get(socket.id)
@@ -346,6 +364,8 @@ export class PresenceGateway
     this.lastFriendWatchAt.delete(socketId)
     this.lastAvatarAt.delete(socketId)
     this.lastJukeboxAddAt.delete(socketId)
+    this.areaAtualDoSocket.delete(socketId)
+    this.invisiveis.delete(socketId)
   }
 
   @SubscribeMessage('join')
@@ -363,10 +383,12 @@ export class PresenceGateway
       this.stopScreenShareFor(existing)
       const oldRoom = this.room(existing.serverId, existing.map)
       socket.leave(oldRoom)
-      this.server.to(oldRoom).emit('playerLeft', { id: socket.id })
+      this.emitPlayerLeft(existing)
       this.players.delete(socket.id)
+      this.saiDaAreaAtual(existing)
       this.cleanupRoomIfEmpty(existing.serverId, existing.map)
     }
+    await this.ensureAreasLoaded(map)
     const player: Player = {
       id: socket.id,
       userId: this.socketUserId.get(socket.id) ?? '',
@@ -381,10 +403,11 @@ export class PresenceGateway
       boost: false,
     }
     this.players.set(socket.id, player)
+    this.areaAtualDoSocket.set(socket.id, this.areaDoPonto(player.map, player.x, player.y))
     const room = this.room(serverId, player.map)
     socket.join(room)
     socket.emit('players', this.peersInRoom(serverId, player.map, socket.id))
-    socket.to(room).emit('playerJoined', player)
+    this.emitPlayerJoined(socket, player, room)
     this.emitActiveJukeboxes(socket, room)
     socket.emit('salaEstado', { trancadas: [...(this.salasTrancadas.get(room) ?? [])] })
     socket.emit('horaDoMundo', { hora: this.horaDoMundo.get(room) ?? null })
@@ -410,14 +433,8 @@ export class PresenceGateway
     if (facing) player.facing = facing
     if (pose) player.pose = pose
     player.boost = !!payload.boost
-    socket.to(this.room(player.serverId, player.map)).emit('playerMoved', {
-      id: socket.id,
-      x: payload.x,
-      y: payload.y,
-      facing: player.facing,
-      pose: player.pose,
-      boost: player.boost,
-    })
+    this.aplicarNovaPosicao(player)
+    this.emitPlayerMoved(socket, player, this.room(player.serverId, player.map))
   }
 
   @SubscribeMessage('chat')
@@ -470,7 +487,7 @@ export class PresenceGateway
   }
 
   @SubscribeMessage('switchMap')
-  handleSwitchMap(socket: Socket, payload: { map: MapId }) {
+  async handleSwitchMap(socket: Socket, payload: { map: MapId }) {
     const player = this.players.get(socket.id)
     const map = String(payload?.map ?? '').slice(0, 64)
     if (!player || !map || player.map === map) return
@@ -478,13 +495,16 @@ export class PresenceGateway
     const oldServerId = player.serverId
     const oldMap = player.map
     socket.leave(this.room(oldServerId, oldMap))
-    this.server.to(this.room(oldServerId, oldMap)).emit('playerLeft', { id: socket.id })
+    this.emitPlayerLeft(player)
+    this.saiDaAreaAtual(player)
     player.map = map
     this.cleanupRoomIfEmpty(oldServerId, oldMap)
+    await this.ensureAreasLoaded(map)
+    this.areaAtualDoSocket.set(socket.id, this.areaDoPonto(player.map, player.x, player.y))
     const room = this.room(player.serverId, player.map)
     socket.join(room)
     socket.emit('players', this.peersInRoom(player.serverId, player.map, socket.id))
-    socket.to(room).emit('playerJoined', player)
+    this.emitPlayerJoined(socket, player, room)
     this.emitActiveJukeboxes(socket, room)
     socket.emit('salaEstado', { trancadas: [...(this.salasTrancadas.get(room) ?? [])] })
     socket.emit('horaDoMundo', { hora: this.horaDoMundo.get(room) ?? null })
@@ -662,7 +682,7 @@ export class PresenceGateway
   private peopleInServer(serverId: string): PresencePerson[] {
     const people: PresencePerson[] = []
     for (const player of this.players.values()) {
-      if (player.serverId === serverId) people.push(this.personOf(player))
+      if (player.serverId === serverId && !this.invisiveis.has(player.id)) people.push(this.personOf(player))
     }
     return people
   }
@@ -670,13 +690,13 @@ export class PresenceGateway
   // o serverId sai SEMPRE do player (derivado do token no handshake), nunca do
   // payload — quem recebe é só quem entrou na sala de presença dele
   private emitPresence(player: Player, type: 'join' | 'update') {
-    if (!player.serverId) return
+    if (!player.serverId || this.invisiveis.has(player.id)) return
     const delta: PresenceDelta = { serverId: player.serverId, type, person: this.personOf(player) }
     this.server.to(this.presenceRoom(player.serverId)).emit('presenceDelta', delta)
   }
 
   private emitPresenceLeave(player: Player) {
-    if (!player.serverId) return
+    if (!player.serverId || this.invisiveis.has(player.id)) return
     const delta: PresenceDelta = { serverId: player.serverId, type: 'leave', id: player.id }
     this.server.to(this.presenceRoom(player.serverId)).emit('presenceDelta', delta)
   }
@@ -782,6 +802,153 @@ export class PresenceGateway
     else trancadas.delete(areaId)
     this.salasTrancadas.set(room, trancadas)
     this.server.to(room).emit('salaEstado', { trancadas: [...trancadas] })
+  }
+
+  // ---- geometria das áreas: cache por mapa, carregado sob demanda ----
+
+  private async ensureAreasLoaded(mapId: MapId): Promise<void> {
+    if (this.areasPorMapa.has(mapId)) return
+    let areas: AreaRect[] = []
+    try {
+      const map = await this.mapService.findOne(mapId)
+      areas = (map.objects as any[])
+        .filter((o) => o && o.kind === 'area' && o.id)
+        .map((o) => ({ id: String(o.id), x: Number(o.x), y: Number(o.y), w: Number(o.w), h: Number(o.h) }))
+    } catch {
+      areas = []
+    }
+    this.areasPorMapa.set(mapId, areas)
+  }
+
+  private areaDoPonto(mapId: MapId, x: number, y: number): string | null {
+    const areas = this.areasPorMapa.get(mapId) ?? []
+    for (const a of areas) {
+      if (x >= a.x && x < a.x + a.w && y >= a.y && y < a.y + a.h) return a.id
+    }
+    return null
+  }
+
+  // recalcula a área do jogador só quando ela muda (o move é frequente) e, ao
+  // sair de uma, dispara o destrancamento se ninguém mais ficou dentro
+  private aplicarNovaPosicao(player: Player) {
+    const novaArea = this.areaDoPonto(player.map, player.x, player.y)
+    const anterior = this.areaAtualDoSocket.get(player.id) ?? null
+    if (novaArea === anterior) return
+    this.areaAtualDoSocket.set(player.id, novaArea)
+    if (anterior) this.destrancarSeVazia(player.serverId, player.map, anterior)
+  }
+
+  // saiu do mapa/desconectou: solta a área que ocupava e verifica o destrancamento
+  private saiDaAreaAtual(player: Player) {
+    const areaId = this.areaAtualDoSocket.get(player.id)
+    this.areaAtualDoSocket.delete(player.id)
+    if (areaId) this.destrancarSeVazia(player.serverId, player.map, areaId)
+  }
+
+  private destrancarSeVazia(serverId: string | null, map: MapId, areaId: string) {
+    const room = this.room(serverId, map)
+    const trancadas = this.salasTrancadas.get(room)
+    if (!trancadas?.has(areaId)) return
+    for (const [socketId, area] of this.areaAtualDoSocket) {
+      if (area !== areaId) continue
+      const p = this.players.get(socketId)
+      if (p && p.serverId === serverId && p.map === map) return
+    }
+    trancadas.delete(areaId)
+    this.server.to(room).emit('salaEstado', { trancadas: [...trancadas] })
+  }
+
+  // ---- broadcasts de presença de mapa, filtrados pra quem está invisível ----
+
+  private emitPlayerLeft(player: Player) {
+    if (this.invisiveis.has(player.id)) return
+    this.server.to(this.room(player.serverId, player.map)).emit('playerLeft', { id: player.id })
+  }
+
+  private emitPlayerJoined(socket: Socket, player: Player, room: string) {
+    if (this.invisiveis.has(player.id)) return
+    socket.to(room).emit('playerJoined', player)
+  }
+
+  private emitPlayerMoved(socket: Socket, player: Player, room: string) {
+    if (this.invisiveis.has(player.id)) return
+    socket.to(room).emit('playerMoved', {
+      id: player.id,
+      x: player.x,
+      y: player.y,
+      facing: player.facing,
+      pose: player.pose,
+      boost: player.boost,
+    })
+  }
+
+  // ---- poderes do sudo: tudo validado no servidor, mesmo padrão de handleJukeboxAlcanceGlobal ----
+
+  @SubscribeMessage('sudoInvisivel')
+  async handleSudoInvisivel(socket: Socket, payload: { on: boolean }) {
+    const player = this.players.get(socket.id)
+    if (!player || typeof payload?.on !== 'boolean') return
+    const userId = this.socketUserId.get(socket.id)
+    if (!userId) return
+    const user = await this.users.findOne({ where: { id: userId } })
+    if (!user?.isSudo) return
+    if (this.invisiveis.has(socket.id) === payload.on) return
+    const room = this.room(player.serverId, player.map)
+    if (payload.on) {
+      socket.to(room).emit('playerLeft', { id: socket.id })
+      this.emitPresenceLeave(player)
+      this.invisiveis.add(socket.id)
+    } else {
+      this.invisiveis.delete(socket.id)
+      socket.to(room).emit('playerJoined', player)
+      this.emitPresence(player, 'join')
+    }
+  }
+
+  @SubscribeMessage('sudoPuxar')
+  async handleSudoPuxar(socket: Socket, payload: { alvoId: string }) {
+    const player = this.players.get(socket.id)
+    const alvoId = typeof payload?.alvoId === 'string' ? payload.alvoId : ''
+    if (!player || !alvoId) return
+    const alvo = this.players.get(alvoId)
+    if (!alvo || alvo.serverId !== player.serverId || alvo.map !== player.map) return
+    const userId = this.socketUserId.get(socket.id)
+    if (!userId) return
+    const user = await this.users.findOne({ where: { id: userId } })
+    if (!user?.isSudo) return
+    alvo.x = player.x
+    alvo.y = player.y
+    this.aplicarNovaPosicao(alvo)
+    const alvoSocket = this.server.sockets.sockets.get(alvoId)
+    alvoSocket?.emit('puxado', { x: alvo.x, y: alvo.y })
+    if (alvoSocket) this.emitPlayerMoved(alvoSocket, alvo, this.room(alvo.serverId, alvo.map))
+  }
+
+  @SubscribeMessage('sudoFesta')
+  async handleSudoFesta(socket: Socket) {
+    const player = this.players.get(socket.id)
+    if (!player) return
+    const userId = this.socketUserId.get(socket.id)
+    if (!userId) return
+    const user = await this.users.findOne({ where: { id: userId } })
+    if (!user?.isSudo) return
+    this.server.to(this.room(player.serverId, player.map)).emit('festa', {})
+  }
+
+  @SubscribeMessage('sudoTeleporte')
+  async handleSudoTeleporte(socket: Socket, payload: { x: number; y: number }) {
+    const player = this.players.get(socket.id)
+    if (!player) return
+    if (typeof payload?.x !== 'number' || !Number.isFinite(payload.x) || Math.abs(payload.x) > COORD_LIMIT) return
+    if (typeof payload?.y !== 'number' || !Number.isFinite(payload.y) || Math.abs(payload.y) > COORD_LIMIT) return
+    const userId = this.socketUserId.get(socket.id)
+    if (!userId) return
+    const user = await this.users.findOne({ where: { id: userId } })
+    if (!user?.isSudo) return
+    player.x = payload.x
+    player.y = payload.y
+    this.aplicarNovaPosicao(player)
+    this.emitPlayerMoved(socket, player, this.room(player.serverId, player.map))
   }
 
   // ---- transmissão de tela: aviso pra sala inteira do MAPA ----
@@ -1125,7 +1292,13 @@ export class PresenceGateway
   private peersInRoom(serverId: string | null, map: MapId, exceptId: string): Player[] {
     const peers: Player[] = []
     for (const player of this.players.values()) {
-      if (player.serverId === serverId && player.map === map && player.id !== exceptId) peers.push(player)
+      if (
+        player.serverId === serverId &&
+        player.map === map &&
+        player.id !== exceptId &&
+        !this.invisiveis.has(player.id)
+      )
+        peers.push(player)
     }
     return peers
   }
