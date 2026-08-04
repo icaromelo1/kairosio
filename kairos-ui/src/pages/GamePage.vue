@@ -114,6 +114,7 @@
             @change="definirHora(horaEditavel)"
           />
           <span class="gp-hud-turbo-val">{{ String(Math.floor(horaEditavel)).padStart(2, '0') }}h</span>
+          <span v-if="horaDoMundo !== null" class="gp-hud-travado">travado</span>
           <button
             v-if="horaDoMundo !== null"
             class="gp-hud-ctl-btn"
@@ -1588,6 +1589,7 @@ onUnmounted(() => {
   color: var(--text-3);
 }
 
+.gp-hud-travado { font-size: 0.625rem; opacity: 0.75; letter-spacing: 0.04em; }
 .gp-sudo-select { flex: 1; min-width: 0; }
 .gp-sudo-pessoas { display: flex; flex-direction: column; gap: var(--sp-4); }
 .gp-sudo-label { font-size: 0.6875rem; opacity: 0.7; }
