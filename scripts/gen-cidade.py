@@ -120,19 +120,25 @@ def bounds(col, row):
 
 
 def sala(ox, oy, largura, altura, area_id, nome, lado="sul", cor=None):
-    porta_x = ox + largura // 2 - 1
+    porta_x = ox + largura // 2 - 2
+    meio_y = oy + altura // 2
     if lado == "sul":
         add("wall", ox, oy, largura, 1, solid=True)
         add("wall", ox, oy + altura - 1, porta_x - ox, 1, solid=True)
-        add("wall", porta_x + 2, oy + altura - 1, ox + largura - (porta_x + 2), 1, solid=True)
-        add("door", porta_x, oy + altura - 1, 2, 1)
+        add("wall", porta_x + 3, oy + altura - 1, ox + largura - (porta_x + 3), 1, solid=True)
+        add("door", porta_x, oy + altura - 1, 3, 1)
     else:
         add("wall", ox, oy + altura - 1, largura, 1, solid=True)
         add("wall", ox, oy, porta_x - ox, 1, solid=True)
-        add("wall", porta_x + 2, oy, ox + largura - (porta_x + 2), 1, solid=True)
-        add("door", porta_x, oy, 2, 1)
-    add("wall", ox, oy + 1, 1, altura - 2, solid=True)
-    add("wall", ox + largura - 1, oy + 1, 1, altura - 2, solid=True)
+        add("wall", porta_x + 3, oy, ox + largura - (porta_x + 3), 1, solid=True)
+        add("door", porta_x, oy, 3, 1)
+    # vao aberto no meio de cada parede lateral — sala deixa de ser cubiculo
+    add("wall", ox, oy + 1, 1, meio_y - oy - 1, solid=True)
+    add("wall", ox, meio_y + 2, 1, oy + altura - meio_y - 3, solid=True)
+    add("door", ox, meio_y, 1, 2)
+    add("wall", ox + largura - 1, oy + 1, 1, meio_y - oy - 1, solid=True)
+    add("wall", ox + largura - 1, meio_y + 2, 1, oy + altura - meio_y - 3, solid=True)
+    add("door", ox + largura - 1, meio_y, 1, 2)
     add("area", ox, oy, largura, altura, id=area_id, name=nome)
     if cor:
         add("panel", ox + 1, oy + 1, largura - 2, altura - 2, color=cor)
@@ -426,35 +432,35 @@ for x0, x1 in AVENUE_V:
 
 predio_duas_salas(0, 0, "prefeitura-reuniao", "Prefeitura — Sala de Reunião", mob_prefeitura_reuniao,
                    "prefeitura-protocolo", "Prefeitura — Protocolo", mob_prefeitura_protocolo,
-                   "prefeitura-saguao", "Prefeitura — Saguão", mob_prefeitura_saguao, "#d9a441")
+                   "prefeitura-saguao", "Prefeitura — Saguão", mob_prefeitura_saguao, "#f0b03c")
 
 predio_duas_salas(1, 0, "biblioteca-leitura", "Biblioteca — Sala de Leitura", mob_biblioteca_leitura,
                    "biblioteca-acervo", "Biblioteca — Acervo", mob_biblioteca_acervo,
-                   "biblioteca-saguao", "Biblioteca — Saguão", mob_biblioteca_saguao, "#b98650")
+                   "biblioteca-saguao", "Biblioteca — Saguão", mob_biblioteca_saguao, "#f0d9a8")
 
 predio_duas_salas(1, 2, "hospital-consultorio", "Hospital — Consultório", mob_hospital_consultorio,
                    "hospital-recepcao", "Hospital — Recepção", mob_hospital_recepcao,
-                   "hospital-saguao", "Hospital — Saguão", mob_hospital_saguao, "#e0716a")
+                   "hospital-saguao", "Hospital — Saguão", mob_hospital_saguao, "#f7c0cf")
 
 predio_duas_salas(2, 0, "banco-atendimento", "Banco — Atendimento", mob_banco_atendimento,
                    "banco-cofre", "Banco — Cofre", mob_banco_cofre,
-                   "banco-saguao", "Banco — Saguão", mob_banco_saguao, "#8fae6b")
+                   "banco-saguao", "Banco — Saguão", mob_banco_saguao, "#b8dcb0")
 
-predio_uma_sala(2, 1, "mercado-armazem", "Mercado — Armazém", "#e0b464", mob_mercado)
+predio_uma_sala(2, 1, "mercado-armazem", "Mercado — Armazém", "#fbe8b0", mob_mercado)
 
 predio_duas_salas(2, 2, "teatro-palco", "Teatro — Palco", mob_teatro_palco,
                    "teatro-coxia", "Teatro — Coxia", mob_teatro_coxia,
-                   "teatro-saguao", "Teatro — Saguão", mob_teatro_saguao, "#c2504a")
+                   "teatro-saguao", "Teatro — Saguão", mob_teatro_saguao, "#f0b8b8")
 
 predio_duas_salas(2, 3, "estacao-hall", "Estação — Hall", mob_estacao_hall,
                    "estacao-bilheteria", "Estação — Bilheteria", mob_estacao_bilheteria,
-                   "estacao-saguao", "Estação — Saguão", mob_estacao_saguao, "#b5603f")
+                   "estacao-saguao", "Estação — Saguão", mob_estacao_saguao, "#c76b45")
 
 predio_duas_salas(3, 1, "escola-sala", "Escola — Sala de Aula", mob_escola_sala,
                    "escola-professores", "Escola — Sala dos Professores", mob_escola_professores,
-                   "escola-saguao", "Escola — Saguão", mob_escola_saguao, "#d98c4a")
+                   "escola-saguao", "Escola — Saguão", mob_escola_saguao, "#ffd9a0")
 
-predio_uma_sala(0, 3, "delegacia-investigacao", "Delegacia — Investigação", "#8a7f6e", mob_delegacia)
+predio_uma_sala(0, 3, "delegacia-investigacao", "Delegacia — Investigação", "#b39b74", mob_delegacia)
 
 co_ox, co_oy, co_largura, co_altura = envelope_de_celula(0, 1)
 co_notch_w, co_notch_h = 8, 6
@@ -471,8 +477,8 @@ add("wall", co_porta_x + 2, co_oy + co_altura - 1, co_ox + co_largura - (co_port
 add("door", co_porta_x, co_oy + co_altura - 1, 2, 1)
 add("area", co_ox + 1, co_oy + co_notch_h + 1, co_largura - 2, co_altura - co_notch_h - 1,
     id="correios-triagem", name="Correios — Triagem")
-add("panel", co_ox + 1, co_oy + 1, co_largura - co_notch_w - 2, co_notch_h - 1, color="#c97b4a")
-add("panel", co_ox + 1, co_oy + co_notch_h + 1, co_largura - 2, co_altura - co_notch_h - 2, color="#c97b4a")
+add("panel", co_ox + 1, co_oy + 1, co_largura - co_notch_w - 2, co_notch_h - 1, color="#f5c9a0")
+add("panel", co_ox + 1, co_oy + co_notch_h + 1, co_largura - 2, co_altura - co_notch_h - 2, color="#f5c9a0")
 
 mob("shelf", co_ox + 2, co_oy + 1.3)
 mob("shelf", co_ox + 3.2, co_oy + 1.3)
@@ -638,6 +644,44 @@ mob("plant", ps_x0 + 9, ps_y0 + 7)
 mob("plant", ps_x0 + 9, ps_y0 + 20)
 mob("column", ps_x0 + 9, ps_y0 + 1)
 
+
+def ruido(x, y, sal=0):
+    n = (x * 73856093) ^ (y * 19349663) ^ (sal * 83492791)
+    return (n >> 8) & 0xFF
+
+
+def jardinar():
+    passo = 6
+    for bx in range(MARGEM + 2, 120 - MARGEM - 3, passo):
+        for by in range(MARGEM + 2, 120 - MARGEM - 3, passo):
+            r = ruido(bx, by)
+            if r % 5 == 0:
+                continue
+            dx, dy = r % 4, ruido(bx, by, 1) % 4
+            fx, fy = bx + dx, by + dy
+            if livre(fx, fy, 2, 2) and r % 3 != 2:
+                add("flower", fx, fy, 2, 2)
+            vx, vy = bx + ruido(bx, by, 2) % 5, by + ruido(bx, by, 3) % 5
+            if livre(vx, vy, 1, 1) and r % 3 == 0:
+                mob("plant", vx, vy)
+            hx, hy = bx + ruido(bx, by, 4) % 4, by + ruido(bx, by, 5) % 4
+            if livre(hx, hy, 2, 1) and r % 7 == 1:
+                mob("hedge", hx, hy)
+
+
+def livre(x, y, w, h):
+    if x < 1 or y < 1 or x + w > 119 or y + h > 119:
+        return False
+    for o in objetos:
+        if o["kind"] in ("area", "grass", "path", "panel", "flower"):
+            continue
+        if x < o["x"] + o["w"] and x + w > o["x"] and y < o["y"] + o["h"] and y + h > o["y"]:
+            return False
+    return True
+
+
+jardinar()
+
 mapa = {
     "id": "cidade",
     "name": "Cidade",
@@ -647,11 +691,11 @@ mapa = {
     "width": 120,
     "height": 120,
     "palette": {
-        "floor": ["#c9b79c", "#bfa987"],
-        "floorTrim": "#8a7f6e",
-        "wall": "#9a8b74",
-        "wallTop": "#b5603f",
-        "accent": "#d9a441",
+        "floor": ["#e9dcbe", "#ded0ae"],
+        "floorTrim": "#b39b74",
+        "wall": "#d9b98a",
+        "wallTop": "#c76b45",
+        "accent": "#f0b03c",
     },
     "spawn": {"x": 41, "y": 44},
     "objects": objetos,
