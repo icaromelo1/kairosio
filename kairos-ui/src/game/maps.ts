@@ -57,6 +57,8 @@ export interface MapObject {
   rotation?: number
   /** Altura desenhada em tiles, ancorada na base. Ausente = usa h (a pegada). */
   hVis?: number
+  /** Área a céu aberto (praça): vale para áudio e jukebox, mas não recebe luz de interior. */
+  aberta?: boolean
   /** Cor de override (cenário). Aceita hex ou rgba(). */
   color?: string
   /** Arte de pixel do objeto customizado (matriz de cores; null = transparente). */
