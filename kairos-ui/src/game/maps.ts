@@ -59,6 +59,8 @@ export interface MapObject {
   hVis?: number
   /** Área a céu aberto (praça): vale para áudio e jukebox, mas não recebe luz de interior. */
   aberta?: boolean
+  /** Pacote de arte a usar neste objeto. Ausente = conjunto SVG oficial. */
+  arte?: string
   /** Cor de override (cenário). Aceita hex ou rgba(). */
   color?: string
   /** Arte de pixel do objeto customizado (matriz de cores; null = transparente). */

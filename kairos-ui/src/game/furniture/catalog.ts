@@ -1,4 +1,4 @@
-import { Graphics, GraphicsContext } from 'pixi.js'
+import { Assets, Graphics, GraphicsContext, Sprite, Texture } from 'pixi.js'
 import type { MapObject } from '../maps'
 
 const svgFiles = import.meta.glob('./svg/*.svg', { query: '?raw', import: 'default', eager: true })
@@ -50,4 +50,48 @@ export function criarSvgGraphics(
   g.scale.set(caixa.w / vb.w, caixa.h / vb.h)
   g.position.set(caixa.x, caixa.y)
   return g
+}
+
+const pngFiles = import.meta.glob('./kenney/*.png', { query: '?url', import: 'default', eager: true })
+
+const PNG_POR_PACK: Record<string, Record<string, string>> = {}
+for (const [path, url] of Object.entries(pngFiles)) {
+  const partes = path.split('/')
+  const pack = partes[1]
+  const kind = partes[2]?.replace(/\.png$/, '')
+  if (!pack || !kind || typeof url !== 'string') continue
+  PNG_POR_PACK[pack] = PNG_POR_PACK[pack] || {}
+  PNG_POR_PACK[pack][kind] = url
+}
+
+export function packsDisponiveis(): string[] {
+  return Object.keys(PNG_POR_PACK)
+}
+
+export async function carregarPacks(): Promise<void> {
+  const urls = Object.values(PNG_POR_PACK).flatMap((m) => Object.values(m))
+  if (!urls.length) return
+  await Assets.load(urls)
+}
+
+export function criarSpriteDoPack(
+  kind: string,
+  pack: string,
+  caixa: { x: number; y: number; w: number; h: number },
+): Sprite | null {
+  const url = PNG_POR_PACK[pack]?.[kind]
+  if (!url) return null
+  let textura: Texture
+  try {
+    textura = Texture.from(url)
+  } catch {
+    return null
+  }
+  if (!textura) return null
+  const s = new Sprite(textura)
+  s.texture.source.scaleMode = 'nearest'
+  s.position.set(caixa.x, caixa.y)
+  s.width = caixa.w
+  s.height = caixa.h
+  return s
 }
