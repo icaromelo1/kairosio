@@ -122,6 +122,8 @@ const BOARD_MAX_STROKES = 300
 const BOARD_MAX_PER_ROOM = 50
 const NAME_MAX = 40
 const AVATAR_MAX_JSON = 2048
+const ESCALA_MIN = 0.4
+const ESCALA_MAX = 3
 const COORD_LIMIT = 100000
 const JUKEBOX_ADD_COOLDOWN_MS = 5000
 const JUKEBOX_MAX_QUEUE = 50
@@ -153,10 +155,13 @@ function sanitizeCoord(raw: unknown, fallback: number): number {
 // só os campos conhecidos do look, cada um validado — e a foto vira o caminho
 // CANÔNICO relativo (/kairos-api/character/photo/<arquivo>), nunca uma URL
 // externa arbitrária repassada pra todo mundo carregar
-function sanitizeAvatar(raw: unknown): Record<string, string | null> {
+function sanitizeAvatar(raw: unknown): Record<string, string | number | null> {
   if (!raw || typeof raw !== 'object' || JSON.stringify(raw).length > AVATAR_MAX_JSON) return {}
   const a = raw as Record<string, unknown>
-  const out: Record<string, string | null> = {}
+  const out: Record<string, string | number | null> = {}
+  if (typeof a.escala === 'number' && Number.isFinite(a.escala)) {
+    out.escala = Math.min(ESCALA_MAX, Math.max(ESCALA_MIN, a.escala))
+  }
   if (HAIR_STYLES.has(String(a.hairStyle))) out.hairStyle = String(a.hairStyle)
   if (ACCESSORIES.has(String(a.accessory))) out.accessory = String(a.accessory)
   for (const key of ['hairColor', 'skin', 'topColor', 'pantsColor'] as const) {
@@ -459,13 +464,15 @@ export class PresenceGateway
   }
 
   @SubscribeMessage('avatarUpdate')
-  handleAvatarUpdate(socket: Socket, payload: { avatar: unknown }) {
+  async handleAvatarUpdate(socket: Socket, payload: { avatar: unknown }) {
     const player = this.players.get(socket.id)
     if (!player) return
     const now = Date.now()
     if (now - (this.lastAvatarAt.get(socket.id) ?? 0) < AVATAR_MIN_INTERVAL_MS) return
     this.lastAvatarAt.set(socket.id, now)
-    player.avatar = sanitizeAvatar(payload?.avatar)
+    const avatar = sanitizeAvatar(payload?.avatar)
+    if (avatar.escala !== undefined && !(await this.ehSudo(socket))) delete avatar.escala
+    player.avatar = avatar
     socket.to(this.room(player.serverId, player.map)).emit('playerAvatar', {
       id: socket.id,
       avatar: player.avatar,
@@ -817,6 +824,13 @@ export class PresenceGateway
   }
 
   // ---- geometria das áreas: cache por mapa, carregado sob demanda ----
+
+  private async ehSudo(socket: Socket): Promise<boolean> {
+    const userId = this.socketUserId.get(socket.id)
+    if (!userId) return false
+    const user = await this.users.findOne({ where: { id: userId } })
+    return !!user?.isSudo
+  }
 
   private async nomeDoUsuario(userId: string): Promise<string> {
     if (!userId) return sanitizeName(null)

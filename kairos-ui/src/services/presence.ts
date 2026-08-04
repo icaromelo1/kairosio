@@ -3,7 +3,7 @@ import { io, type Socket } from 'socket.io-client'
 import type { DmMensagem, DmPerfil } from './dm.api'
 
 export type Facing = 'down' | 'up' | 'left' | 'right'
-export type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit'
+export type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit' | 'giro' | 'pulo' | 'robo'
 
 export interface ChatMessage {
   id: string
@@ -93,6 +93,7 @@ export interface DmEntrega {
 }
 
 export interface AvatarProps {
+  escala?: number
   hairStyle?: string | null
   hairColor?: string | null
   skin?: string | null
@@ -104,7 +105,7 @@ export interface AvatarProps {
 }
 
 interface JoinOptions {
-  name: string
+  name?: string
   avatar: AvatarProps
   map: string
   x: number
