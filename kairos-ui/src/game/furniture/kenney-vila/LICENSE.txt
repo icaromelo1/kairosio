@@ -1,0 +1,4 @@
+Kenney tiny-town — https://kenney.nl/assets/tiny-town
+Licenca: Creative Commons CC0 1.0 Universal (dominio publico).
+Uso comercial permitido, atribuicao nao exigida.
+Tiles recortados na area opaca e renomeados por tipo.
