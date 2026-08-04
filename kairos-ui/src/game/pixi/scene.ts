@@ -59,7 +59,7 @@ export class MapScene {
   private shadowLayer: Container // sombras dos objetos em pé (no chão, não giram)
   private entityLayer: Container // objetos em pé + avatares, ordenados por Y (profundidade)
   private roofLayer: Container
-  private areas: { x: number; y: number; w: number; h: number }[] = []
+  private areas: { x: number; y: number; w: number; h: number; aberta?: boolean }[] = []
   private areaAtual = -1
   private dentroDeCobertura = false
   private pulso = 0
@@ -172,7 +172,8 @@ export class MapScene {
     const M = TILE_PX
     dark.clear()
 
-    const dentro = this.areaAtual >= 0 ? this.areas[this.areaAtual] : null
+    const atual = this.areaAtual >= 0 ? this.areas[this.areaAtual] : null
+    const dentro = atual && !atual.aberta ? atual : null
 
     if (dentro) {
       const ax = dentro.x * TILE_PX
@@ -200,6 +201,7 @@ export class MapScene {
 
     dark.rect(-M, -M, mw + M * 2, mh + M * 2).fill({ color: this.luz.tint, alpha: this.luz.alpha })
     for (const a of this.areas) {
+      if (a.aberta) continue
       dark
         .rect(a.x * TILE_PX, a.y * TILE_PX, a.w * TILE_PX, a.h * TILE_PX)
         .fill({ color: 0x0d1020, alpha: 0.5 })
@@ -325,7 +327,7 @@ export class MapScene {
     const shape = (gg: Graphics) => (circle ? gg.circle(cx, cy, r) : gg.rect(x, y, w, h))
 
     if (o.kind === 'area') {
-      this.areas.push({ x: o.x, y: o.y, w: o.w, h: o.h })
+      this.areas.push({ x: o.x, y: o.y, w: o.w, h: o.h, aberta: o.aberta })
       return
     }
 
