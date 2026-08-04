@@ -583,6 +583,12 @@ export class MapScene {
     return this.avatars.get(id)
   }
 
+  redimensionar() {
+    this.app.resize()
+    this.setZoom(this.zoom)
+    this.minimap.posicionar(this.app.screen.width, this.app.screen.height)
+  }
+
   nomeDaAreaAtual(): string {
     const a = this.areaAtual >= 0 ? this.areas[this.areaAtual] : null
     return a?.nome ?? ''
