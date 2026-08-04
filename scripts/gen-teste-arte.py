@@ -2,22 +2,71 @@
 """Gera o mundo de comparacao de pacotes de arte.
 
 A mesma planta e carimbada uma vez por zona, mudando so o campo `arte` dos
-moveis. Cada zona tem uma placa com o nome do pacote. Imprime o JSON no stdout.
+moveis. O nome do pacote e escrito no chao com uma fonte de 3x5 usando objetos
+`custom`, porque o mapa nao tem tipo de texto e o nome da area nao aparece no
+HUD. Imprime o JSON no stdout.
+
+So entram zonas de pacote REALMENTE instalado — zona sem pacote cairia no SVG e
+renderizaria identica a ele, o que nao compara nada.
 """
 import json
 import os
 
 RAIZ = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CANONICO = json.load(open(os.path.join(RAIZ, "kairos-ui/src/game/furniture/canonico.json")))
+FURNITURE = os.path.join(RAIZ, "kairos-ui/src/game/furniture")
+CANONICO = json.load(open(os.path.join(FURNITURE, "canonico.json")))
 
-ZONAS = [
-    {"id": "svg", "arte": None, "nome": "SVG oficial", "cor": "#c9b79c"},
-    {"id": "kenney", "arte": "kenney", "nome": "Kenney CC0", "cor": "#b9c2a8"},
-    {"id": "lpc", "arte": "lpc", "nome": "LPC (a instalar)", "cor": "#c2b0a8"},
-    {"id": "livre", "arte": "livre", "nome": "Reservado", "cor": "#b0b6c2"},
-]
+FONTE = {
+    "A": ["010", "101", "111", "101", "101"],
+    "C": ["011", "100", "100", "100", "011"],
+    "E": ["111", "100", "110", "100", "111"],
+    "F": ["111", "100", "110", "100", "100"],
+    "G": ["011", "100", "101", "101", "011"],
+    "I": ["111", "010", "010", "010", "111"],
+    "K": ["101", "110", "100", "110", "101"],
+    "L": ["100", "100", "100", "100", "111"],
+    "N": ["101", "111", "111", "111", "101"],
+    "O": ["010", "101", "101", "101", "010"],
+    "P": ["110", "101", "110", "100", "100"],
+    "R": ["110", "101", "110", "101", "101"],
+    "S": ["011", "100", "010", "001", "110"],
+    "T": ["111", "010", "010", "010", "010"],
+    "V": ["101", "101", "101", "101", "010"],
+    "Y": ["101", "101", "010", "010", "010"],
+    "0": ["111", "101", "101", "101", "111"],
+    " ": ["000", "000", "000", "000", "000"],
+}
 
-ZONA_W, ZONA_H = 34, 30
+
+def pixels_do_texto(texto, cor):
+    linhas = ["" for _ in range(5)]
+    for ch in texto.upper():
+        glifo = FONTE.get(ch, FONTE[" "])
+        for i in range(5):
+            linhas[i] += glifo[i] + "0"
+    return [[cor if c == "1" else None for c in linha] for linha in linhas]
+
+
+def pacotes_instalados():
+    achados = []
+    for nome in sorted(os.listdir(FURNITURE)):
+        caminho = os.path.join(FURNITURE, nome)
+        if not os.path.isdir(caminho) or nome in ("svg", "svg-surface"):
+            continue
+        pngs = [f for f in os.listdir(caminho) if f.endswith(".png")]
+        if pngs:
+            achados.append((nome, len(pngs)))
+    return achados
+
+
+ZONAS = [{"id": "svg", "arte": None, "rotulo": "SVG", "cor": "#c9b79c"}]
+for nome, _ in pacotes_instalados():
+    ZONAS.append({"id": nome, "arte": nome, "rotulo": nome, "cor": "#b9c2a8"})
+
+if len(ZONAS) < 2:
+    raise SystemExit("ERRO: nenhum pacote PNG instalado — o mundo compararia o SVG com ele mesmo")
+
+ZONA_W, ZONA_H = 34, 32
 MARGEM = 2
 LARGURA = MARGEM + len(ZONAS) * ZONA_W + MARGEM
 ALTURA = MARGEM + ZONA_H + MARGEM
@@ -55,20 +104,16 @@ def zona(indice, spec):
     oy = MARGEM
     add("panel", ox, oy, ZONA_W - 2, ZONA_H, color=spec["cor"])
     add("area", ox, oy, ZONA_W - 2, ZONA_H, id=f"zona-{spec['id']}",
-        name=spec["nome"], aberta=True)
+        name=spec["rotulo"], aberta=True)
+
+    matriz = pixels_do_texto(spec["rotulo"], "#3b332a")
+    largura_txt = len(matriz[0]) * 0.55
+    add("custom", ox + 2, oy + 1, largura_txt, 3, pixels=matriz)
 
     col_x = [ox + 3, ox + 11, ox + 19, ox + 26]
-    linha_y = oy + 5
-    passo_y = 6
+    linha_y = oy + 7
     for i, kind in enumerate(TIPOS):
-        cx = col_x[i % 4]
-        cy = linha_y + (i // 4) * passo_y
-        mob(kind, cx, cy, spec["arte"])
-
-    add("board", ox + 1, oy + 1, CANONICO["board"]["w"], 1,
-        hVis=CANONICO["board"]["hVis"], name=spec["nome"],
-        action="Comparar pacote", glow="gold",
-        **({"arte": spec["arte"]} if spec["arte"] else {}))
+        mob(kind, col_x[i % 4], linha_y + (i // 4) * 6, spec["arte"])
 
 
 for i, spec in enumerate(ZONAS):
@@ -79,7 +124,7 @@ add("path", MARGEM, ALTURA - MARGEM - 2, LARGURA - MARGEM * 2, 2)
 mapa = {
     "id": "teste-arte",
     "name": "Teste de Arte",
-    "blurb": "Mesma planta em cada pacote de arte, lado a lado",
+    "blurb": "Mesma planta em cada pacote de arte instalado, lado a lado",
     "hours": "sempre",
     "label": "DEBUG",
     "width": LARGURA,
