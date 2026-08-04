@@ -1,4 +1,4 @@
-import { Container, Graphics } from 'pixi.js'
+import { Container, Graphics, Rectangle, type FederatedPointerEvent } from 'pixi.js'
 import type { MapDef, MapObject } from '../maps'
 
 const COR_POR_KIND: Partial<Record<MapObject['kind'], number>> = {
@@ -18,6 +18,7 @@ const COR_VOCE = 0xd9c47a
 const COR_PEER = 0x8c7ae6
 const COR_FALANDO = 0x6be675
 const COR_TRANCADA = 0xd9534f
+const CORES_GRUPO = [0xfb923c, 0x22d3ee, 0x34d399, 0xf472b6, 0xa78bfa, 0xfacc15]
 
 interface AreaGeom {
   id: string
@@ -35,13 +36,29 @@ export class Minimap {
   private largura = 0
   private altura = 0
   private areas: AreaGeom[] = []
+  private cliqueCb: ((x: number, y: number) => void) | null = null
 
   constructor(private ladoMax = 160) {
     this.root = new Container()
     this.root.eventMode = 'none'
+    this.root.cursor = 'default'
     this.base = new Graphics()
     this.pontos = new Graphics()
     this.root.addChild(this.base, this.pontos)
+    this.root.on('pointerdown', (e: FederatedPointerEvent) => {
+      if (!this.cliqueCb) return
+      const local = this.root.toLocal(e.global)
+      this.cliqueCb(local.x / this.escala, local.y / this.escala)
+    })
+  }
+
+  aoClicar(fn: (x: number, y: number) => void) {
+    this.cliqueCb = fn
+  }
+
+  permitirClique(v: boolean) {
+    this.root.eventMode = v ? 'static' : 'none'
+    this.root.cursor = v ? 'pointer' : 'default'
   }
 
   construir(map: MapDef) {
@@ -74,11 +91,13 @@ export class Minimap {
         Math.max(1, o.h * this.escala),
       ).fill({ color: cor, alpha: o.solid ? 0.95 : 0.55 })
     }
+
+    this.root.hitArea = new Rectangle(-3, -3, this.largura + 6, this.altura + 6)
   }
 
   atualizar(
     eu: { x: number; y: number },
-    outros: { x: number; y: number; falando?: boolean }[],
+    outros: { x: number; y: number; falando?: boolean; grupo?: number }[],
     trancadas?: Set<string>,
   ) {
     const g = this.pontos
@@ -89,6 +108,28 @@ export class Minimap {
         if (!trancadas.has(a.id)) continue
         g.rect(a.x * this.escala, a.y * this.escala, a.w * this.escala, a.h * this.escala)
           .stroke({ width: 1.5, color: COR_TRANCADA, alpha: 0.9 })
+      }
+    }
+
+    const porGrupo = new Map<number, { x: number; y: number }[]>()
+    for (const p of outros) {
+      if (p.grupo === undefined || p.grupo === null) continue
+      const lista = porGrupo.get(p.grupo) ?? []
+      lista.push(p)
+      porGrupo.set(p.grupo, lista)
+    }
+    for (const [grupo, pontos] of porGrupo) {
+      if (pontos.length < 2) continue
+      const cor = CORES_GRUPO[Math.abs(grupo) % CORES_GRUPO.length]
+      for (let i = 0; i < pontos.length; i++) {
+        for (let j = i + 1; j < pontos.length; j++) {
+          g.moveTo(pontos[i].x * this.escala, pontos[i].y * this.escala)
+            .lineTo(pontos[j].x * this.escala, pontos[j].y * this.escala)
+            .stroke({ width: 1, color: cor, alpha: 0.45 })
+        }
+      }
+      for (const p of pontos) {
+        g.circle(p.x * this.escala, p.y * this.escala, 4.5).stroke({ width: 1.2, color: cor, alpha: 0.9 })
       }
     }
 
