@@ -1,0 +1,4 @@
+Kenney RPG Urban Pack — https://kenney.nl/assets/rpg-urban-pack
+Licenca: Creative Commons CC0 1.0 Universal (dominio publico).
+Uso comercial permitido, atribuicao nao exigida.
+Tiles recortados do tilemap 16x16 original e renomeados por tipo.
