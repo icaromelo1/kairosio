@@ -1561,8 +1561,8 @@ onUnmounted(() => {
 
 .gp-sudo-panel {
   position: absolute;
-  top: var(--sp-16);
-  right: var(--sp-16);
+  top: 4rem;
+  left: var(--sp-16);
   z-index: 20;
   width: min(14rem, calc(100vw - 2rem));
   max-height: 40vh;
@@ -1657,7 +1657,7 @@ onUnmounted(() => {
 
 .gp-error {
   position: absolute;
-  top: 3.75rem;
+  top: 7rem;
   left: 50%;
   transform: translateX(-50%);
   color: #f87171;
