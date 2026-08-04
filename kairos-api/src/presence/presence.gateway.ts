@@ -142,7 +142,7 @@ function sameSet(a: Set<string> | undefined, b: Set<string>): boolean {
 
 function sanitizeName(raw: unknown): string {
   const name = String(raw ?? '').trim().slice(0, NAME_MAX)
-  return name || 'Convidado'
+  return name || 'Sem nome'
 }
 
 function sanitizeCoord(raw: unknown, fallback: number): number {
@@ -389,10 +389,11 @@ export class PresenceGateway
       this.cleanupRoomIfEmpty(existing.serverId, existing.map)
     }
     await this.ensureAreasLoaded(map)
+    const userId = this.socketUserId.get(socket.id) ?? ''
     const player: Player = {
       id: socket.id,
-      userId: this.socketUserId.get(socket.id) ?? '',
-      name: sanitizeName(payload?.name),
+      userId,
+      name: await this.nomeDoUsuario(userId),
       avatar: sanitizeAvatar(payload?.avatar),
       map,
       serverId,
@@ -458,22 +459,33 @@ export class PresenceGateway
   }
 
   @SubscribeMessage('avatarUpdate')
-  handleAvatarUpdate(socket: Socket, payload: { avatar: unknown; name?: unknown }) {
+  handleAvatarUpdate(socket: Socket, payload: { avatar: unknown }) {
     const player = this.players.get(socket.id)
     if (!player) return
     const now = Date.now()
     if (now - (this.lastAvatarAt.get(socket.id) ?? 0) < AVATAR_MIN_INTERVAL_MS) return
     this.lastAvatarAt.set(socket.id, now)
     player.avatar = sanitizeAvatar(payload?.avatar)
-    const nomeNovo = payload?.name === undefined ? player.name : sanitizeName(payload.name)
-    const nomeMudou = nomeNovo !== player.name
+    socket.to(this.room(player.serverId, player.map)).emit('playerAvatar', {
+      id: socket.id,
+      avatar: player.avatar,
+      name: player.name,
+    })
+  }
+
+  @SubscribeMessage('nomeAtualizado')
+  async handleNomeAtualizado(socket: Socket) {
+    const player = this.players.get(socket.id)
+    if (!player) return
+    const nomeNovo = await this.nomeDoUsuario(player.userId)
+    if (nomeNovo === player.name) return
     player.name = nomeNovo
     socket.to(this.room(player.serverId, player.map)).emit('playerAvatar', {
       id: socket.id,
       avatar: player.avatar,
       name: player.name,
     })
-    if (nomeMudou) this.emitPresence(player, 'update')
+    this.emitPresence(player, 'update')
   }
 
   // relay de sinalização WebRTC 1:1 — só entre players na mesma sala
@@ -805,6 +817,12 @@ export class PresenceGateway
   }
 
   // ---- geometria das áreas: cache por mapa, carregado sob demanda ----
+
+  private async nomeDoUsuario(userId: string): Promise<string> {
+    if (!userId) return sanitizeName(null)
+    const user = await this.users.findOne({ where: { id: userId } })
+    return sanitizeName(user?.username)
+  }
 
   private async ensureAreasLoaded(mapId: MapId): Promise<void> {
     if (this.areasPorMapa.has(mapId)) return
