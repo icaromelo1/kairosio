@@ -37,11 +37,15 @@ export const useAuthStore = defineStore('auth', {
       token,
       userId: p?.sub ?? null,
       email: p?.email ?? null,
+      username: null as string | null,
       isGuest: !!p?.isGuest,
       isAuthenticated: !!token,
     }
   },
   actions: {
+    setUsername(username: string | null) {
+      this.username = username
+    },
     // chamado pelo fluxo de login (Etapa 1) ao receber o JWT do /auth
     setToken(token: string) {
       localStorage.setItem(TOKEN_KEY, token)
@@ -51,6 +55,7 @@ export const useAuthStore = defineStore('auth', {
       this.email = p?.email ?? null
       this.isGuest = !!p?.isGuest
       this.isAuthenticated = true
+      this.username = null
     },
     logout() {
       localStorage.removeItem(TOKEN_KEY)
@@ -59,6 +64,7 @@ export const useAuthStore = defineStore('auth', {
       this.token = null
       this.userId = null
       this.email = null
+      this.username = null
       this.isGuest = false
       this.isAuthenticated = false
     },

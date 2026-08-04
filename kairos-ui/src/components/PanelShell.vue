@@ -1,9 +1,9 @@
 <template>
-  <div class="ps-overlay" @click="emit('close')" @keydown.esc="emit('close')">
+  <div class="ps-overlay" @click="fechar" @keydown.esc="fechar">
     <div class="k-card ps-card" :class="`ps-card-${size}`" @click.stop>
       <header class="ps-head">
         <span class="k-chip"><PixelIcon :name="icon" size="0.6875rem" />{{ title }}</span>
-        <button class="k-btn k-btn-ghost k-btn-sm" @click="emit('close')">
+        <button v-if="!bloqueado" class="k-btn k-btn-ghost k-btn-sm" @click="emit('close')">
           esc<PixelIcon name="close" size="0.75rem" />
         </button>
       </header>
@@ -18,9 +18,16 @@
 <script setup lang="ts">
 import PixelIcon from '@/components/PixelIcon.vue'
 
-withDefaults(defineProps<{ title: string; icon: string; size?: 'md' | 'lg' }>(), { size: 'md' })
+const props = withDefaults(
+  defineProps<{ title: string; icon: string; size?: 'md' | 'lg'; bloqueado?: boolean }>(),
+  { size: 'md', bloqueado: false },
+)
 
 const emit = defineEmits<{ close: [] }>()
+
+function fechar() {
+  if (!props.bloqueado) emit('close')
+}
 </script>
 
 <style scoped>
