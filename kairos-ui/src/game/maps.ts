@@ -55,6 +55,8 @@ export interface MapObject {
   shape?: 'rect' | 'circle'
   /** Rotação visual em graus (0/90/180/270). */
   rotation?: number
+  /** Altura desenhada em tiles, ancorada na base. Ausente = usa h (a pegada). */
+  hVis?: number
   /** Cor de override (cenário). Aceita hex ou rgba(). */
   color?: string
   /** Arte de pixel do objeto customizado (matriz de cores; null = transparente). */
