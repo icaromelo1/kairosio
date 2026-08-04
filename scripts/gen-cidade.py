@@ -24,8 +24,6 @@ ORIGEM_PATH = os.path.join(RAIZ, "kairos-ui/src/game/furniture/kenney/origem.jso
 with open(ORIGEM_PATH) as f:
     ORIGEM_KENNEY = json.load(f)
 
-ALTURA_M = {"tree": 3.90, "hedge": 0.90, "sofa": 0.85, "bench": 0.85, "shelf": 1.90,
-            "table": 0.90, "plant": 0.80, "jukebox": 1.80, "desk": 1.80}
 TILES_POR_M = 2.0 / 1.70
 
 objetos = []
@@ -61,7 +59,7 @@ def add(kind, x, y, w, h, **extra):
 def dims(kind):
     if kind in ORIGEM_KENNEY:
         px_w, px_h = ORIGEM_KENNEY[kind]["px"]
-        hv = round(ALTURA_M[kind] * TILES_POR_M, 2)
+        hv = round(ORIGEM_KENNEY[kind]["alturaM"] * TILES_POR_M, 2)
         return round(hv * (px_w / px_h), 2), CANONICO[kind]["h"], hv
     d = CANONICO[kind]
     return d["w"], d["h"], d["hVis"]
