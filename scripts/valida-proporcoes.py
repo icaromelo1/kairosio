@@ -45,20 +45,25 @@ def validar(mapa, canonico):
             desvios.append(f"{o.get('id', '?')} ({kind}): tamanho invalido {w}x{h}")
             continue
 
-        cw, ch = canonico[kind]["tiles"]
+        alvo = canonico[kind]
+        cw, ch = alvo["w"], alvo["hVis"]
+        hv = float(o.get("hVis", o.get("h", 0)))
+        if hv <= 0:
+            desvios.append(f"{o.get('id', '?')} ({kind}): hVis invalido")
+            continue
         esperado = cw / ch
-        obtido = w / h
+        obtido = w / hv
         if abs(obtido - esperado) / esperado > TOLERANCIA_ASPECTO:
             desvios.append(
-                f"{o.get('id', '?')} ({kind}): {w:g}x{h:g} deforma o desenho "
+                f"{o.get('id', '?')} ({kind}): desenho {w:g}x{hv:g} deforma "
                 f"— canonico {cw}x{ch}, proporcao {esperado:.2f} vs {obtido:.2f}"
             )
             continue
 
-        if w > cw * FATOR_TAMANHO_MAX:
+        if hv > ch * FATOR_TAMANHO_MAX:
             desvios.append(
-                f"{o.get('id', '?')} ({kind}): {w:g}x{h:g} e {w / cw:.1f}x o canonico "
-                f"{cw}x{ch} — grande demais ao lado do avatar"
+                f"{o.get('id', '?')} ({kind}): altura {hv:g} e {hv / ch:.1f}x a canonica "
+                f"{ch} — desproporcional ao avatar (2.0 tiles)"
             )
     return desvios
 

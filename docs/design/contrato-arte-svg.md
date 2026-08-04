@@ -55,7 +55,15 @@ O roxo (`#8c7ae6`) é **só para tela e luz** — não é cor de móvel.
 
 > Acrescentado em 03/08 depois que a mesa de reunião saiu maior que o personagem.
 
-O avatar tem **1 tile de largura e ~1,5 de altura**. Desenhe o móvel na proporção que
+O avatar tem **1,2 tile de largura e 2,0 de altura** (48x80 px com `TILE_PX = 40`),
+medido do código: `UNIT = 4`, cabeça de 2U a 14U em x, pernas até 20U em y.
+
+> Corrigido em 04/08 — a versão anterior dizia "1 x 1,5" de cabeça. Como quase todo
+> móvel canônico tinha `h = 2`, e 2 tiles = 80 px = exatamente a altura do avatar,
+> mesa, cadeira e sofá saíam do tamanho de uma pessoa, a estante com 3x a altura dela
+> e a árvore menor que uma pessoa e meia. A âncora errada contaminou a tabela inteira.
+
+Como referência prática, 1 metro ≈ 1,18 tile. Desenhe o móvel na proporção que
 ele teria ao lado de uma pessoa desse tamanho — não na proporção que "fica bonita"
 isolada no viewBox.
 
@@ -104,6 +112,12 @@ para 40×80px é **comprimida 2× na horizontal** — no piloto ela virou um pos
 Regra corrigida: o `viewBox` reflete a **proporção canônica** do tipo, e o desenho
 preenche esse viewBox. O carregador escala `w/viewBoxW` × `h/viewBoxH`, que na
 proporção canônica é uniforme.
+
+> **Pegada x altura desenhada.** `w` x `h` é a PEGADA de colisão; `hVis` é a altura
+> desenhada, ancorada na base. Sem essa separação, objeto alto bloqueia chão — uma
+> árvore de 4,6 tiles de altura tomaria 4,6 tiles de passagem. O aspecto que não pode
+> deformar é `w : hVis` contra o viewBox, e é isso que `scripts/valida-proporcoes.py`
+> confere. A fonte da verdade é `kairos-ui/src/game/furniture/canonico.json`.
 
 | Tipo | Canônico (tiles) | viewBox |
 |---|---|---|

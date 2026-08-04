@@ -343,7 +343,9 @@ export class MapScene {
       }
     }
 
-    const svgG = o.pixels?.length ? null : criarSvgGraphics(o, { x, y, w, h })
+    const hDesenho = (o.hVis ?? o.h) * TILE_PX
+    const yDesenho = y + h - hDesenho
+    const svgG = o.pixels?.length ? null : criarSvgGraphics(o, { x, y: yDesenho, w, h: hDesenho })
 
     if (svgG) {
       g.addChild(svgG)

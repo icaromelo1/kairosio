@@ -1,17 +1,137 @@
 {
-  "chair":    { "tiles": [1, 2], "viewBox": [50, 100] },
-  "column":   { "tiles": [1, 2], "viewBox": [50, 100] },
-  "plant":    { "tiles": [1, 2], "viewBox": [50, 100] },
-  "lamp":     { "tiles": [1, 1], "viewBox": [100, 100] },
-  "tree":     { "tiles": [3, 3], "viewBox": [100, 100] },
-  "fountain": { "tiles": [4, 4], "viewBox": [100, 100] },
-  "jukebox":  { "tiles": [2, 2], "viewBox": [100, 100] },
-  "bench":    { "tiles": [2, 1], "viewBox": [200, 100] },
-  "desk":     { "tiles": [4, 2], "viewBox": [200, 100] },
-  "servers":  { "tiles": [4, 2], "viewBox": [200, 100] },
-  "table":    { "tiles": [3, 2], "viewBox": [150, 100] },
-  "sofa":     { "tiles": [3, 2], "viewBox": [150, 100] },
-  "board":    { "tiles": [4, 1], "viewBox": [400, 100] },
-  "hedge":    { "tiles": [6, 1], "viewBox": [600, 100] },
-  "shelf":    { "tiles": [2, 6], "viewBox": [33, 100] }
+  "bench": {
+    "w": 2.0,
+    "h": 1,
+    "hVis": 1.0,
+    "viewBox": [
+      200,
+      100
+    ]
+  },
+  "board": {
+    "w": 4.0,
+    "h": 1,
+    "hVis": 1.0,
+    "viewBox": [
+      400,
+      100
+    ]
+  },
+  "chair": {
+    "w": 0.56,
+    "h": 1,
+    "hVis": 1.12,
+    "viewBox": [
+      50,
+      100
+    ]
+  },
+  "column": {
+    "w": 1.71,
+    "h": 1,
+    "hVis": 3.41,
+    "viewBox": [
+      50,
+      100
+    ]
+  },
+  "desk": {
+    "w": 1.76,
+    "h": 1,
+    "hVis": 0.88,
+    "viewBox": [
+      200,
+      100
+    ]
+  },
+  "fountain": {
+    "w": 1.59,
+    "h": 2,
+    "hVis": 1.59,
+    "viewBox": [
+      100,
+      100
+    ]
+  },
+  "hedge": {
+    "w": 5.64,
+    "h": 1,
+    "hVis": 0.94,
+    "viewBox": [
+      600,
+      100
+    ]
+  },
+  "jukebox": {
+    "w": 1.71,
+    "h": 1,
+    "hVis": 1.71,
+    "viewBox": [
+      100,
+      100
+    ]
+  },
+  "lamp": {
+    "w": 2.59,
+    "h": 1,
+    "hVis": 2.59,
+    "viewBox": [
+      100,
+      100
+    ]
+  },
+  "plant": {
+    "w": 0.65,
+    "h": 1,
+    "hVis": 1.29,
+    "viewBox": [
+      50,
+      100
+    ]
+  },
+  "servers": {
+    "w": 4.12,
+    "h": 1,
+    "hVis": 2.06,
+    "viewBox": [
+      200,
+      100
+    ]
+  },
+  "shelf": {
+    "w": 0.74,
+    "h": 1,
+    "hVis": 2.24,
+    "viewBox": [
+      33,
+      100
+    ]
+  },
+  "sofa": {
+    "w": 1.5,
+    "h": 1,
+    "hVis": 1.0,
+    "viewBox": [
+      150,
+      100
+    ]
+  },
+  "table": {
+    "w": 1.32,
+    "h": 1,
+    "hVis": 0.88,
+    "viewBox": [
+      150,
+      100
+    ]
+  },
+  "tree": {
+    "w": 4.59,
+    "h": 2,
+    "hVis": 4.59,
+    "viewBox": [
+      100,
+      100
+    ]
+  }
 }
