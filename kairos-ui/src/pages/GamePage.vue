@@ -27,7 +27,7 @@
     <div class="gp-stage">
       <div
         ref="host" class="gp-canvas-host"
-        :class="panMode ? (panDragging ? 'gp-cursor-grabbing' : 'gp-cursor-grab') : 'gp-cursor-default'"
+        :class="espectadorOuPan ? (panDragging ? 'gp-cursor-grabbing' : 'gp-cursor-grab') : 'gp-cursor-default'"
         @wheel.prevent="onWheel"
         @pointerdown="onPanDown" @pointermove="onPanMove" @pointerup="onPanUp" @pointerleave="onPanUp"
         @contextmenu.prevent
@@ -134,6 +134,54 @@
         <button v-if="salaAtualId" class="gp-hud-lock-btn" @click="toggleSalaTrancada">
           {{ salaTrancada ? 'destrancar sala' : 'trancar sala' }}
         </button>
+        <button v-if="ehSudo" class="gp-hud-ctl-btn" title="poderes de sudo" @click="sudoPanelOpen = !sudoPanelOpen">
+          <PixelIcon name="crown" size="0.75rem" />
+        </button>
+      </div>
+
+      <div v-if="ehSudo && sudoPanelOpen" class="k-card gp-sudo-panel">
+        <div class="row items-center justify-between">
+          <span class="k-chip"><PixelIcon name="crown" size="0.6875rem" />poderes</span>
+          <button class="k-btn k-btn-ghost k-btn-sm" @click="sudoPanelOpen = false">esc<PixelIcon name="close" size="0.75rem" /></button>
+        </div>
+
+        <div class="gp-sudo-row">
+          <button class="k-btn k-btn-ghost k-btn-sm" :class="{ 'k-active': sudoNoclip }" @click="sudoNoclip = !sudoNoclip">
+            <PixelIcon name="zap" size="0.75rem" />noclip
+          </button>
+          <button class="k-btn k-btn-ghost k-btn-sm" :class="{ 'k-active': sudoInvisivel }" @click="alternarInvisivel">
+            <PixelIcon name="eye-off" size="0.75rem" />invisível
+          </button>
+          <button class="k-btn k-btn-ghost k-btn-sm" :class="{ 'k-active': sudoEspectador }" @click="sudoEspectador = !sudoEspectador">
+            <PixelIcon name="eye" size="0.75rem" />espectador
+          </button>
+        </div>
+
+        <label class="gp-sudo-escala">
+          <span>escala</span>
+          <input type="range" min="0.4" max="3" step="0.1" v-model.number="sudoEscala" class="gp-hud-turbo-range" />
+          <span class="gp-sudo-escala-val">{{ sudoEscala.toFixed(1) }}×</span>
+        </label>
+
+        <button class="k-btn k-btn-accent k-btn-sm" @click="dispararFesta">
+          <PixelIcon name="sparkles" size="0.75rem" />festa
+        </button>
+
+        <div class="gp-sudo-row">
+          <button class="k-btn k-btn-ghost k-btn-sm" @click="dancarComo('giro')">girar</button>
+          <button class="k-btn k-btn-ghost k-btn-sm" @click="dancarComo('pulo')">pular</button>
+          <button class="k-btn k-btn-ghost k-btn-sm" @click="dancarComo('robo')">robô</button>
+        </div>
+
+        <div class="gp-sudo-row">
+          <select v-model="itemParaSpawnar" class="k-input gp-sudo-select">
+            <option v-for="i in ITENS_SPAWN" :key="i.kind" :value="i.kind">{{ i.label }}</option>
+          </select>
+          <button class="k-btn k-btn-ghost k-btn-sm" :disabled="spawnando" @click="spawnarItem">
+            {{ spawnando ? 'criando…' : 'spawnar aqui' }}
+          </button>
+        </div>
+        <p v-if="spawnErro" class="gp-sudo-erro">{{ spawnErro }}</p>
       </div>
 
       <!-- Modal de interação -->
@@ -175,7 +223,7 @@
       <WhiteboardPanel v-if="boardOpen" :object-id="boardObjectId" @close="closeModal" />
 
       <ServersPanel v-if="panel === 'servidores'" :invite="panelInvite" @close="closeModal" @server-changed="onServerChanged" />
-      <CharacterPanel v-if="panel === 'personagem'" @close="closeModal" />
+      <CharacterPanel v-if="panel === 'personagem'" :obrigatorio="precisaPersonagem" @close="aoFecharPersonagem" />
       <AdminPanel
         v-if="panel === 'admin'"
         @close="closeModal"
@@ -233,16 +281,24 @@ import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { logoutApi } from '@/services/auth.api'
 import { MapScene } from '@/game/pixi/scene'
-import { AvatarPuppet, sanitizeLook, type AvatarLook, type Facing } from '@/game/pixi/avatar'
+import { AvatarPuppet, sanitizeLook, type AvatarLook, type Facing, type Pose as AvatarPose } from '@/game/pixi/avatar'
+import type { Minimap } from '@/game/pixi/minimap'
 import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
-import { fetchMaps } from '@/services/maps.api'
+import { fetchMaps, saveMap } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
-import { connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat, estadoDoJukebox, salasTrancadas, emitSalaTrancar, horaDoMundo, emitDefinirHora, emitScreenShare, onScreenShare, sessionKicked, syncDmUnread, type AvatarProps, type ChatMessage, type ScreenShareState } from '@/services/presence'
+import {
+  connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat,
+  estadoDoJukebox, salasTrancadas, emitSalaTrancar, horaDoMundo, emitDefinirHora, emitScreenShare,
+  onScreenShare, sessionKicked, syncDmUnread, emitAvatarUpdate,
+  sudoInvisivel, sudoNoclip, sudoEspectador, sudoEscala,
+  emitSudoInvisivel, emitSudoFesta, emitSudoTeleporte, onPuxado, onFesta,
+  type AvatarProps, type ChatMessage, type ScreenShareState,
+} from '@/services/presence'
 import { media } from '@/services/media'
 import { ganhoDoPeer, salaDoPonto } from '@/game/audio/espacial'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
-import { panelFromQuery, type GamePanel } from '@/services/postAuth'
+import { precisaCriarPersonagem, panelFromQuery, type GamePanel } from '@/services/postAuth'
 import { estadoDeLuz } from '@/game/lighting'
 import { me } from '@/services/auth.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
@@ -309,7 +365,53 @@ const look = computed<AvatarLook>(() => ({
 // URL pública da foto (mesma pra todo mundo) — vai junto no avatar broadcast pro resto da sala
 const myPhotoUrl = computed(() => (characterStore.photoFile ? photoUrl(characterStore.photoFile) : null))
 const joinAvatarPayload = computed(() => ({ ...look.value, photoUrl: myPhotoUrl.value }))
-const playerName = computed(() => characterStore.name || 'Convidado')
+const playerName = computed(() => auth.username || 'Sem nome')
+const precisaPersonagem = ref(false)
+
+const ITENS_SPAWN = [
+  { kind: 'plant', label: 'planta', w: 1, h: 1, solid: true },
+  { kind: 'flower', label: 'flor', w: 1, h: 1, solid: false },
+  { kind: 'tree', label: 'árvore', w: 2, h: 2, solid: true },
+  { kind: 'bench', label: 'banco', w: 2, h: 1, solid: true },
+  { kind: 'desk', label: 'mesa', w: 2, h: 1, solid: true },
+  { kind: 'rug', label: 'tapete', w: 2, h: 2, solid: false },
+] as const
+
+const itemParaSpawnar = ref<(typeof ITENS_SPAWN)[number]['kind']>('plant')
+const spawnando = ref(false)
+const spawnErro = ref('')
+
+async function spawnarItem() {
+  const map = currentMap.value
+  const modelo = ITENS_SPAWN.find((i) => i.kind === itemParaSpawnar.value)
+  if (!map || !modelo || spawnando.value) return
+  spawnando.value = true
+  spawnErro.value = ''
+  try {
+    const objeto = {
+      id: crypto.randomUUID(),
+      kind: modelo.kind,
+      x: Math.round(pos.x),
+      y: Math.round(pos.y),
+      w: modelo.w,
+      h: modelo.h,
+      solid: modelo.solid,
+    }
+    const salvo = await saveMap(map.id, { objects: [...map.objects, objeto] })
+    const i = maps.value.findIndex((m) => m.id === map.id)
+    if (i >= 0) maps.value[i] = salvo
+    scene?.setMap(salvo)
+  } catch {
+    spawnErro.value = 'Não deu pra criar o item aqui.'
+  } finally {
+    spawnando.value = false
+  }
+}
+
+function aoFecharPersonagem() {
+  precisaPersonagem.value = false
+  closeModal()
+}
 const currentMap = computed(() => maps.value.find((m) => m.id === currentId.value))
 const roomPeers = computed(() => [...remotePlayers.values()].filter((p) => !p.map || p.map === currentId.value))
 
@@ -328,6 +430,8 @@ const hudVisible = ref(localStorage.getItem('kairos_hud') !== 'off')
 const horario = ref(estadoDeLuz().estagio)
 const ehSudo = ref(false)
 const horaEditavel = ref(12)
+const sudoPanelOpen = ref(false)
+const danceStyle = ref<AvatarPose>('dance')
 
 function aplicarLuzDoMundo() {
   const h = horaDoMundo.value ?? undefined
@@ -481,7 +585,7 @@ async function reconnectVoice() {
   await media.reconnect(currentId.value)
 }
 
-const lastSent = { facing: 'down' as Facing, pose: 'idle' as 'idle' | 'walk' | 'dance' | 'wave' | 'sit', boost: false }
+const lastSent = { facing: 'down' as Facing, pose: 'idle' as AvatarPose, boost: false }
 // ids dos avatares remotos presentes na cena
 const peerIds = new Set<string>()
 
@@ -499,7 +603,7 @@ function onKeyDown(e: KeyboardEvent) {
   const voiceKey = k === 'v' && !e.ctrlKey && !e.metaKey && !e.altKey
   if (voiceKey || ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'e', 'b', 'g', 'h', 'escape'].includes(k)) e.preventDefault()
   if (k === 'e') { tryInteract(); return }
-  if (k === 'b') { dancing = !dancing; return }
+  if (k === 'b') { dancing = !dancing; danceStyle.value = 'dance'; return }
   if (k === 'g') { emote(); return }
   if (k === 'h') { hudVisible.value = !hudVisible.value; scene?.mostrarMinimapa(hudVisible.value); return }
   if (voiceKey) { toggleMediaStage(); return }
@@ -584,11 +688,12 @@ function onKeyUp(e: KeyboardEvent) {
 
 // ---- pan da câmera (B3.3): Espaço + arrastar com o botão esquerdo ----
 const panMode = ref(false) // Espaço pressionado = "modo olhar"
+const espectadorOuPan = computed(() => panMode.value || sudoEspectador.value)
 let panDragging = false
 let panLastX = 0
 let panLastY = 0
 function onPanDown(e: PointerEvent) {
-  if (!panMode.value || e.button !== 0) return
+  if (!espectadorOuPan.value || e.button !== 0) return
   panDragging = true
   panLastX = e.clientX
   panLastY = e.clientY
@@ -655,6 +760,7 @@ function closeModal() {
   friendsOpen.value = false
   dmOpen.value = false
   dmFriendId.value = ''
+  sudoPanelOpen.value = false
 }
 
 function openPanel(next: GamePanel, invite = '') {
@@ -728,7 +834,7 @@ async function onServerChanged(_serverId?: string, mapId?: string) {
     disconnectPresence()
     // o histórico é da sala do servidor anterior
     messages.splice(0)
-    connectPresence({ name: playerName.value, avatar: joinAvatarPayload.value, map: target.id, x: pos.x, y: pos.y })
+    connectPresence({ avatar: joinAvatarPayload.value, map: target.id, x: pos.x, y: pos.y })
     void sidebar.value?.reloadServers()
     void enterVoice(target.id, true)
   } catch (e) {
@@ -792,6 +898,75 @@ function jukeboxAtiva(map: MapDef): MapObject | null {
   return escolhida
 }
 
+function dentroDosLimites(map: MapDef, x: number, y: number): boolean {
+  return x >= 1 && y >= 1 && x <= map.width - 2 && y <= map.height - 2
+}
+
+function minimapDoScene(): Minimap | null {
+  return scene?.minimap ?? null
+}
+
+function aoClicarMinimapa(x: number, y: number) {
+  if (!ehSudo.value) return
+  pos.x = x
+  pos.y = y
+  emitSudoTeleporte(x, y)
+}
+
+function alternarInvisivel() {
+  sudoInvisivel.value = !sudoInvisivel.value
+  emitSudoInvisivel(sudoInvisivel.value)
+}
+
+const AVATAR_UPDATE_THROTTLE_MS = 1000
+let lastAvatarUpdateEmit = 0
+let avatarUpdateTimer = 0
+
+function emitEscalaAoServidor(v: number) {
+  const enviar = () => {
+    lastAvatarUpdateEmit = Date.now()
+    const payload = { ...joinAvatarPayload.value, escala: v }
+    emitAvatarUpdate(payload)
+  }
+  const decorrido = Date.now() - lastAvatarUpdateEmit
+  if (decorrido >= AVATAR_UPDATE_THROTTLE_MS) {
+    enviar()
+    return
+  }
+  window.clearTimeout(avatarUpdateTimer)
+  avatarUpdateTimer = window.setTimeout(enviar, AVATAR_UPDATE_THROTTLE_MS - decorrido)
+}
+
+watch(sudoEscala, (v) => {
+  scene?.avatar('me')?.setEscala(v)
+  emitEscalaAoServidor(v)
+})
+watch(sudoInvisivel, (v) => scene?.avatar('me')?.setOculto(v))
+watch(ehSudo, (v) => minimapDoScene()?.permitirClique(v))
+
+const FESTA_DURACAO_MS = 5000
+let festaTimer = 0
+
+function aplicarFesta() {
+  window.clearTimeout(festaTimer)
+  dancing = true
+  danceStyle.value = 'dance'
+  festaTimer = window.setTimeout(() => { dancing = false }, FESTA_DURACAO_MS)
+}
+
+function dispararFesta() {
+  emitSudoFesta()
+  aplicarFesta()
+}
+
+function dancarComo(estilo: 'giro' | 'pulo' | 'robo') {
+  dancing = true
+  danceStyle.value = estilo
+}
+
+let offPuxado: (() => void) | null = null
+let offFesta: (() => void) | null = null
+
 onMounted(async () => {
   const asked = panelFromQuery(route.query)
   const invite = route.query.invite
@@ -804,8 +979,18 @@ onMounted(async () => {
   if (savedZoom) scene.setZoom(savedZoom)
   scene.addAvatar('me', new AvatarPuppet(look.value))
   scene.avatar('me')?.setPhoto(myPhotoUrl.value)
+  minimapDoScene()?.aoClicar(aoClicarMinimapa)
   relogioLuz = window.setInterval(aplicarLuzDoMundo, 30_000)
-  me().then((p) => { ehSudo.value = p.isAdmin }).catch(() => { ehSudo.value = false })
+  me()
+    .then((p) => {
+      ehSudo.value = p.isAdmin
+      auth.setUsername(p.username ?? null)
+      void precisaCriarPersonagem().then((v) => {
+        precisaPersonagem.value = v
+        if (v) openPanel('personagem')
+      })
+    })
+    .catch(() => { ehSudo.value = false })
 
   try {
     maps.value = await fetchMaps()
@@ -827,7 +1012,7 @@ onMounted(async () => {
     if (!first) { error.value = 'Nenhum mundo disponível'; return }
     selectMap(first.id)
     if (savedPos) { pos.x = savedPos.x; pos.y = savedPos.y }
-    connectPresence({ name: playerName.value, avatar: joinAvatarPayload.value, map: first.id, x: pos.x, y: pos.y })
+    connectPresence({ avatar: joinAvatarPayload.value, map: first.id, x: pos.x, y: pos.y })
     // a barra lateral já montou (e já pediu a lista de servidores) antes do
     // socket existir: o observador de presença só cola agora
     sidebar.value?.syncPresence()
@@ -839,6 +1024,8 @@ onMounted(async () => {
   window.addEventListener('keyup', onKeyUp)
   window.addEventListener('blur', clearKeys)
   offScreenShare = onScreenShare(onScreenShareState)
+  offPuxado = onPuxado(({ x, y }) => { pos.x = x; pos.y = y })
+  offFesta = onFesta(aplicarFesta)
   stateTimer = window.setInterval(persistState, 15000)
 
   scene.app.ticker.add((ticker) => {
@@ -854,7 +1041,7 @@ onMounted(async () => {
     // Espaço (modo olhar/pan) congela o personagem — só a câmera se move.
     // Sessão derrubada (aberta em outro lugar) também congela — não faz
     // sentido continuar "andando" localmente já desconectado da sala.
-    if (!gameStore.isModalOpen && !panMode.value && !sessionKicked.value) {
+    if (!gameStore.isModalOpen && !espectadorOuPan.value && !sessionKicked.value) {
       const sp = 5 * dt * (onWater(map, pos.x, pos.y) ? 0.5 : 1) * (boosting ? turboMult.value : 1)
       if (keys.has('w') || keys.has('arrowup')) dy -= sp
       if (keys.has('s') || keys.has('arrowdown')) dy += sp
@@ -879,8 +1066,14 @@ onMounted(async () => {
       // escape: se o tile ATUAL já é sólido (sentou/spawnou dentro), libera o
       // movimento — regra anti-travamento, nunca deixa o personagem preso
       const stuck = isSolid(map, Math.floor(pos.x), Math.floor(pos.y), salasTrancadas.value, salaAtual)
-      if ((stuck || !isSolid(map, Math.floor(nx), Math.floor(pos.y), salasTrancadas.value, salaAtual)) && !peerBlocks(nx, pos.y, pos.x, pos.y)) pos.x = nx
-      if ((stuck || !isSolid(map, Math.floor(pos.x), Math.floor(ny), salasTrancadas.value, salaAtual)) && !peerBlocks(pos.x, ny, pos.x, pos.y)) pos.y = ny
+      const liberaX = sudoNoclip.value
+        ? dentroDosLimites(map, Math.floor(nx), Math.floor(pos.y))
+        : (stuck || !isSolid(map, Math.floor(nx), Math.floor(pos.y), salasTrancadas.value, salaAtual))
+      const liberaY = sudoNoclip.value
+        ? dentroDosLimites(map, Math.floor(pos.x), Math.floor(ny))
+        : (stuck || !isSolid(map, Math.floor(pos.x), Math.floor(ny), salasTrancadas.value, salaAtual))
+      if (liberaX && !peerBlocks(nx, pos.y, pos.x, pos.y)) pos.x = nx
+      if (liberaY && !peerBlocks(pos.x, ny, pos.x, pos.y)) pos.y = ny
     }
     scene.posicionarLuzDoJogador(pos.x, pos.y)
     scene.atualizarMinimapa(
@@ -895,7 +1088,7 @@ onMounted(async () => {
 
     const onCart = boosting && moving
     const emoting = Date.now() < emoteUntil
-    const pose: 'idle' | 'walk' | 'dance' | 'wave' | 'sit' = sitting ? 'sit' : moving ? 'walk' : emoting ? 'wave' : dancing ? 'dance' : 'idle'
+    const pose: AvatarPose = sitting ? 'sit' : moving ? 'walk' : emoting ? 'wave' : dancing ? danceStyle.value : 'idle'
     // emite estado quando se move ou quando pose/direção/boost mudam (dança parado conta)
     if (moving || pose !== lastSent.pose || facing !== lastSent.facing || onCart !== lastSent.boost) {
       emitMove(pos.x, pos.y, facing, pose, onCart)
@@ -977,6 +1170,8 @@ function syncRemotes(dt: number, map: MapDef) {
     p.setFacing(peer.facing || 'down')
     p.setPose(peer.pose || 'idle')
     p.setBoost(!!peer.boost)
+    p.setName(peer.name)
+    p.setEscala((peer.avatar as AvatarProps)?.escala ?? 1)
     p.update(dt)
     scene.placeAvatar(peer.id, peer.x, peer.y)
   }
@@ -1008,6 +1203,12 @@ onUnmounted(() => {
   clearTimeout(chatCooldownTimer)
   offScreenShare?.()
   offScreenShare = null
+  offPuxado?.()
+  offPuxado = null
+  offFesta?.()
+  offFesta = null
+  window.clearTimeout(festaTimer)
+  window.clearTimeout(avatarUpdateTimer)
   for (const timer of screenNoticeTimers) clearTimeout(timer)
   screenNoticeTimers.clear()
   persistState()
@@ -1338,6 +1539,44 @@ onUnmounted(() => {
   text-transform: uppercase;
 }
 .gp-hud-lock-btn:hover { color: var(--text); border-color: var(--text-3); }
+
+.gp-sudo-panel {
+  position: absolute;
+  top: var(--sp-16);
+  right: var(--sp-16);
+  z-index: 20;
+  width: min(14rem, calc(100vw - 2rem));
+  max-height: 40vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-12);
+  padding: var(--sp-12);
+}
+
+.gp-sudo-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-6);
+}
+
+.gp-sudo-row .k-btn { flex: 1 1 auto; }
+
+.gp-sudo-escala {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-8);
+  font-size: 0.75rem;
+  color: var(--text-3);
+}
+
+.gp-sudo-select { flex: 1; min-width: 0; }
+.gp-sudo-erro { color: var(--k-danger, #d9534f); font-size: 0.75rem; margin: 0; }
+.gp-sudo-escala-val {
+  font-family: var(--f-mono);
+  min-width: 2.4rem;
+  text-align: right;
+}
 
 .gp-modal-overlay {
   position: absolute;
