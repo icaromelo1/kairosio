@@ -40,7 +40,7 @@ export function horaCanonica(agora = new Date()): number {
   return h + m / 60
 }
 
-function lerpCor(a: number, b: number, t: number): number {
+export function lerpCor(a: number, b: number, t: number): number {
   const ar = (a >> 16) & 0xff
   const ag = (a >> 8) & 0xff
   const ab = a & 0xff
