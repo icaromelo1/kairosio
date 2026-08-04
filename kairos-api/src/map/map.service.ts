@@ -1,6 +1,6 @@
 import { ForbiddenException, Injectable, NotFoundException, OnModuleInit } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { IsNull, Repository } from 'typeorm'
+import { In, IsNull, Not, Repository } from 'typeorm'
 import { GameMap } from './game-map.entity'
 import { CreateMapDto, UpdateMapDto } from './map.dto'
 import { SEED_MAPS } from './seed-maps'
@@ -34,12 +34,21 @@ export class MapService implements OnModuleInit {
 
   // semeia os mapas oficiais e garante que sejam templates globais (sem servidor, visíveis a todos)
   async onModuleInit() {
-    const count = await this.repo.count({ where: { ownerId: IsNull() } })
-    if (count === 0) {
-      await this.repo.save(SEED_MAPS.map((m) => ({ ...m, ownerId: null })))
+    const oficiais = SEED_MAPS.map((m) => m.id)
+    for (const m of SEED_MAPS) {
+      const existe = await this.repo.count({ where: { id: m.id } })
+      if (existe === 0) await this.repo.save({ ...m, ownerId: null })
     }
     // mundos oficiais (sem dono) = templates
-    await this.repo.update({ ownerId: IsNull() }, { isTemplate: true, serverId: null })
+    await this.repo.update(
+      { ownerId: IsNull(), id: In(oficiais) },
+      { isTemplate: true, serverId: null },
+    )
+    // oficiais que saíram do seed deixam de aparecer, mas o registro fica no banco
+    await this.repo.update(
+      { ownerId: IsNull(), id: Not(In(oficiais)) },
+      { isTemplate: false },
+    )
   }
 
   // visível ao usuário: templates globais + mundos do servidor dele
