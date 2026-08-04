@@ -35,9 +35,11 @@ export class MapService implements OnModuleInit {
   // semeia os mapas oficiais e garante que sejam templates globais (sem servidor, visíveis a todos)
   async onModuleInit() {
     const oficiais = SEED_MAPS.map((m) => m.id)
+    // mundo oficial nunca é editável no jogo (update/remove recusam), então
+    // sobrescrever a partir do seed não descarta trabalho de ninguém — e é o
+    // que faz correção de mundo oficial chegar em produção
     for (const m of SEED_MAPS) {
-      const existe = await this.repo.count({ where: { id: m.id } })
-      if (existe === 0) await this.repo.save({ ...m, ownerId: null })
+      await this.repo.save({ ...m, ownerId: null })
     }
     // mundos oficiais (sem dono) = templates
     await this.repo.update(
