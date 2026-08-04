@@ -1,0 +1,5 @@
+Kenney RPG Urban Pack + Roguelike Modern City
+https://kenney.nl/assets/rpg-urban-pack | https://kenney.nl/assets/roguelike-modern-city
+Licenca: Creative Commons CC0 1.0 Universal (dominio publico).
+Uso comercial permitido, atribuicao nao exigida.
+Sprites compostos a partir de multiplos tiles quando o objeto ocupa mais de um.

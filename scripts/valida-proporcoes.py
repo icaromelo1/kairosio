@@ -20,6 +20,17 @@ TOLERANCIA_ASPECTO = 0.02
 FATOR_TAMANHO_MAX = 2.0
 
 
+def carregar_origens():
+    base = os.path.join(RAIZ, "kairos-ui/src/game/furniture")
+    out = {}
+    for nome in sorted(os.listdir(base)):
+        caminho = os.path.join(base, nome, "origem.json")
+        if os.path.exists(caminho):
+            with open(caminho) as f:
+                out[nome] = json.load(f)
+    return out
+
+
 def carregar_canonico():
     if not os.path.exists(CANONICO):
         sys.exit(f"ERRO: fonte canonica ausente em {CANONICO}")
@@ -30,7 +41,7 @@ def carregar_canonico():
     return dados
 
 
-def validar(mapa, canonico):
+def validar(mapa, canonico, origens_por_pack):
     desvios = []
     objetos = mapa.get("objects", [])
     if not objetos:
@@ -45,8 +56,17 @@ def validar(mapa, canonico):
             desvios.append(f"{o.get('id', '?')} ({kind}): tamanho invalido {w}x{h}")
             continue
 
-        alvo = canonico[kind]
-        cw, ch = alvo["w"], alvo["hVis"]
+        arte = o.get("arte")
+        if arte and arte in origens_por_pack:
+            origem = origens_por_pack[arte].get(kind)
+            if not origem:
+                desvios.append(f"{o.get('id', '?')} ({kind}): pacote {arte} nao tem esse tipo")
+                continue
+            px_w, px_h = origem["px"]
+            cw, ch = px_w / px_h, 1.0
+        else:
+            alvo = canonico[kind]
+            cw, ch = alvo["w"], alvo["hVis"]
         hv = float(o.get("hVis", o.get("h", 0)))
         if hv <= 0:
             desvios.append(f"{o.get('id', '?')} ({kind}): hVis invalido")
@@ -60,7 +80,7 @@ def validar(mapa, canonico):
             )
             continue
 
-        if hv > ch * FATOR_TAMANHO_MAX:
+        if not arte and hv > ch * FATOR_TAMANHO_MAX:
             desvios.append(
                 f"{o.get('id', '?')} ({kind}): altura {hv:g} e {hv / ch:.1f}x a canonica "
                 f"{ch} — desproporcional ao avatar (2.0 tiles)"
@@ -76,7 +96,7 @@ def main():
     mapa = json.loads(bruto)
 
     canonico = carregar_canonico()
-    desvios = validar(mapa, canonico)
+    desvios = validar(mapa, canonico, carregar_origens())
 
     total = len(mapa.get("objects", []))
     if desvios:

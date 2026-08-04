@@ -52,7 +52,7 @@ export function criarSvgGraphics(
   return g
 }
 
-const pngFiles = import.meta.glob('./kenney-*/*.png', { query: '?url', import: 'default', eager: true })
+const pngFiles = import.meta.glob('./kenney/*.png', { query: '?url', import: 'default', eager: true })
 
 const PNG_POR_PACK: Record<string, Record<string, string>> = {}
 for (const [path, url] of Object.entries(pngFiles)) {
