@@ -39,6 +39,7 @@
         </div>
         <div class="column gp-hud-tight">
           <span class="gp-hud-name">{{ playerName }}</span>
+          <span v-if="nomeDaSala" class="gp-hud-sala">{{ nomeDaSala }}</span>
           <span class="gp-hud-mapname">● {{ currentMap?.name || '…' }}</span>
           <span class="gp-hud-hora">{{ horario }}</span>
         </div>
@@ -377,6 +378,7 @@ const myPhotoUrl = computed(() => (characterStore.photoFile ? photoUrl(character
 const joinAvatarPayload = computed(() => ({ ...look.value, photoUrl: myPhotoUrl.value }))
 const playerName = computed(() => auth.username || 'Sem nome')
 const precisaPersonagem = ref(false)
+const nomeDaSala = ref('')
 
 const ITENS_SPAWN = [
   { kind: 'plant', label: 'planta', w: 1, h: 1, solid: true },
@@ -1127,6 +1129,8 @@ onMounted(async () => {
     scene.placeAvatar('me', pos.x, pos.y)
     scene.follow(pos.x, pos.y)
     scene.cull()
+    const sala = scene.nomeDaAreaAtual()
+    if (sala !== nomeDaSala.value) nomeDaSala.value = sala
 
     // ---- avatares remotos ----
     syncRemotes(dt, map)
@@ -1589,6 +1593,12 @@ onUnmounted(() => {
   color: var(--text-3);
 }
 
+.gp-hud-sala {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin-right: var(--sp-8);
+}
 .gp-hud-travado { font-size: 0.625rem; opacity: 0.75; letter-spacing: 0.04em; }
 .gp-sudo-select { flex: 1; min-width: 0; }
 .gp-sudo-pessoas { display: flex; flex-direction: column; gap: var(--sp-4); }

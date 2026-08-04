@@ -59,7 +59,7 @@ export class MapScene {
   private shadowLayer: Container // sombras dos objetos em pé (no chão, não giram)
   private entityLayer: Container // objetos em pé + avatares, ordenados por Y (profundidade)
   private roofLayer: Container
-  private areas: { x: number; y: number; w: number; h: number; aberta?: boolean }[] = []
+  private areas: { x: number; y: number; w: number; h: number; aberta?: boolean; nome?: string }[] = []
   private areaAtual = -1
   private dentroDeCobertura = false
   private pulso = 0
@@ -328,7 +328,7 @@ export class MapScene {
     const shape = (gg: Graphics) => (circle ? gg.circle(cx, cy, r) : gg.rect(x, y, w, h))
 
     if (o.kind === 'area') {
-      this.areas.push({ x: o.x, y: o.y, w: o.w, h: o.h, aberta: o.aberta })
+      this.areas.push({ x: o.x, y: o.y, w: o.w, h: o.h, aberta: o.aberta, nome: o.name })
       return
     }
 
@@ -430,15 +430,15 @@ export class MapScene {
       if (sombraPropria) {
         const sh = new Graphics()
         const alturaTiles = (o.hVis ?? o.h) || 1
-        const desloc = Math.min(0.55, alturaTiles * 0.11) * TILE_PX
+        const desloc = Math.min(0.30, alturaTiles * 0.06) * TILE_PX
         const base = o.kind === 'tree' ? r * 1.05 : w * 0.42
         const rx = base * (1 + alturaTiles * 0.05)
         const ry = Math.max(4, h * 0.14) * (1 + alturaTiles * 0.03)
         const px = cx + desloc * SOL_X
         const py = y + h + desloc * SOL_Y
-        const alpha = Math.max(0.09, 0.24 - alturaTiles * 0.018)
-        sh.ellipse(px, py, rx * 1.28, ry * 1.28).fill({ color: 0x000000, alpha: alpha * 0.42 })
-        sh.ellipse(px, py, rx, ry).fill({ color: 0x000000, alpha })
+        const alpha = Math.max(0.05, 0.14 - alturaTiles * 0.012)
+        sh.ellipse(px, py, rx * 1.35, ry * 1.35).fill({ color: 0x1e2a17, alpha: alpha * 0.35 })
+        sh.ellipse(px, py, rx, ry).fill({ color: 0x1e2a17, alpha })
         this.shadowLayer.addChild(sh)
       }
       // billboard ancorado na BASE; vai pra entityLayer ordenada por Y
@@ -581,6 +581,11 @@ export class MapScene {
 
   avatar(id: string): AvatarPuppet | undefined {
     return this.avatars.get(id)
+  }
+
+  nomeDaAreaAtual(): string {
+    const a = this.areaAtual >= 0 ? this.areas[this.areaAtual] : null
+    return a?.nome ?? ''
   }
 
   /** Posiciona um avatar em coordenadas de TILE (float). */
