@@ -431,12 +431,13 @@ export function emitChat(text: string) {
   socket?.emit('chat', { text })
 }
 
-export function emitAvatarUpdate(avatar: AvatarProps, name?: string) {
-  if (currentJoin) {
-    currentJoin.avatar = avatar
-    if (name !== undefined) currentJoin.name = name
-  }
-  socket?.emit('avatarUpdate', name === undefined ? { avatar } : { avatar, name })
+export function emitAvatarUpdate(avatar: AvatarProps) {
+  if (currentJoin) currentJoin.avatar = avatar
+  socket?.emit('avatarUpdate', { avatar })
+}
+
+export function emitNomeAtualizado() {
+  socket?.emit('nomeAtualizado')
 }
 
 export function emitMove(x: number, y: number, facing: Facing, pose: Pose, boost = false) {

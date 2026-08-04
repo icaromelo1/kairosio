@@ -3,7 +3,6 @@ import { apiFetch } from './http'
 import type { HairStyle, Accessory } from '@/stores/useCharacterStore'
 
 export interface CharacterData {
-  name: string
   hairStyle: HairStyle
   hairColor: string
   skin: string

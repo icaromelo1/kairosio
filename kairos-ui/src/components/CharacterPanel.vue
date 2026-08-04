@@ -13,18 +13,10 @@
             :accessory="characterStore.accessory"
           />
         </div>
-        <input
-          v-model.trim="characterStore.name"
-          class="k-input cp-name"
-          type="text"
-          maxlength="20"
-          placeholder="Seu nome..."
-        />
-
-        <div v-if="!auth.isGuest" class="cp-handle">
+        <div class="cp-handle">
           <span class="cp-eyebrow">seu @nome</span>
           <p class="cp-handle-hint">
-            É por ele que te encontram nos amigos. O nome de cima é o que flutua sobre o avatar.
+            É como você aparece no mundo, sobre o avatar e na lista de amigos.
           </p>
 
           <div class="cp-handle-row">
@@ -186,6 +178,7 @@ import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import PixiAvatarPreview from '@/components/PixiAvatarPreview.vue'
 import { useCharacterStore, type HairStyle } from '@/stores/useCharacterStore'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { emitNomeAtualizado } from '@/services/presence'
 import { getCharacter, saveCharacter, uploadPhoto, removePhoto, photoUrl } from '@/services/character.api'
 import { changeUsername, me, UsernameError } from '@/services/auth.api'
 
@@ -220,7 +213,6 @@ onMounted(async () => {
   if (!auth.isAuthenticated) return
   const saved = await getCharacter()
   if (saved && saved.hairStyle) characterStore.$patch(saved)
-  if (auth.isGuest) return
   try {
     const perfil = await me()
     handleAtual.value = perfil.username ?? ''
@@ -242,6 +234,7 @@ async function salvarHandle() {
     handle.value = view.username ?? ''
     proximaTrocaEm.value = view.proximaTrocaEm
     handleOk.value = `Pronto: agora você é @${view.username}.`
+    emitNomeAtualizado()
   } catch (e) {
     if (e instanceof UsernameError) {
       handleErro.value = e.message
@@ -258,8 +251,7 @@ async function save() {
   if (auth.isAuthenticated) {
     saving.value = true
     await saveCharacter({
-      name: characterStore.name,
-      hairStyle: characterStore.hairStyle,
+        hairStyle: characterStore.hairStyle,
       hairColor: characterStore.hairColor,
       skin: characterStore.skin,
       topColor: characterStore.topColor,
@@ -371,7 +363,6 @@ const ACCESSORIES = [
   background: radial-gradient(ellipse at center, var(--primary-glow) 0%, transparent 70%);
 }
 
-.cp-name { text-align: center; }
 
 .cp-handle {
   display: flex;
