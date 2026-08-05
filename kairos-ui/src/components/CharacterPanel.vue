@@ -60,84 +60,17 @@
           >{{ tab.label }}</button>
         </div>
 
-        <div v-if="activeTab === 'hair'" class="cp-tab-content">
-          <div class="cp-label">Estilo</div>
-          <div class="cp-hair-grid">
+        <div v-if="activeTab === 'avatar'" class="cp-tab-content">
+          <div class="cp-label">Personagem</div>
+          <div class="cp-preset-grid">
             <button
-              v-for="style in HAIR_STYLES" :key="style.id"
-              class="cp-hair" :class="{ 'k-active': characterStore.hairStyle === style.id }"
-              @click="characterStore.hairStyle = style.id"
+              v-for="preset in AVATAR_PRESETS" :key="preset.id"
+              class="cp-preset" :class="{ 'k-active': characterStore.hairStyle === preset.id }"
+              @click="characterStore.hairStyle = preset.id"
             >
-              <PixelAvatar
-                :scale="2"
-                :bobbing="false"
-                :shadow="false"
-                :hairStyle="style.id"
-                :hairColor="characterStore.hairColor"
-                :skin="characterStore.skin"
-                :topColor="characterStore.topColor"
-                :pantsColor="characterStore.pantsColor"
-              />
-              <span class="cp-hair-label">{{ style.label }}</span>
+              <img class="pixelated cp-preset-thumb" :src="avatarSpriteUrl(preset.id, 'baixo', 0)" :alt="preset.nome" />
+              <span class="cp-hair-label">{{ preset.nome }}</span>
             </button>
-          </div>
-
-          <div class="cp-label">Cor do cabelo</div>
-          <div class="cp-swatches">
-            <button
-              v-for="color in HAIR_COLORS" :key="color"
-              class="k-swatch" :class="{ 'k-active': characterStore.hairColor === color }"
-              :style="{ background: color }"
-              :aria-label="`cor de cabelo ${color}`"
-              @click="characterStore.hairColor = color"
-            />
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'skin'" class="cp-tab-content">
-          <div class="cp-label">Tom de pele</div>
-          <div class="cp-swatches">
-            <button
-              v-for="color in SKIN_TONES" :key="color"
-              class="k-swatch k-swatch-lg" :class="{ 'k-active': characterStore.skin === color }"
-              :style="{ background: color }"
-              :aria-label="`tom de pele ${color}`"
-              @click="characterStore.skin = color"
-            />
-          </div>
-        </div>
-
-        <div v-if="activeTab === 'outfit'" class="cp-tab-content">
-          <div class="cp-label">Cor da camisa</div>
-          <div class="cp-swatches">
-            <button
-              v-for="color in TOP_COLORS" :key="color"
-              class="k-swatch k-swatch-lg" :class="{ 'k-active': characterStore.topColor === color }"
-              :style="{ background: color }"
-              :aria-label="`cor da camisa ${color}`"
-              @click="characterStore.topColor = color"
-            />
-          </div>
-
-          <div class="cp-label">Cor da calça</div>
-          <div class="cp-swatches">
-            <button
-              v-for="color in PANTS_COLORS" :key="color"
-              class="k-swatch k-swatch-lg" :class="{ 'k-active': characterStore.pantsColor === color }"
-              :style="{ background: color }"
-              :aria-label="`cor da calça ${color}`"
-              @click="characterStore.pantsColor = color"
-            />
-          </div>
-
-          <div class="cp-label">Acessório</div>
-          <div class="cp-swatches">
-            <button
-              v-for="a in ACCESSORIES" :key="a.id"
-              class="k-btn k-btn-ghost k-btn-xs"
-              :class="{ 'k-active': characterStore.accessory === a.id }"
-              @click="characterStore.accessory = a.id"
-            >{{ a.label }}</button>
           </div>
         </div>
 
@@ -174,9 +107,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import PanelShell from '@/components/PanelShell.vue'
-import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import PixiAvatarPreview from '@/components/PixiAvatarPreview.vue'
-import { useCharacterStore, type HairStyle } from '@/stores/useCharacterStore'
+import { AVATAR_PRESETS, avatarSpriteUrl } from '@/game/pixi/avatar'
+import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { emitNomeAtualizado } from '@/services/presence'
 import { getCharacter, saveCharacter, uploadPhoto, removePhoto, photoUrl } from '@/services/character.api'
@@ -189,7 +122,7 @@ const emit = defineEmits<{ close: [] }>()
 const characterStore = useCharacterStore()
 const auth = useAuthStore()
 
-const activeTab = ref<'hair' | 'skin' | 'outfit' | 'photo'>('hair')
+const activeTab = ref<'avatar' | 'photo'>('avatar')
 const saving = ref(false)
 
 const handle = ref('')
@@ -289,48 +222,9 @@ async function onRemovePhoto() {
 }
 
 const TABS = [
-  { id: 'hair', label: 'Cabelo' },
-  { id: 'skin', label: 'Pele' },
-  { id: 'outfit', label: 'Roupa' },
+  { id: 'avatar', label: 'Avatar' },
   { id: 'photo', label: 'Foto' },
 ] as const
-
-const HAIR_STYLES: { id: HairStyle; label: string }[] = [
-  { id: 'short', label: 'short' },
-  { id: 'curly', label: 'curly' },
-  { id: 'ponytail', label: 'ponytail' },
-  { id: 'mohawk', label: 'mohawk' },
-  { id: 'helmet', label: 'helmet' },
-  { id: 'buzz', label: 'buzz' },
-  { id: 'long', label: 'long' },
-]
-
-const HAIR_COLORS = [
-  '#1a1a1a', '#3d2817', '#6b3410', '#a0522d', '#d4a259',
-  '#f4d35e', '#c2185b', '#7b1fa2', '#1565c0', '#cfd8dc',
-  '#e84393', '#00b894', '#fd79a8', '#6c5ce7', '#b2bec3',
-]
-
-const SKIN_TONES = [
-  '#ffe0bd', '#f4d4ba', '#e8b894', '#d9a066', '#c98c68',
-  '#9c6b3f', '#7a5230', '#6b4226', '#4e3320', '#3e2718',
-]
-
-const TOP_COLORS = [
-  '#7c3aed', '#22d3ee', '#34d399', '#fbbf24', '#f87171', '#e8e8f0',
-  '#ec4899', '#f97316', '#84cc16', '#0ea5e9', '#1e293b', '#a855f7',
-]
-
-const PANTS_COLORS = [
-  '#1f2937', '#3b3b4a', '#4c1d95', '#0f766e', '#7f1d1d', '#92400e',
-  '#0c4a6e', '#365314', '#831843', '#111827', '#5b21b6', '#78350f',
-]
-
-const ACCESSORIES = [
-  { id: 'none' as const, label: 'Nenhum' },
-  { id: 'glasses' as const, label: 'Óculos' },
-  { id: 'hat' as const, label: 'Chapéu' },
-]
 </script>
 
 <style scoped>
@@ -449,13 +343,13 @@ const ACCESSORIES = [
   text-transform: uppercase;
 }
 
-.cp-hair-grid {
+.cp-preset-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(3.75rem, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(4.5rem, 1fr));
   gap: 0.375rem;
 }
 
-.cp-hair {
+.cp-preset {
   appearance: none;
   background: var(--bg-3);
   border: 0.125rem solid transparent;
@@ -466,7 +360,13 @@ const ACCESSORIES = [
   gap: 0.25rem;
   padding: 0.375rem 0.25rem;
 }
-.cp-hair:hover:not(.k-active) { border-color: var(--border-strong); }
+.cp-preset:hover:not(.k-active) { border-color: var(--border-strong); }
+
+.cp-preset-thumb {
+  width: 2.5rem;
+  height: 2.5rem;
+  object-fit: contain;
+}
 
 .cp-hair-label {
   font-family: var(--f-pixel);
