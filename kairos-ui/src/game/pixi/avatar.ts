@@ -55,6 +55,8 @@ export type Facing = 'down' | 'up' | 'left' | 'right'
 export type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit' | 'giro' | 'pulo' | 'robo'
 
 const UNIT = 6
+
+const ESCALA_BASE = 0.8
 const BODY_SIZE = 16 * UNIT
 
 const ACCESSORIES: NonNullable<AvatarLook['accessory']>[] = ['none', 'glasses', 'hat']
@@ -142,6 +144,7 @@ export class AvatarPuppet {
 
     this.root.pivot.set(8 * UNIT, 20 * UNIT)
     this.root.addChild(this.nameLabel)
+    this.updateRootScale()
   }
 
   private cartBack?: Container
@@ -216,8 +219,9 @@ export class AvatarPuppet {
   }
 
   private updateRootScale() {
-    this.root.scale.set(this.mirror * this.escala, this.escala)
-    this.nameLabel.scale.set(this.mirror / this.escala, 1 / this.escala)
+    const efetiva = this.escala * ESCALA_BASE
+    this.root.scale.set(this.mirror * efetiva, efetiva)
+    this.nameLabel.scale.set(this.mirror / efetiva, 1 / efetiva)
   }
 
   setOculto(v: boolean) {
