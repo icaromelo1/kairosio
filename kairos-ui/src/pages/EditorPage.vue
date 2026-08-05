@@ -484,8 +484,8 @@ onUnmounted(() => {
   z-index: 110;
   width: 2.25rem;
   height: 2.25rem;
-  background: rgba(13, 13, 20, 0.85);
-  border: 0.0625rem solid var(--bg-0);
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
   color: var(--text);
   cursor: pointer;
   border-radius: 0.25rem;

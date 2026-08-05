@@ -101,44 +101,91 @@
         </template>
       </div>
 
-      <!-- Controles do HUD: o botão fica sempre visível, senão não há como voltar -->
+      <!-- HUD separada por escopo: MUNDO (azul, sudo, escreve pra todos) em cima,
+           EU (verde, só o meu avatar) embaixo. Largura travada e slot condicional
+           com fantasma, senão a barra muda de tamanho sozinha. -->
       <div class="gp-hud gp-hud-ctl">
-        <button class="gp-hud-ctl-btn" :title="hudVisible ? 'esconder dicas (H)' : 'mostrar dicas (H)'" @click="hudVisible = !hudVisible">
-          <PixelIcon :name="hudVisible ? 'chevron-down' : 'chevron-up'" size="0.75rem" />
-        </button>
-        <label v-if="hudVisible && ehSudo" class="gp-hud-turbo" title="hora do mundo — vale para todos">
-          <span class="k-key">☀</span>
-          <input
-            v-model.number="horaEditavel" type="range"
-            min="0" max="23.5" step="0.5"
-            class="gp-hud-turbo-range"
-            @change="definirHora(horaEditavel)"
-          />
-          <span class="gp-hud-turbo-val">{{ String(Math.floor(horaEditavel)).padStart(2, '0') }}h</span>
-          <span v-if="horaDoMundo !== null" class="gp-hud-travado">travado</span>
-          <button
-            v-if="horaDoMundo !== null"
-            class="gp-hud-ctl-btn"
-            title="voltar a seguir a hora real"
-            @click="definirHora(null)"
-          >auto</button>
-        </label>
+        <ClusterCard v-if="hudVisible && ehSudo" titulo="mundo · afeta todos" nota="sudo" escopo="mundo">
+          <div class="gp-hud-linha">
+            <div class="gp-hud-campo">
+              <div class="gp-hud-topo">
+                <span class="k-label gp-hud-cap">☀ hora do mundo</span>
+                <span class="k-num">{{ horaLabel }}</span>
+              </div>
+              <NotchStepper
+                v-model="horaEditavel" :min="0" :max="23.5" :step="0.5" :entalhes="24"
+                rotulo="hora do mundo" :disabled="horaDoMundo === null && false"
+                @commit="definirHora"
+              />
+            </div>
+            <div class="gp-hud-campo gp-hud-slot">
+              <span class="k-label gp-hud-cap">trava</span>
+              <button
+                class="k-btn k-btn-sm gp-hud-full"
+                :class="{ 'k-active': horaDoMundo !== null }"
+                :title="horaDoMundo !== null ? 'voltar a seguir a hora real' : 'travar a hora atual para todos'"
+                @click="definirHora(horaDoMundo !== null ? null : horaEditavel)"
+              >{{ horaDoMundo !== null ? 'auto' : 'travar' }}</button>
+            </div>
+          </div>
+        </ClusterCard>
 
-        <label v-if="hudVisible" class="gp-hud-turbo">
-          <span class="k-key">⇧</span>
-          <input
-            v-model.number="turboMult" type="range"
-            :min="TURBO_MIN" :max="TURBO_MAX" step="0.1"
-            class="gp-hud-turbo-range"
-          />
-          <span class="gp-hud-turbo-val">{{ turboMult.toFixed(1) }}×</span>
-        </label>
-        <button v-if="salaAtualId" class="gp-hud-lock-btn" @click="toggleSalaTrancada">
-          {{ salaTrancada ? 'destrancar sala' : 'trancar sala' }}
-        </button>
-        <button v-if="ehSudo" class="gp-hud-ctl-btn" title="poderes de sudo" @click="sudoPanelOpen = !sudoPanelOpen">
-          <PixelIcon name="crown" size="0.75rem" />
-        </button>
+        <ClusterCard titulo="eu · só meu avatar" nota="h recolhe" escopo="eu">
+          <template v-if="hudVisible">
+            <div class="gp-hud-linha">
+              <div class="gp-hud-campo">
+                <div class="gp-hud-topo">
+                  <span class="k-label gp-hud-cap">⇧ turbo</span>
+                  <span class="k-num">{{ turboMult.toFixed(1) }}×</span>
+                </div>
+                <NotchStepper
+                  v-model="turboMult" :min="TURBO_MIN" :max="TURBO_MAX" :step="0.1" :entalhes="9"
+                  rotulo="velocidade turbo"
+                />
+              </div>
+              <div class="gp-hud-campo gp-hud-slot">
+                <span class="k-label gp-hud-cap">sala</span>
+                <button
+                  v-if="salaAtualId"
+                  class="k-btn k-btn-sm gp-hud-full"
+                  :class="{ 'k-active': salaTrancada }"
+                  @click="toggleSalaTrancada"
+                >{{ salaTrancada ? 'destrancar' : 'trancar' }}</button>
+                <GhostSlot v-else label="fora de sala" />
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <div class="gp-hud-recolhido">
+              <span v-if="ehSudo" class="k-badge k-badge-info">{{ horaLabel }}</span>
+              <span class="k-badge k-badge-dim">{{ turboMult.toFixed(1) }}×</span>
+            </div>
+          </template>
+
+          <template #rodape>
+            <button class="gp-hud-rodape" :title="hudVisible ? 'esconder dicas (H)' : 'mostrar dicas (H)'" @click="hudVisible = !hudVisible">
+              <PixelIcon :name="hudVisible ? 'chevron-up' : 'chevron-down'" size="0.75rem" />dicas
+            </button>
+            <button class="gp-hud-rodape" title="atalhos do teclado" @click="atalhosAbertos = !atalhosAbertos">atalhos ?</button>
+            <button
+              v-if="ehSudo"
+              class="gp-hud-rodape gp-hud-coroa" :class="{ 'gp-hud-rodape-on': sudoPanelOpen }"
+              title="poderes de sudo" @click="sudoPanelOpen = !sudoPanelOpen"
+            ><PixelIcon name="crown" size="0.75rem" /></button>
+          </template>
+        </ClusterCard>
+
+        <AtivosBar v-if="ehSudo" :itens="poderesAtivos" @desligar="desligarPoder" />
+      </div>
+
+      <div v-if="atalhosAbertos" class="k-card gp-atalhos">
+        <div class="row items-center justify-between">
+          <span class="k-chip">atalhos</span>
+          <button class="k-btn k-btn-ghost k-btn-sm" @click="atalhosAbertos = false">esc<PixelIcon name="close" size="0.75rem" /></button>
+        </div>
+        <ul class="gp-atalhos-lista">
+          <li v-for="a in ATALHOS" :key="a.tecla"><span class="k-key">{{ a.tecla }}</span>{{ a.oque }}</li>
+        </ul>
       </div>
 
       <div v-if="ehSudo && sudoPanelOpen" class="k-card gp-sudo-panel">
@@ -147,50 +194,61 @@
           <button class="k-btn k-btn-ghost k-btn-sm" @click="sudoPanelOpen = false">esc<PixelIcon name="close" size="0.75rem" /></button>
         </div>
 
-        <div class="gp-sudo-row">
-          <button class="k-btn k-btn-ghost k-btn-sm" :class="{ 'k-active': sudoNoclip }" @click="sudoNoclip = !sudoNoclip">
-            <PixelIcon name="zap" size="0.75rem" />noclip
-          </button>
-          <button class="k-btn k-btn-ghost k-btn-sm" :class="{ 'k-active': sudoInvisivel }" @click="alternarInvisivel">
-            <PixelIcon name="eye-off" size="0.75rem" />invisível
-          </button>
-          <button class="k-btn k-btn-ghost k-btn-sm" :class="{ 'k-active': sudoEspectador }" @click="sudoEspectador = !sudoEspectador">
-            <PixelIcon name="eye" size="0.75rem" />espectador
-          </button>
+        <!-- 1 · reversível: liga e desliga, sem consequência que sobreviva -->
+        <span class="k-label gp-sudo-grupo">1 · reversível</span>
+        <ToggleRow v-model="sudoNoclip" label="noclip" hint="atravessa paredes" />
+        <ToggleRow :model-value="sudoInvisivel" label="invisível" hint="some do mapa, do minimapa e da lista" @update:model-value="alternarInvisivel" />
+        <ToggleRow v-model="sudoEspectador" label="espectador" hint="câmera livre, sem avatar no mapa" />
+
+        <div class="gp-hud-topo">
+          <span class="k-label gp-hud-cap">escala</span>
+          <span class="k-num">{{ sudoEscala.toFixed(1) }}×</span>
         </div>
+        <NotchStepper v-model="sudoEscala" :min="0.4" :max="3" :step="0.1" :entalhes="14" rotulo="escala do avatar" />
 
-        <label class="gp-sudo-escala">
-          <span>escala</span>
-          <input type="range" min="0.4" max="3" step="0.1" v-model.number="sudoEscala" class="gp-hud-turbo-range" />
-          <span class="gp-sudo-escala-val">{{ sudoEscala.toFixed(1) }}×</span>
-        </label>
+        <div class="k-divider" />
 
-        <button class="k-btn k-btn-accent k-btn-sm" @click="dispararFesta">
+        <!-- 2 · efêmero: roda uma animação e acaba -->
+        <span class="k-label gp-sudo-grupo">2 · efêmero</span>
+        <button class="k-btn k-btn-accent k-btn-sm gp-hud-full" @click="dispararFesta">
           <PixelIcon name="sparkles" size="0.75rem" />festa
         </button>
-
         <div class="gp-sudo-row">
           <button class="k-btn k-btn-ghost k-btn-sm" @click="dancarComo('giro')">girar</button>
           <button class="k-btn k-btn-ghost k-btn-sm" @click="dancarComo('pulo')">pular</button>
           <button class="k-btn k-btn-ghost k-btn-sm" @click="dancarComo('robo')">robô</button>
         </div>
 
-        <div class="gp-sudo-row">
-          <select v-model="itemParaSpawnar" class="k-input gp-sudo-select">
-            <option v-for="i in ITENS_SPAWN" :key="i.kind" :value="i.kind">{{ i.label }}</option>
-          </select>
-          <button class="k-btn k-btn-ghost k-btn-sm" :disabled="spawnando" @click="spawnarItem">
-            {{ spawnando ? 'criando…' : 'spawnar aqui' }}
-          </button>
+        <!-- 3 · permanente: escreve no mapa pra todos e não desfaz. sai da caixa
+             creme de propósito — não pode parecer igual a ligar noclip -->
+        <div class="k-perigo">
+          <div class="k-perigo-faixa" />
+          <span class="k-label gp-sudo-perigo-tit">3 · permanente · sem desfazer</span>
+          <p class="gp-sudo-perigo-txt">Aparece no mapa para todos e fica. Segure para confirmar.</p>
+          <div class="gp-sudo-row gp-sudo-spawn">
+            <select v-model="itemParaSpawnar" class="k-input gp-sudo-select" :disabled="spawnando">
+              <option v-for="i in ITENS_SPAWN" :key="i.kind" :value="i.kind">{{ i.label }}</option>
+            </select>
+            <HoldButton
+              rotulo="spawnar ▸ segure" :carregando="spawnando"
+              @confirmar="spawnarItem"
+            />
+          </div>
+          <p v-if="spawnErro" class="gp-sudo-erro">✕ {{ spawnErro }}</p>
         </div>
-        <p v-if="spawnErro" class="gp-sudo-erro">{{ spawnErro }}</p>
 
+        <!-- 4 · sobre outras pessoas -->
         <div v-if="roomPeers.length" class="gp-sudo-pessoas">
-          <span class="gp-sudo-label">pessoas aqui</span>
-          <div v-for="p in roomPeers" :key="p.id" class="gp-sudo-pessoa">
-            <span class="gp-sudo-pessoa-nome">{{ p.name }}</span>
-            <button class="k-btn k-btn-ghost k-btn-xs" @click="puxarPara(p.id)">puxar</button>
-            <button class="k-btn k-btn-ghost k-btn-xs" @click="irAte(p.x, p.y)">ir até</button>
+          <div class="gp-hud-topo">
+            <span class="k-label gp-sudo-grupo">4 · pessoas aqui</span>
+            <span class="k-label gp-sudo-grupo">{{ roomPeers.length }} · rola</span>
+          </div>
+          <div class="gp-sudo-lista">
+            <div v-for="p in roomPeers" :key="p.id" class="gp-sudo-pessoa">
+              <span class="gp-sudo-pessoa-nome ellipsis">{{ p.name }}</span>
+              <button class="k-btn k-btn-ghost k-btn-xs" @click="puxarPara(p.id)">puxar</button>
+              <button class="k-btn k-btn-ghost k-btn-xs" @click="irAte(p.x, p.y)">ir até</button>
+            </div>
           </div>
         </div>
       </div>
@@ -314,6 +372,12 @@ import { precisaCriarPersonagem, panelFromQuery, type GamePanel } from '@/servic
 import { estadoDeLuz } from '@/game/lighting'
 import { me } from '@/services/auth.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
+import NotchStepper from '@/components/pixel/NotchStepper.vue'
+import ToggleRow from '@/components/pixel/ToggleRow.vue'
+import ClusterCard from '@/components/pixel/ClusterCard.vue'
+import GhostSlot from '@/components/pixel/GhostSlot.vue'
+import AtivosBar, { type PoderAtivo } from '@/components/pixel/AtivosBar.vue'
+import HoldButton from '@/components/pixel/HoldButton.vue'
 import JukeboxPanel from '@/components/JukeboxPanel.vue'
 import MediaStage from '@/components/MediaStage.vue'
 import ServerSidebar from '@/components/ServerSidebar.vue'
@@ -445,7 +509,43 @@ const horario = ref(estadoDeLuz().estagio)
 const ehSudo = ref(false)
 const horaEditavel = ref(12)
 const sudoPanelOpen = ref(false)
+const atalhosAbertos = ref(false)
 const danceStyle = ref<AvatarPose>('dance')
+
+const ATALHOS = [
+  { tecla: 'WASD', oque: 'andar' },
+  { tecla: 'E', oque: 'interagir com o que estiver perto' },
+  { tecla: 'espaço', oque: 'olhar em volta sem sair do lugar' },
+  { tecla: 'B', oque: 'dançar' },
+  { tecla: 'G', oque: 'emote' },
+  { tecla: 'V', oque: 'abrir a sala de voz' },
+  { tecla: 'H', oque: 'recolher a HUD' },
+]
+
+const horaLabel = computed(() => {
+  const h = Math.floor(horaEditavel.value)
+  return `${String(h).padStart(2, '0')}h${horaEditavel.value % 1 ? '30' : '00'}`
+})
+
+// espelha o que está ligado quando o painel está fechado — dá pra sair andando
+// invisível e esquecer, e o chip é o caminho de volta em um clique
+const poderesAtivos = computed<PoderAtivo[]>(() => {
+  const itens: PoderAtivo[] = []
+  if (sudoNoclip.value) itens.push({ id: 'noclip', label: 'noclip' })
+  if (sudoInvisivel.value) itens.push({ id: 'invisivel', label: 'invisível' })
+  if (sudoEspectador.value) itens.push({ id: 'espectador', label: 'espectador' })
+  if (sudoEscala.value !== 1) itens.push({ id: 'escala', label: `escala ${sudoEscala.value.toFixed(1)}×` })
+  if (horaDoMundo.value !== null) itens.push({ id: 'hora', label: 'hora travada', escopo: 'mundo' })
+  return itens
+})
+
+function desligarPoder(id: string) {
+  if (id === 'noclip') sudoNoclip.value = false
+  else if (id === 'invisivel') alternarInvisivel(false)
+  else if (id === 'espectador') sudoEspectador.value = false
+  else if (id === 'escala') sudoEscala.value = 1
+  else if (id === 'hora') definirHora(null)
+}
 
 function aplicarLuzDoMundo() {
   const h = horaDoMundo.value ?? undefined
@@ -606,6 +706,10 @@ const peerIds = new Set<string>()
 function onKeyDown(e: KeyboardEvent) {
   // digitando no chat/inputs → não mexe no jogo
   if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
+  // controles que não são input mas capturam o teclado (o stepper é um
+  // div[role=slider]): declaram a intenção pelo atributo em vez de dependerem só
+  // de stopPropagation, que uma refatoração futura silenciaria sem aviso
+  if (e.target instanceof HTMLElement && e.target.closest('[data-captura-teclado]')) return
   const k = e.key.toLowerCase()
   if (e.key === ' ' || e.code === 'Space') {
     // Espaço entra no modo olhar (pan) — não rola a página nem reativa botão
@@ -940,8 +1044,8 @@ function irAte(x: number, y: number) {
   aoClicarMinimapa(x, y)
 }
 
-function alternarInvisivel() {
-  sudoInvisivel.value = !sudoInvisivel.value
+function alternarInvisivel(valor?: boolean) {
+  sudoInvisivel.value = valor ?? !sudoInvisivel.value
   emitSudoInvisivel(sudoInvisivel.value)
 }
 
@@ -1349,9 +1453,9 @@ onUnmounted(() => {
   top: 1rem;
   left: 1rem;
   display: inline-flex;
-  background: rgba(13, 13, 20, 0.78);
-  border: 0.0625rem solid var(--border-strong);
-  backdrop-filter: blur(0.625rem);
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
+  box-shadow: var(--ui-shadow);
   padding: 0.5rem 0.75rem 0.5rem 0.5rem;
 }
 
@@ -1532,9 +1636,9 @@ onUnmounted(() => {
   left: 50%;
   transform: translateX(-50%);
   display: inline-flex;
-  background: rgba(13, 13, 20, 0.78);
-  border: 0.0625rem solid var(--border-strong);
-  backdrop-filter: blur(0.625rem);
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
+  box-shadow: var(--ui-shadow);
   padding: 0.5rem 0.875rem;
   font-size: 0.6875rem;
   color: var(--text-2);
@@ -1554,100 +1658,125 @@ onUnmounted(() => {
 
 .gp-hud-ctl {
   position: absolute;
-  right: var(--sp-12);
+  right: 1.25rem;
   top: 8.5rem;
+  width: 25.25rem;
   display: flex;
-  align-items: center;
-  gap: var(--sp-8);
-  padding: var(--sp-6) var(--sp-8);
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.75rem;
+  padding: 0;
+  z-index: 15;
 }
 
-.gp-hud-ctl-btn {
+/* largura travada: o slot condicional reserva o espaço mesmo vazio, senão a
+   barra muda de tamanho sozinha ao entrar e sair de uma sala */
+.gp-hud-linha {
+  display: grid;
+  grid-template-columns: 1fr 6rem;
+  gap: 0.625rem;
+  align-items: end;
+}
+.gp-hud-campo { display: flex; flex-direction: column; gap: 0.375rem; min-width: 0; }
+.gp-hud-slot { justify-content: flex-end; }
+.gp-hud-topo { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.gp-hud-cap { margin: 0; }
+.gp-hud-full { width: 100%; }
+.gp-hud-recolhido { display: flex; gap: 0.375rem; align-items: center; }
+
+.gp-hud-rodape {
+  appearance: none;
   background: none;
-  border: 0.0625rem solid var(--border);
-  color: var(--text-3);
+  border: none;
+  border-right: 0.125rem solid rgba(36, 28, 21, 0.18);
+  min-height: 2.375rem;
   cursor: pointer;
-  padding: var(--sp-4) var(--sp-6);
-  display: flex;
-  align-items: center;
-}
-
-.gp-hud-ctl-btn:hover { color: var(--text); border-color: var(--text-3); }
-
-.gp-hud-turbo {
-  display: flex;
-  align-items: center;
-  gap: var(--sp-6);
-}
-
-.gp-hud-turbo-range { width: 6rem; accent-color: var(--primary-hi); }
-
-.gp-hud-turbo-val {
-  font-family: var(--f-mono);
-  font-size: 0.75rem;
-  color: var(--text-3);
-  min-width: 2.2rem;
-}
-
-.gp-hud-lock-btn {
-  background: none;
-  border: 0.0625rem solid var(--border);
-  color: var(--text-3);
-  cursor: pointer;
-  padding: var(--sp-4) var(--sp-8);
-  font-size: 0.6875rem;
-  letter-spacing: 0.04em;
+  color: var(--text);
+  font-family: var(--f-pixel);
+  font-size: 0.5625rem;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
 }
-.gp-hud-lock-btn:hover { color: var(--text); border-color: var(--text-3); }
+.gp-hud-rodape:last-child { border-right: none; }
+.gp-hud-rodape:hover { background: var(--bg-2); }
+.gp-hud-rodape-on { background: var(--accent); }
+.gp-hud-coroa { max-width: 2.75rem; }
+
+.gp-atalhos {
+  position: absolute;
+  right: 1.25rem;
+  top: 8.5rem;
+  z-index: 30;
+  width: 18rem;
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+.gp-atalhos-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4375rem; }
+.gp-atalhos-lista li { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--text-2); }
 
 .gp-sudo-panel {
   position: absolute;
-  top: 4rem;
-  left: var(--sp-16);
-  z-index: 20;
-  width: min(14rem, calc(100vw - 2rem));
-  max-height: 40vh;
+  /* ancorado à direita, embaixo da barra de controles: à esquerda ele cobria o
+     nome do mundo e a lista de mundos */
+  top: 8.5rem;
+  right: 1.25rem;
+  z-index: 30;
+  width: 25.25rem;
+  max-width: calc(100vw - 2.5rem);
+  /* a lista de pessoas e os 4 grupos passam da tela em monitor baixo — sem teto
+     o painel some por baixo do rodapé em vez de rolar */
+  max-height: calc(100vh - 10rem);
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--sp-12);
-  padding: var(--sp-12);
+  gap: 0.625rem;
+  padding: 0.75rem;
 }
 
 .gp-sudo-row {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--sp-6);
+  gap: 0.375rem;
 }
-
 .gp-sudo-row .k-btn { flex: 1 1 auto; }
-
-.gp-sudo-escala {
+.gp-sudo-spawn { display: grid; grid-template-columns: 1fr 10.625rem; gap: 0.375rem; align-items: stretch; }
+.gp-sudo-grupo { margin: 0; }
+.gp-sudo-select { flex: 1; min-width: 0; }
+.gp-sudo-perigo-tit { color: var(--err); margin: 0.25rem 0 0; }
+.gp-sudo-perigo-txt { font-size: 0.6875rem; color: #7a4a3a; line-height: 1.4; margin: 0 0 0.125rem; }
+.gp-sudo-pessoas { display: flex; flex-direction: column; gap: 0.375rem; }
+/* a lista cresce com quem entra: sem teto ela empurra o resto do painel */
+.gp-sudo-lista {
+  max-height: 12.5rem;
+  overflow-y: auto;
+  border: 0.125rem solid var(--tinta);
+  background: var(--bg-2);
+}
+.gp-sudo-pessoa {
   display: flex;
   align-items: center;
-  gap: var(--sp-8);
-  font-size: 0.75rem;
-  color: var(--text-3);
+  gap: 0.375rem;
+  padding: 0.375rem 0.5rem;
+  min-height: 2.5rem;
+  border-bottom: 0.125rem solid rgba(36, 28, 21, 0.1);
 }
-
-.gp-hud-sala {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: var(--accent-texto);
-  margin-right: var(--sp-8);
-}
-.gp-hud-travado { font-size: 0.625rem; opacity: 0.75; letter-spacing: 0.04em; }
-.gp-sudo-select { flex: 1; min-width: 0; }
-.gp-sudo-pessoas { display: flex; flex-direction: column; gap: var(--sp-4); }
-.gp-sudo-label { font-size: 0.6875rem; opacity: 0.7; }
-.gp-sudo-pessoa { display: flex; align-items: center; gap: var(--sp-4); }
-.gp-sudo-pessoa-nome { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75rem; }
-.gp-sudo-erro { color: var(--k-danger, #d9534f); font-size: 0.75rem; margin: 0; }
-.gp-sudo-escala-val {
-  font-family: var(--f-mono);
-  min-width: 2.4rem;
-  text-align: right;
+.gp-sudo-pessoa:last-child { border-bottom: none; }
+.gp-sudo-pessoa-nome { flex: 1; min-width: 0; font-size: 0.8125rem; font-weight: 700; }
+.gp-sudo-erro {
+  margin: 0.375rem 0 0;
+  padding: 0.375rem 0.5rem;
+  background: var(--err);
+  color: var(--bg-2);
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .gp-modal-overlay {
@@ -1714,8 +1843,8 @@ onUnmounted(() => {
 }
 
 .tbtn {
-  background: rgba(13, 13, 20, 0.8);
-  border: 0.0625rem solid var(--border-strong);
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
   color: var(--text);
   font-size: 1.125rem;
   display: grid;
