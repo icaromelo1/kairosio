@@ -1013,7 +1013,7 @@ onMounted(async () => {
       auth.setUsername(p.username ?? null)
       void precisaCriarPersonagem().then((v) => {
         precisaPersonagem.value = v
-        if (v) openPanel('personagem')
+        if (v && !asked) openPanel('personagem')
       })
     })
     .catch(() => { ehSudo.value = false })
