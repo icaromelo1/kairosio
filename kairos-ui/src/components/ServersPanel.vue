@@ -1,6 +1,15 @@
 <template>
-  <PanelShell title="servidores" icon="server" @close="emit('close')">
+  <PanelShell title="servidores" icon="server" :bloqueado="semSaida" @close="emit('close')">
     <div class="sp-body">
+      <!-- sem servidor não há mundo pra voltar: fechar aqui deixava a pessoa num
+           mapa sem nada, sem caminho de volta a não ser recarregar -->
+      <section v-if="semSaida" class="sp-vazio">
+        <h3 class="sp-title">Você ainda não está em nenhum servidor</h3>
+        <p class="k-hint-text sp-hint">
+          Um servidor é o espaço da sua galera — é dele que vêm os mundos e as pessoas.
+          Crie o seu ou entre com um convite pra começar.
+        </p>
+      </section>
       <section v-if="myServers.length" class="sp-block">
         <h3 class="sp-title">Seus servidores</h3>
         <p class="k-hint-text sp-hint">Trocar de servidor troca os mundos e quem está online com você.</p>
@@ -73,6 +82,8 @@ const code = ref(props.invite || '')
 const error = ref('')
 const notice = ref('')
 const busy = ref(false)
+const carregou = ref(false)
+let entrouSozinho = false
 
 const activeId = computed(() => myServers.value.find((s) => s.active)?.id ?? null)
 
@@ -80,7 +91,20 @@ async function load() {
   myServers.value = await getMyServers()
 }
 
-onMounted(load)
+// sem servidor E sem jeito de sair: a única saída é criar um ou entrar num
+const semSaida = computed(() => carregou.value && myServers.value.length === 0)
+
+onMounted(async () => {
+  await load()
+  carregou.value = true
+  // quem chega por link de convite já disse a que veio: entrar sozinho evita a
+  // modal com o código preenchido esperando um clique que a pessoa não sabe que
+  // precisa dar
+  if (props.invite && !entrouSozinho) {
+    entrouSozinho = true
+    join()
+  }
+})
 
 async function run(action: () => Promise<void>) {
   error.value = ''
@@ -202,4 +226,10 @@ function goRegister() {
 
 .sp-error { color: var(--err); font-size: 0.8125rem; margin: 0; }
 .sp-ok { color: var(--ok); font-size: 0.8125rem; margin: 0; }
+.sp-vazio {
+  border: 0.125rem solid var(--tinta);
+  background: var(--bg-2);
+  padding: 0.75rem;
+  box-shadow: inset 0 0 0 0.125rem var(--bg-1);
+}
 </style>

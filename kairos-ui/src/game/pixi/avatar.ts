@@ -1,5 +1,6 @@
 import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js'
 import presetsRaw from '../furniture/avatar/presets.json'
+import { ESCALA_PADRAO } from '../escala-avatar'
 
 export interface AvatarPresetInfo {
   id: string
@@ -56,7 +57,7 @@ export type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit' | 'giro' | 'pulo' 
 
 const UNIT = 6
 
-const ESCALA_BASE = 0.8
+
 const BODY_SIZE = 16 * UNIT
 
 const ACCESSORIES: NonNullable<AvatarLook['accessory']>[] = ['none', 'glasses', 'hat']
@@ -98,7 +99,7 @@ export class AvatarPuppet {
   private facing: Facing = 'down'
   private frame = 0
   private mirror = 1
-  private escala = 1
+  private escala = ESCALA_PADRAO
   private nameLabel: Text
   private photoLayer: Container
   private photoSprite: Sprite | null = null
@@ -219,9 +220,8 @@ export class AvatarPuppet {
   }
 
   private updateRootScale() {
-    const efetiva = this.escala * ESCALA_BASE
-    this.root.scale.set(this.mirror * efetiva, efetiva)
-    this.nameLabel.scale.set(this.mirror / efetiva, 1 / efetiva)
+    this.root.scale.set(this.mirror * this.escala, this.escala)
+    this.nameLabel.scale.set(this.mirror / this.escala, 1 / this.escala)
   }
 
   setOculto(v: boolean) {
