@@ -108,30 +108,16 @@
       <!-- só o aviso contextual: a lista de atalhos saiu daqui porque o painel do
            "?" já a tem por completo, e duas listas do mesmo teclado divergem. o que
            não dá pra tirar é o que E faz AGORA, que muda conforme o objeto. -->
-      <div v-if="activeZone" class="gp-hud gp-hud-agir">
-        <span class="k-key">E</span><span class="gp-hud-action">{{ activeZone.action }}</span>
+      <!-- ancorado no avatar, não no rodapé: o aviso fala do que está ao lado do
+           corpo, e no rodapé ele disputava espaço com a HUD centralizada -->
+      <div v-if="acaoDoE" class="gp-hud gp-hud-agir">
+        <span class="k-key">E</span><span class="gp-hud-action">{{ acaoDoE }}</span>
       </div>
 
       <!-- HUD separada por escopo: MUNDO (azul, sudo, escreve pra todos) em cima,
            EU (verde, só o meu avatar) embaixo. Largura travada e slot condicional
            com fantasma, senão a barra muda de tamanho sozinha. -->
-      <div
-        ref="hudCtlEl"
-        class="gp-hud gp-hud-ctl"
-        :class="{ 'gp-hud-ctl-mini': !hudVisible, 'gp-hud-ctl-solta': !!hudPos }"
-        :style="hudEstilo"
-      >
-        <div class="gp-hud-grip" title="arraste para mover" @pointerdown="comecarArrasteHud">
-          <span class="gp-hud-grip-pontos" aria-hidden="true" />
-          <button
-            v-if="hudPos"
-            class="gp-hud-grip-voltar"
-            title="voltar ao lugar padrão"
-            @pointerdown.stop
-            @click="hudPos = null"
-          >↺</button>
-        </div>
-
+      <div class="gp-hud gp-hud-ctl" :class="{ 'gp-hud-ctl-mini': !hudVisible }">
         <ClusterCard v-if="hudVisible && ehSudo" titulo="mundo · afeta todos" nota="sudo" escopo="mundo">
           <div class="gp-hud-linha">
             <div class="gp-hud-campo">
@@ -487,6 +473,19 @@ const maps = ref<MapDef[]>([])
 const currentId = ref('')
 const error = ref('')
 const activeZone = ref<MapObject | null>(null)
+
+// o que E faz AGORA. banco e cadeira entram em interactableObjects por serem
+// sentáveis, sem name nem action — antes isso rendia uma caixa com "E" e nada
+// escrito, porque o aviso só checava se havia objeto perto.
+const acaoDoE = computed(() => {
+  const z = activeZone.value
+  if (!z) return ''
+  if (z.action) return z.action
+  if (z.sittable || z.kind === 'chair' || z.kind === 'sofa' || z.kind === 'bench') {
+    return sentado.value ? 'levantar' : 'sentar'
+  }
+  return z.name ? `abrir ${z.name}` : ''
+})
 const activeModal = ref<MapObject | null>(null)
 const jukeboxOpen = ref(false)
 const jukeboxObjectId = ref('')
@@ -571,7 +570,8 @@ let scene: MapScene | null = null
 const pos = reactive({ x: 11, y: 9 })
 let facing: Facing = 'down'
 let dancing = false as boolean
-let sitting = false
+// reativo porque o aviso do E precisa alternar entre sentar e levantar
+const sentado = ref(false)
 let preSit: { x: number; y: number } | null = null
 const keys = new Set<string>()
 const chatInput = ref('')
@@ -585,75 +585,6 @@ const horaEditavel = ref(12)
 const sudoPanelOpen = ref(false)
 const atalhosAbertos = ref(false)
 
-// posição da HUD: null = lugar padrão (rodapé, entre o chat e a barra de atalhos),
-// definido no CSS. assim que a pessoa arrasta, passa a valer o par x/y em px
-// relativo ao palco do jogo — guardado por navegador.
-const HUD_POS_KEY = 'kairos_hud_pos'
-const hudCtlEl = ref<HTMLElement | null>(null)
-
-function lerHudPos(): { x: number; y: number } | null {
-  try {
-    const bruto = JSON.parse(localStorage.getItem(HUD_POS_KEY) || 'null')
-    if (bruto && Number.isFinite(bruto.x) && Number.isFinite(bruto.y)) return { x: bruto.x, y: bruto.y }
-  } catch {
-    // preferência corrompida não pode impedir o jogo de abrir
-  }
-  return null
-}
-
-const hudPos = ref<{ x: number; y: number } | null>(lerHudPos())
-
-const hudEstilo = computed(() =>
-  hudPos.value ? { left: `${hudPos.value.x}px`, top: `${hudPos.value.y}px` } : undefined,
-)
-
-watch(hudPos, (v) => {
-  if (v) localStorage.setItem(HUD_POS_KEY, JSON.stringify(v))
-  else localStorage.removeItem(HUD_POS_KEY)
-})
-
-// nunca deixa a HUD sair do palco: sem isto, encolher a janela depois de arrastar
-// esconde a barra pra sempre e não há como trazê-la de volta
-function limitarAoPalco(x: number, y: number) {
-  const el = hudCtlEl.value
-  const palco = el?.offsetParent as HTMLElement | null
-  if (!el || !palco) return { x, y }
-  const margem = 8
-  const maxX = Math.max(margem, palco.clientWidth - el.offsetWidth - margem)
-  const maxY = Math.max(margem, palco.clientHeight - el.offsetHeight - margem)
-  return { x: Math.min(maxX, Math.max(margem, x)), y: Math.min(maxY, Math.max(margem, y)) }
-}
-
-function comecarArrasteHud(e: PointerEvent) {
-  const el = hudCtlEl.value
-  const palco = el?.offsetParent as HTMLElement | null
-  if (!el || !palco) return
-  e.preventDefault()
-  const caixa = el.getBoundingClientRect()
-  const base = palco.getBoundingClientRect()
-  const pegaX = e.clientX - caixa.left
-  const pegaY = e.clientY - caixa.top
-
-  const mover = (ev: PointerEvent) => {
-    hudPos.value = limitarAoPalco(ev.clientX - base.left - pegaX, ev.clientY - base.top - pegaY)
-  }
-  const soltar = () => {
-    window.removeEventListener('pointermove', mover)
-    window.removeEventListener('pointerup', soltar)
-  }
-  window.addEventListener('pointermove', mover)
-  window.addEventListener('pointerup', soltar)
-}
-
-// recolher/expandir muda a altura, e a janela muda o palco: os dois podem jogar a
-// barra pra fora do que é alcançável
-function reencaixarHud() {
-  if (!hudPos.value) return
-  const ajustado = limitarAoPalco(hudPos.value.x, hudPos.value.y)
-  if (ajustado.x !== hudPos.value.x || ajustado.y !== hudPos.value.y) hudPos.value = ajustado
-}
-watch(hudVisible, () => nextTick(reencaixarHud))
-window.addEventListener('resize', reencaixarHud)
 const minimapaVisivel = ref(localStorage.getItem('kairos_minimapa') !== 'off')
 const mapaExpandido = ref(false)
 const danceStyle = ref<AvatarPose>('dance')
@@ -1009,8 +940,8 @@ function tryInteract() {
   // cadeira/sofá → sentar (em vez de modal); guarda de onde veio pra voltar
   // ao levantar — o objeto costuma ser sólido, levantar "dentro" dele travava
   if (z.sittable || z.kind === 'chair' || z.kind === 'sofa' || z.kind === 'bench') {
-    if (!sitting) preSit = { x: pos.x, y: pos.y }
-    sitting = true
+    if (!sentado.value) preSit = { x: pos.x, y: pos.y }
+    sentado.value = true
     pos.x = z.x + z.w / 2
     pos.y = z.y + z.h / 2
     return
@@ -1395,9 +1326,9 @@ onMounted(async () => {
       if (keys.has('d') || keys.has('arrowright')) dx += sp
     }
     const moving = dx !== 0 || dy !== 0
-    if (moving && sitting) {
+    if (moving && sentado.value) {
       // levantar devolve pra onde estava antes de sentar (senão fica dentro do sólido)
-      sitting = false
+      sentado.value = false
       if (preSit) {
         pos.x = preSit.x
         pos.y = preSit.y
@@ -1449,7 +1380,7 @@ onMounted(async () => {
 
     const onCart = boosting && moving
     const emoting = Date.now() < emoteUntil
-    const pose: AvatarPose = sitting ? 'sit' : moving ? 'walk' : emoting ? 'wave' : dancing ? danceStyle.value : 'idle'
+    const pose: AvatarPose = sentado.value ? 'sit' : moving ? 'walk' : emoting ? 'wave' : dancing ? danceStyle.value : 'idle'
     // emite estado quando se move ou quando pose/direção/boost mudam (dança parado conta)
     if (moving || pose !== lastSent.pose || facing !== lastSent.facing || onCart !== lastSent.boost) {
       emitMove(pos.x, pos.y, facing, pose, onCart)
@@ -1576,7 +1507,6 @@ async function leave() {
 onUnmounted(() => {
   window.clearInterval(relogioLuz)
   window.removeEventListener('keydown', onKeyDown)
-  window.removeEventListener('resize', reencaixarHud)
   window.removeEventListener('keyup', onKeyUp)
   window.removeEventListener('blur', clearKeys)
   clearInterval(stateTimer)
@@ -1847,9 +1777,9 @@ onUnmounted(() => {
 }
 
 .gp-hud-agir {
-  bottom: 1rem;
+  top: 50%;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate(-50%, 3rem);
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -1870,10 +1800,6 @@ onUnmounted(() => {
 
 .gp-hud-ctl {
   position: absolute;
-  /* padrão: rodapé, à direita do chat e LOGO ACIMA da barra de atalhos. medido:
-     o chat termina em 584px e os atalhos começam em 589px, então não existe vão
-     horizontal entre os dois — encaixar ao lado sobreporia um deles. arrastar
-     troca isto por left/top inline. */
   left: 50%;
   transform: translateX(-50%);
   bottom: 1rem;
@@ -1885,40 +1811,7 @@ onUnmounted(() => {
   padding: 0;
   z-index: 15;
 }
-/* recolhida: encolhe pro tamanho do conteúdo, senão a tira de ícones reservaria
-   os 404px da HUD aberta e cobriria a barra de atalhos */
 .gp-hud-ctl-mini { width: fit-content; }
-.gp-hud-ctl-solta { bottom: auto; transform: none; }
-
-.gp-hud-grip {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-  height: 1.125rem;
-  background: var(--bg-1);
-  border: 0.125rem solid var(--tinta);
-  box-shadow: 0 0.125rem 0 var(--tinta);
-  cursor: grab;
-  touch-action: none;
-}
-.gp-hud-grip:active { cursor: grabbing; }
-.gp-hud-grip-pontos {
-  width: 2.5rem;
-  height: 0.25rem;
-  background: repeating-linear-gradient(90deg, var(--tinta) 0 0.125rem, transparent 0.125rem 0.3125rem);
-}
-.gp-hud-grip-voltar {
-  appearance: none;
-  border: none;
-  background: none;
-  cursor: pointer;
-  padding: 0 0.25rem;
-  font-family: var(--f-pixel);
-  font-size: 0.625rem;
-  color: var(--text-2);
-}
-.gp-hud-grip-voltar:hover { color: var(--text); }
 
 /* largura travada: o slot condicional reserva o espaço mesmo vazio, senão a
    barra muda de tamanho sozinha ao entrar e sair de uma sala */
