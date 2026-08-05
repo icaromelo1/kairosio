@@ -1369,7 +1369,7 @@ onUnmounted(() => {
   top: 1rem;
   left: 50%;
   transform: translateX(-50%);
-  background: rgba(124, 58, 237, 0.18);
+  background: rgba(44, 116, 65, 0.2);
   border: 0.0625rem solid var(--primary-hi);
   backdrop-filter: blur(0.625rem);
   padding: 0.375rem 0.875rem;
@@ -1403,7 +1403,7 @@ onUnmounted(() => {
   font-size: 0.75rem;
   color: var(--text-2);
 }
-.gp-screen-notice b { color: var(--accent); }
+.gp-screen-notice b { color: var(--accent-texto); }
 
 @media (prefers-reduced-motion: no-preference) {
   .gp-screen-notice {
@@ -1542,7 +1542,7 @@ onUnmounted(() => {
 }
 .gp-hud-hint { color: var(--text-3); }
 .gp-hud-sep { color: var(--text-4); }
-.gp-hud-action { color: var(--accent); }
+.gp-hud-action { color: var(--accent-texto); }
 
 .gp-hud-hora {
   font-family: var(--f-pixel);
@@ -1580,7 +1580,7 @@ onUnmounted(() => {
   gap: var(--sp-6);
 }
 
-.gp-hud-turbo-range { width: 6rem; accent-color: var(--primary); }
+.gp-hud-turbo-range { width: 6rem; accent-color: var(--primary-hi); }
 
 .gp-hud-turbo-val {
   font-family: var(--f-mono);
@@ -1634,7 +1634,7 @@ onUnmounted(() => {
 .gp-hud-sala {
   font-size: 0.75rem;
   font-weight: 600;
-  color: var(--accent);
+  color: var(--accent-texto);
   margin-right: var(--sp-8);
 }
 .gp-hud-travado { font-size: 0.625rem; opacity: 0.75; letter-spacing: 0.04em; }
@@ -1708,7 +1708,7 @@ onUnmounted(() => {
   top: 7rem;
   left: 50%;
   transform: translateX(-50%);
-  color: #f87171;
+  color: var(--err);
   font-size: 0.8125rem;
   z-index: 10;
 }
@@ -1725,7 +1725,7 @@ onUnmounted(() => {
   touch-action: none;
 }
 .tbtn:active {
-  background: rgba(124, 58, 237, 0.3);
+  background: rgba(44, 116, 65, 0.32);
 }
 /* esconde os controles touch em dispositivos com mouse (desktop) */
 @media (hover: hover) and (pointer: fine) {

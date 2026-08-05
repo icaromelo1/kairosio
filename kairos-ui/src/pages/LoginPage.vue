@@ -8,8 +8,8 @@
       viewBox="0 0 200 100"
       preserveAspectRatio="xMidYMid slice"
     >
-      <rect x="0" y="62" width="200" height="1" fill="rgba(124, 58, 237, 0.4)" />
-      <g fill="rgba(124, 58, 237, 0.25)">
+      <rect x="0" y="62" width="200" height="1" fill="rgba(36, 28, 21, 0.35)" />
+      <g fill="rgba(36, 28, 21, 0.18)">
         <rect x="10" y="50" width="6" height="12" />
         <rect x="18" y="44" width="8" height="18" />
         <rect x="28" y="48" width="4" height="14" />
@@ -105,10 +105,10 @@
 
         <!-- Submit -->
         <button class="k-btn k-btn-primary submit-btn" :disabled="loading" @click="handleLogin">{{ loading ? 'Entrando…' : 'Entrar →' }}</button>
-        <p v-if="error" style="color:#f87171;font-size:0.75rem;margin:0.5rem 0 0;text-align:center">{{ error }}</p>
+        <p v-if="error" style="color:var(--err);font-size:0.75rem;margin:0.5rem 0 0;text-align:center">{{ error }}</p>
         <p style="font-size:0.75rem;margin:0.625rem 0 0;text-align:center;color:var(--text-3)">
           Não tem conta?
-          <a href="#" style="color:var(--accent);font-weight:600;text-decoration:none" @click.prevent="goRegister">Criar conta →</a>
+          <a href="#" style="color:var(--accent-texto);font-weight:600;text-decoration:none" @click.prevent="goRegister">Criar conta →</a>
         </p>
 
         <!-- Divider -->
@@ -230,7 +230,7 @@ onMounted(async () => {
   padding: 2.5rem 1rem;
   box-sizing: border-box;
   background:
-    radial-gradient(ellipse at 50% 60%, rgba(124, 58, 237, 0.18) 0%, transparent 55%),
+    radial-gradient(ellipse at 50% 60%, rgba(242, 169, 59, 0.22) 0%, transparent 55%),
     radial-gradient(ellipse at 80% 20%, rgba(251, 191, 36, 0.08) 0%, transparent 40%),
     var(--bg-0);
   overflow-x: hidden;

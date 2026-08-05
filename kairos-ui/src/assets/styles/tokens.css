@@ -1,39 +1,69 @@
 /* Kairos IO — Design tokens + global styles */
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600;700&family=Press+Start+2P&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Silkscreen:wght@400;700&family=Pixelify+Sans:wght@400;600;700&family=Nunito:wght@400;600;700&display=swap');
 
+/* Painel opaco com contorno duplo, não vidro escuro sobre o mapa.
+   Medido contra os fundos reais da Cidade:
+     creme #F4E4C1 vs grama  1,59:1   ·  vs rua  1,81:1   ·  vs sala escura 11,29:1
+     tinta #241C15 vs grama  8,41:1   ·  vs rua  7,39:1   ·  vs sala escura  1,18:1
+   Nenhuma das duas cores se sustenta sozinha nos dois fundos: o corpo creme
+   some no mapa claro e a tinta some no interior escuro. Daí 2px de tinta por
+   fora e 2px de creme por dentro — uma peça só, os dois fundos. */
 :root {
-  --bg-0: #0a0a10;
-  --bg-1: #0d0d14;
-  --bg-2: #15151f;
-  --bg-3: #1d1d2a;
-  --bg-4: #252535;
-  --border: rgba(255, 255, 255, 0.08);
-  --border-strong: rgba(255, 255, 255, 0.16);
-  --text: #e8e8f0;
-  --text-2: #b6b6c8;
-  --text-3: #9393a6;
-  --text-4: #9292ab;
-  --primary: #7c3aed;
-  --primary-hi: #a78bfa;
-  --primary-lo: #4c1d95;
-  --primary-glow: rgba(124, 58, 237, 0.35);
-  --accent: #fbbf24;
-  --accent-hi: #fcd34d;
-  --accent-lo: #d97706;
-  --accent-glow: rgba(251, 191, 36, 0.35);
-  --ok: #34d399;
-  --warn: #fb923c;
-  --err: #f87171;
-  --chat-name-0: #7dd3fc;
-  --chat-name-1: #f9a8d4;
-  --chat-name-2: #86efac;
-  --chat-name-3: #fcd34d;
-  --chat-name-4: #c4b5fd;
-  --chat-name-5: #5eead4;
-  --chat-name-6: #fdba74;
-  --chat-name-7: #f0abfc;
-  --chat-name-8: #a3e635;
-  --chat-name-9: #fca5a5;
+  --tinta: #241c15;
+  --tinta-2: #33291e;
+
+  --bg-0: #e2d5b8;
+  --bg-1: #f4e4c1;
+  --bg-2: #fff6e0;
+  --bg-3: #fff6e0;
+  --bg-4: #ffffff;
+
+  --border: rgba(36, 28, 21, 0.18);
+  --border-strong: var(--tinta);
+
+  --text: #241c15;
+  --text-2: #4a3d2e;
+  --text-3: #685a48;
+  --text-4: #685a48;
+
+  /* musgo = "afeta só a mim". O #2F7D46 do design dá 4,03:1 sobre o creme e
+     reprova AA; escurecido 7% mantendo matiz chega a 4,54:1. */
+  --primary: #2c7441;
+  --primary-hi: #21592f;
+  --primary-lo: #1a4726;
+  --primary-glow: rgba(44, 116, 65, 0.3);
+
+  /* azul-noite = "afeta o mundo todo", exclusivo de sudo */
+  --mundo: #2a4d8f;
+  --mundo-hi: #1b3363;
+  --mundo-soft: #eaf1ff;
+
+  /* âmbar tem 1,00:1 sobre a grama — luminância idêntica. Nunca carrega
+     informação sozinho: só com contorno de tinta ou texto tinta em cima. */
+  --accent: #f2a93b;
+  --accent-hi: #ffd79a;
+  --accent-lo: #b9761a;
+  --accent-glow: rgba(242, 169, 59, 0.35);
+  /* âmbar como TEXTO sobre creme dá 1,59:1 e some. Destaque escrito usa esta
+     variante escurecida (4,58:1); o --accent fica só para preenchimento. */
+  --accent-texto: #825109;
+
+  --ok: #1e693b;
+  --warn: #8c4c10;
+  --err: #a83232;
+  --err-hi: #6e1f1f;
+
+  --chat-name-0: #1d5f86;
+  --chat-name-1: #a03562;
+  --chat-name-2: #276b3a;
+  --chat-name-3: #8a5a08;
+  --chat-name-4: #5b3fa8;
+  --chat-name-5: #10695f;
+  --chat-name-6: #9c4a12;
+  --chat-name-7: #8e2d86;
+  --chat-name-8: #4a6414;
+  --chat-name-9: #a3323c;
+
   --r-sm: 0;
   --r-md: 0;
   --r-lg: 0;
@@ -48,12 +78,17 @@
   --sp-16: 1rem;
   --sp-24: 1.5rem;
   --sp-32: 2rem;
-  --ui-font: "Press Start 2P", "VT323", monospace;
-  --ui-border-style: 0.1875rem solid var(--text);
-  --ui-shadow: 0.25rem 0.25rem 0 rgba(0, 0, 0, 0.6), 0.5rem 0.5rem 0 rgba(0, 0, 0, 0.4);
-  --f-sans: "Space Grotesk", "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --f-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --f-pixel: "Press Start 2P", "VT323", monospace;
+
+  --ui-font: "Silkscreen", "Courier New", monospace;
+  --f-sans: "Nunito", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --f-mono: "Silkscreen", ui-monospace, "SF Mono", Menlo, monospace;
+  --f-pixel: "Silkscreen", "Courier New", monospace;
+  --f-num: "Pixelify Sans", "Silkscreen", monospace;
+
+  --ui-border-style: 0.125rem solid var(--tinta);
+  --contorno-duplo: inset 0 0 0 0.125rem var(--bg-2);
+  --sombra-solida: 0 0.25rem 0 var(--tinta);
+  --ui-shadow: var(--contorno-duplo), var(--sombra-solida), 0 0.5rem 1.125rem rgba(15, 10, 6, 0.35);
 }
 
 * { box-sizing: border-box; }
@@ -78,119 +113,141 @@ html, body, #app {
   font-family: var(--f-sans);
   -webkit-font-smoothing: antialiased;
 }
-/* html/body com altura definida pra preencher a viewport, mas SEM travar o scroll:
-   páginas comuns (landing, login, etc.) rolam pelo body; game/editor travam a 100vh
-   por conta própria (root height:100vh + overflow:hidden). */
-html, body { height: 100%; }
-body { overflow-x: hidden; }
-#app { min-height: 100%; }
-
-.pixelated {
-  image-rendering: pixelated;
-  image-rendering: -moz-crisp-edges;
-  image-rendering: crisp-edges;
-  shape-rendering: crispEdges;
-}
 
 .k-card {
-  background: var(--bg-2);
+  background: var(--bg-1);
   border: var(--ui-border-style);
-  border-color: var(--primary-hi);
   box-shadow: var(--ui-shadow);
+  color: var(--text);
+}
+.k-card:focus-within {
+  border-color: var(--tinta);
+  box-shadow: var(--contorno-duplo), 0 0.25rem 0 var(--tinta), 0 0 0 0.1875rem var(--accent);
 }
 
 .k-btn {
   appearance: none;
-  border: 0.1875rem solid var(--text);
-  background: var(--bg-3);
+  border: var(--ui-border-style);
+  background: var(--bg-2);
   color: var(--text);
   font-family: var(--ui-font);
-  font-size: 0.6875rem;
-  font-weight: 500;
+  font-size: 0.625rem;
+  font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 0.75rem 1.125rem;
+  padding: 0.625rem 1rem;
+  min-height: 2.125rem;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 0.625rem;
+  gap: 0.5rem;
   position: relative;
   user-select: none;
   white-space: nowrap;
-  box-shadow: 0.25rem 0.25rem 0 var(--bg-0);
+  box-shadow: var(--sombra-solida);
 }
-.k-btn:hover { transform: translate(-0.125rem, -0.125rem); box-shadow: 0.375rem 0.375rem 0 var(--bg-0); }
-.k-btn:active { transform: translate(0.125rem, 0.125rem); box-shadow: 0 0 0 var(--bg-0); }
+.k-btn:hover { transform: translateY(-0.0625rem); box-shadow: 0 0.1875rem 0 var(--tinta); background: var(--bg-4); }
+.k-btn:active { transform: translateY(0.125rem); box-shadow: 0 0 0 var(--tinta); }
+.k-btn:focus-visible { outline: none; box-shadow: var(--sombra-solida), 0 0 0 0.1875rem var(--accent); }
+.k-btn:disabled {
+  cursor: not-allowed;
+  background: var(--bg-0);
+  color: #a99c84;
+  border-color: #b9ac93;
+  box-shadow: none;
+  transform: none;
+}
 
 /* Variantes de tamanho — reaproveitam .k-btn (usar junto: class="k-btn k-btn-sm") */
-.k-btn-sm { font-size: 0.6875rem; padding: 0.5rem 0.75rem; gap: 0.375rem; }
-.k-btn-xs { font-size: 0.625rem; padding: 0.375rem 0.625rem; gap: 0.25rem; }
+.k-btn-sm { font-size: 0.625rem; padding: 0.4375rem 0.6875rem; gap: 0.375rem; min-height: 1.875rem; }
+.k-btn-xs { font-size: 0.5625rem; padding: 0.3125rem 0.5625rem; gap: 0.25rem; min-height: 1.625rem; }
 
 .k-btn-primary {
   background: var(--primary);
-  color: white;
-  border-color: var(--primary-hi);
-  box-shadow: 0.25rem 0.25rem 0 var(--primary-lo);
+  color: var(--bg-2);
+  border-color: var(--tinta);
+  box-shadow: 0 0.25rem 0 var(--primary-lo);
 }
-.k-btn-primary:hover { background: var(--primary-hi); box-shadow: 0.375rem 0.375rem 0 var(--primary-lo); }
+.k-btn-primary:hover { background: var(--primary-hi); box-shadow: 0 0.1875rem 0 var(--primary-lo); }
 .k-btn-primary:active { box-shadow: 0 0 0 var(--primary-lo); }
 
+/* âmbar SEMPRE com contorno de tinta e texto tinta: sozinho ele tem 1,00:1
+   sobre a grama do mapa e desaparece. A regra vive aqui, não na disciplina de
+   quem escreve a tela. */
 .k-btn-accent {
   background: var(--accent);
-  color: var(--bg-0);
-  font-weight: 600;
-  border-color: var(--accent-hi);
-  box-shadow: 0.25rem 0.25rem 0 var(--accent-lo);
+  color: var(--tinta);
+  font-weight: 700;
+  border-color: var(--tinta);
+  box-shadow: 0 0.25rem 0 var(--accent-lo);
 }
-.k-btn-accent:hover { background: var(--accent-hi); }
+.k-btn-accent:hover { background: var(--accent-hi); box-shadow: 0 0.1875rem 0 var(--accent-lo); }
 
 .k-btn-ghost {
   background: transparent;
   color: var(--text-2);
-  border: 0.1875rem solid var(--border-strong);
+  border: var(--ui-border-style);
   box-shadow: none;
 }
-.k-btn-ghost:hover { background: var(--bg-2); border-color: var(--text-3); }
+.k-btn-ghost:hover { background: var(--bg-2); box-shadow: 0 0.125rem 0 var(--tinta); }
 
 /* Estado ativo/selecionado — modificador genérico pra trocar por padrões locais
-   como ".tab.active"/".tool.on" espalhados pelas páginas (ver PLANO-px-rem-classes.md).
+   como ".tab.active"/".tool.on" espalhados pelas páginas.
    Usar junto da classe do botão/aba: :class="{ 'k-active': condição }" */
 .k-active {
-  border-color: var(--primary-hi);
-  background: rgba(124, 58, 237, 0.14);
-  color: var(--text);
+  border-color: var(--tinta);
+  background: var(--primary);
+  color: var(--bg-2);
+  box-shadow: inset 0 0 0 0.125rem rgba(255, 246, 224, 0.5);
 }
+
+/* modificador de escopo: o que muda o mundo pra todos usa azul-noite, o que
+   muda só o meu avatar usa musgo. A cor é o que separa os dois grupos. */
+.k-mundo { background: var(--mundo); color: var(--mundo-soft); border-color: var(--tinta); }
+.k-mundo.k-active { background: var(--mundo-hi); color: var(--mundo-soft); }
 
 .k-input {
   width: 100%;
-  background: var(--bg-1);
-  border: 0.1875rem solid var(--text-3);
+  background: var(--bg-2);
+  border: var(--ui-border-style);
   color: var(--text);
   font-family: var(--ui-font);
-  font-size: 0.6875rem;
+  font-size: 0.625rem;
   letter-spacing: 0.04em;
-  padding: 0.75rem 0.875rem;
+  padding: 0.625rem 0.75rem;
+  min-height: 2.125rem;
   outline: none;
 }
-.k-input:focus { border-color: var(--primary-hi); box-shadow: 0.25rem 0.25rem 0 var(--primary-lo); }
+.k-input::placeholder { color: #a99c84; }
+.k-input:focus { border-color: var(--tinta); box-shadow: 0 0 0 0.1875rem var(--accent); }
+.k-input:disabled { background: var(--bg-0); color: #a99c84; border-color: #b9ac93; }
 
-.k-input-sm { font-size: 0.75rem; padding: 0.5rem 0.625rem; }
-.k-input-xs { font-size: 0.625rem; padding: 0.375rem 0.5rem; }
+.k-input-sm { font-size: 0.6875rem; padding: 0.4375rem 0.5625rem; min-height: 1.875rem; }
+.k-input-xs { font-size: 0.625rem; padding: 0.3125rem 0.4375rem; min-height: 1.625rem; }
 
 .k-label {
   font-family: var(--f-pixel);
   font-size: 0.5625rem;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--text-3);
   margin-bottom: 0.375rem;
   display: block;
-  font-weight: 600;
+  font-weight: 400;
 }
 
-/* Texto secundário/explicativo — hints, descrições, legendas pequenas.
-   Substitui padrões locais como ".xxx-hint"/".xxx-intro" repetidos em várias páginas. */
+/* Número/valor de leitura — o design usa Pixelify Sans só para grandeza que se
+   lê de relance (hora, multiplicador, escala). */
+.k-num {
+  font-family: var(--f-num);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1;
+}
+
+/* Texto secundário/explicativo — hints, descrições, legendas pequenas. */
 .k-hint-text {
   font-size: 0.75rem;
   color: var(--text-3);
@@ -201,7 +258,7 @@ body { overflow-x: hidden; }
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  color: var(--text-4);
+  color: var(--text-3);
   font-family: var(--f-pixel);
   font-size: 0.5625rem;
   letter-spacing: 0.12em;
@@ -211,82 +268,93 @@ body { overflow-x: hidden; }
 .k-divider::before, .k-divider::after {
   content: "";
   flex: 1;
-  height: 0.1875rem;
-  background-image: repeating-linear-gradient(90deg, var(--border-strong) 0 0.25rem, transparent 0.25rem 0.5rem);
+  height: 0.125rem;
+  background-image: repeating-linear-gradient(90deg, var(--border) 0 0.25rem, transparent 0.25rem 0.5rem);
 }
 
 .k-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
-  padding: 0.25rem 0.625rem;
+  padding: 0.25rem 0.5rem;
   font-family: var(--f-pixel);
   font-size: 0.5625rem;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  font-weight: 600;
-  background: rgba(124, 58, 237, 0.12);
-  color: var(--primary-hi);
-  border: 0.125rem solid rgba(124, 58, 237, 0.3);
+  font-weight: 700;
+  background: var(--accent);
+  color: var(--tinta);
+  border: 0.125rem solid var(--tinta);
 }
 
-/* Badge de status — substitui padrões locais como ".fb-status.*"/".ad-role.*"/".jb-status"
-   (ver PLANO-px-rem-classes.md). Usar junto de um modificador de cor:
+/* Badge de status — usar junto de um modificador de cor:
    class="k-badge k-badge-success" */
 .k-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.125rem 0.5rem;
-  border-radius: 0.625rem;
+  padding: 0.1875rem 0.5rem;
+  border: 0.125rem solid var(--tinta);
   text-transform: uppercase;
-  font-size: 0.6875rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+  font-family: var(--f-pixel);
+  font-size: 0.5625rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
   white-space: nowrap;
 }
-.k-badge-success { background: rgba(52, 211, 153, 0.16); color: var(--ok); }
-.k-badge-warning { background: rgba(251, 146, 60, 0.16); color: var(--warn); }
-.k-badge-error { background: rgba(248, 113, 113, 0.16); color: var(--err); }
-.k-badge-info { background: rgba(124, 58, 237, 0.16); color: var(--primary-hi); }
-.k-badge-dim { background: rgba(255, 255, 255, 0.06); color: var(--text-3); }
+.k-badge-success { background: var(--ok); color: var(--bg-2); }
+.k-badge-warning { background: var(--warn); color: var(--bg-2); }
+.k-badge-error { background: var(--err); color: var(--bg-2); }
+.k-badge-info { background: var(--mundo); color: var(--mundo-soft); }
+.k-badge-dim { background: var(--bg-0); color: var(--text-3); }
 
 .k-key {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 1.75rem;
-  height: 1.75rem;
-  padding: 0 0.5rem;
-  background: var(--bg-3);
-  border: 0.1875rem solid var(--border-strong);
+  min-width: 1.625rem;
+  height: 1.625rem;
+  padding: 0 0.4375rem;
+  background: var(--bg-2);
+  border: 0.125rem solid var(--tinta);
   border-bottom-width: 0.25rem;
   font-family: var(--f-pixel);
   font-weight: 700;
-  font-size: 0.6875rem;
-  color: var(--accent);
+  font-size: 0.625rem;
+  color: var(--tinta);
 }
 
-/* Seletor de cor (swatch) — substitui padrões locais como ".swatch-btn"/".ed-swatch".
-   Modificadores: .k-swatch-lg (maior) e .k-active (anel de seleção). */
+/* Seletor de cor (swatch). Modificadores: .k-swatch-lg e .k-active. */
 .k-swatch {
   width: 1.875rem;
   height: 1.875rem;
   padding: 0;
-  border: 0.125rem solid transparent;
+  border: 0.125rem solid var(--tinta);
   cursor: pointer;
   background: var(--bg-1);
-  transition: border-color 0.1s;
 }
 .k-swatch-lg { width: 2.375rem; height: 2.375rem; }
 .k-swatch.k-active {
-  border-color: transparent;
-  background: var(--bg-1);
-  box-shadow: 0 0 0 0.125rem var(--bg-2), 0 0 0 0.25rem var(--primary-hi);
+  border-color: var(--tinta);
+  box-shadow: inset 0 0 0 0.125rem var(--bg-2), 0 0 0 0.1875rem var(--accent);
 }
 
-.glow-purple { filter: drop-shadow(0 0 0.75rem var(--primary-glow)) drop-shadow(0 0 0.25rem var(--primary-glow)); }
-.glow-gold { filter: drop-shadow(0 0 0.75rem var(--accent-glow)) drop-shadow(0 0 0.25rem var(--accent-glow)); }
-.glow-cyan { filter: drop-shadow(0 0 0.625rem rgba(34, 211, 238, 0.45)); }
+/* faixa hachurada de ação permanente — spawnar escreve no mapa pra todos e não
+   desfaz, então sai da caixa creme e ganha vocabulário próprio */
+.k-perigo {
+  background: rgba(168, 50, 50, 0.1);
+  border: 0.125rem solid var(--err);
+  box-shadow: inset 0 0 0 0.125rem rgba(244, 228, 193, 0.7);
+  padding: 0.625rem;
+}
+.k-perigo-faixa {
+  height: 0.5rem;
+  margin: -0.625rem -0.625rem 0.25rem;
+  background: repeating-linear-gradient(45deg, var(--err) 0 0.375rem, #e8c9b0 0.375rem 0.75rem);
+}
+
+.glow-purple { filter: drop-shadow(0 0 0.5rem var(--primary-glow)); }
+.glow-gold { filter: drop-shadow(0 0 0.5rem var(--accent-glow)); }
+.glow-cyan { filter: drop-shadow(0 0 0.5rem rgba(42, 77, 143, 0.4)); }
 
 .screen-enter { animation: screenFade 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 @keyframes screenFade {
@@ -296,5 +364,5 @@ body { overflow-x: hidden; }
 
 ::-webkit-scrollbar { width: 0.5rem; height: 0.5rem; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.08); border-radius: 999px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.16); }
+::-webkit-scrollbar-thumb { background: rgba(36, 28, 21, 0.25); }
+::-webkit-scrollbar-thumb:hover { background: rgba(36, 28, 21, 0.45); }

@@ -200,7 +200,7 @@ const REGISTER_ERRORS: Record<string, string> = {
   display: grid;
   place-items: center;
   padding: 1.5rem;
-  background: radial-gradient(ellipse at 50% 0%, rgba(124, 58, 237, 0.18), transparent 50%), var(--bg-1);
+  background: radial-gradient(ellipse at 50% 0%, rgba(242, 169, 59, 0.22), transparent 50%), var(--bg-1);
 }
 .reg-card {
   width: min(26.25rem, 100%);
@@ -263,7 +263,7 @@ const REGISTER_ERRORS: Record<string, string> = {
   margin-top: 1.125rem;
 }
 .reg-error {
-  color: #f87171;
+  color: var(--err);
   font-size: 0.75rem;
   margin: 0.625rem 0 0;
   text-align: center;
@@ -275,7 +275,7 @@ const REGISTER_ERRORS: Record<string, string> = {
   margin: 0.875rem 0 0;
 }
 .reg-foot a {
-  color: var(--accent);
+  color: var(--accent-texto);
   font-weight: 600;
   text-decoration: none;
 }

@@ -891,7 +891,7 @@ onBeforeUnmount(() => {
   grid-column: 1 / -1;
   aspect-ratio: 16 / 9;
   max-height: 62vh;
-  border-color: var(--accent);
+  border-color:var(--accent-texto);
   border-width: 0.1875rem;
   order: -1;
 }
@@ -965,7 +965,7 @@ onBeforeUnmount(() => {
   font-size: 0.4375rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-texto);
   background: var(--bg-0);
   padding: 0.125rem 0.25rem;
 }
@@ -1072,7 +1072,7 @@ onBeforeUnmount(() => {
   position: absolute;
   right: -0.1875rem;
   bottom: -0.1875rem;
-  color: var(--accent);
+  color: var(--accent-texto);
 }
 
 .ms-qmenu {
@@ -1125,7 +1125,7 @@ onBeforeUnmount(() => {
   font-size: 0.5rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: var(--accent-texto);
 }
 
 .ms-qopt-desc {
