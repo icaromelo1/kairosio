@@ -103,16 +103,22 @@
       </div>
 
       <!-- volume pessoal -->
-      <div class="row items-center q-gutter-xs jb-text-sm">
-        <span class="jb-muted">seu volume:</span>
-        <input type="range" min="0" max="1" step="0.05" v-model.number="personalVolume" class="k-range col" />
-        <span class="jb-muted jb-volume-value">{{ Math.round(personalVolume * 100) }}%</span>
-        <button
-          v-if="isProductAdmin"
-          class="k-btn k-btn-ghost k-btn-xs"
-          title="aplica o seu volume atual para todo mundo da sala"
-          @click="aplicarVolumeParaTodos"
-        >p/ todos</button>
+      <div class="column q-gutter-xs">
+        <div class="row items-center justify-between">
+          <span class="k-label jb-vol-cap">seu volume</span>
+          <span class="k-num">{{ Math.round(personalVolume * 100) }}%</span>
+        </div>
+        <div class="row items-center q-gutter-xs no-wrap">
+          <div class="col">
+            <NotchStepper v-model="personalVolume" :min="0" :max="1" :step="0.05" :entalhes="10" rotulo="seu volume" />
+          </div>
+          <button
+            v-if="isProductAdmin"
+            class="k-btn k-btn-ghost k-btn-sm col-auto"
+            title="aplica o seu volume atual para todo mundo da sala"
+            @click="aplicarVolumeParaTodos"
+          >p/ todos</button>
+        </div>
       </div>
 
       <!-- fila -->
@@ -137,6 +143,7 @@ import { personalVolume } from '@/services/jukeboxAudio'
 import { apiFetch } from '@/services/http'
 import { me } from '@/services/auth.api'
 import PixelIcon from '@/components/PixelIcon.vue'
+import NotchStepper from '@/components/pixel/NotchStepper.vue'
 
 const props = defineProps<{ areaAtual: string | null; jukeboxId: string }>()
 
@@ -459,4 +466,5 @@ function syncServer() {
     flex: 1 1 100%;
   }
 }
+.jb-vol-cap { margin: 0; }
 </style>
