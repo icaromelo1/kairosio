@@ -87,18 +87,11 @@
       </div>
 
       <!-- HUD bottom -->
-      <div v-if="hudVisible" class="gp-hud gp-hud-bottom row items-center q-gutter-md">
-        <span class="row items-center q-gutter-xs"><span class="k-key">W</span><span class="k-key">A</span><span class="k-key">S</span><span class="k-key">D</span><span class="gp-hud-hint">mover</span></span>
-        <span class="gp-hud-sep">·</span>
-        <span class="row items-center q-gutter-xs"><span class="k-key">B</span><span class="gp-hud-hint">dançar</span></span>
-        <span class="gp-hud-sep">·</span>
-        <span class="row items-center q-gutter-xs"><span class="k-key">G</span><span class="gp-hud-hint">acenar</span></span>
-        <span class="gp-hud-sep">·</span>
-        <span class="row items-center q-gutter-xs"><span class="k-key">V</span><span class="gp-hud-hint">voz</span></span>
-        <template v-if="activeZone">
-          <span class="gp-hud-sep">·</span>
-          <span class="row items-center q-gutter-xs"><span class="k-key">E</span><span class="gp-hud-action">{{ activeZone.action }}</span></span>
-        </template>
+      <!-- só o aviso contextual: a lista de atalhos saiu daqui porque o painel do
+           "?" já a tem por completo, e duas listas do mesmo teclado divergem. o que
+           não dá pra tirar é o que E faz AGORA, que muda conforme o objeto. -->
+      <div v-if="activeZone" class="gp-hud gp-hud-agir">
+        <span class="k-key">E</span><span class="gp-hud-action">{{ activeZone.action }}</span>
       </div>
 
       <!-- HUD separada por escopo: MUNDO (azul, sudo, escreve pra todos) em cima,
@@ -430,6 +423,7 @@ import { estadoDeLuz } from '@/game/lighting'
 import { me } from '@/services/auth.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import MapaExpandido from '@/components/MapaExpandido.vue'
+import { ESCALA_PADRAO } from '@/game/escala-avatar'
 import NotchStepper from '@/components/pixel/NotchStepper.vue'
 import ToggleRow from '@/components/pixel/ToggleRow.vue'
 import ClusterCard from '@/components/pixel/ClusterCard.vue'
@@ -444,6 +438,7 @@ import TaskPanel from '@/components/TaskPanel.vue'
 import NotePanel from '@/components/NotePanel.vue'
 import WhiteboardPanel from '@/components/WhiteboardPanel.vue'
 import ServersPanel from '@/components/ServersPanel.vue'
+import { getMyServers } from '@/services/server.api'
 import CharacterPanel from '@/components/CharacterPanel.vue'
 import AdminPanel from '@/components/AdminPanel.vue'
 import FeedbackPanel from '@/components/FeedbackPanel.vue'
@@ -667,7 +662,7 @@ const poderesAtivos = computed<PoderAtivo[]>(() => {
   if (sudoNoclip.value) itens.push({ id: 'noclip', label: 'noclip' })
   if (sudoInvisivel.value) itens.push({ id: 'invisivel', label: 'invisível' })
   if (sudoEspectador.value) itens.push({ id: 'espectador', label: 'espectador' })
-  if (sudoEscala.value !== 1) itens.push({ id: 'escala', label: `escala ${sudoEscala.value.toFixed(1)}×` })
+  if (sudoEscala.value !== ESCALA_PADRAO) itens.push({ id: 'escala', label: `escala ${sudoEscala.value.toFixed(1)}×` })
   if (horaDoMundo.value !== null) itens.push({ id: 'hora', label: 'hora travada', escopo: 'mundo' })
   return itens
 })
@@ -676,7 +671,7 @@ function desligarPoder(id: string) {
   if (id === 'noclip') sudoNoclip.value = false
   else if (id === 'invisivel') alternarInvisivel(false)
   else if (id === 'espectador') sudoEspectador.value = false
-  else if (id === 'escala') sudoEscala.value = 1
+  else if (id === 'escala') sudoEscala.value = ESCALA_PADRAO
   else if (id === 'hora') definirHora(null)
 }
 
@@ -1277,6 +1272,16 @@ onMounted(async () => {
         precisaPersonagem.value = v
         if (v && !asked) openPanel('personagem')
       })
+      // sem servidor nenhum a pessoa cai nos mundos abertos e fica num mapa que
+      // não é dela — o painel de servidores abre travado até ela criar um ou
+      // aceitar um convite
+      void getMyServers()
+        .then((lista) => {
+          if (lista.length === 0 && !asked) openPanel('servidores')
+        })
+        .catch(() => {
+          // não saber quantos servidores existem não pode impedir de jogar
+        })
     })
     .catch(() => { ehSudo.value = false })
 
@@ -1492,7 +1497,7 @@ function syncRemotes(dt: number, map: MapDef) {
     p.setPose(peer.pose || 'idle')
     p.setBoost(!!peer.boost)
     p.setName(peer.name)
-    p.setEscala((peer.avatar as AvatarProps)?.escala ?? 1)
+    p.setEscala((peer.avatar as AvatarProps)?.escala ?? ESCALA_PADRAO)
     p.update(dt)
     scene.placeAvatar(peer.id, peer.x, peer.y)
   }
@@ -1788,21 +1793,18 @@ onUnmounted(() => {
   to { transform: scaleX(0); }
 }
 
-.gp-hud-bottom {
+.gp-hud-agir {
   bottom: 1rem;
   left: 50%;
   transform: translateX(-50%);
   display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
   background: var(--bg-1);
   border: 0.125rem solid var(--tinta);
   box-shadow: var(--ui-shadow);
   padding: 0.5rem 0.875rem;
-  font-size: 0.6875rem;
-  color: var(--text-2);
-  letter-spacing: 0.06em;
 }
-.gp-hud-hint { color: var(--text-3); }
-.gp-hud-sep { color: var(--text-4); }
 .gp-hud-action { color: var(--accent-texto); }
 
 .gp-hud-hora {
@@ -1819,8 +1821,9 @@ onUnmounted(() => {
      o chat termina em 584px e os atalhos começam em 589px, então não existe vão
      horizontal entre os dois — encaixar ao lado sobreporia um deles. arrastar
      troca isto por left/top inline. */
-  left: 19.5rem;
-  bottom: 5.75rem;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 1rem;
   width: 25.25rem;
   display: flex;
   flex-direction: column;
@@ -1832,7 +1835,7 @@ onUnmounted(() => {
 /* recolhida: encolhe pro tamanho do conteúdo, senão a tira de ícones reservaria
    os 404px da HUD aberta e cobriria a barra de atalhos */
 .gp-hud-ctl-mini { width: fit-content; }
-.gp-hud-ctl-solta { bottom: auto; }
+.gp-hud-ctl-solta { bottom: auto; transform: none; }
 
 .gp-hud-grip {
   display: flex;
@@ -2111,11 +2114,4 @@ onUnmounted(() => {
   }
 }
 
-/* Muito estreito (celular em pé): dica de teclas (WASD/B/G) é redundante com
-   os controles touch e brigava por espaço com chat/voz na mesma faixa vertical. */
-@media (max-width: 30rem) {
-  .gp-hud-bottom {
-    display: none;
-  }
-}
 </style>
