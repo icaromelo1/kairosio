@@ -682,6 +682,12 @@ def livre(x, y, w, h):
 
 jardinar()
 
+# flores e vasos saem do mapa, mas continuam ocupando espaco durante a geracao:
+# livre() consulta a lista de objetos, entao removê-los ANTES faria a cerca-viva
+# ocupar o lugar deles e deslocar o jardim inteiro. Gera tudo, descarta no fim.
+REMOVIDOS = {"flower", "plant"}
+objetos = [o for o in objetos if o["kind"] not in REMOVIDOS]
+
 mapa = {
     "id": "cidade",
     "name": "Cidade",
