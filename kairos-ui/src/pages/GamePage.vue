@@ -146,12 +146,13 @@
               <div class="gp-hud-campo gp-hud-slot">
                 <span class="k-label gp-hud-cap">sala</span>
                 <button
-                  v-if="salaAtualId"
+                  v-if="salaFechavelId"
                   class="k-btn k-btn-sm gp-hud-full"
                   :class="{ 'k-active': salaTrancada }"
+                  :title="`${salaTrancada ? 'destrancar' : 'trancar'} ${nomeDaSala || 'a sala'} (L)`"
                   @click="toggleSalaTrancada"
-                >{{ salaTrancada ? 'destrancar' : 'trancar' }}</button>
-                <GhostSlot v-else label="fora de sala" />
+                ><PixelIcon :name="salaTrancada ? 'lock' : 'unlock'" size="0.6875rem" />{{ salaTrancada ? 'destrancar' : 'trancar' }}</button>
+                <GhostSlot v-else label="sem sala" />
               </div>
             </div>
           </template>
@@ -159,6 +160,13 @@
             <div class="gp-hud-recolhido">
               <span v-if="ehSudo" class="k-badge k-badge-info">{{ horaLabel }}</span>
               <span class="k-badge k-badge-dim">{{ turboMult.toFixed(1) }}×</span>
+              <button
+                v-if="salaFechavelId"
+                class="k-btn k-btn-xs gp-hud-recolhido-sala"
+                :class="{ 'k-active': salaTrancada }"
+                :title="`${salaTrancada ? 'destrancar' : 'trancar'} ${nomeDaSala || 'a sala'} (L)`"
+                @click="toggleSalaTrancada"
+              ><PixelIcon :name="salaTrancada ? 'lock' : 'unlock'" size="0.6875rem" />{{ salaTrancada ? 'destrancar' : 'trancar' }}</button>
             </div>
           </template>
 
@@ -166,10 +174,18 @@
             <button class="gp-hud-rodape" :title="hudVisible ? 'esconder dicas (H)' : 'mostrar dicas (H)'" @click="hudVisible = !hudVisible">
               <PixelIcon :name="hudVisible ? 'chevron-up' : 'chevron-down'" size="0.75rem" />dicas
             </button>
-            <button class="gp-hud-rodape" title="atalhos do teclado" @click="atalhosAbertos = !atalhosAbertos">atalhos ?</button>
+            <button
+              class="gp-hud-rodape" :class="{ 'gp-hud-rodape-on': minimapaVisivel }"
+              :title="minimapaVisivel ? 'esconder o minimapa (M)' : 'mostrar o minimapa (M)'"
+              @click="minimapaVisivel = !minimapaVisivel"
+            ><PixelIcon name="map-pin" size="0.75rem" />mini</button>
+            <button class="gp-hud-rodape" title="abrir o mapa grande" @click="mapaExpandido = true">
+              <PixelIcon name="expand" size="0.75rem" />mapa
+            </button>
+            <button class="gp-hud-rodape gp-hud-icone" title="atalhos do teclado" @click="atalhosAbertos = !atalhosAbertos">?</button>
             <button
               v-if="ehSudo"
-              class="gp-hud-rodape gp-hud-coroa" :class="{ 'gp-hud-rodape-on': sudoPanelOpen }"
+              class="gp-hud-rodape gp-hud-icone" :class="{ 'gp-hud-rodape-on': sudoPanelOpen }"
               title="poderes de sudo" @click="sudoPanelOpen = !sudoPanelOpen"
             ><PixelIcon name="crown" size="0.75rem" /></button>
           </template>
@@ -177,6 +193,16 @@
 
         <AtivosBar v-if="ehSudo" :itens="poderesAtivos" @desligar="desligarPoder" />
       </div>
+
+      <MapaExpandido
+        v-if="mapaExpandido && currentMap"
+        :map="currentMap"
+        :eu="{ id: 'eu', nome: playerName, x: pos.x, y: pos.y }"
+        :outros="pessoasNoMapa"
+        :trancadas="salasTrancadas"
+        :sala-atual-id="salaAtualId"
+        @fechar="mapaExpandido = false"
+      />
 
       <div v-if="atalhosAbertos" class="k-card gp-atalhos">
         <div class="row items-center justify-between">
@@ -372,6 +398,7 @@ import { precisaCriarPersonagem, panelFromQuery, type GamePanel } from '@/servic
 import { estadoDeLuz } from '@/game/lighting'
 import { me } from '@/services/auth.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
+import MapaExpandido from '@/components/MapaExpandido.vue'
 import NotchStepper from '@/components/pixel/NotchStepper.vue'
 import ToggleRow from '@/components/pixel/ToggleRow.vue'
 import ClusterCard from '@/components/pixel/ClusterCard.vue'
@@ -492,6 +519,7 @@ function aoFecharPersonagem() {
 }
 const currentMap = computed(() => maps.value.find((m) => m.id === currentId.value))
 const roomPeers = computed(() => [...remotePlayers.values()].filter((p) => !p.map || p.map === currentId.value))
+const pessoasNoMapa = computed(() => roomPeers.value.map((p) => ({ id: p.id, nome: p.name, x: p.x, y: p.y })))
 
 let scene: MapScene | null = null
 const pos = reactive({ x: 11, y: 9 })
@@ -510,6 +538,8 @@ const ehSudo = ref(false)
 const horaEditavel = ref(12)
 const sudoPanelOpen = ref(false)
 const atalhosAbertos = ref(false)
+const minimapaVisivel = ref(localStorage.getItem('kairos_minimapa') !== 'off')
+const mapaExpandido = ref(false)
 const danceStyle = ref<AvatarPose>('dance')
 
 const ATALHOS = [
@@ -520,6 +550,8 @@ const ATALHOS = [
   { tecla: 'G', oque: 'emote' },
   { tecla: 'V', oque: 'abrir a sala de voz' },
   { tecla: 'H', oque: 'recolher a HUD' },
+  { tecla: 'M', oque: 'ligar e desligar o minimapa' },
+  { tecla: 'L', oque: 'trancar e destrancar a sala em que você está' },
 ]
 
 const horaLabel = computed(() => {
@@ -566,15 +598,28 @@ const salaAtualId = computed(() => {
   const map = currentMap.value
   return map ? salaDoPonto(map, pos.x, pos.y) : null
 })
-const salaTrancada = computed(() => !!salaAtualId.value && salasTrancadas.value.has(salaAtualId.value))
-function toggleSalaTrancada() {
+// praça é área ABERTA: entra na conta do áudio e da jukebox, mas ninguém pode
+// trancar a praça central do mundo. só sala fechada é trancável.
+const salaFechavelId = computed(() => {
+  const map = currentMap.value
   const id = salaAtualId.value
+  if (!map || !id) return null
+  const area = map.objects.find((o) => o.kind === 'area' && o.id === id)
+  return area && !(area as { aberta?: boolean }).aberta ? id : null
+})
+const salaTrancada = computed(() => !!salaFechavelId.value && salasTrancadas.value.has(salaFechavelId.value))
+function toggleSalaTrancada() {
+  const id = salaFechavelId.value
   if (!id) return
   emitSalaTrancar(id, !salasTrancadas.value.has(id))
 }
 
 watch(turboMult, (v) => localStorage.setItem('kairos_turbo', String(v)))
 watch(hudVisible, (v) => localStorage.setItem('kairos_hud', v ? 'on' : 'off'))
+watch(minimapaVisivel, (v) => {
+  localStorage.setItem('kairos_minimapa', v ? 'on' : 'off')
+  scene?.mostrarMinimapa(v)
+}, { immediate: false })
 const nearby = ref<string | null>(null)
 let emoteUntil = 0
 const messages = chatMessages
@@ -719,11 +764,13 @@ function onKeyDown(e: KeyboardEvent) {
   }
   // atalho da sala de voz não pode engolir Cmd/Ctrl+V (colar) nem Alt+V
   const voiceKey = k === 'v' && !e.ctrlKey && !e.metaKey && !e.altKey
-  if (voiceKey || ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'e', 'b', 'g', 'h', 'escape'].includes(k)) e.preventDefault()
+  if (voiceKey || ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'e', 'b', 'g', 'h', 'm', 'l', 'escape'].includes(k)) e.preventDefault()
   if (k === 'e') { tryInteract(); return }
   if (k === 'b') { dancing = !dancing; danceStyle.value = 'dance'; return }
   if (k === 'g') { emote(); return }
-  if (k === 'h') { hudVisible.value = !hudVisible.value; scene?.mostrarMinimapa(hudVisible.value); return }
+  if (k === 'h') { hudVisible.value = !hudVisible.value; return }
+  if (k === 'm') { minimapaVisivel.value = !minimapaVisivel.value; return }
+  if (k === 'l') { toggleSalaTrancada(); return }
   if (voiceKey) { toggleMediaStage(); return }
   if (k === 'escape') { closeModal(); return }
   keys.add(k)
@@ -1112,6 +1159,9 @@ onMounted(async () => {
   scene.addAvatar('me', new AvatarPuppet(look.value))
   scene.avatar('me')?.setPhoto(myPhotoUrl.value)
   minimapDoScene()?.aoClicar(aoClicarMinimapa)
+  // o watch só dispara na mudança: sem isto a preferência salva era ignorada no
+  // boot e o minimapa voltava sempre visível
+  scene.mostrarMinimapa(minimapaVisivel.value)
   relogioLuz = window.setInterval(aplicarLuzDoMundo, 30_000)
   me()
     .then((p) => {
