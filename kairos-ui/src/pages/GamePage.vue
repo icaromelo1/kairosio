@@ -62,6 +62,24 @@
 
       <!-- Chat -->
       <div class="gp-chat">
+        <!-- duas conversas convivendo: por padrão você fala no Mundo mesmo estando
+             dentro de uma sala — falar na sala é uma escolha, não um efeito de onde
+             o corpo está -->
+        <div class="gp-chat-abas">
+          <button
+            class="gp-chat-aba" :class="{ 'gp-chat-aba-on': abaChat === 'mundo' }"
+            @click="abaChat = 'mundo'"
+          >mundo</button>
+          <button
+            v-if="salaDoChat"
+            class="gp-chat-aba" :class="{ 'gp-chat-aba-on': abaChat === 'sala' }"
+            @click="abaChat = 'sala'"
+          >
+            <span class="ellipsis">{{ salaDoChat.nome }}</span>
+            <span v-if="naoLidasSala" class="gp-chat-bolha">{{ naoLidasSala }}</span>
+          </button>
+          <span v-else class="gp-chat-aba gp-chat-aba-vazia">sem sala</span>
+        </div>
         <div v-if="messages.length" ref="chatLog" class="gp-chat-log" @scroll="onChatScroll">
           <div v-for="(m, i) in messages" :key="i" class="gp-chat-msg">
             <span class="gp-chat-name" :style="{ color: chatColor(m) }">{{ m.name }}:</span>
@@ -78,7 +96,7 @@
             >{{ chatInput.length }}/{{ CHAT_MAX_LEN }}</span>
           </div>
           <input
-            v-model="chatInput" :maxlength="CHAT_MAX_LEN" placeholder="Conversar… (Enter)"
+            v-model="chatInput" :maxlength="CHAT_MAX_LEN" :placeholder="`Conversar em ${abaChat === 'sala' && salaDoChat ? salaDoChat.nome : 'Mundo'}… (Enter)`"
             class="gp-chat-input"
             @keydown.enter="sendChat"
           />
@@ -407,8 +425,9 @@ import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/gam
 import { fetchMaps, saveMap } from '@/services/maps.api'
 import { getWorldState, saveWorldState } from '@/services/world.api'
 import {
-  connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, chatMessages, emitChat,
+  connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, emitChat,
   estadoDoJukebox, salasTrancadas, emitSalaTrancar, horaDoMundo, emitDefinirHora, emitScreenShare,
+  chatMundo, chatSala, salaDoChat,
   onScreenShare, sessionKicked, syncDmUnread, emitAvatarUpdate,
   sudoInvisivel, sudoNoclip, sudoEspectador, sudoEscala,
   emitSudoInvisivel, emitSudoFesta, emitSudoTeleporte, emitSudoPuxar, onPuxado, onFesta,
@@ -719,7 +738,20 @@ watch(minimapaVisivel, (v) => {
 }, { immediate: false })
 const nearby = ref<string | null>(null)
 let emoteUntil = 0
-const messages = chatMessages
+const abaChat = ref<'mundo' | 'sala'>('mundo')
+const naoLidasSala = ref(0)
+const messages = computed(() => (abaChat.value === 'sala' ? chatSala : chatMundo))
+
+// entrar numa sala não muda a aba: quem estava falando no mundo continua no
+// mundo. o contador avisa que tem conversa acontecendo do outro lado.
+watch(() => chatSala.length, (agora, antes) => {
+  if (abaChat.value !== 'sala' && agora > (antes ?? 0)) naoLidasSala.value += agora - (antes ?? 0)
+})
+watch(abaChat, (v) => { if (v === 'sala') naoLidasSala.value = 0 })
+// saiu da sala: a aba some, então volta pro mundo em vez de ficar num log morto
+watch(salaDoChat, (v) => {
+  if (!v) { abaChat.value = 'mundo'; naoLidasSala.value = 0 }
+})
 const CHAT_NAME_COLORS = 10
 
 function chatColor(m: ChatMessage): string {
@@ -891,7 +923,7 @@ function sendChat() {
   if (chatCooldown.value) return
   const t = chatInput.value.trim()
   if (!t) return
-  emitChat(t)
+  emitChat(t, abaChat.value)
   chatInput.value = ''
   chatCooldown.value = true
   chatCooldownTimer = window.setTimeout(() => { chatCooldown.value = false }, CHAT_COOLDOWN_MS)
@@ -1119,7 +1151,8 @@ async function onServerChanged(_serverId?: string, mapId?: string) {
     if (target.id !== currentId.value) applyMap(target)
     disconnectPresence()
     // o histórico é da sala do servidor anterior
-    messages.splice(0)
+    chatMundo.splice(0)
+    chatSala.splice(0)
     connectPresence({ avatar: joinAvatarPayload.value, map: target.id, x: pos.x, y: pos.y })
     void sidebar.value?.reloadServers()
     void enterVoice(target.id, true)
@@ -2134,4 +2167,30 @@ onUnmounted(() => {
   }
 }
 
+.gp-chat-abas { display: flex; gap: 0.25rem; margin-bottom: 0.25rem; }
+.gp-chat-aba {
+  appearance: none;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  max-width: 9rem;
+  padding: 0.3125rem 0.5rem;
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
+  color: var(--text-2);
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.gp-chat-aba-on { background: var(--primary); color: var(--bg-2); }
+.gp-chat-aba-vazia { opacity: 0.45; cursor: default; border-style: dashed; }
+.gp-chat-bolha {
+  background: var(--accent);
+  color: var(--tinta);
+  border: 0.125rem solid var(--tinta);
+  padding: 0 0.25rem;
+  font-size: 0.5rem;
+}
 </style>

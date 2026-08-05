@@ -12,6 +12,8 @@ export interface ChatMessage {
   name: string
   text: string
   ts: number
+  escopo?: 'mundo' | 'sala'
+  canal?: string
 }
 
 export interface Stroke {
@@ -123,7 +125,11 @@ const MOVE_INTERVAL = 80
 // Mapa reativo de quem mais está na sala — consumido direto pelo GamePage
 export const remotePlayers = reactive(new Map<string, RemotePlayer>())
 // Histórico recente de chat da sala (cap 50)
-export const chatMessages = reactive<ChatMessage[]>([])
+// dois logs, não um: a aba do mundo e a da sala convivem, e o servidor marca
+// cada mensagem com o escopo em que ela foi dita
+export const chatMundo = reactive<ChatMessage[]>([])
+export const chatSala = reactive<ChatMessage[]>([])
+export const salaDoChat = ref<{ canal: string; nome: string } | null>(null)
 // Estado de cada jukebox do mapa atual (fila/faixa tocando/área/alcance), por jukeboxId
 export const jukeboxStates = reactive(new Map<string, JukeboxState>())
 export const jukeboxError = ref('')
@@ -220,8 +226,22 @@ export function connectPresence(opts: JoinOptions) {
     if (name) p.name = name
   })
   socket.on('chatMessage', (m: ChatMessage) => {
-    chatMessages.push(m)
-    if (chatMessages.length > 50) chatMessages.splice(0, chatMessages.length - 50)
+    const destino = m.escopo === 'sala' ? chatSala : chatMundo
+    destino.push(m)
+    if (destino.length > 50) destino.splice(0, destino.length - 50)
+  })
+
+  // histórico que o servidor guardou enquanto a sala não esvaziou
+  socket.on('chatCanal', (p: { canal: string; escopo: 'mundo' | 'sala'; nome: string; mensagens: ChatMessage[] }) => {
+    const destino = p.escopo === 'sala' ? chatSala : chatMundo
+    destino.splice(0, destino.length, ...p.mensagens)
+    if (p.escopo === 'sala') salaDoChat.value = { canal: p.canal, nome: p.nome }
+  })
+
+  socket.on('chatCanalSala', (p: { canal: string | null; nome: string | null }) => {
+    if (p.canal) return
+    salaDoChat.value = null
+    chatSala.splice(0)
   })
 
   socket.on('jukeboxState', (s: JukeboxState & { jukeboxId: string }) => {
@@ -429,8 +449,8 @@ export function onScreenShare(cb: (state: ScreenShareState) => void) {
   return () => screenShareListeners.delete(cb)
 }
 
-export function emitChat(text: string) {
-  socket?.emit('chat', { text })
+export function emitChat(text: string, escopo: 'mundo' | 'sala' = 'mundo') {
+  socket?.emit('chat', { text, escopo })
 }
 
 export function emitAvatarUpdate(avatar: AvatarProps) {
@@ -497,7 +517,9 @@ export function switchMap(map: string) {
   if (currentJoin) currentJoin.map = map
   socket?.emit('switchMap', { map })
   remotePlayers.clear()
-  chatMessages.splice(0)
+  chatMundo.splice(0)
+  chatSala.splice(0)
+  salaDoChat.value = null
 }
 
 export function disconnectPresence() {
