@@ -101,14 +101,29 @@ interface WhiteboardState {
 
 interface AreaRect {
   id: string
+  nome: string
+  aberta: boolean
   x: number
   y: number
   w: number
   h: number
 }
 
+interface MensagemGuardada {
+  id: string
+  userId: string
+  name: string
+  text: string
+  ts: number
+  escopo: 'mundo' | 'sala'
+  canal: string
+}
+
 const MOVE_MIN_INTERVAL_MS = 50
 const CHAT_MIN_INTERVAL_MS = 500
+// teto por canal, não global: a conversa de uma sala não pode empurrar a do
+// mundo pra fora
+const CHAT_HISTORICO_MAX = 50
 const SCREEN_MIN_INTERVAL_MS = 1000
 const MIC_MIN_INTERVAL_MS = 500
 const PRESENCE_WATCH_MIN_INTERVAL_MS = 500
@@ -226,6 +241,10 @@ export class PresenceGateway
   private readonly identityReady = new Map<string, Promise<void>>()
   private readonly lastMoveAt = new Map<string, number>()
   private readonly lastChatAt = new Map<string, number>()
+  // histórico por canal. só é descartado quando o último ocupante sai — é o que
+  // dá continuidade a quem chega depois, e usa o mesmo gatilho do destrancamento
+  // automático de sala.
+  private readonly historicoChat = new Map<string, MensagemGuardada[]>()
   private readonly lastScreenAt = new Map<string, number>()
   private readonly lastMicAt = new Map<string, number>()
   private readonly lastWatchAt = new Map<string, number>()
@@ -417,6 +436,7 @@ export class PresenceGateway
     this.emitActiveJukeboxes(socket, room)
     socket.emit('salaEstado', { trancadas: [...(this.salasTrancadas.get(room) ?? [])] })
     socket.emit('horaDoMundo', { hora: this.horaDoMundo.get(room) ?? null })
+    this.entrarNosCanaisDeChat(socket, player)
     // join repetido mantém o mesmo socket.id na lista de presença: é troca de
     // mundo pra quem observa, não uma pessoa nova
     this.emitPresence(player, existing ? 'update' : 'join')
@@ -444,7 +464,7 @@ export class PresenceGateway
   }
 
   @SubscribeMessage('chat')
-  handleChat(socket: Socket, payload: { text: string }) {
+  handleChat(socket: Socket, payload: { text: string; escopo?: 'mundo' | 'sala' }) {
     const player = this.players.get(socket.id)
     if (!player) return
     // descarte silencioso: o cliente já segura o envio por 500ms, isto aqui é a
@@ -454,14 +474,49 @@ export class PresenceGateway
     const text = String(payload?.text ?? '').trim().slice(0, 255)
     if (!text) return
     this.lastChatAt.set(socket.id, now)
-    this.server.to(this.room(player.serverId, player.map)).emit('chatMessage', {
+
+    // falar na sala exige estar numa: sem a checagem, o cliente podia mandar
+    // escopo 'sala' de qualquer lugar e escrever numa conversa que não é dele
+    const sala = payload?.escopo === 'sala' ? this.salaDoSocket(socket.id) : null
+    const escopo: 'mundo' | 'sala' = sala ? 'sala' : 'mundo'
+    const canal = sala
+      ? this.canalDaSala(player.serverId, player.map, sala.id)
+      : this.canalDoMundo(player.serverId, player.map)
+
+    const msg: MensagemGuardada = {
       id: socket.id,
       userId: player.userId,
       name: player.name,
       text,
       ts: Date.now(),
+      escopo,
+      canal,
+    }
+    this.guardarNoHistorico(canal, msg)
+    this.server.to(canal).emit('chatMessage', msg)
+  }
+
+  private guardarNoHistorico(canal: string, msg: MensagemGuardada) {
+    const lista = this.historicoChat.get(canal) ?? []
+    lista.push(msg)
+    if (lista.length > CHAT_HISTORICO_MAX) lista.splice(0, lista.length - CHAT_HISTORICO_MAX)
+    this.historicoChat.set(canal, lista)
+  }
+
+  private enviarHistorico(socket: Socket, canal: string, escopo: 'mundo' | 'sala', nome: string) {
+    socket.emit('chatCanal', {
+      canal,
+      escopo,
+      nome,
+      mensagens: this.historicoChat.get(canal) ?? [],
     })
   }
+
+  private descartarHistoricoSeVazio(canal: string, ocupado: boolean) {
+    if (ocupado) return
+    this.historicoChat.delete(canal)
+  }
+
 
   @SubscribeMessage('avatarUpdate')
   async handleAvatarUpdate(socket: Socket, payload: { avatar: unknown }) {
@@ -514,6 +569,7 @@ export class PresenceGateway
     const oldServerId = player.serverId
     const oldMap = player.map
     socket.leave(this.room(oldServerId, oldMap))
+    socket.leave(this.canalDoMundo(oldServerId, oldMap))
     this.emitPlayerLeft(player)
     this.saiDaAreaAtual(player)
     player.map = map
@@ -527,6 +583,7 @@ export class PresenceGateway
     this.emitActiveJukeboxes(socket, room)
     socket.emit('salaEstado', { trancadas: [...(this.salasTrancadas.get(room) ?? [])] })
     socket.emit('horaDoMundo', { hora: this.horaDoMundo.get(room) ?? null })
+    this.entrarNosCanaisDeChat(socket, player)
     this.emitPresence(player, 'update')
     this.emitFriendPresence(player.userId, player)
   }
@@ -845,19 +902,55 @@ export class PresenceGateway
       const map = await this.mapService.findOne(mapId)
       areas = (map.objects as any[])
         .filter((o) => o && o.kind === 'area' && o.id)
-        .map((o) => ({ id: String(o.id), x: Number(o.x), y: Number(o.y), w: Number(o.w), h: Number(o.h) }))
+        .map((o) => ({
+          id: String(o.id),
+          nome: String(o.name ?? o.nome ?? o.id),
+          aberta: o.aberta === true,
+          x: Number(o.x),
+          y: Number(o.y),
+          w: Number(o.w),
+          h: Number(o.h),
+        }))
     } catch {
       areas = []
     }
     this.areasPorMapa.set(mapId, areas)
   }
 
+  // a MENOR área que contém o ponto: sala pequena dentro de saguão grande
+  // devolveria o saguão se fosse a primeira da lista
   private areaDoPonto(mapId: MapId, x: number, y: number): string | null {
     const areas = this.areasPorMapa.get(mapId) ?? []
+    let achado: string | null = null
+    let menor = Infinity
     for (const a of areas) {
-      if (x >= a.x && x < a.x + a.w && y >= a.y && y < a.y + a.h) return a.id
+      if (x < a.x || x >= a.x + a.w || y < a.y || y >= a.y + a.h) continue
+      const tamanho = a.w * a.h
+      if (tamanho < menor) { menor = tamanho; achado = a.id }
     }
-    return null
+    return achado
+  }
+
+  private areaPorId(mapId: MapId, areaId: string): AreaRect | null {
+    return (this.areasPorMapa.get(mapId) ?? []).find((a) => a.id === areaId) ?? null
+  }
+
+  // praça é área ABERTA e não é sala: quem está nela fala no mundo, mesma regra
+  // que já vale pra trancar
+  private salaDoSocket(socketId: string): AreaRect | null {
+    const player = this.players.get(socketId)
+    const areaId = this.areaAtualDoSocket.get(socketId)
+    if (!player || !areaId) return null
+    const area = this.areaPorId(player.map, areaId)
+    return area && !area.aberta ? area : null
+  }
+
+  private canalDoMundo(serverId: string | null, map: MapId): string {
+    return `${this.room(serverId, map)}::chat:mundo`
+  }
+
+  private canalDaSala(serverId: string | null, map: MapId, areaId: string): string {
+    return `${this.room(serverId, map)}::chat:sala:${areaId}`
   }
 
   // recalcula a área do jogador só quando ela muda (o move é frequente) e, ao
@@ -867,14 +960,71 @@ export class PresenceGateway
     const anterior = this.areaAtualDoSocket.get(player.id) ?? null
     if (novaArea === anterior) return
     this.areaAtualDoSocket.set(player.id, novaArea)
+    this.trocarCanalDeSala(player, anterior, novaArea)
     if (anterior) this.destrancarSeVazia(player.serverId, player.map, anterior)
+  }
+
+  // o canal da sala acompanha o corpo: sair da sala tem que tirar do canal, senão
+  // a pessoa continua lendo (e podendo escrever) numa conversa que já deixou
+  private trocarCanalDeSala(player: Player, anterior: string | null, nova: string | null) {
+    const socket = this.server.sockets.sockets.get(player.id)
+    if (!socket) return
+    if (anterior) {
+      const area = this.areaPorId(player.map, anterior)
+      if (area && !area.aberta) {
+        const canal = this.canalDaSala(player.serverId, player.map, anterior)
+        socket.leave(canal)
+        this.descartarHistoricoSeVazio(canal, this.salaTemGente(player.serverId, player.map, anterior))
+      }
+    }
+    if (nova) {
+      const area = this.areaPorId(player.map, nova)
+      if (area && !area.aberta) {
+        const canal = this.canalDaSala(player.serverId, player.map, nova)
+        socket.join(canal)
+        this.enviarHistorico(socket, canal, 'sala', area.nome)
+      }
+    }
+    if (!nova) socket.emit('chatCanalSala', { canal: null, nome: null })
+  }
+
+  // entrar no mundo é entrar na conversa dele; se o ponto de entrada já é dentro
+  // de uma sala, entra nas duas de uma vez
+  private entrarNosCanaisDeChat(socket: Socket, player: Player) {
+    const canalMundo = this.canalDoMundo(player.serverId, player.map)
+    socket.join(canalMundo)
+    this.enviarHistorico(socket, canalMundo, 'mundo', 'Mundo')
+    const sala = this.salaDoSocket(socket.id)
+    if (!sala) {
+      socket.emit('chatCanalSala', { canal: null, nome: null })
+      return
+    }
+    const canalSala = this.canalDaSala(player.serverId, player.map, sala.id)
+    socket.join(canalSala)
+    this.enviarHistorico(socket, canalSala, 'sala', sala.nome)
+  }
+
+  private salaTemGente(serverId: string | null, map: MapId, areaId: string): boolean {
+    for (const [socketId, area] of this.areaAtualDoSocket) {
+      if (area !== areaId) continue
+      const p = this.players.get(socketId)
+      if (p && p.serverId === serverId && p.map === map) return true
+    }
+    return false
   }
 
   // saiu do mapa/desconectou: solta a área que ocupava e verifica o destrancamento
   private saiDaAreaAtual(player: Player) {
     const areaId = this.areaAtualDoSocket.get(player.id)
     this.areaAtualDoSocket.delete(player.id)
-    if (areaId) this.destrancarSeVazia(player.serverId, player.map, areaId)
+    if (!areaId) return
+    const area = this.areaPorId(player.map, areaId)
+    if (area && !area.aberta) {
+      const canal = this.canalDaSala(player.serverId, player.map, areaId)
+      this.server.sockets.sockets.get(player.id)?.leave(canal)
+      this.descartarHistoricoSeVazio(canal, this.salaTemGente(player.serverId, player.map, areaId))
+    }
+    this.destrancarSeVazia(player.serverId, player.map, areaId)
   }
 
   private destrancarSeVazia(serverId: string | null, map: MapId, areaId: string) {
@@ -1111,6 +1261,11 @@ export class PresenceGateway
     }
     const room = this.room(serverId, map)
     const prefix = `${room}::`
+    // último a sair apaga a luz: o histórico do mundo e o das salas dele só some
+    // quando o mapa esvazia de vez
+    for (const canal of [...this.historicoChat.keys()]) {
+      if (canal.startsWith(prefix)) this.historicoChat.delete(canal)
+    }
     for (const [key, state] of this.jukebox) {
       if (!key.startsWith(prefix)) continue
       if (state.timer) clearTimeout(state.timer)
