@@ -104,7 +104,23 @@
       <!-- HUD separada por escopo: MUNDO (azul, sudo, escreve pra todos) em cima,
            EU (verde, só o meu avatar) embaixo. Largura travada e slot condicional
            com fantasma, senão a barra muda de tamanho sozinha. -->
-      <div class="gp-hud gp-hud-ctl">
+      <div
+        ref="hudCtlEl"
+        class="gp-hud gp-hud-ctl"
+        :class="{ 'gp-hud-ctl-mini': !hudVisible, 'gp-hud-ctl-solta': !!hudPos }"
+        :style="hudEstilo"
+      >
+        <div class="gp-hud-grip" title="arraste para mover" @pointerdown="comecarArrasteHud">
+          <span class="gp-hud-grip-pontos" aria-hidden="true" />
+          <button
+            v-if="hudPos"
+            class="gp-hud-grip-voltar"
+            title="voltar ao lugar padrão"
+            @pointerdown.stop
+            @click="hudPos = null"
+          >↺</button>
+        </div>
+
         <ClusterCard v-if="hudVisible && ehSudo" titulo="mundo · afeta todos" nota="sudo" escopo="mundo">
           <div class="gp-hud-linha">
             <div class="gp-hud-campo">
@@ -553,6 +569,76 @@ const ehSudo = ref(false)
 const horaEditavel = ref(12)
 const sudoPanelOpen = ref(false)
 const atalhosAbertos = ref(false)
+
+// posição da HUD: null = lugar padrão (rodapé, entre o chat e a barra de atalhos),
+// definido no CSS. assim que a pessoa arrasta, passa a valer o par x/y em px
+// relativo ao palco do jogo — guardado por navegador.
+const HUD_POS_KEY = 'kairos_hud_pos'
+const hudCtlEl = ref<HTMLElement | null>(null)
+
+function lerHudPos(): { x: number; y: number } | null {
+  try {
+    const bruto = JSON.parse(localStorage.getItem(HUD_POS_KEY) || 'null')
+    if (bruto && Number.isFinite(bruto.x) && Number.isFinite(bruto.y)) return { x: bruto.x, y: bruto.y }
+  } catch {
+    // preferência corrompida não pode impedir o jogo de abrir
+  }
+  return null
+}
+
+const hudPos = ref<{ x: number; y: number } | null>(lerHudPos())
+
+const hudEstilo = computed(() =>
+  hudPos.value ? { left: `${hudPos.value.x}px`, top: `${hudPos.value.y}px` } : undefined,
+)
+
+watch(hudPos, (v) => {
+  if (v) localStorage.setItem(HUD_POS_KEY, JSON.stringify(v))
+  else localStorage.removeItem(HUD_POS_KEY)
+})
+
+// nunca deixa a HUD sair do palco: sem isto, encolher a janela depois de arrastar
+// esconde a barra pra sempre e não há como trazê-la de volta
+function limitarAoPalco(x: number, y: number) {
+  const el = hudCtlEl.value
+  const palco = el?.offsetParent as HTMLElement | null
+  if (!el || !palco) return { x, y }
+  const margem = 8
+  const maxX = Math.max(margem, palco.clientWidth - el.offsetWidth - margem)
+  const maxY = Math.max(margem, palco.clientHeight - el.offsetHeight - margem)
+  return { x: Math.min(maxX, Math.max(margem, x)), y: Math.min(maxY, Math.max(margem, y)) }
+}
+
+function comecarArrasteHud(e: PointerEvent) {
+  const el = hudCtlEl.value
+  const palco = el?.offsetParent as HTMLElement | null
+  if (!el || !palco) return
+  e.preventDefault()
+  const caixa = el.getBoundingClientRect()
+  const base = palco.getBoundingClientRect()
+  const pegaX = e.clientX - caixa.left
+  const pegaY = e.clientY - caixa.top
+
+  const mover = (ev: PointerEvent) => {
+    hudPos.value = limitarAoPalco(ev.clientX - base.left - pegaX, ev.clientY - base.top - pegaY)
+  }
+  const soltar = () => {
+    window.removeEventListener('pointermove', mover)
+    window.removeEventListener('pointerup', soltar)
+  }
+  window.addEventListener('pointermove', mover)
+  window.addEventListener('pointerup', soltar)
+}
+
+// recolher/expandir muda a altura, e a janela muda o palco: os dois podem jogar a
+// barra pra fora do que é alcançável
+function reencaixarHud() {
+  if (!hudPos.value) return
+  const ajustado = limitarAoPalco(hudPos.value.x, hudPos.value.y)
+  if (ajustado.x !== hudPos.value.x || ajustado.y !== hudPos.value.y) hudPos.value = ajustado
+}
+watch(hudVisible, () => nextTick(reencaixarHud))
+window.addEventListener('resize', reencaixarHud)
 const minimapaVisivel = ref(localStorage.getItem('kairos_minimapa') !== 'off')
 const mapaExpandido = ref(false)
 const danceStyle = ref<AvatarPose>('dance')
@@ -1432,6 +1518,7 @@ async function leave() {
 onUnmounted(() => {
   window.clearInterval(relogioLuz)
   window.removeEventListener('keydown', onKeyDown)
+  window.removeEventListener('resize', reencaixarHud)
   window.removeEventListener('keyup', onKeyUp)
   window.removeEventListener('blur', clearKeys)
   clearInterval(stateTimer)
@@ -1728,16 +1815,54 @@ onUnmounted(() => {
 
 .gp-hud-ctl {
   position: absolute;
-  right: 1.25rem;
-  top: 8.5rem;
+  /* padrão: rodapé, à direita do chat e LOGO ACIMA da barra de atalhos. medido:
+     o chat termina em 584px e os atalhos começam em 589px, então não existe vão
+     horizontal entre os dois — encaixar ao lado sobreporia um deles. arrastar
+     troca isto por left/top inline. */
+  left: 19.5rem;
+  bottom: 5.75rem;
   width: 25.25rem;
   display: flex;
   flex-direction: column;
-  align-items: flex-end;
-  gap: 0.75rem;
+  align-items: stretch;
+  gap: 0.5rem;
   padding: 0;
   z-index: 15;
 }
+/* recolhida: encolhe pro tamanho do conteúdo, senão a tira de ícones reservaria
+   os 404px da HUD aberta e cobriria a barra de atalhos */
+.gp-hud-ctl-mini { width: fit-content; }
+.gp-hud-ctl-solta { bottom: auto; }
+
+.gp-hud-grip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  height: 1.125rem;
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
+  box-shadow: 0 0.125rem 0 var(--tinta);
+  cursor: grab;
+  touch-action: none;
+}
+.gp-hud-grip:active { cursor: grabbing; }
+.gp-hud-grip-pontos {
+  width: 2.5rem;
+  height: 0.25rem;
+  background: repeating-linear-gradient(90deg, var(--tinta) 0 0.125rem, transparent 0.125rem 0.3125rem);
+}
+.gp-hud-grip-voltar {
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  padding: 0 0.25rem;
+  font-family: var(--f-pixel);
+  font-size: 0.625rem;
+  color: var(--text-2);
+}
+.gp-hud-grip-voltar:hover { color: var(--text); }
 
 /* largura travada: o slot condicional reserva o espaço mesmo vazio, senão a
    barra muda de tamanho sozinha ao entrar e sair de uma sala */
