@@ -90,8 +90,11 @@ export function ganhoDoPeer(args: {
   falante: { x: number; y: number }
   ouvinte: { x: number; y: number }
   trancadas: Set<string>
+  callFalante?: string | null
+  callOuvinte?: string | null
 }): number {
-  const { map, falante, ouvinte, trancadas } = args
+  const { map, falante, ouvinte, trancadas, callFalante = null, callOuvinte = null } = args
+  if (callFalante !== null && callFalante === callOuvinte) return 1
   const d = Math.hypot(falante.x - ouvinte.x, falante.y - ouvinte.y)
   const salaFalante = salaDoPonto(map, falante.x, falante.y)
   const salaOuvinte = salaDoPonto(map, ouvinte.x, ouvinte.y)

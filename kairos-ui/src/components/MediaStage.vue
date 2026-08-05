@@ -386,7 +386,7 @@ const tiles = computed<StageTile[]>(() => {
       video: media.videoElements.value.has(peer.identity),
       far: !peer.subscribed,
     }))
-    if (peer.screen) list.push(screenTile(peer.identity, name, false, !peer.subscribed, peer.watching))
+    if (peer.screen) list.push(screenTile(peer.identity, name, false, !peer.videoWanted, peer.watching))
   }
   return list
 })
