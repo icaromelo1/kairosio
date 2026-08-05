@@ -3,7 +3,7 @@
 
 import { Application, Container, Graphics, Text } from 'pixi.js'
 import type { MapDef, MapObject } from '../maps'
-import { carregarPacks, criarSpriteDoPack, criarSvgGraphics } from '../furniture/catalog'
+import { carregarPacks, criarSpriteDeTile, criarSpriteDoPack, criarSvgGraphics } from '../furniture/catalog'
 import { criarSuperficie, temSuperficie } from '../furniture/surfaces'
 import type { AvatarPuppet } from './avatar'
 import { estadoDeLuz, lerpCor, type EstadoLuz } from '../lighting'
@@ -60,6 +60,7 @@ export class MapScene {
   private entityLayer: Container // objetos em pé + avatares, ordenados por Y (profundidade)
   private roofLayer: Container
   private areas: { x: number; y: number; w: number; h: number; aberta?: boolean; nome?: string }[] = []
+  private superficiesDoMapa: MapObject[] = []
   private areaAtual = -1
   private dentroDeCobertura = false
   private pulso = 0
@@ -116,6 +117,7 @@ export class MapScene {
 
   setMap(map: MapDef) {
     this.map = map
+    this.superficiesDoMapa = map.objects.filter((o) => temSuperficie(o.kind))
     this.clearLayer(this.floorLayer)
     this.clearLayer(this.objectLayer)
     this.clearLayer(this.shadowLayer)
@@ -343,7 +345,7 @@ export class MapScene {
     }
 
     if (!o.pixels?.length && !o.color && temSuperficie(o.kind)) {
-      const sup = criarSuperficie(o, this.app.renderer, { x, y, w, h }, TILE_PX)
+      const sup = criarSuperficie(o, this.app.renderer, { x, y, w, h }, TILE_PX, this.superficiesDoMapa)
       if (sup) {
         this.objectLayer.addChild(sup)
         return
@@ -353,6 +355,15 @@ export class MapScene {
     const hDesenho = (o.hVis ?? o.h) * TILE_PX
     const yDesenho = y + h - hDesenho
     const caixaArte = { x, y: yDesenho, w, h: hDesenho }
+
+    if (o.tileRef && !o.pixels?.length) {
+      const tile = criarSpriteDeTile(o.tileRef, caixaArte)
+      if (tile) {
+        g.addChild(tile)
+        this.posicionarObjeto(o, g, { x, y, w, h, cx, cy, r })
+        return
+      }
+    }
 
     if (o.arte && !o.pixels?.length) {
       const sprite = criarSpriteDoPack(o.kind, o.arte, caixaArte)

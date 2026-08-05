@@ -41,6 +41,7 @@ export type ObjectKind =
   | 'area'
   | 'door'
   | 'custom'
+  | 'tile'
 
 export interface MapObject {
   id: string
@@ -65,6 +66,7 @@ export interface MapObject {
   color?: string
   /** Arte de pixel do objeto customizado (matriz de cores; null = transparente). */
   pixels?: (string | null)[][]
+  tileRef?: { pack: string; i: number; cols: number; tile: number }
   sittable?: boolean
   // Campos de interativo (quando o objeto abre algo ao apertar [E]):
   name?: string
