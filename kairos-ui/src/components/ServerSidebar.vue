@@ -40,16 +40,18 @@
       >
         <PixelIcon name="users" size="0.875rem" />
         <span v-if="friendRequests" class="ss-server-badge">{{ friendRequests }}</span>
-        <span v-if="dmUnreadTotal" class="ss-server-badge ss-badge-dm">{{ dmUnreadTotal }}</span>
       </button>
 
       <button
-        v-if="!open && dmUnreadTotal"
+        v-if="!open"
         class="ss-rail-mic ss-rail-dm"
         :title="dmTitle"
         :aria-label="dmTitle"
         @click="emit('open-dm')"
-      ><PixelIcon name="message" size="0.875rem" /></button>
+      >
+        <PixelIcon name="message" size="0.875rem" />
+        <span v-if="dmUnreadTotal" class="ss-server-badge ss-badge-dm">{{ dmUnreadTotal }}</span>
+      </button>
 
       <!-- com a barra recolhida este é o único lugar onde o microfone aparece:
            some da lista de mundos, não do olho de quem está no ar -->
@@ -137,13 +139,13 @@
 
         <div class="ss-label">Ações</div>
         <div class="ss-acts">
+          <button class="k-btn k-btn-ghost ss-act ss-act-dm" :title="dmTitle" @click="emit('open-dm')">
+            <PixelIcon name="message" size="0.75rem" /><span>Conversas</span>
+            <span v-if="dmUnreadTotal" class="ss-act-badge ss-act-badge-dm">{{ dmUnreadTotal }}</span>
+          </button>
           <button class="k-btn k-btn-ghost ss-act" :title="friendsTitle" @click="emit('open-friends')">
             <PixelIcon name="users" size="0.75rem" /><span>Amigos</span>
-            <span v-if="dmUnreadTotal" class="ss-act-badge ss-act-badge-dm">{{ dmUnreadTotal }}</span>
             <span v-if="friendRequests" class="ss-act-badge">{{ friendRequests }}</span>
-          </button>
-          <button v-if="dmUnreadTotal" class="k-btn k-btn-ghost ss-act ss-act-dm" :title="dmTitle" @click="emit('open-dm')">
-            <PixelIcon name="message" size="0.75rem" /><span>Abrir conversas</span>
           </button>
           <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="router.push('/editor/new')">
             <PixelIcon name="plus-box" size="0.75rem" /><span>Criar mundo</span>
