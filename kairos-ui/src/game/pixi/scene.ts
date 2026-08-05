@@ -50,6 +50,15 @@ const UPRIGHT_KINDS = new Set<MapObject['kind']>([
 ])
 
 
+interface AreaDaCena {
+  x: number
+  y: number
+  w: number
+  h: number
+  aberta?: boolean
+  nome?: string
+}
+
 export class MapScene {
   app: Application
   /** Container da câmera — move-se ao contrário do alvo pra dar o follow. */
@@ -59,7 +68,9 @@ export class MapScene {
   private shadowLayer: Container // sombras dos objetos em pé (no chão, não giram)
   private entityLayer: Container // objetos em pé + avatares, ordenados por Y (profundidade)
   private roofLayer: Container
-  private areas: { x: number; y: number; w: number; h: number; aberta?: boolean; nome?: string }[] = []
+  private areas: AreaDaCena[] = []
+  private hostObserver: ResizeObserver | null = null
+  private resizePendente = 0
   private superficiesDoMapa: MapObject[] = []
   private areaAtual = -1
   private dentroDeCobertura = false
@@ -95,6 +106,7 @@ export class MapScene {
     await this.app.init({ background, resizeTo: host, antialias: false })
     await carregarPacks()
     host.appendChild(this.app.canvas)
+    this.observarHost(host)
     this.world.addChild(this.floorLayer, this.objectLayer, this.shadowLayer, this.entityLayer, this.roofLayer, this.lightingLayer, this.ghostLayer)
     this.app.stage.addChild(this.world)
     this.app.stage.addChild(this.minimap.root)
@@ -193,6 +205,8 @@ export class MapScene {
       dark.rect(-M, ay, ax + M, ah).fill({ color: fora.cor, alpha: fora.alpha })
       dark.rect(ax + aw, ay, mw - ax - aw + M, ah).fill({ color: fora.cor, alpha: fora.alpha })
 
+      this.escurecerInteriores(dentro)
+
       // luz artificial da sala: legível a qualquer hora, mas mais fria e um
       // pouco mais fechada de madrugada — nunca escurece de verdade.
       const t = Math.min(1, this.luz.alpha / 0.72)
@@ -203,8 +217,17 @@ export class MapScene {
     }
 
     dark.rect(-M, -M, mw + M * 2, mh + M * 2).fill({ color: this.luz.tint, alpha: this.luz.alpha })
+    this.escurecerInteriores(null)
+  }
+
+  // as outras salas continuam fechadas esteja eu dentro de uma delas ou não —
+  // sem isso, entrar numa sala apaga o escurecimento de todas as outras e elas
+  // parecem acender
+  private escurecerInteriores(excecao: AreaDaCena | null) {
+    const dark = this.darkness
+    if (!dark) return
     for (const a of this.areas) {
-      if (a.aberta) continue
+      if (a.aberta || a === excecao) continue
       dark
         .rect(a.x * TILE_PX, a.y * TILE_PX, a.w * TILE_PX, a.h * TILE_PX)
         .fill({ color: 0x0d1020, alpha: 0.5 })
@@ -300,10 +323,15 @@ export class MapScene {
   posicionarLuzDoJogador(x: number, y: number) {
     if (this.playerLight) this.playerLight.position.set(x * TILE_PX, y * TILE_PX)
 
+    // a menor que contém o ponto, não a primeira: hoje as áreas da Cidade não se
+    // sobrepõem, mas um mapa com sala dentro de saguão escolheria o saguão
     let idx = -1
+    let menor = Infinity
     for (let i = 0; i < this.areas.length; i++) {
       const a = this.areas[i]
-      if (x >= a.x && x < a.x + a.w && y >= a.y && y < a.y + a.h) { idx = i; break }
+      if (x < a.x || x >= a.x + a.w || y < a.y || y >= a.y + a.h) continue
+      const area = a.w * a.h
+      if (area < menor) { menor = area; idx = i }
     }
     if (idx !== this.areaAtual) {
       this.areaAtual = idx
@@ -594,6 +622,23 @@ export class MapScene {
     return this.avatars.get(id)
   }
 
+  // o `resizeTo` do Pixi só escuta resize da JANELA. quando a barra lateral abre,
+  // quem muda de largura é o host, e sem isto o canvas fica no tamanho velho
+  // durante a animação inteira e só salta no fim.
+  private observarHost(host: HTMLElement) {
+    if (typeof ResizeObserver === 'undefined') return
+    this.hostObserver = new ResizeObserver(() => {
+      // coalescido por quadro: o observer dispara a cada passo da transição, e
+      // redimensionar dentro do próprio callback realimentaria o observer
+      if (this.resizePendente) return
+      this.resizePendente = requestAnimationFrame(() => {
+        this.resizePendente = 0
+        if (this.app.renderer) this.redimensionar()
+      })
+    })
+    this.hostObserver.observe(host)
+  }
+
   redimensionar() {
     this.app.resize()
     this.setZoom(this.zoom)
@@ -726,6 +771,12 @@ export class MapScene {
   }
 
   destroy() {
+    this.hostObserver?.disconnect()
+    this.hostObserver = null
+    if (this.resizePendente) {
+      cancelAnimationFrame(this.resizePendente)
+      this.resizePendente = 0
+    }
     for (const p of this.avatars.values()) p.destroy()
     this.avatars.clear()
     this.app.destroy(true, { children: true })
