@@ -130,49 +130,34 @@
           </div>
         </ClusterCard>
 
-        <ClusterCard titulo="eu · só meu avatar" nota="h recolhe" escopo="eu">
-          <template v-if="hudVisible">
-            <div class="gp-hud-linha">
-              <div class="gp-hud-campo">
-                <div class="gp-hud-topo">
-                  <span class="k-label gp-hud-cap">⇧ turbo</span>
-                  <span class="k-num">{{ turboMult.toFixed(1) }}×</span>
-                </div>
-                <NotchStepper
-                  v-model="turboMult" :min="TURBO_MIN" :max="TURBO_MAX" :step="0.1" :entalhes="9"
-                  rotulo="velocidade turbo"
-                />
+        <ClusterCard v-if="hudVisible" titulo="eu · só meu avatar" nota="h recolhe" escopo="eu">
+          <div class="gp-hud-linha">
+            <div class="gp-hud-campo">
+              <div class="gp-hud-topo">
+                <span class="k-label gp-hud-cap">⇧ turbo</span>
+                <span class="k-num">{{ turboMult.toFixed(1) }}×</span>
               </div>
-              <div class="gp-hud-campo gp-hud-slot">
-                <span class="k-label gp-hud-cap">sala</span>
-                <button
-                  v-if="salaFechavelId"
-                  class="k-btn k-btn-sm gp-hud-full"
-                  :class="{ 'k-active': salaTrancada }"
-                  :title="`${salaTrancada ? 'destrancar' : 'trancar'} ${nomeDaSala || 'a sala'} (L)`"
-                  @click="toggleSalaTrancada"
-                ><PixelIcon :name="salaTrancada ? 'lock' : 'unlock'" size="0.6875rem" />{{ salaTrancada ? 'destrancar' : 'trancar' }}</button>
-                <GhostSlot v-else label="sem sala" />
-              </div>
+              <NotchStepper
+                v-model="turboMult" :min="TURBO_MIN" :max="TURBO_MAX" :step="0.1" :entalhes="9"
+                rotulo="velocidade turbo"
+              />
             </div>
-          </template>
-          <template v-else>
-            <div class="gp-hud-recolhido">
-              <span v-if="ehSudo" class="k-badge k-badge-info">{{ horaLabel }}</span>
-              <span class="k-badge k-badge-dim">{{ turboMult.toFixed(1) }}×</span>
+            <div class="gp-hud-campo gp-hud-slot">
+              <span class="k-label gp-hud-cap">sala</span>
               <button
                 v-if="salaFechavelId"
-                class="k-btn k-btn-xs gp-hud-recolhido-sala"
+                class="k-btn k-btn-sm gp-hud-full"
                 :class="{ 'k-active': salaTrancada }"
                 :title="`${salaTrancada ? 'destrancar' : 'trancar'} ${nomeDaSala || 'a sala'} (L)`"
                 @click="toggleSalaTrancada"
               ><PixelIcon :name="salaTrancada ? 'lock' : 'unlock'" size="0.6875rem" />{{ salaTrancada ? 'destrancar' : 'trancar' }}</button>
+              <GhostSlot v-else label="sem sala" />
             </div>
-          </template>
+          </div>
 
           <template #rodape>
-            <button class="gp-hud-rodape" :title="hudVisible ? 'esconder dicas (H)' : 'mostrar dicas (H)'" @click="hudVisible = !hudVisible">
-              <PixelIcon :name="hudVisible ? 'chevron-up' : 'chevron-down'" size="0.75rem" />dicas
+            <button class="gp-hud-rodape" title="esconder as dicas (H)" @click="hudVisible = false">
+              <PixelIcon name="chevron-up" size="0.75rem" />dicas
             </button>
             <button
               class="gp-hud-rodape" :class="{ 'gp-hud-rodape-on': minimapaVisivel }"
@@ -190,6 +175,36 @@
             ><PixelIcon name="crown" size="0.75rem" /></button>
           </template>
         </ClusterCard>
+
+        <!-- recolhido: só as AÇÕES, em ícone. os valores de hora e turbo eram
+             leitura pura e viviam aqui sem poder sumir — a hora já está no
+             cartão do canto esquerdo e o turbo só importa com o controle à mão.
+             a tira fica porque é o único caminho de volta pra quem usa o mouse. -->
+        <div v-else class="gp-hud-mini">
+          <button class="gp-hud-mini-btn" title="mostrar as dicas (H)" @click="hudVisible = true">
+            <PixelIcon name="chevron-down" size="0.875rem" />
+          </button>
+          <button
+            class="gp-hud-mini-btn" :class="{ 'gp-hud-rodape-on': minimapaVisivel }"
+            :title="minimapaVisivel ? 'esconder o minimapa (M)' : 'mostrar o minimapa (M)'"
+            @click="minimapaVisivel = !minimapaVisivel"
+          ><PixelIcon name="map-pin" size="0.875rem" /></button>
+          <button class="gp-hud-mini-btn" title="abrir o mapa grande" @click="mapaExpandido = true">
+            <PixelIcon name="expand" size="0.875rem" />
+          </button>
+          <button
+            v-if="salaFechavelId"
+            class="gp-hud-mini-btn" :class="{ 'gp-hud-rodape-on': salaTrancada }"
+            :title="`${salaTrancada ? 'destrancar' : 'trancar'} ${nomeDaSala || 'a sala'} (L)`"
+            @click="toggleSalaTrancada"
+          ><PixelIcon :name="salaTrancada ? 'lock' : 'unlock'" size="0.875rem" /></button>
+          <button class="gp-hud-mini-btn" title="atalhos do teclado" @click="atalhosAbertos = !atalhosAbertos">?</button>
+          <button
+            v-if="ehSudo"
+            class="gp-hud-mini-btn" :class="{ 'gp-hud-rodape-on': sudoPanelOpen }"
+            title="poderes de sudo" @click="sudoPanelOpen = !sudoPanelOpen"
+          ><PixelIcon name="crown" size="0.875rem" /></button>
+        </div>
 
         <AtivosBar v-if="ehSudo" :itens="poderesAtivos" @desligar="desligarPoder" />
       </div>
@@ -1732,7 +1747,33 @@ onUnmounted(() => {
 .gp-hud-topo { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
 .gp-hud-cap { margin: 0; }
 .gp-hud-full { width: 100%; }
-.gp-hud-recolhido { display: flex; gap: 0.375rem; align-items: center; }
+/* tira recolhida: só ícone, altura de um botão. antes o "recolhido" mantinha o
+   cabeçalho do cluster e dois valores de leitura, o que não parecia recolhido
+   nem podia sumir. */
+.gp-hud-mini {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
+  box-shadow: var(--ui-shadow);
+}
+.gp-hud-mini-btn {
+  appearance: none;
+  background: none;
+  border: none;
+  cursor: pointer;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+  font-family: var(--f-pixel);
+  font-size: 0.6875rem;
+}
+.gp-hud-mini-btn:hover { background: var(--bg-2); box-shadow: inset 0 0 0 0.125rem var(--tinta); }
 
 .gp-hud-rodape {
   appearance: none;
