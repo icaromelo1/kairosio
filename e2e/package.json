@@ -6,9 +6,14 @@
   "scripts": {
     "test": "playwright test",
     "test:headed": "playwright test --headed",
+    "test:midia": "playwright test tests/media.spec.ts --retries=0",
+    "test:midia:autoteste": "KAIROS_E2E_SOLO=1 playwright test tests/media.spec.ts --retries=0",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "install:browsers": "playwright install chromium"
   },
   "devDependencies": {
-    "@playwright/test": "^1.49.0"
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^26.1.2",
+    "typescript": "^7.0.2"
   }
 }
