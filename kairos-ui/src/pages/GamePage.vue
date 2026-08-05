@@ -347,6 +347,7 @@
         v-if="panel === 'admin'"
         @close="closeModal"
         @server-changed="onServerChanged"
+        @mundos-alterados="onMundosAlterados"
         @open-servers="openPanel('servidores')"
       />
       <FeedbackPanel v-if="panel === 'feedback'" @close="closeModal" />
@@ -1082,6 +1083,25 @@ function selectMap(id: string) {
   // entrar num mundo é entrar na conversa dele: sem voz ainda, conecta; com voz,
   // troca de sala (o media.ts compara o mundo e reconecta sozinho)
   void enterVoice(id)
+}
+
+// um mundo foi criado ou apagado em outro painel: a lista da barra lateral vem
+// por prop daqui, então sem recarregar aqui o mundo apagado continua listado —
+// e clicar nele levaria a um mapa que não existe mais
+async function onMundosAlterados() {
+  try {
+    const antes = currentId.value
+    maps.value = await fetchMaps()
+    if (maps.value.some((m) => m.id === antes)) return
+    // o mundo em que eu estava foi apagado: sair dele é obrigatório, senão fico
+    // num mapa fantasma que ninguém mais enxerga
+    const destino = maps.value[0]
+    if (!destino) { error.value = 'Nenhum mundo disponível'; return }
+    currentId.value = ''
+    selectMap(destino.id)
+  } catch {
+    // falha ao recarregar a lista não pode derrubar quem está jogando
+  }
 }
 
 // o servidor ativo já mudou no backend (a barra lateral chamou switchServer):
