@@ -1,5 +1,5 @@
 import { ref, watch } from 'vue'
-import type { JukeboxState } from './presence'
+import { onJukeboxVolumeTodos, type JukeboxState } from './presence'
 
 const API_URL = import.meta.env.VITE_API_URL || window.location.origin
 const STREAM_BASE = `${API_URL}/kairos-api/jukebox/stream`
@@ -9,6 +9,13 @@ const STREAM_BASE = `${API_URL}/kairos-api/jukebox/stream`
 const storedVolume = Number(localStorage.getItem('kairos-jukebox-volume'))
 export const personalVolume = ref(Number.isFinite(storedVolume) && storedVolume >= 0 && storedVolume <= 1 ? storedVolume : 1)
 watch(personalVolume, (v) => localStorage.setItem('kairos-jukebox-volume', String(v)))
+
+// a inscrição vive aqui, no módulo, e não no painel: registrada dentro do
+// componente ela morria no onUnmounted, então quem estava com o painel fechado
+// — quase todo mundo — nunca recebia o volume que o sudo mandou
+onJukeboxVolumeTodos((v) => {
+  personalVolume.value = v
+})
 
 // Toca a faixa atual da sala sincronizada por startedAt (quem entra no meio
 // entra no ponto certo, não do início). Volume é controlado de fora (proximidade

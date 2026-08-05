@@ -131,8 +131,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { jukeboxError, emitJukeboxAdd, emitJukeboxSkip, emitJukeboxAlcanceGlobal, emitJukeboxVolumeTodos, onJukeboxVolumeTodos, estadoDoJukebox, type JukeboxState } from '@/services/presence'
+import { computed, onMounted, ref, watch } from 'vue'
+import { jukeboxError, emitJukeboxAdd, emitJukeboxSkip, emitJukeboxAlcanceGlobal, emitJukeboxVolumeTodos, estadoDoJukebox, type JukeboxState } from '@/services/presence'
 import { personalVolume } from '@/services/jukeboxAudio'
 import { apiFetch } from '@/services/http'
 import { me } from '@/services/auth.api'
@@ -146,9 +146,6 @@ const estado = computed(() => estadoDoJukebox(props.jukeboxId) ?? ESTADO_VAZIO)
 function aplicarVolumeParaTodos() {
   emitJukeboxVolumeTodos(personalVolume.value)
 }
-
-const pararDeOuvirVolume = onJukeboxVolumeTodos((v) => { personalVolume.value = v })
-onUnmounted(pararDeOuvirVolume)
 
 defineEmits(['close'])
 
