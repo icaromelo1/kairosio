@@ -182,4 +182,12 @@ export const media = {
   syncSubscriptions(identities: Iterable<string>): void {
     impl?.syncSubscriptions(identities)
   },
+
+  isVideoWanted(identity: string): boolean {
+    return !!peers.get(identity)?.videoWanted
+  },
+
+  syncVideoSubscriptions(identities: Iterable<string>): void {
+    impl?.syncVideoSubscriptions(identities)
+  },
 }

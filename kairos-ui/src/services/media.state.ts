@@ -37,9 +37,10 @@ export interface MediaPeer {
   speaking: boolean
   // está transmitindo a tela — sabido pela sinalização, sem assinar nada
   screen: boolean
-  // eu cliquei em "assistir". A distância decide quem PODE assistir; isto decide
+  // eu cliquei em "assistir". A call decide quem PODE assistir; isto decide
   // quem de fato assiste, e é o que segura o custo de banda.
   watching: boolean
+  videoWanted: boolean
 }
 
 export const state = reactive({

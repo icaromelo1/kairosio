@@ -420,8 +420,28 @@ export class MediaRoom {
       if (peer.subscribed === on) continue
       peer.subscribed = on
       for (const publication of participant.trackPublications.values()) {
-        // a tela é opt-in por clique: a distância só decide quem PODE assistir
-        if (isScreenSource(publication.source)) continue
+        if (publication.source !== Track.Source.Microphone) continue
+        publication.setSubscribed(on)
+      }
+    }
+  }
+
+  isVideoWanted(identity: string): boolean {
+    return !!this.peers.get(identity)?.videoWanted
+  }
+
+  syncVideoSubscriptions(identities: Iterable<string>) {
+    const room = this.room
+    if (!room) return
+    const wanted = new Set(identities)
+    for (const [identity, participant] of room.remoteParticipants) {
+      const peer = this.peers.get(identity)
+      if (!peer) continue
+      const on = wanted.has(identity)
+      if (peer.videoWanted === on) continue
+      peer.videoWanted = on
+      for (const publication of participant.trackPublications.values()) {
+        if (publication.source !== Track.Source.Camera) continue
         publication.setSubscribed(on)
       }
       this.applyScreenSubscription(identity)
@@ -432,7 +452,7 @@ export class MediaRoom {
     const participant = this.room?.remoteParticipants.get(identity)
     const peer = this.peers.get(identity)
     if (!participant || !peer) return
-    const on = peer.watching && peer.subscribed
+    const on = peer.watching && peer.videoWanted
     for (const publication of participant.trackPublications.values()) {
       if (!isScreenSource(publication.source)) continue
       publication.setSubscribed(on)
@@ -487,11 +507,15 @@ export class MediaRoom {
       this.applyScreenSubscription(participant.identity)
       return
     }
-    if (publication.source === Track.Source.Camera) peer.hasCamera = true
-    if (publication.source === Track.Source.Microphone) peer.micOff = !!publication.isMuted
-    // publicação nova de quem já está no raio precisa ser assinada na hora — o
-    // syncSubscriptions só reage a mudança de distância, não a mudança de track
-    if (peer.subscribed) publication.setSubscribed(true)
+    if (publication.source === Track.Source.Camera) {
+      peer.hasCamera = true
+      if (peer.videoWanted) publication.setSubscribed(true)
+      return
+    }
+    if (publication.source === Track.Source.Microphone) {
+      peer.micOff = !!publication.isMuted
+      if (peer.subscribed) publication.setSubscribed(true)
+    }
   }
 
   private onTrackUnpublished = (publication: RemoteTrackPublication, participant: RemoteParticipant) => {
@@ -627,6 +651,7 @@ export class MediaRoom {
       speaking: false,
       screen: !!participant.getTrackPublication(Track.Source.ScreenShare),
       watching: false,
+      videoWanted: false,
     })
   }
 

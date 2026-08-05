@@ -307,6 +307,7 @@ import {
 } from '@/services/presence'
 import { media } from '@/services/media'
 import { ganhoDoPeer, salaDoPonto } from '@/game/audio/espacial'
+import { callsDoMapa, historeseMidia } from '@/game/audio/calls'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
 import { precisaCriarPersonagem, panelFromQuery, type GamePanel } from '@/services/postAuth'
@@ -364,6 +365,7 @@ const friendsOpen = ref(false)
 const dmOpen = ref(false)
 const dmFriendId = ref('')
 const JUKEBOX_RADIUS = 6 // tiles — alcance do modo "proximidade"
+const SELF_CALL_ID = '@me'
 
 const look = computed<AvatarLook>(() => ({
   hairStyle: characterStore.hairStyle,
@@ -1107,8 +1109,23 @@ onMounted(async () => {
       [...remotePlayers.values()].map((p) => ({ x: p.x, y: p.y, falando: media.peers.get(p.userId)?.speaking })),
       salasTrancadas.value,
     )
+    const pessoasDoMapa = [{ id: SELF_CALL_ID, x: pos.x, y: pos.y }]
     for (const p of remotePlayers.values()) {
-      const ganho = ganhoDoPeer({ map, falante: { x: p.x, y: p.y }, ouvinte: pos, trancadas: salasTrancadas.value })
+      if (p.map && p.map !== map.id) continue
+      if (p.userId) pessoasDoMapa.push({ id: p.userId, x: p.x, y: p.y })
+    }
+    const calls = callsDoMapa(map, pessoasDoMapa)
+    const minhaCall = calls.get(SELF_CALL_ID) ?? null
+
+    for (const p of remotePlayers.values()) {
+      const ganho = ganhoDoPeer({
+        map,
+        falante: { x: p.x, y: p.y },
+        ouvinte: pos,
+        trancadas: salasTrancadas.value,
+        callFalante: p.userId ? calls.get(p.userId) ?? null : null,
+        callOuvinte: minhaCall,
+      })
       media.setPeerGain(p.userId, ganho)
     }
 
@@ -1145,7 +1162,9 @@ onMounted(async () => {
     let near: string | null = null
     let best = 3
     const voiceIds: string[] = []
+    const videoIds: string[] = []
     const voiceLive = media.state.connected
+    const minhaSala = salaDoPonto(map, pos.x, pos.y)
     for (const peer of remotePlayers.values()) {
       if (peer.map && peer.map !== map.id) continue
       const d = Math.hypot(peer.x - pos.x, peer.y - pos.y)
@@ -1154,13 +1173,27 @@ onMounted(async () => {
       // histerese na voz: assina a ≤4, mas quem já está assinado só cai a >5 —
       // sem isso, dançar na borda do raio gera assina/desassina em loop
       const keepConnected = voiceLive && media.isSubscribed(peer.userId) && d <= 5
+      const mesmaCallDoPeer =
+        !!peer.userId && minhaCall !== null && minhaCall === (calls.get(peer.userId) ?? null)
       // (userId vazio não deveria acontecer — o gateway recusa socket sem usuário —
       // mas se acontecer o peer só fica sem mídia, sem quebrar o frame)
-      if (peer.userId && (inRange || keepConnected)) voiceIds.push(peer.userId)
+      if (peer.userId && (inRange || keepConnected || mesmaCallDoPeer)) voiceIds.push(peer.userId)
       scene.avatar(peer.id)?.setNameVisible(inRange)
+
+      if (peer.userId) {
+        const salaDoPeer = salaDoPonto(map, peer.x, peer.y)
+        const querVideo =
+          minhaSala || salaDoPeer
+            ? minhaSala !== null && minhaSala === salaDoPeer
+            : historeseMidia(voiceLive && media.isVideoWanted(peer.userId), d)
+        if (querVideo) videoIds.push(peer.userId)
+      }
     }
     nearby.value = near
-    if (voiceLive) media.syncSubscriptions(voiceIds)
+    if (voiceLive) {
+      media.syncSubscriptions(voiceIds)
+      media.syncVideoSubscriptions(videoIds)
+    }
 
     // dentro da sala do jukebox o volume é cheio — é ambiente, não proximidade.
     // a queda por distância só vale para fila sem sala (mundo aberto).
