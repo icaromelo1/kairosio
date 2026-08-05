@@ -899,6 +899,10 @@ function detectZone(map: MapDef) {
 function jukeboxAtiva(map: MapDef): MapObject | null {
   const caixas = map.objects.filter((o) => o.kind === 'jukebox')
   if (!caixas.length) return null
+  // alcance global quer dizer exatamente "ignore a geometria": tem que sair antes
+  // dos filtros por sala, senão a caixa é descartada e ninguém chega a ler o flag
+  const global = caixas.find((o) => estadoDoJukebox(o.id)?.alcanceGlobal)
+  if (global) return global
   if (salaAtualId.value) {
     return caixas.find((o) => salaDoPonto(map, o.x + o.w / 2, o.y + o.h / 2) === salaAtualId.value) ?? null
   }
@@ -966,10 +970,6 @@ watch(sudoEscala, (v) => {
 })
 watch(sudoInvisivel, (v) => scene?.avatar('me')?.setOculto(v))
 
-watch(() => gameStore.sidebarOpen, () => {
-  scene?.redimensionar()
-  window.setTimeout(() => scene?.redimensionar(), 300)
-})
 watch(ehSudo, (v) => minimapDoScene()?.permitirClique(v))
 
 const FESTA_DURACAO_MS = 5000
