@@ -166,7 +166,7 @@ const floorTiles = Array.from({ length: 9 }, (_, row) =>
 
 .lp-fact-icon {
   display: inline-flex;
-  color: var(--accent);
+  color: var(--accent-texto);
 }
 
 .lp-scene {

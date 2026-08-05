@@ -219,7 +219,7 @@ onUnmounted(() => {
 }
 
 .wb-color-active {
-  border-color: var(--primary);
+  border-color: var(--primary-hi);
   box-shadow: 0 0 0 0.0625rem var(--primary);
 }
 

@@ -641,7 +641,7 @@ onUnmounted(() => {
 }
 .ss-server-shown {
   border-color: var(--primary-hi);
-  background: rgba(124, 58, 237, 0.18);
+  background: rgba(44, 116, 65, 0.2);
   color: var(--text);
 }
 
@@ -693,7 +693,7 @@ onUnmounted(() => {
 }
 
 .ss-rail-dm { color: var(--primary-hi); border-color: var(--primary-hi); }
-.ss-rail-dm:hover { background: rgba(124, 58, 237, 0.18); }
+.ss-rail-dm:hover { background: rgba(44, 116, 65, 0.2); }
 
 /* ---- lista de mundos ---- */
 .ss-main {
@@ -737,7 +737,7 @@ onUnmounted(() => {
   border-bottom: 0.0625rem solid var(--accent-lo);
 }
 .ss-away-text { font-size: 0.6875rem; color: var(--text-2); line-height: 1.4; }
-.ss-away-text b { color: var(--accent); }
+.ss-away-text b { color: var(--accent-texto); }
 .ss-away-back {
   appearance: none;
   display: inline-flex;
@@ -745,7 +745,7 @@ onUnmounted(() => {
   gap: 0.25rem;
   background: transparent;
   border: 0.0625rem solid var(--accent-lo);
-  color: var(--accent);
+  color: var(--accent-texto);
   font-family: var(--f-pixel);
   font-size: 0.5rem;
   letter-spacing: 0.06em;
@@ -784,7 +784,7 @@ onUnmounted(() => {
   padding: 0.125rem 0.25rem 0.125rem 0;
 }
 .ss-world-row:hover { background: var(--bg-1); }
-.ss-world-row-here { border-color: var(--primary-hi); background: rgba(124, 58, 237, 0.14); }
+.ss-world-row-here { border-color: var(--primary-hi); background: rgba(44, 116, 65, 0.16); }
 
 .ss-world-caret {
   appearance: none;
@@ -820,7 +820,7 @@ onUnmounted(() => {
   flex: none;
   font-family: var(--f-pixel);
   font-size: 0.5rem;
-  color: var(--accent);
+  color: var(--accent-texto);
   letter-spacing: 0.06em;
 }
 
@@ -856,7 +856,7 @@ onUnmounted(() => {
 .ss-person-you { flex: none; color: var(--text-4); font-size: 0.625rem; }
 .ss-person-icon { flex: none; color: var(--text-3); margin-left: auto; }
 .ss-person-icon + .ss-person-icon { margin-left: 0; }
-.ss-person-screen { color: var(--accent); }
+.ss-person-screen { color: var(--accent-texto); }
 
 .ss-other {
   display: flex;
@@ -870,7 +870,7 @@ onUnmounted(() => {
 .ss-other-count {
   font-family: var(--f-mono);
   font-size: 0.75rem;
-  color: var(--accent);
+  color: var(--accent-texto);
   letter-spacing: 0.06em;
 }
 .ss-other-enter { width: 100%; }
@@ -977,7 +977,7 @@ onUnmounted(() => {
   text-transform: uppercase;
   padding: 0.25rem 0.375rem;
 }
-.ss-voice-join:hover { background: rgba(124, 58, 237, 0.18); }
+.ss-voice-join:hover { background: rgba(44, 116, 65, 0.2); }
 
 .ss-voice-deaf { flex: none; color: var(--err); }
 

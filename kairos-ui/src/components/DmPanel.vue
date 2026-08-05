@@ -536,7 +536,7 @@ function separador(index: number): string {
   min-width: 0;
 }
 .dm-conv:hover { background: var(--bg-2); color: var(--text); }
-.dm-conv-open { border-color: var(--primary-hi); background: rgba(124, 58, 237, 0.14); color: var(--text); }
+.dm-conv-open { border-color: var(--primary-hi); background: rgba(44, 116, 65, 0.16); color: var(--text); }
 
 .dm-conv-top {
   display: flex;
@@ -633,7 +633,7 @@ function separador(index: number): string {
 }
 .dm-msg-mine {
   align-self: flex-end;
-  background: rgba(124, 58, 237, 0.18);
+  background: rgba(44, 116, 65, 0.2);
   border-color: var(--primary-glow);
   color: var(--text);
 }
@@ -663,7 +663,7 @@ function separador(index: number): string {
   cursor: pointer;
   background: transparent;
   border: 0.0625rem solid var(--accent-lo);
-  color: var(--accent);
+  color: var(--accent-texto);
   font-family: var(--f-pixel);
   font-size: 0.5rem;
   letter-spacing: 0.06em;

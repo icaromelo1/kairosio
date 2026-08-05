@@ -517,7 +517,7 @@ onUnmounted(() => {
   font-size: 0.625rem;
   color: var(--text-3);
 }
-.fp-tab-count-alert { color: var(--accent); }
+.fp-tab-count-alert { color: var(--accent-texto); }
 
 .fp-dm { margin-left: auto; }
 
