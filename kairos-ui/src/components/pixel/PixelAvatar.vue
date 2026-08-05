@@ -1,5 +1,15 @@
 <template>
+  <img
+    v-if="urlPreset"
+    class="pixelated"
+    :src="urlPreset"
+    :width="16 * scale"
+    :height="16 * scale"
+    :style="{ display: 'block', imageRendering: 'pixelated' }"
+    alt=""
+  />
   <svg
+    v-else
     class="pixelated"
     :width="16 * scale"
     :height="20 * scale"
@@ -55,11 +65,12 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+import { AVATAR_PRESETS, avatarSpriteUrl } from '@/game/pixi/avatar'
 import { shade } from '@/game/shadeHelper'
 
 const props = withDefaults(defineProps<{
   scale?: number
-  hairStyle?: 'short' | 'curly' | 'ponytail' | 'mohawk' | 'helmet' | 'buzz' | 'long'
+  hairStyle?: string
   hairColor?: string
   skin?: string
   topColor?: string
@@ -76,6 +87,10 @@ const props = withDefaults(defineProps<{
   shadow: true,
   bobbing: false,
 })
+
+const urlPreset = computed(() =>
+  AVATAR_PRESETS.some((p) => p.id === props.hairStyle) ? avatarSpriteUrl(props.hairStyle, 'baixo', 0) : null,
+)
 
 const HAIR_STYLES: Record<string, number[][]> = {
   short: [[4,2,8,1],[3,3,10,1],[3,4,10,1],[3,5,2,1],[11,5,2,1]],

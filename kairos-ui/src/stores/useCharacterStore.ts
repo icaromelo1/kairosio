@@ -1,10 +1,13 @@
 import { defineStore } from 'pinia'
+import { AVATAR_PRESETS } from '@/game/pixi/avatar'
 
-export type HairStyle = 'short' | 'curly' | 'ponytail' | 'mohawk' | 'helmet' | 'buzz' | 'long'
+export type HairStyle = string
 export type Accessory = 'none' | 'glasses' | 'hat'
 
+const DEFAULT_PRESET = AVATAR_PRESETS[0]?.id ?? 'ruivo-verde'
+
 const INITIAL_STATE = {
-  hairStyle: 'short' as HairStyle,
+  hairStyle: DEFAULT_PRESET as HairStyle,
   hairColor: '#3d2817',
   skin: '#e8b894',
   topColor: '#7c3aed',

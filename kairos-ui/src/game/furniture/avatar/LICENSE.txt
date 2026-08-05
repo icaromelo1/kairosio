@@ -1,0 +1,12 @@
+Sprites de personagem recortados de: RPG Urban Pack 1.0
+Criado/distribuído por Kenney (www.kenney.nl)
+
+Licença: Creative Commons Zero (CC0)
+http://creativecommons.org/publicdomain/zero/1.0/
+
+Conteúdo livre para uso em projetos pessoais, educacionais e comerciais.
+Crédito a Kenney (www.kenney.nl) apreciado, mas não obrigatório.
+
+Origem: kairos-ui/src/game/furniture/tilemaps/rpg-urban.png (mesmo atlas usado
+pelo indice-rpg-urban.json), recortado tile a tile (16x16, 1px de gap, 27 colunas)
+em kairos-ui/src/game/furniture/avatar/<preset>/<direcao>-<quadro>.png.
