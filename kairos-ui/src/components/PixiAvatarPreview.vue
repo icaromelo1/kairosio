@@ -4,7 +4,7 @@
 
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from 'vue'
-import { Application } from 'pixi.js'
+import { Application, type Ticker } from 'pixi.js'
 import { AvatarPuppet, type AvatarLook } from '@/game/pixi/avatar'
 
 const props = defineProps<{
@@ -32,7 +32,7 @@ function look(): AvatarLook {
 }
 
 function place() {
-  if (!app || !puppet) return
+  if (!app || !app.renderer || !puppet) return
   puppet.root.position.set(app.renderer.width / 2, app.renderer.height * 0.82)
 }
 
@@ -45,6 +45,7 @@ function rebuild() {
 }
 
 let gone = false
+let tick: ((ticker: Ticker) => void) | null = null
 
 onMounted(async () => {
   const created = new Application()
@@ -55,11 +56,13 @@ onMounted(async () => {
   puppet = new AvatarPuppet(look())
   app.stage.addChild(puppet.root)
   place()
-  app.ticker.add((ticker) => {
+  tick = (ticker: Ticker) => {
+    if (gone || !app || !app.renderer) return
     puppet?.setPose('idle')
     puppet?.update(ticker.deltaMS / 1000)
     place()
-  })
+  }
+  app.ticker.add(tick)
 })
 
 // rebuild ao mudar qualquer parte da customização
@@ -67,6 +70,9 @@ watch(() => [props.hairStyle, props.hairColor, props.skin, props.topColor, props
 
 onUnmounted(() => {
   gone = true
+  if (app && tick) app.ticker.remove(tick)
+  app?.ticker.stop()
+  tick = null
   app?.destroy(true)
   app = null
 })
