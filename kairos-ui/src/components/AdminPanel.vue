@@ -168,7 +168,7 @@ import PixelIcon from '@/components/PixelIcon.vue'
 
 type Tab = 'Membros' | 'Convite' | 'Mundos' | 'Servidor'
 
-const emit = defineEmits<{ close: []; 'server-changed': []; 'open-servers': [] }>()
+const emit = defineEmits<{ close: []; 'server-changed': []; 'mundos-alterados': []; 'open-servers': [] }>()
 
 const auth = useAuthStore()
 const tab = ref<Tab>('Membros')
@@ -334,6 +334,7 @@ function del(w: MapDef) {
   void run('maps', async () => {
     await deleteMap(w.id)
     serverMaps.value = serverMaps.value.filter((m) => m.id !== w.id)
+    emit('mundos-alterados')
   })
 }
 
