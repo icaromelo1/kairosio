@@ -974,6 +974,11 @@ watch([look, myPhotoUrl], () => {
   const puppet = new AvatarPuppet(look.value)
   scene.addAvatar('me', puppet)
   puppet.setPhoto(myPhotoUrl.value)
+  // o boneco novo nasce zerado: sem reaplicar, trocar de avatar devolvia a escala
+  // ao padrão enquanto o controle seguia marcando o valor antigo, e quem estava
+  // invisível reaparecia pra sala inteira sem perceber
+  puppet.setEscala(sudoEscala.value)
+  puppet.setOculto(sudoInvisivel.value)
   scene.placeAvatar('me', pos.x, pos.y)
 })
 

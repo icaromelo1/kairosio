@@ -96,6 +96,7 @@
           <p v-if="photoError" class="cp-error">{{ photoError }}</p>
         </div>
 
+        <p v-if="saveErro" class="cp-error">{{ saveErro }}</p>
         <button class="k-btn k-btn-accent cp-save" :disabled="saving" @click="save">
           {{ saving ? 'Salvando…' : 'Salvar e voltar ao jogo' }}
         </button>
@@ -124,6 +125,7 @@ const auth = useAuthStore()
 
 const activeTab = ref<'avatar' | 'photo'>('avatar')
 const saving = ref(false)
+const saveErro = ref('')
 
 const handle = ref('')
 const handleAtual = ref('')
@@ -183,17 +185,26 @@ async function salvarHandle() {
 }
 
 async function save() {
-  if (auth.isAuthenticated) {
-    saving.value = true
-    await saveCharacter({
-        hairStyle: characterStore.hairStyle,
-      hairColor: characterStore.hairColor,
-      skin: characterStore.skin,
-      topColor: characterStore.topColor,
-      pantsColor: characterStore.pantsColor,
-      accessory: characterStore.accessory,
-    })
-    saving.value = false
+  if (!auth.isAuthenticated) {
+    emit('close')
+    return
+  }
+  saving.value = true
+  saveErro.value = ''
+  // fechar sem olhar a resposta escondia falha de salvamento: o painel sumia
+  // como se tivesse dado certo e a mudança voltava atrás no próximo carregamento
+  const ok = await saveCharacter({
+    hairStyle: characterStore.hairStyle,
+    hairColor: characterStore.hairColor,
+    skin: characterStore.skin,
+    topColor: characterStore.topColor,
+    pantsColor: characterStore.pantsColor,
+    accessory: characterStore.accessory,
+  })
+  saving.value = false
+  if (!ok) {
+    saveErro.value = 'Não deu pra salvar o avatar. Tente de novo em instantes.'
+    return
   }
   emit('close')
 }
