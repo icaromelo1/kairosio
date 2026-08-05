@@ -1,5 +1,6 @@
-import { Assets, Graphics, GraphicsContext, Sprite, Texture } from 'pixi.js'
+import { Assets, Graphics, GraphicsContext, Rectangle, Sprite, Texture } from 'pixi.js'
 import type { MapObject } from '../maps'
+import { superficieUrls } from './surfaces'
 
 const svgFiles = import.meta.glob('./svg/*.svg', { query: '?raw', import: 'default', eager: true })
 
@@ -69,7 +70,7 @@ export function packsDisponiveis(): string[] {
 }
 
 export async function carregarPacks(): Promise<void> {
-  const urls = Object.values(PNG_POR_PACK).flatMap((m) => Object.values(m))
+  const urls = [...Object.values(PNG_POR_PACK).flatMap((m) => Object.values(m)), ...superficieUrls()]
   if (!urls.length) return
   await Assets.load(urls)
 }
@@ -90,6 +91,44 @@ export function criarSpriteDoPack(
   if (!textura) return null
   const s = new Sprite(textura)
   s.texture.source.scaleMode = 'nearest'
+  s.position.set(caixa.x, caixa.y)
+  s.width = caixa.w
+  s.height = caixa.h
+  return s
+}
+
+const tilemapFiles = import.meta.glob('./tilemaps/*.png', { query: '?url', import: 'default', eager: true })
+
+const TILEMAP_POR_PACK: Record<string, string> = {}
+for (const [caminho, url] of Object.entries(tilemapFiles)) {
+  const pack = caminho.split('/').pop()?.replace(/\.png$/, '')
+  if (pack && typeof url === 'string') TILEMAP_POR_PACK[pack] = url
+}
+
+export function tilemapUrls(): string[] {
+  return Object.values(TILEMAP_POR_PACK)
+}
+
+export function criarSpriteDeTile(
+  ref: { pack: string; i: number; cols: number; tile: number },
+  caixa: { x: number; y: number; w: number; h: number },
+): Sprite | null {
+  const url = TILEMAP_POR_PACK[ref.pack]
+  if (!url) return null
+  let base: Texture
+  try {
+    base = Texture.from(url)
+  } catch {
+    return null
+  }
+  if (!base) return null
+  const passo = ref.tile + 1
+  const col = ref.i % ref.cols
+  const lin = Math.floor(ref.i / ref.cols)
+  const recorte = new Rectangle(col * passo, lin * passo, ref.tile, ref.tile)
+  const textura = new Texture({ source: base.source, frame: recorte })
+  textura.source.scaleMode = 'nearest'
+  const s = new Sprite(textura)
   s.position.set(caixa.x, caixa.y)
   s.width = caixa.w
   s.height = caixa.h

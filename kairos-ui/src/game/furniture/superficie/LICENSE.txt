@@ -1,0 +1,11 @@
+Kenney RPG Urban Pack + Roguelike Modern City
+https://kenney.nl/assets/rpg-urban-pack
+https://kenney.nl/assets/roguelike-modern-city
+Licenca: Creative Commons CC0 1.0 Universal (dominio publico).
+Uso comercial permitido, atribuicao nao exigida.
+Pecas de autotile recortadas do tilemap.png de cada pacote (tiles de 16x16, 1px de espacamento):
+- wall: familia "telhado de concreto escuro" (roguelike-modern-city)
+- path: familia "calcada de concreto claro" (roguelike-modern-city)
+- panel: familia "telhado bege/areia" (roguelike-modern-city)
+- grass: familia "grama com terra" (roguelike-modern-city)
+- water: familia "borda de piscina" + "agua (centro da piscina)" (rpg-urban)

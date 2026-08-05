@@ -43,6 +43,23 @@
         >{{ p.label }}</button>
       </div>
 
+      <div class="ed-label">Buscar peças</div>
+      <input v-model.trim="buscaTermo" class="ed-input" placeholder="buscar por nome ou tag…" :disabled="!canEdit" />
+      <select v-model="buscaCat" class="ed-input ed-select" :disabled="!canEdit">
+        <option value="">Todas as categorias</option>
+        <option v-for="c in categoriasDisponiveis" :key="c" :value="c">{{ c }}</option>
+      </select>
+      <div v-if="resultadosBusca.length" class="ed-busca-grid">
+        <button
+          v-for="r in resultadosBusca" :key="r.pack + '-' + r.i"
+          class="ed-busca-item"
+          :class="{ 'k-active': tool === 'place' && current.kind === 'tile' && current.tileRef?.pack === r.pack && current.tileRef?.i === r.i }"
+          :title="`${r.nome} (${r.pack})`"
+          @click="selecionarTile(r)"
+        ><span class="ed-busca-thumb" :style="estiloThumb(r, 32)"></span></button>
+      </div>
+      <p v-else-if="buscaTermo || buscaCat" class="ed-note">Nenhum resultado.</p>
+
       <button class="ed-tool ed-tool-start ed-tool-mt" @click="showPixel = !showPixel"><PixelIcon :name="showPixel ? 'chevron-down' : 'chevron-right'" size="0.875rem" />Criar objeto próprio</button>
       <div v-if="showPixel" class="ed-pixel-panel column q-gutter-xs">
         <div class="row q-gutter-xs ed-swatch-row">
@@ -99,6 +116,8 @@ import { isSolid } from '@/game/maps'
 import { fetchMap, createMap, saveMap, deleteMap } from '@/services/maps.api'
 import { useAuthStore } from '@/stores/useAuthStore'
 import PixelIcon from '@/components/PixelIcon.vue'
+import { buscar, categorias, type TileResultado } from '@/game/furniture/busca'
+import { estiloThumb } from '@/game/furniture/tilesetThumbs'
 
 const route = useRoute()
 const router = useRouter()
@@ -128,6 +147,7 @@ interface PaletteItem {
   kind: ObjectKind; label: string; w: number; h: number
   solid?: boolean; shape?: 'rect' | 'circle'; color?: string
   glow?: MapObject['glow']; name?: string; action?: string
+  tileRef?: MapObject['tileRef']
 }
 const PALETTE: PaletteItem[] = [
   { kind: 'desk', label: 'Mesa', w: 4, h: 2, solid: true, glow: 'purple', name: 'Mesa', action: 'Abrir' },
@@ -240,6 +260,27 @@ function selectObj(p: PaletteItem) {
   tool.value = 'place'
 }
 
+const buscaTermo = ref('')
+const buscaCat = ref('')
+const categoriasDisponiveis = categorias()
+const resultadosBusca = computed<TileResultado[]>(() => {
+  if (!buscaTermo.value.trim() && !buscaCat.value) return []
+  return buscar(buscaTermo.value, buscaCat.value || undefined).slice(0, 80)
+})
+
+function selecionarTile(r: TileResultado) {
+  current.value = {
+    kind: 'tile',
+    label: r.nome,
+    w: 1,
+    h: 1,
+    solid: r.solido,
+    tileRef: { pack: r.pack, i: r.i, cols: r.cols, tile: r.tile },
+  }
+  placeSolid.value = r.solido
+  tool.value = 'place'
+}
+
 function render() {
   if (!scene) return
   map.width = Math.max(8, Math.min(120, map.width))
@@ -320,6 +361,7 @@ function onClick(e: PointerEvent) {
     solid: placeSolid.value, shape: p.shape, color: p.color, glow: p.glow, name: p.name, action: p.action,
     rotation: placeRotation.value || undefined,
     sittable: placeSittable.value || undefined,
+    tileRef: p.tileRef,
   }
   if (p.kind === 'custom' && customPixels) obj.pixels = customPixels
   map.objects.push(obj)
@@ -410,6 +452,11 @@ onUnmounted(() => {
 .ed-tool.k-active, .ed-obj.k-active { color: #fff; }
 .ed-tool:disabled { opacity: 0.4; cursor: default; }
 .ed-palette { display: grid; grid-template-columns: 1fr 1fr; gap: 0.375rem; }
+.ed-select { width: 100%; box-sizing: border-box; }
+.ed-busca-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.25rem, 1fr)); gap: 0.25rem; max-height: 10rem; overflow-y: auto; }
+.ed-busca-item { background: #1d1d2a; border: 0.0625rem solid #303045; padding: 0.1875rem; cursor: pointer; border-radius: 0.25rem; display: grid; place-items: center; }
+.ed-busca-item.k-active { border-color: #7c3aed; }
+.ed-busca-thumb { display: block; }
 .ed-spacer { flex: 1; }
 .ed-note { font-size: 0.6875rem; color: #fbbf24; }
 .ed-save { background: #7c3aed; border: none; color: #fff; padding: 0.625rem; cursor: pointer; border-radius: 0.25rem; font-weight: 600; }
