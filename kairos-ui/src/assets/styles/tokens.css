@@ -202,11 +202,6 @@ html, body, #app {
   box-shadow: inset 0 0 0 0.125rem rgba(255, 246, 224, 0.5);
 }
 
-/* modificador de escopo: o que muda o mundo pra todos usa azul-noite, o que
-   muda só o meu avatar usa musgo. A cor é o que separa os dois grupos. */
-.k-mundo { background: var(--mundo); color: var(--mundo-soft); border-color: var(--tinta); }
-.k-mundo.k-active { background: var(--mundo-hi); color: var(--mundo-soft); }
-
 .k-input {
   width: 100%;
   background: var(--bg-2);
@@ -321,21 +316,6 @@ html, body, #app {
   font-weight: 700;
   font-size: 0.625rem;
   color: var(--tinta);
-}
-
-/* Seletor de cor (swatch). Modificadores: .k-swatch-lg e .k-active. */
-.k-swatch {
-  width: 1.875rem;
-  height: 1.875rem;
-  padding: 0;
-  border: 0.125rem solid var(--tinta);
-  cursor: pointer;
-  background: var(--bg-1);
-}
-.k-swatch-lg { width: 2.375rem; height: 2.375rem; }
-.k-swatch.k-active {
-  border-color: var(--tinta);
-  box-shadow: inset 0 0 0 0.125rem var(--bg-2), 0 0 0 0.1875rem var(--accent);
 }
 
 /* faixa hachurada de ação permanente — spawnar escreve no mapa pra todos e não

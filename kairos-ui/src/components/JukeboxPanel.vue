@@ -417,34 +417,7 @@ function syncServer() {
   flex-shrink: 0;
 }
 
-.k-range {
-  appearance: none;
-  -webkit-appearance: none;
-  height: 0.625rem;
-  background: var(--bg-1);
-  border: 0.125rem solid var(--border-strong);
-  outline: none;
-  cursor: pointer;
-}
-.k-range::-webkit-slider-thumb {
-  appearance: none;
-  -webkit-appearance: none;
-  width: 0.875rem;
-  height: 1.125rem;
-  background: var(--primary);
-  border: 0.125rem solid var(--primary-hi);
-  box-shadow: 0.125rem 0.125rem 0 var(--bg-0);
-  cursor: pointer;
-}
-.k-range::-moz-range-thumb {
-  width: 0.875rem;
-  height: 1.125rem;
-  background: var(--primary);
-  border: 0.125rem solid var(--primary-hi);
-  box-shadow: 0.125rem 0.125rem 0 var(--bg-0);
-  cursor: pointer;
-  border-radius: 0;
-}
+
 .k-range::-moz-range-track {
   background: transparent;
 }
