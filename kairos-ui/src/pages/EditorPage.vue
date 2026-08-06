@@ -445,33 +445,34 @@ onUnmounted(() => {
 
 <style scoped>
 .ed-root { height: 100vh; display: grid; grid-template-columns: 15rem 1fr; background: var(--bg-0); color: var(--text); font-family: system-ui; }
-.ed-side { background: #14141f; border-right: 0.0625rem solid var(--bg-4); padding: 0.875rem; display: flex; flex-direction: column; gap: 0.625rem; overflow-y: auto; }
+.ed-side { background: var(--bg-1); border-right: 0.125rem solid var(--tinta); padding: 0.875rem; display: flex; flex-direction: column; gap: 0.625rem; overflow-y: auto; }
 .ed-head { display: flex; align-items: center; justify-content: space-between; }
-.ed-back { background: transparent; border: 0.0625rem solid var(--bg-0); color: var(--text-2); padding: 0.25rem 0.625rem; cursor: pointer; border-radius: 0.1875rem; font-size: 0.75rem; }
-.ed-input { background: var(--bg-3); border: 0.0625rem solid var(--bg-0); color: var(--text); padding: 0.5rem; border-radius: 0.25rem; font-size: 0.875rem; }
+.ed-back { background: var(--bg-2); border: 0.125rem solid var(--tinta); color: var(--text); padding: 0.25rem 0.625rem; cursor: pointer; font-size: 0.75rem; box-shadow: 0 0.125rem 0 var(--tinta); }
+.ed-input { background: var(--bg-2); border: 0.125rem solid var(--tinta); color: var(--text); padding: 0.5rem; font-size: 0.875rem; }
 .ed-row { display: flex; gap: 0.5rem; }
 .ed-row label { flex: 1; font-size: 0.6875rem; color: var(--text-3); display: flex; flex-direction: column; gap: 0.25rem; }
-.ed-num { background: var(--bg-3); border: 0.0625rem solid var(--bg-0); color: var(--text); padding: 0.375rem; border-radius: 0.25rem; width: 100%; box-sizing: border-box; }
-.ed-label { font-size: 0.625rem; letter-spacing: 0.16em; color: var(--text-3); text-transform: uppercase; margin-top: 0.375rem; }
+.ed-num { background: var(--bg-2); border: 0.125rem solid var(--tinta); color: var(--text); padding: 0.375rem; width: 100%; box-sizing: border-box; }
+.ed-label { font-family: var(--f-pixel); font-size: 0.5625rem; letter-spacing: 0.1em; color: var(--text-3); text-transform: uppercase; margin-top: 0.375rem; }
 /* o ícone + gap deixa cada botão ~8px mais largo que o glifo de texto que havia
    antes: os 3 de "Ferramenta" não cabem mais na sidebar de 15rem numa linha só */
 .ed-tools { display: flex; gap: 0.375rem; flex-wrap: wrap; }
 .ed-tools .ed-tool { flex: 1 1 auto; }
-.ed-tool, .ed-obj { background: var(--bg-3); border: 0.0625rem solid var(--bg-0); color: var(--text-2); padding: 0.375rem 0.5rem; cursor: pointer; border-radius: 0.25rem; font-size: 0.75rem; }
+.ed-tool, .ed-obj { background: var(--bg-2); border: 0.125rem solid var(--tinta); color: var(--text); padding: 0.375rem 0.5rem; cursor: pointer; font-size: 0.75rem; box-shadow: 0 0.125rem 0 var(--tinta); }
+.ed-tool:hover:not(:disabled), .ed-obj:hover { background: var(--bg-4); }
 .ed-tool { display: inline-flex; align-items: center; justify-content: center; gap: 0.375rem; }
 .ed-tool.k-active, .ed-obj.k-active { color: var(--bg-2); }
 .ed-tool:disabled { opacity: 0.4; cursor: default; }
 .ed-palette { display: grid; grid-template-columns: 1fr 1fr; gap: 0.375rem; }
 .ed-select { width: 100%; box-sizing: border-box; }
 .ed-busca-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(2.25rem, 1fr)); gap: 0.25rem; max-height: 10rem; overflow-y: auto; }
-.ed-busca-item { background: var(--bg-3); border: 0.0625rem solid var(--bg-0); padding: 0.1875rem; cursor: pointer; border-radius: 0.25rem; display: grid; place-items: center; }
-.ed-busca-item.k-active { border-color: var(--primary-hi); }
+.ed-busca-item { background: var(--bg-2); border: 0.125rem solid var(--tinta); padding: 0.1875rem; cursor: pointer; display: grid; place-items: center; }
+.ed-busca-item.k-active { background: var(--primary); box-shadow: inset 0 0 0 0.125rem var(--bg-2); }
 .ed-busca-thumb { display: block; }
 .ed-spacer { flex: 1; }
 .ed-note { font-size: 0.6875rem; color:var(--accent-texto); }
-.ed-save { background: var(--primary); border: none; color: var(--bg-2); padding: 0.625rem; cursor: pointer; border-radius: 0.25rem; font-weight: 600; }
+.ed-save { background: var(--primary); border: 0.125rem solid var(--tinta); color: var(--bg-2); padding: 0.625rem; cursor: pointer; font-weight: 700; box-shadow: 0 0.25rem 0 var(--primary-lo); }
 .ed-save:disabled { opacity: 0.5; cursor: default; }
-.ed-del { background: transparent; border: 0.0625rem solid rgba(248,113,113,0.5); color: var(--err); padding: 0.5rem; cursor: pointer; border-radius: 0.25rem; margin-top: 0.375rem; }
+.ed-del { background: var(--bg-2); border: 0.125rem solid var(--err); color: var(--err); padding: 0.5rem; cursor: pointer; margin-top: 0.375rem; }
 .ed-msg { font-size: 0.75rem; color: var(--ok); text-align: center; }
 .ed-stage { position: relative; overflow: hidden; cursor: crosshair; }
 
@@ -479,7 +480,7 @@ onUnmounted(() => {
 .ed-tool-start { align-self: flex-start; }
 .ed-tool-mt { margin-top: 0.5rem; }
 
-.ed-pixel-panel { background: var(--bg-0); border: 0.0625rem solid #262636; padding: 0.5rem; border-radius: 0.375rem; }
+.ed-pixel-panel { background: var(--bg-0); border: 0.125rem solid var(--tinta); padding: 0.5rem; }
 .ed-swatch-row { flex-wrap: wrap; }
 .ed-swatch { width: 1.125rem; height: 1.125rem; border-radius: 0.1875rem; cursor: pointer; border: 0.0625rem solid var(--border); display: grid; place-items: center; padding: 0; color: var(--text); }
 .ed-swatch-active { border: 0.125rem solid var(--bg-2); }

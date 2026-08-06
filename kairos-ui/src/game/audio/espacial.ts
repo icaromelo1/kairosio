@@ -6,13 +6,11 @@ export const RAIO_PORTA = 2
 export const OCLUSAO_PAREDE = 0.25
 export const OCLUSAO_PORTA = 0.7
 
-export function salaDoPonto(map: MapDef, x: number, y: number): string | null {
-  for (const o of map.objects) {
-    if (o.kind !== 'area' || !o.id) continue
-    if (x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h) return o.id
-  }
-  return null
-}
+// a conta de "em que sala está este ponto" mora em game/salas.ts. aqui só
+// reexporta pra não quebrar quem já importava daqui — e pra não existir uma
+// quarta versão da mesma regra, que era o que vinha acontecendo.
+export { salaDoPonto } from '../salas'
+import { salaDoPonto } from '../salas'
 
 export function curvaDistancia(d: number): number {
   if (d <= RAIO_CHEIO) return 1
