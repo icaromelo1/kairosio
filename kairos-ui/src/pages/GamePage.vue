@@ -484,7 +484,16 @@ const acaoDoE = computed(() => {
   if (z.sittable || z.kind === 'chair' || z.kind === 'sofa' || z.kind === 'bench') {
     return sentado.value ? 'levantar' : 'sentar'
   }
-  return z.name ? `abrir ${z.name}` : ''
+  // sem nome, o rótulo vem do que o E realmente abre. 60 das 70 estantes da
+  // Cidade não têm nome: derivar do kind é o que torna o painel descobrível,
+  // em vez de deixar a tecla funcionando sem nada anunciando.
+  const porKind: Partial<Record<MapObject['kind'], string>> = {
+    desk: 'abrir tarefas',
+    shelf: 'abrir notas',
+    board: 'abrir a lousa',
+    jukebox: 'abrir a jukebox',
+  }
+  return porKind[z.kind] ?? (z.name ? `abrir ${z.name}` : '')
 })
 const activeModal = ref<MapObject | null>(null)
 const jukeboxOpen = ref(false)
