@@ -118,6 +118,7 @@ import { useAuthStore } from '@/stores/useAuthStore'
 import PixelIcon from '@/components/PixelIcon.vue'
 import { buscar, categorias, type TileResultado } from '@/game/furniture/busca'
 import { estiloThumb } from '@/game/furniture/tilesetThumbs'
+import origemKenney from '@/game/furniture/kenney/origem.json'
 
 const route = useRoute()
 const router = useRouter()
@@ -133,9 +134,15 @@ const sidebarOpen = ref(false)
 
 const isNew = computed(() => route.params.id === 'new')
 
+// kinds que têm sprite no pacote Kenney (fonte: furniture/kenney/origem.json)
+const KINDS_KENNEY = new Set(Object.keys(origemKenney))
+
+// mundo novo nasce ao ar livre. a paleta anterior era a do tema escuro com o
+// roxo #7c3aed, aposentado quando a interface virou pixel art clara — mundo
+// criado hoje saía com o visual de duas gerações atrás.
 const DEFAULT_PALETTE = {
-  floor: ['#1a1a26', '#1d1d2a'] as [string, string],
-  floorTrim: '#15151f', wall: '#0d0d14', wallTop: '#252535', accent: '#7c3aed',
+  floor: ['#4a9a5e', '#409c62'] as [string, string],
+  floorTrim: '#3f7a48', wall: '#8e877e', wallTop: '#b3aba0', accent: '#f2a93b',
 }
 
 const map = reactive<MapDef>({
@@ -363,6 +370,9 @@ function onClick(e: PointerEvent) {
     sittable: placeSittable.value || undefined,
     tileRef: p.tileRef,
   }
+  // sem `arte`, criarSpriteDoPack nem é tentado e o objeto cai no SVG antigo —
+  // por isso o que se colocava pelo editor saía com a arte de antes do Kenney
+  if (KINDS_KENNEY.has(p.kind)) obj.arte = 'kenney'
   if (p.kind === 'custom' && customPixels) obj.pixels = customPixels
   map.objects.push(obj)
   snapshot()

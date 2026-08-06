@@ -98,7 +98,6 @@ export class AvatarPuppet {
   private pose: Pose = 'idle'
   private facing: Facing = 'down'
   private frame = 0
-  private mirror = 1
   private escala = ESCALA_PADRAO
   private nameLabel: Text
   private photoLayer: Container
@@ -220,8 +219,8 @@ export class AvatarPuppet {
   }
 
   private updateRootScale() {
-    this.root.scale.set(this.mirror * this.escala, this.escala)
-    this.nameLabel.scale.set(this.mirror / this.escala, 1 / this.escala)
+    this.root.scale.set(this.escala, this.escala)
+    this.nameLabel.scale.set(1 / this.escala, 1 / this.escala)
   }
 
   setOculto(v: boolean) {
