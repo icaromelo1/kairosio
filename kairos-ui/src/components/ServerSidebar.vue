@@ -100,7 +100,40 @@
               <span class="ss-world-count" :class="{ 'ss-world-count-zero': !w.people.length }">{{ w.people.length }}</span>
             </div>
 
-            <ul v-if="!w.collapsed && w.people.length" class="ss-people">
+            <!-- servidor > mundo > SALA > pessoas. só vale pro mundo em que estou:
+                 posição de quem está em outro mundo não chega até aqui, então lá
+                 continua a lista simples em vez de um agrupamento inventado -->
+            <template v-if="!w.collapsed && w.current">
+              <div v-for="sala in salasDoMundoAtual" :key="sala.id" class="ss-sala">
+                <div class="ss-sala-cab" :class="{ 'ss-sala-aqui': sala.id === minhaSalaId }">
+                  <PixelIcon v-if="sala.trancada" name="lock" size="0.625rem" class="ss-sala-lock" />
+                  <span class="ellipsis ss-sala-nome">{{ sala.nome }}</span>
+                  <span class="ss-world-count" :class="{ 'ss-world-count-zero': !sala.gente.length }">{{ sala.gente.length }}</span>
+                </div>
+                <ul v-if="sala.gente.length" class="ss-people ss-people-sala">
+                  <li v-for="p in sala.gente" :key="p.id" class="ss-person">
+                    <span class="ss-person-dot">●</span>
+                    <span class="ellipsis">{{ p.nome }}</span>
+                    <span v-if="p.eu" class="ss-person-you">você</span>
+                  </li>
+                </ul>
+              </div>
+              <div v-if="genteNoAberto.length" class="ss-sala">
+                <div class="ss-sala-cab" :class="{ 'ss-sala-aqui': !minhaSalaId }">
+                  <span class="ellipsis ss-sala-nome">mundo aberto</span>
+                  <span class="ss-world-count">{{ genteNoAberto.length }}</span>
+                </div>
+                <ul class="ss-people ss-people-sala">
+                  <li v-for="p in genteNoAberto" :key="p.id" class="ss-person">
+                    <span class="ss-person-dot">●</span>
+                    <span class="ellipsis">{{ p.nome }}</span>
+                    <span v-if="p.eu" class="ss-person-you">você</span>
+                  </li>
+                </ul>
+              </div>
+            </template>
+
+            <ul v-else-if="!w.collapsed && w.people.length" class="ss-people">
               <li v-for="p in w.people" :key="p.id" class="ss-person">
                 <span class="ss-person-dot">●</span>
                 <span class="ellipsis">{{ p.name }}</span>
@@ -235,10 +268,13 @@
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { getMyServers, switchServer, type MyServerSummary } from '@/services/server.api'
+import { agruparPorSala, salaFechadaDoPonto, type PessoaNaSala } from '@/game/salas'
 import {
   dmUnreadTotal,
   emitMicState,
   peopleInWorld,
+  remotePlayers,
+  salasTrancadas,
   presenceByServer,
   serverOnlineCount,
   syncDmUnread,
@@ -273,6 +309,7 @@ const props = defineProps<{
   voiceOn: boolean
   canEditCurrentWorld: boolean
   isGuest: boolean
+  minhaPosicao: { x: number; y: number }
 }>()
 
 const emit = defineEmits<{
@@ -301,6 +338,43 @@ const error = ref('')
 const shownServer = computed(() => servers.value.find((s) => s.id === shownServerId.value) || null)
 const activeServer = computed(() => servers.value.find((s) => s.id === activeServerId.value) || null)
 const showingHere = computed(() => shownServerId.value === activeServerId.value)
+
+const mapaAtual = computed(() => props.maps.find((m) => m.id === props.currentMapId) ?? null)
+
+// eu + quem mais está neste mundo, com posição — é o que permite dizer em que
+// sala cada um está. remotePlayers só cobre a sala de socket em que estou.
+const gentePosicionada = computed<PessoaNaSala[]>(() => {
+  const lista: PessoaNaSala[] = [
+    { id: '@eu', nome: props.playerName, x: props.minhaPosicao.x, y: props.minhaPosicao.y, eu: true },
+  ]
+  for (const p of remotePlayers.values()) {
+    if (p.map && p.map !== props.currentMapId) continue
+    lista.push({ id: p.id, nome: p.name, x: p.x, y: p.y })
+  }
+  return lista
+})
+
+const salasDoMundoAtual = computed(() => {
+  const map = mapaAtual.value
+  if (!map) return []
+  return agruparPorSala(map, gentePosicionada.value)
+    .filter((s) => !s.aberta)
+    .map((s) => ({ ...s, trancada: salasTrancadas.value.has(s.id) }))
+    .sort((a, b) => b.gente.length - a.gente.length || a.nome.localeCompare(b.nome))
+})
+
+// praça é área aberta: quem está nela conversa no mundo, então aparece aqui
+const genteNoAberto = computed(() => {
+  const map = mapaAtual.value
+  if (!map) return []
+  const emSalaFechada = new Set(salasDoMundoAtual.value.flatMap((s) => s.gente.map((p) => p.id)))
+  return gentePosicionada.value.filter((p) => !emSalaFechada.has(p.id))
+})
+
+const minhaSalaId = computed(() => {
+  const map = mapaAtual.value
+  return map ? salaFechadaDoPonto(map, props.minhaPosicao.x, props.minhaPosicao.y) : null
+})
 
 const worlds = computed<WorldRow[]>(() =>
   props.maps.map((m) => {
@@ -1054,4 +1128,25 @@ onUnmounted(() => {
     50% { opacity: 0.25; }
   }
 }
+.ss-sala { margin: 0.25rem 0 0 0.5rem; }
+.ss-sala-cab {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.375rem;
+  border-left: 0.125rem solid var(--border);
+}
+.ss-sala-aqui { border-left-color: var(--primary); background: rgba(44, 116, 65, 0.12); }
+.ss-sala-nome {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+.ss-sala-aqui .ss-sala-nome { color: var(--text); }
+.ss-sala-lock { color: var(--err); }
+.ss-people-sala { margin-left: 0.5rem; }
 </style>

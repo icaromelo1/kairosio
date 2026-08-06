@@ -75,10 +75,11 @@
 
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
-import type { MapDef, MapObject } from '@/game/maps'
+import type { MapDef } from '@/game/maps'
+import { agruparPorSala, foraDeSala as forasDoMapa, type PessoaNaSala } from '@/game/salas'
 import PixelIcon from '@/components/PixelIcon.vue'
 
-interface Pessoa { id: string; nome: string; x: number; y: number; eu?: boolean }
+type Pessoa = PessoaNaSala
 
 const props = defineProps<{
   map: MapDef
@@ -105,43 +106,20 @@ const COR_FUNDO = '#f4e4c1'
 
 const todos = computed<Pessoa[]>(() => [{ ...props.eu, eu: true }, ...props.outros])
 
-// a MENOR área que contém o ponto: um saguão grande ao lado de salas pequenas
-// faria todo mundo aparecer no saguão
-function salaDoPonto(x: number, y: number): string | null {
-  let achado: string | null = null
-  let menor = Infinity
-  for (const o of props.map.objects) {
-    if (o.kind !== 'area' || !o.id) continue
-    if (x < o.x || x >= o.x + o.w || y < o.y || y >= o.y + o.h) continue
-    const area = o.w * o.h
-    if (area < menor) { menor = area; achado = o.id }
-  }
-  return achado
-}
-
-const salas = computed(() => {
-  const areas = props.map.objects.filter((o): o is MapObject & { id: string } => o.kind === 'area' && !!o.id)
-  const porSala = new Map<string, Pessoa[]>()
-  for (const p of todos.value) {
-    const id = salaDoPonto(p.x, p.y)
-    if (!id) continue
-    porSala.set(id, [...(porSala.get(id) ?? []), p])
-  }
-  return areas.map((a) => ({
-    id: a.id,
-    nome: (a as { name?: string; nome?: string }).name ?? (a as { nome?: string }).nome ?? a.id,
-    gente: porSala.get(a.id) ?? [],
-    trancada: props.trancadas.has(a.id),
-    cx: (a.x + a.w / 2) * caixa.value.escala,
-    cy: (a.y + a.h / 2) * caixa.value.escala,
-  }))
-})
+const salas = computed(() =>
+  agruparPorSala(props.map, todos.value).map((s) => ({
+    ...s,
+    trancada: props.trancadas.has(s.id),
+    cx: (s.x + s.w / 2) * caixa.value.escala,
+    cy: (s.y + s.h / 2) * caixa.value.escala,
+  })),
+)
 
 const salasComGente = computed(() => salas.value.filter((s) => s.gente.length > 0 || s.trancada))
 const salasOrdenadas = computed(() =>
   [...salas.value].sort((a, b) => b.gente.length - a.gente.length || a.nome.localeCompare(b.nome)),
 )
-const foraDeSala = computed(() => todos.value.filter((p) => !salaDoPonto(p.x, p.y)))
+const foraDeSala = computed(() => forasDoMapa(props.map, todos.value))
 const totalDeGente = computed(() => todos.value.length)
 
 function desenhar() {

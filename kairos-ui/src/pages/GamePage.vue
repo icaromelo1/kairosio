@@ -6,6 +6,7 @@
         ref="sidebar"
         v-model:open="gameStore.sidebarOpen"
         :maps="maps"
+        :minha-posicao="pos"
         :current-map-id="currentId"
         :player-name="playerName"
         :look="look"
