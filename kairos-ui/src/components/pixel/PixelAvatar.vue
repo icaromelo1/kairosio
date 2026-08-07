@@ -82,7 +82,7 @@ const props = withDefaults(defineProps<{
   hairStyle: 'short',
   hairColor: '#3d2817',
   skin: '#e8b894',
-  topColor: '#7c3aed',
+  topColor: '#2c7441',
   pantsColor: '#1f2937',
   shadow: true,
   bobbing: false,

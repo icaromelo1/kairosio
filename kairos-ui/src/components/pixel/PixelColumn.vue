@@ -28,7 +28,7 @@ const props = withDefaults(defineProps<{
   scale?: number
   color?: string
   height?: number
-}>(), { scale: 4, color: '#e8e8f0', height: 20 })
+}>(), { scale: 4, color: '#241c15', height: 20 })
 
 const H = computed(() => props.height)
 const shaftRows = computed(() => Array.from({ length: props.height - 5 }, (_, i) => i))

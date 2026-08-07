@@ -10,7 +10,7 @@ const INITIAL_STATE = {
   hairStyle: DEFAULT_PRESET as HairStyle,
   hairColor: '#3d2817',
   skin: '#e8b894',
-  topColor: '#7c3aed',
+  topColor: '#2c7441',
   pantsColor: '#1f2937',
   accessory: 'none' as Accessory,
   photoFile: null as string | null,

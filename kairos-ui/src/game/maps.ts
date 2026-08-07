@@ -5,7 +5,6 @@
 // pode alterar tamanho e itens de cada mundo só salvando o registro.
 // Ver `services/maps.api.ts`.
 
-export const TILE = 32
 
 export interface MapPalette {
   floor: [string, string]

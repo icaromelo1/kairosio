@@ -66,7 +66,7 @@
           <button
             v-for="col in PIXEL_COLORS" :key="col || 'none'" @click="pixelColor = col"
             class="ed-swatch" :class="{ 'ed-swatch-active': pixelColor === col }"
-            :style="{ background: col || '#0d0d14' }"
+            :style="{ background: col || 'var(--bg-0)' }"
             :title="col ? `pintar com ${col}` : 'apagar o pixel'"
             :aria-label="col ? `pintar com ${col}` : 'apagar o pixel'"
           ><PixelIcon v-if="!col" name="delete" size="0.75rem" /></button>
@@ -76,7 +76,7 @@
             <div
               v-for="(cell, c) in row" :key="r + '-' + c"
               class="ed-pixel-cell"
-              :style="{ background: cell || '#1d1d2a' }"
+              :style="{ background: cell || 'var(--bg-2)' }"
               @pointerdown="paintCell(r, c)" @pointerenter="(e: any) => e.buttons && paintCell(r, c)"
             ></div>
           </template>
@@ -305,7 +305,7 @@ function onMove(e: PointerEvent) {
   const { x, y } = scene.screenToTile(e.clientX, e.clientY)
   if (x < 1 || y < 1 || x > map.width - 2 || y > map.height - 2) { scene.clearGhost(); return }
   const p = current.value
-  scene.showGhost(x, y, Math.min(p.w, map.width - 1 - x), Math.min(p.h, map.height - 1 - y), p.color || 0x7c3aed, p.shape === 'circle')
+  scene.showGhost(x, y, Math.min(p.w, map.width - 1 - x), Math.min(p.h, map.height - 1 - y), p.color || 0x2c7441, p.shape === 'circle')
 }
 
 function rectsOverlap(
