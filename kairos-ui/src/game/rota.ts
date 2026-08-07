@@ -34,18 +34,78 @@ const VIZINHOS: ReadonlyArray<readonly [number, number]> = [
 
 const MAX_VISITADOS = 20000
 
-function terrenoDoTile(map: MapDef, x: number, y: number, preferir: boolean): number {
-  let custo = CUSTO_PADRAO
-  for (const o of map.objects) {
-    if (x < o.x || x >= o.x + o.w || y < o.y || y >= o.y + o.h) continue
-    if (o.kind === 'water') return CUSTO_AGUA
-    if (o.kind === 'path' && preferir) custo = CUSTO_CAMINHO
+// Grade pré-computada. Sem isto, cada tile visitado varria os 661 objetos da
+// Cidade — medido: 356ms de média e 2,6s no pior caso, o que aparece como
+// "demora pra começar a andar". Uma passada pelos objetos no início troca isso
+// por consulta O(1).
+interface Grade {
+  solido: Uint8Array
+  custo: Float32Array
+  custoSemPreferencia: Float32Array
+  w: number
+  h: number
+  /** quantos objetos o mapa tinha quando a grade foi montada — spawnar um móvel
+   *  muda a colisão, e uma grade velha mandaria a rota atravessar o que acabou
+   *  de aparecer */
+  objetos: number
+}
+
+const gradeCache = new WeakMap<MapDef, Grade>()
+
+function gradeDoMapa(map: MapDef): Grade {
+  const cache = gradeCache.get(map)
+  if (cache && cache.objetos === map.objects.length) return cache
+
+  const w = map.width
+  const h = map.height
+  const solido = new Uint8Array(w * h)
+  const custo = new Float32Array(w * h).fill(CUSTO_PADRAO)
+  const custoSemPreferencia = new Float32Array(w * h).fill(CUSTO_PADRAO)
+
+  // borda do mapa, mesma regra do isSolid
+  for (let x = 0; x < w; x++) {
+    for (const y of [0, h - 1]) solido[y * w + x] = 1
+    solido[x] = 1
   }
-  return custo
+  for (let y = 0; y < h; y++) {
+    solido[y * w] = 1
+    solido[y * w + w - 1] = 1
+  }
+
+  for (const o of map.objects) {
+    const x0 = Math.max(0, Math.floor(o.x))
+    const y0 = Math.max(0, Math.floor(o.y))
+    const x1 = Math.min(w - 1, Math.ceil(o.x + o.w) - 1)
+    const y1 = Math.min(h - 1, Math.ceil(o.y + o.h) - 1)
+    if (x1 < x0 || y1 < y0) continue
+    for (let y = y0; y <= y1; y++) {
+      for (let x = x0; x <= x1; x++) {
+        const i = y * w + x
+        if (o.solid) solido[i] = 1
+        if (o.kind === 'water') {
+          custo[i] = CUSTO_AGUA
+          custoSemPreferencia[i] = CUSTO_AGUA
+        } else if (o.kind === 'path' && custo[i] !== CUSTO_AGUA) {
+          custo[i] = CUSTO_CAMINHO
+        }
+      }
+    }
+  }
+
+  const g = { solido, custo, custoSemPreferencia, w, h, objetos: map.objects.length }
+  gradeCache.set(map, g)
+  return g
 }
 
 function bloqueado(map: MapDef, x: number, y: number, op: OpcoesDeRota): boolean {
-  return isSolid(map, x, y, op.trancadas, op.salaDoMovedor ?? null)
+  const g = gradeDoMapa(map)
+  if (x < 1 || y < 1 || x > g.w - 2 || y > g.h - 2) return true
+  if (g.solido[y * g.w + x]) return true
+  // porta de sala trancada é dinâmica e são poucas: fica fora da grade
+  if (op.trancadas && op.trancadas.size) {
+    return isSolid(map, x, y, op.trancadas, op.salaDoMovedor ?? null)
+  }
+  return false
 }
 
 /**
@@ -137,6 +197,8 @@ export function calcularRota(
   if (inicio.x === fim.x && inicio.y === fim.y) return []
 
   const teto = op.maxVisitados ?? MAX_VISITADOS
+  const grade = gradeDoMapa(map)
+  const tabelaCusto = op.preferirCaminho === false ? grade.custoSemPreferencia : grade.custo
   const chave = (x: number, y: number) => y * map.width + x
 
   const custoAte = new Map<number, number>()
@@ -178,7 +240,7 @@ export function calcularRota(
         if (bloqueado(map, atual.x + dx, atual.y, op)) continue
         if (bloqueado(map, atual.x, atual.y + dy, op)) continue
       }
-      const passo = (dx !== 0 && dy !== 0 ? Math.SQRT2 : 1) * terrenoDoTile(map, nx, ny, op.preferirCaminho !== false)
+      const passo = (dx !== 0 && dy !== 0 ? Math.SQRT2 : 1) * tabelaCusto[ny * grade.w + nx]
       const novo = (custoAte.get(kAtual) ?? Infinity) + passo
       const kViz = chave(nx, ny)
       if (novo >= (custoAte.get(kViz) ?? Infinity)) continue
