@@ -105,7 +105,12 @@
                  continua a lista simples em vez de um agrupamento inventado -->
             <template v-if="!w.collapsed && w.current">
               <div v-for="sala in salasDoMundoAtual" :key="sala.id" class="ss-sala">
-                <div class="ss-sala-cab" :class="{ 'ss-sala-aqui': sala.id === minhaSalaId }">
+                <div
+                  class="ss-sala-cab ss-sala-alvo"
+                  :class="{ 'ss-sala-aqui': sala.id === minhaSalaId }"
+                  :title="`Dois cliques para ir até ${sala.nome}`"
+                  @dblclick="emit('ir-para-sala', sala.id)"
+                >
                   <PixelIcon v-if="sala.trancada" name="lock" size="0.625rem" class="ss-sala-lock" />
                   <span class="ellipsis ss-sala-nome">{{ sala.nome }}</span>
                   <span class="ss-world-count" :class="{ 'ss-world-count-zero': !sala.gente.length }">{{ sala.gente.length }}</span>
@@ -315,6 +320,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   'update:open': [open: boolean]
   'select-world': [mapId: string]
+  'ir-para-sala': [salaId: string]
   'server-changed': [serverId: string, mapId?: string]
   'open-media': []
   'open-panel': [panel: GamePanel]
@@ -1136,6 +1142,8 @@ onUnmounted(() => {
   padding: 0.1875rem 0.375rem;
   border-left: 0.125rem solid var(--border);
 }
+.ss-sala-alvo { cursor: pointer; user-select: none; }
+.ss-sala-alvo:hover { background: var(--bg-2); }
 .ss-sala-aqui { border-left-color: var(--primary); background: rgba(44, 116, 65, 0.12); }
 .ss-sala-nome {
   flex: 1;

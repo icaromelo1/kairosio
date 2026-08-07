@@ -7,6 +7,7 @@
         v-model:open="gameStore.sidebarOpen"
         :maps="maps"
         :minha-posicao="pos"
+        @ir-para-sala="irParaSala"
         :current-map-id="currentId"
         :player-name="playerName"
         :look="look"
@@ -109,6 +110,11 @@
       <!-- só o aviso contextual: a lista de atalhos saiu daqui porque o painel do
            "?" já a tem por completo, e duas listas do mesmo teclado divergem. o que
            não dá pra tirar é o que E faz AGORA, que muda conforme o objeto. -->
+      <div v-if="rotaAtiva || avisoRota" class="gp-hud gp-rota">
+        <span v-if="rotaAtiva">indo para <b>{{ rotaAtiva.nome }}</b> · qualquer tecla cancela</span>
+        <span v-else>{{ avisoRota }}</span>
+      </div>
+
       <!-- ancorado no avatar, não no rodapé: o aviso fala do que está ao lado do
            corpo, e no rodapé ele disputava espaço com a HUD centralizada -->
       <div v-if="acaoDoE" class="gp-hud gp-hud-agir">
@@ -231,6 +237,7 @@
         :trancadas="salasTrancadas"
         :sala-atual-id="salaAtualId"
         @fechar="mapaExpandido = false"
+        @ir-para-sala="(id: string) => { mapaExpandido = false; irParaSala(id) }"
       />
 
       <div v-if="atalhosAbertos" class="k-card gp-atalhos">
@@ -431,6 +438,7 @@ import { me } from '@/services/auth.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import MapaExpandido from '@/components/MapaExpandido.vue'
 import { ESCALA_PADRAO } from '@/game/escala-avatar'
+import { rotaParaSala, type Ponto } from '@/game/rota'
 import NotchStepper from '@/components/pixel/NotchStepper.vue'
 import ToggleRow from '@/components/pixel/ToggleRow.vue'
 import ClusterCard from '@/components/pixel/ClusterCard.vue'
@@ -679,6 +687,63 @@ watch(minimapaVisivel, (v) => {
 }, { immediate: false })
 const nearby = ref<string | null>(null)
 let emoteUntil = 0
+// ---- auto-walk ----
+// a rota é uma SEGUNDA fonte de dx/dy; a física não muda. o cancelamento é a
+// parte que importa: rota que não solta o controle vira um bug que a pessoa
+// não sabe desfazer.
+const rotaAtiva = ref<{ pontos: Ponto[]; indice: number; salaId: string; nome: string } | null>(null)
+let paradoDesde = 0
+let ultimaDistancia = Infinity
+
+function cancelarRota(motivo?: string) {
+  if (!rotaAtiva.value) return
+  rotaAtiva.value = null
+  paradoDesde = 0
+  ultimaDistancia = Infinity
+  if (motivo) avisoRota.value = motivo
+}
+
+const avisoRota = ref('')
+
+function irParaSala(salaId: string) {
+  const map = currentMap.value
+  if (!map) return
+  cancelarRota()
+  avisoRota.value = ''
+  const area = map.objects.find((o) => o.kind === 'area' && o.id === salaId)
+  if (!area) return
+  const nome = (area as { name?: string }).name ?? salaId
+  // clicar na sala em que já estou dava rota vazia e a mensagem de "não dá pra
+  // chegar", que é o contrário do que aconteceu
+  if (salaDoPonto(map, pos.x, pos.y) === salaId) {
+    avisoRota.value = `Você já está em ${nome}.`
+    window.setTimeout(() => { if (!rotaAtiva.value) avisoRota.value = '' }, 2500)
+    return
+  }
+  const pontos = rotaParaSala(map, pos, salaId, {
+    trancadas: salasTrancadas.value,
+    salaDoMovedor: salaDoPonto(map, pos.x, pos.y),
+  })
+  if (!pontos || !pontos.length) {
+    avisoRota.value = `Não dá pra chegar em ${nome} agora.`
+    window.setTimeout(() => { if (!rotaAtiva.value) avisoRota.value = '' }, 3000)
+    return
+  }
+  if (sentado.value) {
+    sentado.value = false
+    if (preSit) { pos.x = preSit.x; pos.y = preSit.y; preSit = null }
+  }
+  rotaAtiva.value = { pontos, indice: 0, salaId, nome }
+  paradoDesde = 0
+  ultimaDistancia = Infinity
+}
+
+// a sala pode ser trancada no meio do trajeto
+watch(salasTrancadas, (t) => {
+  const r = rotaAtiva.value
+  if (r && t.has(r.salaId)) cancelarRota(`${r.nome} foi trancada.`)
+}, { deep: true })
+
 const abaChat = ref<'mundo' | 'sala'>('mundo')
 const naoLidasSala = ref(0)
 const messages = computed(() => (abaChat.value === 'sala' ? chatSala : chatMundo))
@@ -1038,6 +1103,7 @@ watch([look, myPhotoUrl], () => {
 })
 
 function applyMap(map: MapDef) {
+  cancelarRota()
   currentId.value = map.id
   gameStore.activeMap = map.id
   scene?.setMap(map)
@@ -1328,7 +1394,40 @@ onMounted(async () => {
     // Espaço (modo olhar/pan) congela o personagem — só a câmera se move.
     // Sessão derrubada (aberta em outro lugar) também congela — não faz
     // sentido continuar "andando" localmente já desconectado da sala.
-    if (!gameStore.isModalOpen && !espectadorOuPan.value && !sessionKicked.value) {
+    const livreParaAndar = !gameStore.isModalOpen && !espectadorOuPan.value && !sessionKicked.value
+    // qualquer tecla de movimento devolve o controle NO MESMO QUADRO — sem isso
+    // a pessoa briga com o próprio boneco e não sabe como desfazer
+    const pediuControle = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright']
+      .some((k) => keys.has(k))
+    if (rotaAtiva.value && (pediuControle || !livreParaAndar)) cancelarRota()
+
+    if (livreParaAndar && rotaAtiva.value) {
+      const r = rotaAtiva.value
+      const alvo = r.pontos[r.indice]
+      // o alvo é canto de tile; mirar no centro evita ficar orbitando a quina
+      const ax = alvo.x + 0.5
+      const ay = alvo.y + 0.5
+      const distancia = Math.hypot(ax - pos.x, ay - pos.y)
+      if (distancia < 0.35) {
+        r.indice += 1
+        ultimaDistancia = Infinity
+        if (r.indice >= r.pontos.length) cancelarRota()
+      } else {
+        const sp = 5 * dt * (onWater(map, pos.x, pos.y) ? 0.5 : 1) * turboMult.value
+        const passo = Math.min(sp, distancia)
+        dx = ((ax - pos.x) / distancia) * passo
+        dy = ((ay - pos.y) / distancia) * passo
+        // travou (porta fechou, móvel spawnou na frente): a rota é por ponto, a
+        // colisão é por eixo — sempre existe quina onde o A* aprova e o corpo não passa
+        if (distancia < ultimaDistancia - 0.02) {
+          ultimaDistancia = distancia
+          paradoDesde = 0
+        } else {
+          paradoDesde += dt
+          if (paradoDesde > 1) cancelarRota('O caminho travou no meio.')
+        }
+      }
+    } else if (livreParaAndar) {
       const sp = 5 * dt * (onWater(map, pos.x, pos.y) ? 0.5 : 1) * (boosting ? turboMult.value : 1)
       if (keys.has('w') || keys.has('arrowup')) dy -= sp
       if (keys.has('s') || keys.has('arrowdown')) dy += sp
@@ -2096,4 +2195,20 @@ onUnmounted(() => {
   padding: 0 0.25rem;
   font-size: 0.5rem;
 }
+.gp-rota {
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4375rem 0.75rem;
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
+  box-shadow: var(--ui-shadow);
+  font-size: 0.8125rem;
+  color: var(--text-2);
+  z-index: 20;
+}
+.gp-rota b { color: var(--text); }
 </style>

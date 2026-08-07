@@ -31,7 +31,12 @@
             <span class="k-label me-cap">{{ totalDeGente }} no mundo</span>
           </div>
           <div class="me-rolagem">
-            <section v-for="s in salasOrdenadas" :key="s.id" class="me-sala" :class="{ 'me-sala-sua': s.id === salaAtualId }">
+            <section
+              v-for="s in salasOrdenadas" :key="s.id"
+              class="me-sala me-sala-alvo" :class="{ 'me-sala-sua': s.id === salaAtualId }"
+              :title="`Dois cliques para ir até ${s.nome}`"
+              @dblclick="emit('ir-para-sala', s.id)"
+            >
               <div class="me-sala-cab">
                 <span class="me-sala-nome ellipsis">
                   <PixelIcon v-if="s.trancada" name="lock" size="0.625rem" />{{ s.nome }}
@@ -89,7 +94,7 @@ const props = defineProps<{
   salaAtualId: string | null
 }>()
 
-const emit = defineEmits<{ fechar: [] }>()
+const emit = defineEmits<{ fechar: []; 'ir-para-sala': [salaId: string] }>()
 
 const tela = ref<HTMLCanvasElement | null>(null)
 const palco = ref<HTMLElement | null>(null)
@@ -297,6 +302,8 @@ watch(() => [props.eu.x, props.eu.y, props.outros.length, props.trancadas.size],
 
 .me-sala { border-bottom: 0.125rem solid rgba(36, 28, 21, 0.12); padding: 0.4375rem 0.5rem; }
 .me-sala:last-child { border-bottom: none; }
+.me-sala-alvo { cursor: pointer; user-select: none; }
+.me-sala-alvo:hover { background: rgba(44, 116, 65, 0.1); }
 .me-sala-sua { background: rgba(242, 169, 59, 0.18); }
 .me-sala-cab { display: flex; align-items: center; justify-content: space-between; gap: 0.375rem; }
 .me-sala-nome {
