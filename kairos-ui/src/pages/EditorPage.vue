@@ -423,7 +423,7 @@ onMounted(async () => {
     return
   }
   scene = new MapScene()
-  await scene.init(host.value!, '#0a0a10')
+  await scene.init(host.value!, '#d9c9aa')
   if (!isNew.value) {
     try {
       const loaded = await fetchMap(route.params.id as string)

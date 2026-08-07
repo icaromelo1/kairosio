@@ -102,7 +102,10 @@ export class MapScene {
     this.lightingLayer.eventMode = 'none'
   }
 
-  async init(host: HTMLElement, background = '#0d0d14') {
+  // fora do mapa não é buraco preto: é a moldura da mesa onde o mundo está
+  // desenhado. o #0d0d14 aqui era do tema escuro e sobreviveu à migração porque
+  // é argumento de função, não CSS — nenhuma varredura de token o alcançava.
+  async init(host: HTMLElement, background = '#e2d5b8') {
     await this.app.init({ background, resizeTo: host, antialias: false })
     await carregarPacks()
     host.appendChild(this.app.canvas)

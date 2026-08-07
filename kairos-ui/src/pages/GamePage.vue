@@ -184,6 +184,12 @@
               :title="minimapaVisivel ? 'esconder o minimapa (M)' : 'mostrar o minimapa (M)'"
               @click="minimapaVisivel = !minimapaVisivel"
             ><PixelIcon name="map-pin" size="0.75rem" />mini</button>
+            <button
+              v-if="minimapaVisivel"
+              class="gp-hud-rodape gp-hud-icone" :class="{ 'gp-hud-rodape-on': minimapaGrande }"
+              :title="minimapaGrande ? 'diminuir o minimapa' : 'aumentar o minimapa'"
+              @click="minimapaGrande = !minimapaGrande"
+            ><PixelIcon :name="minimapaGrande ? 'zoom-out' : 'zoom-in'" size="0.75rem" /></button>
             <button class="gp-hud-rodape" title="abrir o mapa grande" @click="mapaExpandido = true">
               <PixelIcon name="expand" size="0.75rem" />mapa
             </button>
@@ -438,7 +444,7 @@ import { me } from '@/services/auth.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import MapaExpandido from '@/components/MapaExpandido.vue'
 import { ESCALA_PADRAO } from '@/game/escala-avatar'
-import { rotaParaSala, type Ponto } from '@/game/rota'
+import { calcularRota, rotaParaSala, type Ponto } from '@/game/rota'
 import NotchStepper from '@/components/pixel/NotchStepper.vue'
 import ToggleRow from '@/components/pixel/ToggleRow.vue'
 import ClusterCard from '@/components/pixel/ClusterCard.vue'
@@ -604,6 +610,15 @@ const sudoPanelOpen = ref(false)
 const atalhosAbertos = ref(false)
 
 const minimapaVisivel = ref(localStorage.getItem('kairos_minimapa') !== 'off')
+// dois tamanhos: o pequeno é referência de canto, o grande serve pra mirar um
+// ponto e mandar o boneco até lá sem abrir o mapa inteiro
+const MINIMAPA_LADOS = { pequeno: 200, grande: 380 } as const
+const minimapaGrande = ref(localStorage.getItem('kairos_minimapa_grande') === 'on')
+watch(minimapaGrande, (v) => {
+  localStorage.setItem('kairos_minimapa_grande', v ? 'on' : 'off')
+  minimapDoScene()?.setLadoMax(v ? MINIMAPA_LADOS.grande : MINIMAPA_LADOS.pequeno)
+  scene?.redimensionar()
+})
 const mapaExpandido = ref(false)
 const danceStyle = ref<AvatarPose>('dance')
 
@@ -722,6 +737,35 @@ function cancelarRota(motivo?: string) {
 }
 
 const avisoRota = ref('')
+
+// o minimapa devolve coordenada, não sala. O destino ganha nome quando cai
+// dentro de uma: "indo para Sala de Reunião" vale mais que "indo até lá".
+function irParaPonto(x: number, y: number) {
+  const map = currentMap.value
+  if (!map) return
+  cancelarRota()
+  avisoRota.value = ''
+  const salaId = salaDoPonto(map, x, y)
+  const area = salaId ? map.objects.find((o) => o.kind === 'area' && o.id === salaId) : null
+  const nome = area ? ((area as { name?: string }).name ?? salaId!) : 'lá'
+  const pontos = calcularRota(map, pos, { x, y }, {
+    trancadas: salasTrancadas.value,
+    salaDoMovedor: salaDoPonto(map, pos.x, pos.y),
+  })
+  if (!pontos || !pontos.length) {
+    avisoRota.value = 'Não dá pra chegar nesse ponto.'
+    window.setTimeout(() => { if (!rotaAtiva.value) avisoRota.value = '' }, 3000)
+    return
+  }
+  if (sentado.value) {
+    sentado.value = false
+    if (preSit) { pos.x = preSit.x; pos.y = preSit.y; preSit = null }
+  }
+  rotaAtiva.value = { pontos, indice: 0, salaId: salaId ?? '', nome }
+  replanos = 0
+  paradoDesde = 0
+  ultimaDistancia = Infinity
+}
 
 function irParaSala(salaId: string) {
   const map = currentMap.value
@@ -1255,8 +1299,16 @@ function minimapDoScene(): Minimap | null {
   return scene?.minimap ?? null
 }
 
+// clique simples: qualquer pessoa manda o boneco andar até lá.
+// duplo clique: só sudo, e teleporta — a diferença entre andar e aparecer é
+// exatamente a diferença entre jogar e ter poder.
 function aoClicarMinimapa(x: number, y: number) {
+  irParaPonto(x, y)
+}
+
+function aoDuploCliqueMinimapa(x: number, y: number) {
   if (!ehSudo.value) return
+  cancelarRota()
   pos.x = x
   pos.y = y
   emitSudoTeleporte(x, y)
@@ -1301,7 +1353,7 @@ watch(sudoEscala, (v) => {
 })
 watch(sudoInvisivel, (v) => scene?.avatar('me')?.setOculto(v))
 
-watch(ehSudo, (v) => minimapDoScene()?.permitirClique(v))
+
 
 const FESTA_DURACAO_MS = 5000
 let festaTimer = 0
@@ -1339,9 +1391,12 @@ onMounted(async () => {
   scene.addAvatar('me', new AvatarPuppet(look.value))
   scene.avatar('me')?.setPhoto(myPhotoUrl.value)
   minimapDoScene()?.aoClicar(aoClicarMinimapa)
+  minimapDoScene()?.aoDuploClique(aoDuploCliqueMinimapa)
+  minimapDoScene()?.permitirClique(true)
   // o watch só dispara na mudança: sem isto a preferência salva era ignorada no
   // boot e o minimapa voltava sempre visível
   scene.mostrarMinimapa(minimapaVisivel.value)
+  minimapDoScene()?.setLadoMax(minimapaGrande.value ? MINIMAPA_LADOS.grande : MINIMAPA_LADOS.pequeno)
   relogioLuz = window.setInterval(aplicarLuzDoMundo, 30_000)
   me()
     .then((p) => {
