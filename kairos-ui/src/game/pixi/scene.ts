@@ -3,7 +3,7 @@
 
 import { Application, Container, Graphics, Text } from 'pixi.js'
 import type { MapDef, MapObject } from '../maps'
-import { carregarPacks, criarSpriteDeTile, criarSpriteDoPack, criarSvgGraphics } from '../furniture/catalog'
+import { carregarPacks, criarSpriteDeTile, criarSpriteDoPack } from '../furniture/catalog'
 import { criarSuperficie, temSuperficie } from '../furniture/surfaces'
 import type { AvatarPuppet } from './avatar'
 import { estadoDeLuz, lerpCor, type EstadoLuz } from '../lighting'
@@ -34,11 +34,13 @@ const OBJECT_STYLE: Partial<Record<MapObject['kind'], { color: number; alpha: nu
 }
 const DEFAULT_STYLE = { color: 0x2a2a3a, alpha: 1 }
 
+// os nomes vêm do schema do mapa e não mudam; as cores eram os tokens do tema
+// escuro e passam a ser as da paleta atual
 const GLOW: Record<NonNullable<MapObject['glow']>, number> = {
-  purple: 0x7c3aed,
-  cyan: 0x22d3ee,
-  gold: 0xfbbf24,
-  green: 0x34d399,
+  purple: 0x2c7441,
+  cyan: 0x2a4d8f,
+  gold: 0xf2a93b,
+  green: 0x1e693b,
 }
 
 // objetos "em pé" (billboards) — ficam ancorados na base e entram na entityLayer
@@ -405,14 +407,6 @@ export class MapScene {
       }
     }
 
-    const svgG = o.pixels?.length ? null : criarSvgGraphics(o, caixaArte)
-
-    if (svgG) {
-      g.addChild(svgG)
-      this.posicionarObjeto(o, g, { x, y, w, h, cx, cy, r })
-      return
-    }
-
     // base
     if (o.pixels && o.pixels.length) {
       // objeto customizado: desenha a matriz de pixels escalada
@@ -537,7 +531,7 @@ export class MapScene {
         break
       case 'shelf': {
         // lombadas de livros coloridas
-        const books = [0x7c3aed, 0xfbbf24, 0x22d3ee, 0x34d399, 0xf87171, 0xa78bfa, 0xfb923c]
+        const books = [0x2c7441, 0xf2a93b, 0x2a4d8f, 0xa83232, 0x825109, 0x1e693b, 0x8c4c10]
         const n = Math.max(3, Math.floor(w / 10))
         for (let i = 0; i < n; i++) {
           g.rect(x + 4 + i * ((w - 8) / n), y + 4, (w - 8) / n - 2, h - 8).fill({ color: books[i % books.length], alpha: 0.85 })
@@ -747,7 +741,7 @@ export class MapScene {
   }
 
   /** Mostra um preview translúcido do objeto no tile (editor). */
-  showGhost(tileX: number, tileY: number, w: number, h: number, color: string | number = 0x7c3aed, circle = false) {
+  showGhost(tileX: number, tileY: number, w: number, h: number, color: string | number = 0x2c7441, circle = false) {
     this.clearGhost()
     const g = new Graphics()
     const x = tileX * TILE_PX

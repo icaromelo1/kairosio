@@ -71,7 +71,7 @@ export function sanitizeLook(raw: unknown): AvatarLook {
     hairStyle: typeof a.hairStyle === 'string' && PRESET_IDS.has(a.hairStyle) ? a.hairStyle : DEFAULT_PRESET,
     hairColor: color(a.hairColor, '#3d2817'),
     skin: color(a.skin, '#e8b894'),
-    topColor: color(a.topColor, '#7c3aed'),
+    topColor: color(a.topColor, '#2c7441'),
     pantsColor: color(a.pantsColor, '#1f2937'),
     accessory: ACCESSORIES.includes(a.accessory as NonNullable<AvatarLook['accessory']>)
       ? (a.accessory as AvatarLook['accessory'])
