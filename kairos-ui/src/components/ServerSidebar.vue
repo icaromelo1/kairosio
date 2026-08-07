@@ -363,8 +363,10 @@ const gentePosicionada = computed<PessoaNaSala[]>(() => {
 const salasDoMundoAtual = computed(() => {
   const map = mapaAtual.value
   if (!map) return []
+  // sala vazia não entra: com 24 salas na Cidade, listar todas afoga a
+  // informação que importa, que é onde as pessoas estão
   return agruparPorSala(map, gentePosicionada.value)
-    .filter((s) => !s.aberta)
+    .filter((s) => !s.aberta && s.gente.length > 0)
     .map((s) => ({ ...s, trancada: salasTrancadas.value.has(s.id) }))
     .sort((a, b) => b.gente.length - a.gente.length || a.nome.localeCompare(b.nome))
 })

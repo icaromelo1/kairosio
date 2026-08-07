@@ -37,6 +37,9 @@ export class Minimap {
   private altura = 0
   private areas: AreaGeom[] = []
   private cliqueCb: ((x: number, y: number) => void) | null = null
+  private duploCb: ((x: number, y: number) => void) | null = null
+  private ultimoClique = 0
+  private mapaAtual: MapDef | null = null
 
   constructor(private ladoMax = 200) {
     this.root = new Container()
@@ -46,14 +49,39 @@ export class Minimap {
     this.pontos = new Graphics()
     this.root.addChild(this.base, this.pontos)
     this.root.on('pointerdown', (e: FederatedPointerEvent) => {
-      if (!this.cliqueCb) return
       const local = this.root.toLocal(e.global)
-      this.cliqueCb(local.x / this.escala, local.y / this.escala)
+      const x = local.x / this.escala
+      const y = local.y / this.escala
+      // duplo clique é o gesto de "me leve agora"; o simples é "vá andando".
+      // 320ms é o intervalo que o navegador usa pra dblclick nativo.
+      const agora = performance.now()
+      if (agora - this.ultimoClique < 320) {
+        this.ultimoClique = 0
+        this.duploCb?.(x, y)
+        return
+      }
+      this.ultimoClique = agora
+      this.cliqueCb?.(x, y)
     })
   }
 
   aoClicar(fn: (x: number, y: number) => void) {
     this.cliqueCb = fn
+  }
+
+  aoDuploClique(fn: (x: number, y: number) => void) {
+    this.duploCb = fn
+  }
+
+  /** Troca o lado máximo e redesenha — o mapa fica maior sem recarregar nada. */
+  setLadoMax(lado: number) {
+    if (lado === this.ladoMax) return
+    this.ladoMax = lado
+    if (this.mapaAtual) this.construir(this.mapaAtual)
+  }
+
+  getLadoMax(): number {
+    return this.ladoMax
   }
 
   permitirClique(v: boolean) {
@@ -62,6 +90,7 @@ export class Minimap {
   }
 
   construir(map: MapDef) {
+    this.mapaAtual = map
     this.escala = this.ladoMax / Math.max(map.width, map.height)
     this.largura = map.width * this.escala
     this.altura = map.height * this.escala
