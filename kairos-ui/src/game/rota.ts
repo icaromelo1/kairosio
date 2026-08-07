@@ -73,8 +73,11 @@ function gradeDoMapa(map: MapDef): Grade {
   }
 
   for (const o of map.objects) {
-    const x0 = Math.max(0, Math.floor(o.x))
-    const y0 = Math.max(0, Math.floor(o.y))
+    // isSolid testa `x >= o.x` com x INTEIRO, ou seja ceil(o.x) — usar floor aqui
+    // engordava cada objeto em um tile e fechava 460 passagens, deixando salas
+    // inteiras sem rota
+    const x0 = Math.max(0, Math.ceil(o.x))
+    const y0 = Math.max(0, Math.ceil(o.y))
     const x1 = Math.min(w - 1, Math.ceil(o.x + o.w) - 1)
     const y1 = Math.min(h - 1, Math.ceil(o.y + o.h) - 1)
     if (x1 < x0 || y1 < y0) continue
@@ -97,7 +100,8 @@ function gradeDoMapa(map: MapDef): Grade {
   return g
 }
 
-function bloqueado(map: MapDef, x: number, y: number, op: OpcoesDeRota): boolean {
+/** Exportada pro teste conseguir comparar a grade com o isSolid do jogo. */
+export function bloqueado(map: MapDef, x: number, y: number, op: OpcoesDeRota = {}): boolean {
   const g = gradeDoMapa(map)
   if (x < 1 || y < 1 || x > g.w - 2 || y > g.h - 2) return true
   if (g.solido[y * g.w + x]) return true
@@ -136,17 +140,33 @@ export function tileAndavelProximo(
   return null
 }
 
-/** Dois pontos se enxergam sem sólido no meio? Amostra ao longo do segmento. */
+/**
+ * O corpo consegue percorrer o segmento reto de `a` a `b`?
+ *
+ * Não basta a linha estar livre: o movimento resolve colisão POR EIXO — tenta X
+ * com o Y antigo, depois Y com o X novo. Entre dois sólidos na diagonal existe
+ * uma fresta que um ponto na reta atravessa e o corpo não. O A* já evita cortar
+ * quina; era a simplificação que reintroduzia isso, e o resultado era o
+ * personagem empurrando a parede até o detector de travado desistir.
+ *
+ * Então este teste anda o segmento do mesmo jeito que o jogo anda.
+ */
 export function temLinhaDeVisao(map: MapDef, a: Ponto, b: Ponto, op: OpcoesDeRota = {}): boolean {
   const dx = b.x - a.x
   const dy = b.y - a.y
-  const passos = Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) * 2)
+  const passos = Math.ceil(Math.max(Math.abs(dx), Math.abs(dy)) * 4)
   if (passos === 0) return true
+  let px = a.x
+  let py = a.y
   for (let i = 1; i <= passos; i++) {
     const t = i / passos
-    const x = Math.floor(a.x + dx * t)
-    const y = Math.floor(a.y + dy * t)
-    if (bloqueado(map, x, y, op)) return false
+    const nx = a.x + dx * t
+    const ny = a.y + dy * t
+    // mesma ordem do laço de movimento
+    if (!bloqueado(map, Math.floor(nx), Math.floor(py), op)) px = nx
+    if (!bloqueado(map, Math.floor(px), Math.floor(ny), op)) py = ny
+    // se um dos eixos não avançou, o corpo ficaria raspando a parede aqui
+    if (Math.abs(px - nx) > 1e-6 || Math.abs(py - ny) > 1e-6) return false
   }
   return true
 }
@@ -155,6 +175,12 @@ export function temLinhaDeVisao(map: MapDef, a: Ponto, b: Ponto, op: OpcoesDeRot
  * Descarta pontos intermediários enquanto o anterior e o seguinte se enxergam.
  * O A* devolve escadinha; é este passe que produz as linhas retas.
  */
+// Segmento longo é frágil: o corpo colide por eixo, raspa a parede, desvia da
+// reta, e a partir daí "ir em linha reta pro alvo" aponta pra dentro de um
+// sólido. Medido: um trecho de 24 tiles fazia o boneco chegar 2 tiles fora da
+// linha e travar. Re-mirar a cada poucos tiles impede o desvio de acumular.
+const SEGMENTO_MAX = 6
+
 export function simplificar(map: MapDef, pontos: Ponto[], op: OpcoesDeRota = {}): Ponto[] {
   if (pontos.length <= 2) return pontos.slice()
   const saida: Ponto[] = [pontos[0]]
@@ -162,7 +188,10 @@ export function simplificar(map: MapDef, pontos: Ponto[], op: OpcoesDeRota = {})
   while (ancora < pontos.length - 1) {
     let alcance = ancora + 1
     for (let i = pontos.length - 1; i > ancora; i--) {
-      if (temLinhaDeVisao(map, pontos[ancora], pontos[i], op)) {
+      const p = pontos[i]
+      const a = pontos[ancora]
+      if (Math.max(Math.abs(p.x - a.x), Math.abs(p.y - a.y)) > SEGMENTO_MAX) continue
+      if (temLinhaDeVisao(map, a, p, op)) {
         alcance = i
         break
       }
