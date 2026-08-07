@@ -1,6 +1,6 @@
 import { CIDADE } from '../../../kairos-api/src/map/cidade.ts'
 import { isSolid } from './maps.ts'
-import { calcularRota, rotaParaSala, simplificar, tileAndavelProximo, temLinhaDeVisao } from './rota.ts'
+import { bloqueado, calcularRota, rotaParaSala, simplificar, tileAndavelProximo, temLinhaDeVisao } from './rota.ts'
 
 const map = CIDADE
 let falhas = 0
@@ -127,6 +127,55 @@ checa('simplificar reduz a contagem de pontos', simples.length < bruta.length, `
   const b = { x: parede.x + 2, y: parede.y + 3 }
   checa('linha de visão enxerga o vizinho livre', temLinhaDeVisao(map, a, { x: a.x + 1, y: a.y }))
   checa('linha de visão não atravessa parede', !temLinhaDeVisao(map, a, b))
+}
+
+// --- a grade de rota tem que casar EXATAMENTE com a colisão do jogo ---
+{
+  let bloqueiaDemais = 0
+  let liberaDemais = 0
+  for (let y = 1; y < map.height - 1; y++) {
+    for (let x = 1; x < map.width - 1; x++) {
+      const real = isSolid(map, x, y)
+      const grade = bloqueado(map, x, y)
+      if (grade && !real) bloqueiaDemais++
+      if (!grade && real) liberaDemais++
+    }
+  }
+  checa('a grade não bloqueia nada além do jogo', bloqueiaDemais === 0, `${bloqueiaDemais} tiles a mais`)
+  checa('a grade não libera nada que o jogo bloqueia', liberaDemais === 0, `${liberaDemais} tiles`)
+}
+
+// --- o CORPO consegue percorrer a rota? (colisão por eixo, como no jogo) ---
+{
+  function simular(pontos, origem) {
+    const p = { ...origem }
+    let i = 0, quadros = 0, parado = 0, ultima = Infinity
+    const dt = 1 / 60, sp = 5 * dt * 2.8
+    while (i < pontos.length && quadros++ < 8000) {
+      const ax = pontos[i].x + 0.5, ay = pontos[i].y + 0.5
+      const d = Math.hypot(ax - p.x, ay - p.y)
+      if (d < 0.35) { i++; ultima = Infinity; parado = 0; continue }
+      const passo = Math.min(sp, d)
+      const nx = p.x + ((ax - p.x) / d) * passo
+      const ny = p.y + ((ay - p.y) / d) * passo
+      if (!isSolid(map, Math.floor(nx), Math.floor(p.y))) p.x = nx
+      if (!isSolid(map, Math.floor(p.x), Math.floor(ny))) p.y = ny
+      if (d < ultima - 0.02) { ultima = d; parado = 0 }
+      else { parado += dt; if (parado > 1) return { ok: false, p, i } }
+    }
+    return { ok: i >= pontos.length, p, i }
+  }
+  let travadas = 0
+  let semRota = 0
+  const quebradas = []
+  for (const a of fechadas) {
+    const r = rotaParaSala(map, spawn, a.id)
+    if (!r) { semRota++; quebradas.push(a.id + ' (sem rota)'); continue }
+    const sim = simular(r, spawn)
+    if (!sim.ok) { travadas++; quebradas.push(a.id + ' (travou)') }
+  }
+  checa('toda sala fechada tem rota do spawn', semRota === 0, quebradas.join(', '))
+  checa('o corpo percorre TODAS as rotas sem travar', travadas === 0, quebradas.join(', '))
 }
 
 // --- determinismo ---

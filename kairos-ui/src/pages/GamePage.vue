@@ -694,12 +694,30 @@ let emoteUntil = 0
 const rotaAtiva = ref<{ pontos: Ponto[]; indice: number; salaId: string; nome: string } | null>(null)
 let paradoDesde = 0
 let ultimaDistancia = Infinity
+let replanos = 0
+
+function replanejar(): boolean {
+  const r = rotaAtiva.value
+  const map = currentMap.value
+  if (!r || !map) return false
+  const pontos = rotaParaSala(map, pos, r.salaId, {
+    trancadas: salasTrancadas.value,
+    salaDoMovedor: salaDoPonto(map, pos.x, pos.y),
+  })
+  if (!pontos || !pontos.length) return false
+  r.pontos = pontos
+  r.indice = 0
+  paradoDesde = 0
+  ultimaDistancia = Infinity
+  return true
+}
 
 function cancelarRota(motivo?: string) {
   if (!rotaAtiva.value) return
   rotaAtiva.value = null
   paradoDesde = 0
   ultimaDistancia = Infinity
+  replanos = 0
   if (motivo) avisoRota.value = motivo
 }
 
@@ -734,6 +752,7 @@ function irParaSala(salaId: string) {
     if (preSit) { pos.x = preSit.x; pos.y = preSit.y; preSit = null }
   }
   rotaAtiva.value = { pontos, indice: 0, salaId, nome }
+  replanos = 0
   paradoDesde = 0
   ultimaDistancia = Infinity
 }
@@ -1424,7 +1443,13 @@ onMounted(async () => {
           paradoDesde = 0
         } else {
           paradoDesde += dt
-          if (paradoDesde > 1) cancelarRota('O caminho travou no meio.')
+          // travar pode ser desvio acumulado, porta que fechou ou alguém que
+          // spawnou móvel na frente: replanejar da posição atual resolve os três.
+          // Desistir só depois de o replano também falhar.
+          if (paradoDesde > 0.7) {
+            if (replanos < 2 && replanejar()) replanos += 1
+            else cancelarRota('Não consegui chegar até lá.')
+          }
         }
       }
     } else if (livreParaAndar) {
