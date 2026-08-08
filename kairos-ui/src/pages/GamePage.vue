@@ -15,6 +15,7 @@
         :voice-on="voiceOn"
         :can-edit-current-world="!!currentMap && currentMap.ownerId === auth.userId"
         :is-guest="auth.isGuest"
+        :eh-sudo="ehSudo"
         @select-world="selectMap"
         @server-changed="onServerChanged"
         @open-media="openMediaStage"
@@ -1860,7 +1861,8 @@ onUnmounted(() => {
 
 .gp-chat {
   position: absolute;
-  bottom: 1rem;
+  /* acima da barra de controles, que agora divide a coluna esquerda */
+  bottom: 4.25rem;
   left: 1rem;
   width: min(17.5rem, calc(100vw - 2rem));
   z-index: 10;
@@ -2017,10 +2019,10 @@ onUnmounted(() => {
 
 .gp-hud-ctl {
   position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
+  left: 1rem;
   bottom: 1rem;
   width: 25.25rem;
+  max-width: calc(100vw - 2rem);
   display: flex;
   flex-direction: column;
   align-items: stretch;
@@ -2271,12 +2273,14 @@ onUnmounted(() => {
 
 .gp-chat-abas { display: flex; gap: 0.25rem; margin-bottom: 0.25rem; }
 .gp-chat-aba {
+  min-height: 2rem;
   appearance: none;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
   max-width: 9rem;
+  min-height: 2rem;
   padding: 0.3125rem 0.5rem;
   background: var(--bg-1);
   border: 0.125rem solid var(--tinta);
