@@ -98,11 +98,14 @@
               :class="{ 'gp-chat-count-max': chatInput.length >= CHAT_MAX_LEN }"
             >{{ chatInput.length }}/{{ CHAT_MAX_LEN }}</span>
           </div>
-          <input
-            v-model="chatInput" :maxlength="CHAT_MAX_LEN" :placeholder="`Conversar em ${abaChat === 'sala' && salaDoChat ? salaDoChat.nome : 'Mundo'}… (Enter)`"
-            class="gp-chat-input"
-            @keydown.enter="sendChat"
-          />
+          <div class="gp-chat-input-wrap">
+            <span class="gp-chat-prefixo ellipsis">{{ prefixoChat }}</span>
+            <input
+              v-model="chatInput" :maxlength="CHAT_MAX_LEN" placeholder="mensagem… (Enter)"
+              class="gp-chat-input"
+              @keydown.enter="sendChat"
+            />
+          </div>
           <span v-if="chatCooldown" class="gp-chat-cooldown" />
         </div>
       </div>
@@ -807,6 +810,10 @@ watch(salasTrancadas, (t) => {
 const abaChat = ref<'mundo' | 'sala'>('mundo')
 const naoLidasSala = ref(0)
 const messages = computed(() => (abaChat.value === 'sala' ? chatSala : chatMundo))
+// prefixo persistente dentro do campo: repete o escopo da aba ativa mesmo
+// depois que a pessoa começa a digitar, quando o placeholder já sumiu — é o
+// que evita escrever na aba errada com duas conversas abertas ao mesmo tempo
+const prefixoChat = computed(() => (abaChat.value === 'sala' && salaDoChat.value ? salaDoChat.value.nome : 'mundo'))
 
 // entrar numa sala não muda a aba: quem estava falando no mundo continua no
 // mundo. o contador avisa que tem conversa acontecendo do outro lado.
@@ -1929,20 +1936,51 @@ onUnmounted(() => {
 }
 .gp-chat-count-max { color: var(--warn); }
 
-.gp-chat-input {
+/* mesmo vocabulário do resto da HUD: creme opaco + contorno duplo (2px tinta
+   por fora, 2px creme por dentro — ver o porquê no topo de tokens.css). Antes
+   era caixa cinza translúcida sem contorno, o único controle fora do padrão. */
+.gp-chat-input-wrap {
+  display: flex;
+  align-items: stretch;
   width: 100%;
   box-sizing: border-box;
-  background: var(--bg-1);
-  background: color-mix(in srgb, var(--bg-1) 72%, transparent);
-  backdrop-filter: blur(0.1875rem);
-  -webkit-backdrop-filter: blur(0.1875rem);
-  border: 0.0625rem solid var(--border-strong);
+  background: var(--bg-2);
+  border: var(--ui-border-style);
+  box-shadow: var(--contorno-duplo);
+}
+.gp-chat-input-wrap:focus-within { border-color: var(--tinta); box-shadow: var(--contorno-duplo), 0 0 0 0.1875rem var(--accent); }
+
+/* prefixo persistente: mesma cor de "aba ativa" (.gp-chat-aba-on), pra ficar
+   óbvio que o campo escreve pra onde a aba já está apontando */
+.gp-chat-prefixo {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  max-width: 5.5rem;
+  margin: 0.1875rem 0 0.1875rem 0.1875rem;
+  padding: 0 0.4375rem;
+  background: var(--primary);
+  color: var(--bg-2);
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.gp-chat-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  background: transparent;
+  border: none;
   color: var(--text);
   padding: 0.5rem 0.625rem;
   font-size: 0.8125rem;
   font-family: inherit;
 }
-.gp-chat-input:focus { outline: none; border-color: var(--primary-hi); }
+.gp-chat-input::placeholder { color: var(--text-3); }
+.gp-chat-input:focus { outline: none; }
 
 .gp-chat-cooldown {
   position: absolute;
