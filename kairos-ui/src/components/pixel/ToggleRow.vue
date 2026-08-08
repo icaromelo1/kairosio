@@ -54,7 +54,7 @@ const emit = defineEmits<{ 'update:modelValue': [boolean] }>()
 .tr-texto { flex: 1; display: flex; flex-direction: column; gap: 0.0625rem; min-width: 0; }
 .tr-label {
   font-family: var(--f-pixel);
-  font-size: 0.5625rem;
+  font-size: 0.5rem;
   font-weight: 700;
   letter-spacing: 0.1em;
   text-transform: uppercase;

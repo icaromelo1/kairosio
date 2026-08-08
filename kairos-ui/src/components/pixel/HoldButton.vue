@@ -76,7 +76,7 @@ onBeforeUnmount(zerar)
   box-shadow: 0 0.1875rem 0 var(--err-hi);
   cursor: pointer;
   font-family: var(--f-pixel);
-  font-size: 0.5625rem;
+  font-size: 0.5rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;

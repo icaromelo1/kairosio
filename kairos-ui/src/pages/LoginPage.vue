@@ -286,11 +286,12 @@ onMounted(async () => {
 }
 
 .subtitle-text {
-  font-size: 0.6875rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--text-3);
   letter-spacing: 0.32em;
   text-transform: uppercase;
-  font-family: var(--f-pixel);
+  font-family: var(--f-sans);
   white-space: nowrap;
 }
 
@@ -316,7 +317,7 @@ onMounted(async () => {
   border: 0.125rem solid var(--border-strong);
   color: var(--text-3);
   font-family: var(--f-pixel);
-  font-size: 0.5625rem;
+  font-size: 0.5rem;
   letter-spacing: 0.05em;
 }
 
@@ -329,7 +330,7 @@ onMounted(async () => {
 
 .k-label {
   font-family: var(--f-pixel);
-  font-size: 0.5625rem;
+  font-size: 0.5rem;
   color: var(--text-3);
   letter-spacing: 0.08em;
   text-transform: uppercase;

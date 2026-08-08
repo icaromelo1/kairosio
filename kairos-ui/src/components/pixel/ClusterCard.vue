@@ -31,7 +31,7 @@ defineProps<{ titulo: string; nota?: string; escopo?: 'eu' | 'mundo' }>()
 .cc-mundo .cc-head { background: var(--mundo); box-shadow: inset 0 -0.125rem 0 var(--mundo-hi); }
 .cc-titulo {
   font-family: var(--f-pixel);
-  font-size: 0.625rem;
+  font-size: 0.5rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;

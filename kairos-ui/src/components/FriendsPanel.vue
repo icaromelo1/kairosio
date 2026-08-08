@@ -518,8 +518,8 @@ onUnmounted(() => {
 }
 
 .fp-tab-count {
-  font-family: var(--f-mono);
-  font-size: 0.625rem;
+  font-family: var(--f-num);
+  font-size: 0.75rem;
   color: var(--text-3);
 }
 .fp-tab-count-alert { color: var(--accent-texto); }
@@ -562,7 +562,8 @@ onUnmounted(() => {
   min-width: 0;
 }
 .fp-name { color: var(--text); font-weight: 600; }
-.fp-handle { font-family: var(--f-mono); font-size: 0.6875rem; color: var(--text-3); }
+.fp-handle { font-family: var(--f-sans); font-size: 0.75rem;
+  font-weight: 600; color: var(--text-3); }
 
 .fp-dot {
   width: 0.5rem;
@@ -574,8 +575,9 @@ onUnmounted(() => {
 .fp-dot-off { background: var(--text-4); }
 
 .fp-state {
-  font-family: var(--f-mono);
-  font-size: 0.6875rem;
+  font-family: var(--f-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--text-3);
   letter-spacing: 0.02em;
   min-width: 0;

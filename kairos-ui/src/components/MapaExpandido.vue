@@ -310,8 +310,9 @@ watch(() => [props.eu.x, props.eu.y, props.outros.length, props.trancadas.size],
   display: inline-flex;
   align-items: center;
   gap: 0.25rem;
-  font-family: var(--f-pixel);
-  font-size: 0.5625rem;
+  font-family: var(--f-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text);

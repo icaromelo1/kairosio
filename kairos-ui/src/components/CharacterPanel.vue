@@ -258,7 +258,7 @@ const TABS = [
 
 .cp-eyebrow {
   font-family: var(--f-pixel);
-  font-size: 0.5625rem;
+  font-size: 0.5rem;
   color: var(--text-3);
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -298,8 +298,9 @@ const TABS = [
 }
 
 .cp-at {
-  font-family: var(--f-mono);
+  font-family: var(--f-sans);
   font-size: 0.875rem;
+  font-weight: 600;
   color: var(--text-3);
 }
 
@@ -332,7 +333,7 @@ const TABS = [
   background: transparent;
   color: var(--text-3);
   font-family: var(--f-pixel);
-  font-size: 0.5625rem;
+  font-size: 0.5rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 0.625rem 0.375rem;
@@ -348,7 +349,7 @@ const TABS = [
 
 .cp-label {
   font-family: var(--f-pixel);
-  font-size: 0.5625rem;
+  font-size: 0.5rem;
   color: var(--text-3);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -380,8 +381,9 @@ const TABS = [
 }
 
 .cp-hair-label {
-  font-family: var(--f-pixel);
-  font-size: 0.4375rem;
+  font-family: var(--f-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--text-3);
   text-transform: lowercase;
   white-space: nowrap;

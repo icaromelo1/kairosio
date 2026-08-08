@@ -1796,7 +1796,7 @@ onUnmounted(() => {
 .gp-hud-tight { line-height: 1.1; }
 .gp-hud-name { font-size: 0.8125rem; font-weight: 600; }
 .gp-hud-mapname {
-  font-size: 0.625rem;
+  font-size: 0.5rem;
   color: var(--text-3);
   font-family: var(--f-mono);
   letter-spacing: 0.12em;
@@ -1911,7 +1911,7 @@ onUnmounted(() => {
   pointer-events: auto;
   cursor: pointer;
   font-family: var(--f-pixel);
-  font-size: 0.5625rem;
+  font-size: 0.5rem;
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--bg-0);
@@ -1924,8 +1924,8 @@ onUnmounted(() => {
 
 .gp-chat-count {
   margin-left: auto;
-  font-family: var(--f-mono);
-  font-size: 0.625rem;
+  font-family: var(--f-num);
+  font-size: 0.75rem;
   color: var(--text-3);
   background: var(--bg-1);
   background: color-mix(in srgb, var(--bg-1) 70%, transparent);
@@ -2011,8 +2011,8 @@ onUnmounted(() => {
 .gp-hud-action { color: var(--accent-texto); }
 
 .gp-hud-hora {
-  font-family: var(--f-pixel);
-  font-size: 0.5625rem;
+  font-family: var(--f-num);
+  font-size: 0.875rem;
   color: var(--text-3);
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -2069,8 +2069,9 @@ onUnmounted(() => {
   align-items: center;
   justify-content: center;
   color: var(--text);
-  font-family: var(--f-pixel);
-  font-size: 0.6875rem;
+  font-family: var(--f-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
 }
 .gp-hud-mini-btn:hover { background: var(--bg-2); box-shadow: inset 0 0 0 0.125rem var(--tinta); }
 
@@ -2083,7 +2084,7 @@ onUnmounted(() => {
   cursor: pointer;
   color: var(--text);
   font-family: var(--f-pixel);
-  font-size: 0.5625rem;
+  font-size: 0.5rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   display: flex;

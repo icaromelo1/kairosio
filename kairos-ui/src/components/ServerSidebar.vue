@@ -763,8 +763,9 @@ onUnmounted(() => {
   background: var(--bg-3);
   border: 0.125rem solid var(--border-strong);
   color: var(--text-2);
-  font-family: var(--f-pixel);
-  font-size: 0.625rem;
+  font-family: var(--f-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
   letter-spacing: 0.04em;
 }
 .ss-server:hover { border-color: var(--text-3); color: var(--text); }
@@ -795,8 +796,9 @@ onUnmounted(() => {
   padding: 0 0.25rem;
   background: var(--ok);
   color: var(--bg-0);
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
+  font-family: var(--f-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
   line-height: 1rem;
   text-align: center;
   border: 0.0625rem solid var(--bg-1);
@@ -995,8 +997,8 @@ onUnmounted(() => {
 
 .ss-world-count {
   flex: none;
-  font-family: var(--f-mono);
-  font-size: 0.6875rem;
+  font-family: var(--f-num);
+  font-size: 0.75rem;
   color: var(--text-2);
   min-width: 1rem;
   text-align: right;
@@ -1037,8 +1039,8 @@ onUnmounted(() => {
   border: 0.0625rem solid var(--border);
 }
 .ss-other-count {
-  font-family: var(--f-mono);
-  font-size: 0.75rem;
+  font-family: var(--f-num);
+  font-size: 0.8125rem;
   color: var(--accent-texto);
   letter-spacing: 0.06em;
 }
@@ -1128,8 +1130,9 @@ onUnmounted(() => {
 .ss-voice-text {
   flex: 1;
   min-width: 0;
-  font-family: var(--f-mono);
-  font-size: 0.625rem;
+  font-family: var(--f-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
   letter-spacing: 0.02em;
 }
 
@@ -1141,7 +1144,7 @@ onUnmounted(() => {
   border: 0.0625rem solid var(--primary-hi);
   color: var(--primary-hi);
   font-family: var(--f-pixel);
-  font-size: 0.4375rem;
+  font-size: 0.5rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   padding: 0.25rem 0.375rem;
@@ -1181,7 +1184,7 @@ onUnmounted(() => {
 .ss-me-name { font-size: 0.75rem; font-weight: 600; }
 .ss-me-hint {
   font-family: var(--f-pixel);
-  font-size: 0.4375rem;
+  font-size: 0.5rem;
   color: var(--text-4);
   letter-spacing: 0.08em;
   text-transform: uppercase;
