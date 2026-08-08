@@ -206,7 +206,10 @@
               <PixelIcon name="users" size="0.75rem" /><span>Amigos</span>
               <span v-if="friendRequests" class="ss-act-badge">{{ friendRequests }}</span>
             </button>
-            <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="router.push('/editor/new')">
+            <button v-if="ehSudo" class="k-btn k-btn-ghost ss-act" @click="router.push('/admin/tiles')">
+            <PixelIcon name="grid" size="0.75rem" /><span>Revisar tiles</span>
+          </button>
+          <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="router.push('/editor/new')">
               <PixelIcon name="plus-box" size="0.75rem" /><span>Criar mundo</span>
             </button>
             <button v-if="canEditCurrentWorld" class="k-btn k-btn-ghost ss-act" @click="router.push(`/editor/${currentMapId}`)">
@@ -340,6 +343,7 @@ const props = defineProps<{
   voiceOn: boolean
   canEditCurrentWorld: boolean
   isGuest: boolean
+  ehSudo: boolean
   minhaPosicao: { x: number; y: number }
 }>()
 
@@ -865,6 +869,10 @@ onUnmounted(() => {
 }
 .ss-head-tag {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0 0.375rem;
   font-family: var(--f-pixel);
   font-size: 0.5rem;
   color: var(--ok);
@@ -1240,10 +1248,9 @@ onUnmounted(() => {
 .ss-sala-nome {
   flex: 1;
   min-width: 0;
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-family: var(--f-sans);
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--text-3);
 }
 .ss-sala-aqui .ss-sala-nome { color: var(--text); }
