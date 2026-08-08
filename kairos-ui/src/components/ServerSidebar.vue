@@ -32,7 +32,7 @@
       ><PixelIcon name="plus" size="0.875rem" /></button>
 
       <button
-        v-if="!open"
+        v-if="!open || modo === 'conversas'"
         class="ss-rail-mic ss-rail-friends"
         :title="friendsTitle"
         :aria-label="friendsTitle"
@@ -42,12 +42,15 @@
         <span v-if="friendRequests" class="ss-server-badge">{{ friendRequests }}</span>
       </button>
 
+      <!-- com a barra em modo conversa este botão é também o caminho de volta:
+           o "Conversas" da lista de ações fica escondido junto com a árvore -->
       <button
-        v-if="!open"
+        v-if="!open || modo === 'conversas'"
         class="ss-rail-mic ss-rail-dm"
+        :class="{ 'ss-rail-on': modo === 'conversas' }"
         :title="dmTitle"
         :aria-label="dmTitle"
-        @click="emit('open-dm')"
+        @click="aoClicarDm"
       >
         <PixelIcon name="message" size="0.875rem" />
         <span v-if="dmUnreadTotal" class="ss-server-badge ss-badge-dm">{{ dmUnreadTotal }}</span>
@@ -67,6 +70,16 @@
     </nav>
 
     <section v-if="open" class="ss-main">
+      <!-- a conversa entra no lugar do cabeçalho e da árvore, nunca do rodapé:
+           o ss-foot é o único microfone que existe com a barra aberta -->
+      <DmSidebar
+        v-if="modo === 'conversas'"
+        :mapa-atual="props.currentMapId"
+        @sair="modo = 'mundos'"
+        @andar="(x, y) => emit('andar-ate', x, y)"
+      />
+
+      <template v-else>
       <header class="ss-head">
         <span class="ss-head-name ellipsis">{{ shownServer?.name || 'Mundos abertos' }}</span>
         <span v-if="showingHere" class="ss-head-tag">aqui</span>
@@ -177,7 +190,7 @@
 
         <div class="ss-label">Ações</div>
         <div class="ss-acts">
-          <button class="k-btn k-btn-ghost ss-act ss-act-dm" :title="dmTitle" @click="emit('open-dm')">
+          <button class="k-btn k-btn-ghost ss-act ss-act-dm" :title="dmTitle" @click="aoClicarDm">
             <PixelIcon name="message" size="0.75rem" /><span>Conversas</span>
             <span v-if="dmUnreadTotal" class="ss-act-badge ss-act-badge-dm">{{ dmUnreadTotal }}</span>
           </button>
@@ -202,6 +215,7 @@
           </button>
         </div>
       </div>
+      </template>
 
       <footer class="ss-foot">
         <!-- a voz sobe sozinha ao entrar num mundo: o estado do microfone fica
@@ -282,13 +296,11 @@ import {
   salasTrancadas,
   presenceByServer,
   serverOnlineCount,
-  syncDmUnread,
   watchServerPresence,
   type PresencePerson,
 } from '@/services/presence'
 import { media } from '@/services/media'
 import { pendingFriends } from '@/services/friend.api'
-import { listConversas } from '@/services/dm.api'
 import type { GamePanel } from '@/services/postAuth'
 import { useAuthStore } from '@/stores/useAuthStore'
 import type { MapDef } from '@/game/maps'
@@ -296,6 +308,11 @@ import type { AvatarLook } from '@/game/pixi/avatar'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import PixelIcon from '@/components/PixelIcon.vue'
 import PixelK from '@/components/pixel/PixelK.vue'
+import DmSidebar from '@/components/DmSidebar.vue'
+import {
+  abrirConversaDe, abrirNaoLidaMaisRecente, assinarDm, desassinarDm, recarregarConversas,
+  voltarParaLista,
+} from '@/services/dm.state'
 
 interface WorldRow {
   id: string
@@ -327,8 +344,30 @@ const emit = defineEmits<{
   'open-friends': []
   'open-dm': []
   'join-voice': []
+  'andar-ate': [x: number, y: number]
   leave: []
 }>()
+
+// o modo mora aqui, não como prop: trocar de servidor ou de mundo volta pra
+// árvore, e o componente é quem sabe quando isso acontece
+const modo = ref<'mundos' | 'conversas'>('mundos')
+
+async function abrirConversas(userId?: string) {
+  modo.value = 'conversas'
+  if (userId) await abrirConversaDe(userId)
+  else voltarParaLista()
+}
+
+// clicar no NÚMERO vai direto à não lida mais recente; clicar no resto do botão
+// abre a lista. Detectar pelo alvo evita botão dentro de botão, que é inválido —
+// e pelo teclado o Enter cai no caminho seguro, a lista
+async function aoClicarDm(e: MouseEvent) {
+  modo.value = 'conversas'
+  const noNumero = e.target instanceof HTMLElement
+    && !!e.target.closest('.ss-badge-dm, .ss-act-badge-dm')
+  if (noNumero && dmUnreadTotal.value) await abrirNaoLidaMaisRecente()
+  else voltarParaLista()
+}
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -415,6 +454,9 @@ function initials(name: string): string {
 
 function showServer(serverId: string) {
   shownServerId.value = serverId
+  // clicar num servidor é pedir a árvore dele: sem isto o clique aplicaria a
+  // troca por baixo da conversa, sem nada mudar na tela
+  modo.value = 'mundos'
   if (!props.open) emit('update:open', true)
 }
 
@@ -467,7 +509,7 @@ function syncPresence() {
   pushMic(true)
 }
 
-defineExpose({ syncPresence, reloadServers: () => loadServers(), reloadFriendRequests: () => loadFriendRequests(), jumpTo })
+defineExpose({ syncPresence, reloadServers: () => loadServers(), reloadFriendRequests: () => loadFriendRequests(), jumpTo, abrirConversas })
 
 const SOCIAL_POLL_MS = 60000
 const friendRequests = ref(0)
@@ -496,11 +538,12 @@ async function loadFriendRequests() {
   }
 }
 
+// pelo singleton, não por syncDmUnread direto: aquele limpa o mapa inteiro e
+// ressuscitava o badge da conversa aberta toda vez que o poll corria junto do
+// markDmRead. O singleton é o dono único e tem a guarda
 async function loadDmUnread() {
   if (props.isGuest) return
-  try {
-    syncDmUnread(await listConversas())
-  } catch {}
+  await recarregarConversas()
 }
 
 function pollSocial() {
@@ -625,13 +668,19 @@ watch(
 onMounted(() => {
   void loadServers()
   pollSocial()
-  if (!props.isGuest) socialPollTimer = window.setInterval(pollSocial, SOCIAL_POLL_MS)
+  // a barra vive enquanto o jogo vive, então é ela quem segura a assinatura de
+  // DM — a view das conversas some ao recolher a barra e não pode ser a dona
+  if (!props.isGuest) {
+    assinarDm()
+    socialPollTimer = window.setInterval(pollSocial, SOCIAL_POLL_MS)
+  }
 })
 
 onUnmounted(() => {
   watchServerPresence([])
   window.clearTimeout(micPushTimer)
   window.clearInterval(socialPollTimer)
+  if (!props.isGuest) desassinarDm()
 })
 </script>
 
@@ -775,6 +824,7 @@ onUnmounted(() => {
 }
 
 .ss-rail-dm { color: var(--primary-hi); border-color: var(--primary-hi); }
+.ss-rail-on { background: var(--primary); color: var(--bg-2); }
 .ss-rail-dm:hover { background: rgba(44, 116, 65, 0.2); }
 
 /* ---- lista de mundos ---- */
