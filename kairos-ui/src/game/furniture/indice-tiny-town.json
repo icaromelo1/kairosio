@@ -17,7 +17,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 1,
@@ -33,7 +35,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 2,
@@ -49,7 +53,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 3,
@@ -65,7 +71,9 @@
     "w": 13,
     "h": 15
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 4,
@@ -81,7 +89,9 @@
     "w": 13,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 5,
@@ -97,7 +107,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 6,
@@ -113,7 +125,9 @@
     "w": 14,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 7,
@@ -129,7 +143,9 @@
     "w": 12,
     "h": 9
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 8,
@@ -145,7 +161,9 @@
     "w": 14,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 9,
@@ -161,7 +179,9 @@
     "w": 14,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 10,
@@ -177,7 +197,9 @@
     "w": 12,
     "h": 9
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 11,
@@ -193,7 +215,9 @@
     "w": 14,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 12,
@@ -210,7 +234,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 13,
@@ -227,7 +253,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 14,
@@ -244,7 +272,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 15,
@@ -260,7 +290,9 @@
     "w": 15,
     "h": 15
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 16,
@@ -276,7 +308,9 @@
     "w": 15,
     "h": 15
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 17,
@@ -292,7 +326,9 @@
     "w": 16,
     "h": 12
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 18,
@@ -308,7 +344,9 @@
     "w": 6,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 19,
@@ -324,7 +362,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 20,
@@ -340,7 +380,9 @@
     "w": 6,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 21,
@@ -356,7 +398,9 @@
     "w": 6,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 22,
@@ -372,7 +416,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 23,
@@ -388,7 +434,9 @@
     "w": 6,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 24,
@@ -404,7 +452,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 25,
@@ -420,7 +470,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 26,
@@ -436,7 +488,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 27,
@@ -452,7 +506,9 @@
     "w": 12,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 28,
@@ -468,7 +524,9 @@
     "w": 12,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 29,
@@ -484,7 +542,9 @@
     "w": 16,
     "h": 12
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 30,
@@ -501,7 +561,9 @@
     "w": 14,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 31,
@@ -517,7 +579,9 @@
     "w": 12,
     "h": 7
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 32,
@@ -534,7 +598,9 @@
     "w": 14,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 33,
@@ -551,7 +617,9 @@
     "w": 14,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 34,
@@ -567,7 +635,9 @@
     "w": 12,
     "h": 7
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 35,
@@ -584,7 +654,9 @@
     "w": 14,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 36,
@@ -600,7 +672,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 37,
@@ -617,7 +691,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 38,
@@ -633,7 +709,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 39,
@@ -649,7 +727,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 40,
@@ -665,7 +745,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 41,
@@ -681,7 +763,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 42,
@@ -697,7 +781,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 43,
@@ -713,7 +799,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 44,
@@ -729,7 +817,9 @@
     "w": 12,
     "h": 14
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 45,
@@ -745,7 +835,9 @@
     "w": 16,
     "h": 12
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 46,
@@ -761,7 +853,9 @@
     "w": 12,
     "h": 14
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 47,
@@ -778,7 +872,9 @@
     "w": 8,
     "h": 14
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 48,
@@ -794,7 +890,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 49,
@@ -810,7 +908,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 50,
@@ -826,7 +926,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 51,
@@ -842,7 +944,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 52,
@@ -858,7 +962,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 53,
@@ -874,7 +980,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 54,
@@ -890,7 +998,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 55,
@@ -906,7 +1016,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 56,
@@ -922,7 +1034,9 @@
     "w": 8,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 57,
@@ -938,7 +1052,9 @@
     "w": 16,
     "h": 15
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 58,
@@ -954,7 +1070,9 @@
     "w": 8,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 59,
@@ -970,7 +1088,9 @@
     "w": 8,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 60,
@@ -986,7 +1106,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 61,
@@ -1002,7 +1124,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 62,
@@ -1018,7 +1142,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 63,
@@ -1034,7 +1160,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 64,
@@ -1050,7 +1178,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 65,
@@ -1066,7 +1196,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 66,
@@ -1082,7 +1214,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 67,
@@ -1098,7 +1232,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 68,
@@ -1114,7 +1250,9 @@
     "w": 12,
     "h": 14
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 69,
@@ -1130,7 +1268,9 @@
     "w": 16,
     "h": 12
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 70,
@@ -1146,7 +1286,9 @@
     "w": 12,
     "h": 14
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 71,
@@ -1162,7 +1304,9 @@
     "w": 8,
     "h": 14
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 72,
@@ -1178,7 +1322,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 73,
@@ -1194,7 +1340,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 74,
@@ -1210,7 +1358,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 75,
@@ -1226,7 +1376,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 76,
@@ -1242,7 +1394,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 77,
@@ -1258,7 +1412,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 78,
@@ -1274,7 +1430,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 79,
@@ -1290,7 +1448,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 80,
@@ -1306,7 +1466,9 @@
     "w": 12,
     "h": 12
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 81,
@@ -1322,7 +1484,9 @@
     "w": 16,
     "h": 8
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 82,
@@ -1338,7 +1502,9 @@
     "w": 12,
     "h": 12
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 83,
@@ -1354,7 +1520,9 @@
     "w": 14,
     "h": 14
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 84,
@@ -1370,7 +1538,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 85,
@@ -1386,7 +1556,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 86,
@@ -1402,7 +1574,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 87,
@@ -1418,7 +1592,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 88,
@@ -1434,7 +1610,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 89,
@@ -1450,7 +1628,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 90,
@@ -1466,7 +1646,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 91,
@@ -1482,7 +1664,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 92,
@@ -1498,7 +1682,9 @@
     "w": 16,
     "h": 8
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 93,
@@ -1514,7 +1700,9 @@
     "w": 10,
     "h": 12
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 94,
@@ -1530,7 +1718,9 @@
     "w": 16,
     "h": 14
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 95,
@@ -1546,7 +1736,9 @@
     "w": 12,
     "h": 14
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 96,
@@ -1563,7 +1755,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 97,
@@ -1580,7 +1774,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 98,
@@ -1597,7 +1793,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 99,
@@ -1614,7 +1812,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 100,
@@ -1631,7 +1831,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 101,
@@ -1648,7 +1850,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 102,
@@ -1664,7 +1868,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 103,
@@ -1680,7 +1886,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 104,
@@ -1696,7 +1904,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 105,
@@ -1712,7 +1922,9 @@
     "w": 16,
     "h": 15
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 106,
@@ -1728,7 +1940,9 @@
     "w": 16,
     "h": 12
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 107,
@@ -1744,7 +1958,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 108,
@@ -1760,7 +1976,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 109,
@@ -1776,7 +1994,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 110,
@@ -1792,7 +2012,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 111,
@@ -1808,7 +2030,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 112,
@@ -1824,7 +2048,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 113,
@@ -1840,7 +2066,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 114,
@@ -1856,7 +2084,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 115,
@@ -1872,7 +2102,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 116,
@@ -1888,7 +2120,9 @@
     "w": 12,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 117,
@@ -1904,7 +2138,9 @@
     "w": 16,
     "h": 12
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 118,
@@ -1920,7 +2156,9 @@
     "w": 12,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 119,
@@ -1936,7 +2174,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 120,
@@ -1952,7 +2192,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 121,
@@ -1968,7 +2210,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 122,
@@ -1984,7 +2228,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 123,
@@ -2001,7 +2247,9 @@
     "w": 8,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 124,
@@ -2018,7 +2266,9 @@
     "w": 8,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 125,
@@ -2034,7 +2284,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 126,
@@ -2050,7 +2302,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 127,
@@ -2066,7 +2320,9 @@
     "w": 11,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 128,
@@ -2082,7 +2338,9 @@
     "w": 12,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 129,
@@ -2098,7 +2356,9 @@
     "w": 13,
     "h": 16
    },
-   "solido": false
+   "solido": false,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 130,
@@ -2114,7 +2374,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   },
   {
    "i": 131,
@@ -2130,7 +2392,9 @@
     "w": 16,
     "h": 16
    },
-   "solido": true
+   "solido": true,
+   "serveComo": [],
+   "revisado": false
   }
  ]
 }
