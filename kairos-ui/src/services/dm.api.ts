@@ -28,6 +28,8 @@ export interface DmConversa {
   ultimaMensagem: DmPrevia | null
   naoLidas: number
   lidoEm: string | null
+  // quando o OUTRO leu — sustenta o "vista às hh:mm"; null = ainda não leu
+  lidoPeloOutroEm: string | null
   criadoEm: string | null
 }
 

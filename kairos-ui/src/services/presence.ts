@@ -95,6 +95,13 @@ export interface DmEntrega {
   mensagem: DmMensagem
 }
 
+// o outro lado abriu a conversa: chega em tempo real para o "vista às hh:mm"
+// aparecer sem recarregar
+export interface DmLeituraAviso {
+  conversaId: string
+  lidoEm: string
+}
+
 export interface AvatarProps {
   escala?: number
   hairStyle?: string | null
@@ -179,6 +186,7 @@ const boardStrokeListeners = new Set<(stroke: Stroke) => void>()
 const boardClearListeners = new Set<() => void>()
 const screenShareListeners = new Set<(state: ScreenShareState) => void>()
 const dmListeners = new Set<(entrega: DmEntrega) => void>()
+const dmLeituraListeners = new Set<(leitura: DmLeituraAviso) => void>()
 const volumeTodosListeners = new Set<(volume: number) => void>()
 const puxadoListeners = new Set<(p: { x: number; y: number }) => void>()
 const festaListeners = new Set<() => void>()
@@ -303,6 +311,10 @@ export function connectPresence(opts: JoinOptions) {
     for (const cb of dmListeners) cb(entrega)
   })
 
+  socket.on('dmLido', (aviso: DmLeituraAviso) => {
+    for (const cb of dmLeituraListeners) cb(aviso)
+  })
+
   // perdeu a membership com o servidor observado (saiu ou foi removido)
   socket.on('presenceRevoked', ({ serverId }: { serverId: string }) => {
     presenceByServer.delete(serverId)
@@ -381,6 +393,11 @@ export function friendLocation(userId: string): { serverId: string; map: string 
 export function onDmMessage(cb: (entrega: DmEntrega) => void) {
   dmListeners.add(cb)
   return () => dmListeners.delete(cb)
+}
+
+export function onDmLido(cb: (aviso: DmLeituraAviso) => void) {
+  dmLeituraListeners.add(cb)
+  return () => dmLeituraListeners.delete(cb)
 }
 
 export function syncDmUnread(conversas: { id: string; naoLidas: number }[]) {
