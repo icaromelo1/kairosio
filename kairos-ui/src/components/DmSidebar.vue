@@ -62,6 +62,8 @@
           </ul>
         </div>
       </div>
+
+      <p class="k-hint-text dms-dica">Esc volta aos mundos. Nenhuma conversa abre sozinha.</p>
     </template>
 
     <template v-else>
@@ -136,10 +138,9 @@
           :maxlength="DM_TEXTO_MAX"
           placeholder="Escreva… (Enter envia)"
           @keydown.enter.exact.prevent="enviar"
-          @keydown.esc.prevent="devolverTeclado"
         />
         <button class="k-btn k-btn-sm dms-enviar" type="submit" :disabled="!podeEnviar">
-          {{ enviando ? '…' : 'enviar' }}
+          {{ enviando ? 'enviando…' : 'enviar' }}
         </button>
       </form>
     </template>
@@ -158,6 +159,7 @@ import {
 } from '@/services/dm.state'
 import { remotePlayers } from '@/services/presence'
 import { useAuthStore } from '@/stores/useAuthStore'
+import { useGameStore } from '@/stores/useGameStore'
 import PixelIcon from '@/components/PixelIcon.vue'
 
 const props = defineProps<{ mapaAtual: string }>()
@@ -165,6 +167,7 @@ const emit = defineEmits<{ sair: []; andar: [x: number, y: number] }>()
 
 const router = useRouter()
 const auth = useAuthStore()
+const gameStore = useGameStore()
 
 const log = ref<HTMLElement | null>(null)
 const campo = ref<HTMLTextAreaElement | null>(null)
@@ -230,6 +233,25 @@ function devolverTeclado() {
   campo.value?.blur()
 }
 
+// escada do Esc: campo focado devolve o teclado ao jogo; campo já sem foco recua
+// conversa → lista → mundos. Ao perder o foco o alvo do keydown vira <body>, que
+// não tem data-captura-teclado — o onKeyDown global do GamePage deixaria de
+// ignorar o Esc e chamaria o closeModal dele. Por isso o listener aqui é em
+// capture:true (roda antes de qualquer bubble-phase em window) e chama
+// stopPropagation, garantindo que só esta escada trata o Esc enquanto a
+// barra de DM está montada.
+function aoEscGlobal(e: KeyboardEvent) {
+  if (e.key !== 'Escape') return
+  // com um painel aberto por cima do mapa, o Esc é dele: este listener é global e
+  // em fase de captura, então sem esta guarda ele engoliria o fechar do painel
+  if (gameStore.isModalOpen) return
+  e.preventDefault()
+  e.stopPropagation()
+  if (document.activeElement === campo.value) devolverTeclado()
+  else if (vista.value === 'conversa') voltarParaLista()
+  else emit('sair')
+}
+
 function quando(ms: number): string {
   if (!ms) return ''
   const data = new Date(ms)
@@ -271,6 +293,7 @@ watch(vista, async (v) => {
 
 onMounted(() => {
   registrarVista(adaptador)
+  window.addEventListener('keydown', aoEscGlobal, true)
   if (auth.isGuest) return
   if (!linhas.value.length && !carregando.value) void carregarTudo()
   if (vista.value === 'conversa') requestAnimationFrame(() => adaptador.irParaOFim())
@@ -278,6 +301,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   registrarVista(null)
+  window.removeEventListener('keydown', aoEscGlobal, true)
 })
 </script>
 
@@ -643,6 +667,13 @@ onUnmounted(() => {
 
 .dms-enviar {
   flex: none;
+}
+
+.dms-dica {
+  flex: none;
+  margin: 0;
+  padding: 0.375rem 0.5rem 0.5rem;
+  text-align: center;
 }
 
 .dms-vazio {
