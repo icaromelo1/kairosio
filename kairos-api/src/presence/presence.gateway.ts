@@ -281,6 +281,12 @@ export class PresenceGateway
       if (!socketId) return
       this.server.to(socketId).emit('dmMessage', { conversaId, de, naoLidas, mensagem })
     })
+
+    this.dmDelivery.registerLeitura(({ paraUserId, conversaId, lidoEm }) => {
+      const socketId = this.userSocket.get(paraUserId)
+      if (!socketId) return
+      this.server.to(socketId).emit('dmLido', { conversaId, lidoEm })
+    })
   }
 
   onModuleDestroy() {

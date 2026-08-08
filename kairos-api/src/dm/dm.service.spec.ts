@@ -386,6 +386,38 @@ describe('DmService — não-lidas', () => {
   })
 })
 
+describe('DmService — leitura vista pelo autor', () => {
+  it('só devolve lidoPeloOutroEm depois que o outro lê', async () => {
+    const ctx = await dupla()
+    const enviada = await enviar(ctx, ctx.a.id, ctx.b.id, 'oi')
+
+    expect((await ctx.service.list(ctx.a.id))[0].lidoPeloOutroEm).toBeNull()
+
+    await ctx.service.markRead(ctx.b.id, enviada.conversaId)
+    const depois = (await ctx.service.list(ctx.a.id))[0]
+
+    expect(depois.lidoPeloOutroEm).toBeInstanceOf(Date)
+    // a marca do autor é a do OUTRO lado, não a dele mesmo
+    expect(depois.lidoEm).toBeNull()
+  })
+
+  it('avisa o autor em tempo real quando o outro lê', async () => {
+    const ctx = await dupla()
+    const leituras: { paraUserId: string; conversaId: string; lidoEm: Date }[] = []
+    ctx.delivery.registerLeitura((l) => leituras.push(l))
+    const enviada = await enviar(ctx, ctx.a.id, ctx.b.id, 'oi')
+
+    expect(leituras).toHaveLength(0)
+
+    await ctx.service.markRead(ctx.b.id, enviada.conversaId)
+
+    expect(leituras).toHaveLength(1)
+    // o aviso vai para QUEM ESCREVEU, não para quem leu
+    expect(leituras[0].paraUserId).toBe(ctx.a.id)
+    expect(leituras[0].conversaId).toBe(enviada.conversaId)
+  })
+})
+
 describe('DmService — paginação do histórico', () => {
   async function comMensagens(quantas: number) {
     const ctx = await dupla()
