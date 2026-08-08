@@ -1,6 +1,7 @@
 import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js'
 import presetsRaw from '../furniture/avatar/presets.json'
 import { ESCALA_PADRAO } from '../escala-avatar'
+import { GESTO_DANCA, quadroEm, type DirecaoGesto } from '../gestos'
 
 export interface AvatarPresetInfo {
   id: string
@@ -274,6 +275,7 @@ export class AvatarPuppet {
     this.t += dt
     const t = this.t
     let frame = 0
+    let direcaoGesto: DirecaoGesto | null = null
     this.bodyLayer.rotation = 0
     this.bodyLayer.scale.set(1, 1)
     this.bodyLayer.position.set(8 * UNIT, 20 * UNIT)
@@ -282,10 +284,10 @@ export class AvatarPuppet {
       frame = WALK_SEQ[Math.floor(t * 8) % WALK_SEQ.length] ?? 0
       this.bodyLayer.position.y = 20 * UNIT - Math.abs(Math.sin(t * 9)) * 0.4 * UNIT
     } else if (this.pose === 'dance') {
-      const s = Math.sin(t * 6)
-      this.bodyLayer.rotation = s * 0.22
-      this.bodyLayer.position.y = 20 * UNIT - Math.abs(s) * 1.2 * UNIT
-      this.bodyLayer.scale.set(1 - Math.abs(s) * 0.05, 1 + Math.abs(s) * 0.05)
+      const passo = quadroEm(GESTO_DANCA, t * 1000)
+      direcaoGesto = passo.direcao
+      frame = passo.quadro
+      this.bodyLayer.position.y = 20 * UNIT - passo.offsetY * UNIT
     } else if (this.pose === 'giro') {
       this.bodyLayer.rotation = t * 3.2
     } else if (this.pose === 'pulo') {
@@ -307,7 +309,12 @@ export class AvatarPuppet {
       this.bodyLayer.position.y = 20 * UNIT - Math.abs(b) * 0.25 * UNIT
     }
 
-    if (frame !== this.frame) {
+    if (direcaoGesto) {
+      this.frame = frame
+      const tex = resolveTexture(this.preset, direcaoGesto, frame)
+      tex.source.scaleMode = 'nearest'
+      this.body.texture = tex
+    } else if (frame !== this.frame) {
       this.frame = frame
       this.applyTexture()
     }
