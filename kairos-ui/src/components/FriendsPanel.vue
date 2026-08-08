@@ -31,6 +31,11 @@
               {{ busy ? '…' : 'Enviar pedido' }}
             </button>
           </div>
+          <!-- cor de desabilitado não comunica sozinha o que falta: sem esta linha,
+               o botão cinza parece quebrado em vez de esperando entrada -->
+          <p v-if="!alvo && !busy" class="k-hint-text fp-add-hint">
+            Digite um @nome para habilitar o envio.
+          </p>
           <p v-if="addError" class="fp-error">{{ addError }}</p>
           <p v-if="addOk" class="fp-ok"><PixelIcon name="check" size="0.875rem" />{{ addOk }}</p>
         </section>
