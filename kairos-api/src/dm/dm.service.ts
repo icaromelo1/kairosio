@@ -133,11 +133,13 @@ export class DmService {
 
   async markRead(userId: string, conversaId: string) {
     const conversa = await this.minha(conversaId, userId)
-    await this.assertAmizade(userId, otherSide(conversa, userId))
+    const outroId = otherSide(conversa, userId)
+    await this.assertAmizade(userId, outroId)
     const lidoEm = new Date()
     if (conversa.userAId === userId) conversa.readAAt = lidoEm
     else conversa.readBAt = lidoEm
     await this.conversations.save(conversa)
+    this.delivery.leu({ paraUserId: outroId, conversaId: conversa.id, lidoEm })
     return { ok: true, conversaId: conversa.id, lidoEm, naoLidas: 0 }
   }
 
@@ -260,6 +262,9 @@ export class DmService {
         : null,
       naoLidas,
       lidoEm: (row.userAId === userId ? row.readAAt : row.readBAt) ?? null,
+      // quando o OUTRO leu: é o que sustenta o "vista às hh:mm" sob a última
+      // mensagem minha. O dado já era gravado, só nunca saía daqui
+      lidoPeloOutroEm: (row.userAId === userId ? row.readBAt : row.readAAt) ?? null,
       criadoEm: row.createdAt ?? null,
     }
   }
