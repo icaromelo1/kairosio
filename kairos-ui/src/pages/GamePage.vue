@@ -64,56 +64,6 @@
         </span>
       </div>
 
-      <!-- Chat -->
-      <div class="gp-chat">
-        <!-- duas conversas convivendo: por padrão você fala no Mundo mesmo estando
-             dentro de uma sala — falar na sala é uma escolha, não um efeito de onde
-             o corpo está -->
-        <div class="gp-chat-abas">
-          <button
-            class="gp-chat-aba" :class="{ 'gp-chat-aba-on': abaChat === 'mundo' }"
-            @click="abaChat = 'mundo'"
-          >mundo</button>
-          <button
-            v-if="salaDoChat"
-            class="gp-chat-aba" :class="{ 'gp-chat-aba-on': abaChat === 'sala' }"
-            @click="abaChat = 'sala'"
-          >
-            <span class="ellipsis">{{ salaDoChat.nome }}</span>
-            <span v-if="naoLidasSala" class="gp-chat-bolha">{{ naoLidasSala }}</span>
-          </button>
-          <span v-else class="gp-chat-aba gp-chat-aba-vazia">sem sala</span>
-        </div>
-        <div v-if="messages.length" ref="chatLog" class="gp-chat-log" @scroll="onChatScroll">
-          <div v-for="(m, i) in messages" :key="i" class="gp-chat-msg">
-            <span class="gp-chat-name" :style="{ color: chatColor(m) }">{{ m.name }}:</span>
-            <span class="gp-chat-text"> {{ m.text }}</span>
-          </div>
-          <button
-            v-if="chatUnread"
-            class="k-btn k-btn-primary k-btn-sm gp-chat-jump"
-            @click="scrollChatToEnd"
-          >novas mensagens ↓</button>
-        </div>
-        <div class="gp-chat-field">
-          <div class="gp-chat-foot">
-            <span
-              v-if="chatInput.length > CHAT_COUNT_FROM"
-              class="gp-chat-count"
-              :class="{ 'gp-chat-count-max': chatInput.length >= CHAT_MAX_LEN }"
-            >{{ chatInput.length }}/{{ CHAT_MAX_LEN }}</span>
-          </div>
-          <div class="gp-chat-input-wrap">
-            <span class="gp-chat-prefixo ellipsis">{{ prefixoChat }}</span>
-            <input
-              v-model="chatInput" :maxlength="CHAT_MAX_LEN" placeholder="mensagem… (Enter)"
-              class="gp-chat-input"
-              @keydown.enter="sendChat"
-            />
-          </div>
-          <span v-if="chatCooldown" class="gp-chat-cooldown" />
-        </div>
-      </div>
 
       <!-- HUD bottom -->
       <!-- só o aviso contextual: a lista de atalhos saiu daqui porque o painel do
@@ -133,115 +83,168 @@
       <!-- HUD separada por escopo: MUNDO (azul, sudo, escreve pra todos) em cima,
            EU (verde, só o meu avatar) embaixo. Largura travada e slot condicional
            com fantasma, senão a barra muda de tamanho sozinha. -->
-      <div class="gp-hud gp-hud-ctl" :class="{ 'gp-hud-ctl-mini': !hudVisible }">
-        <ClusterCard v-if="hudVisible && ehSudo" titulo="mundo · afeta todos" nota="sudo" escopo="mundo">
-          <div class="gp-hud-linha">
-            <div class="gp-hud-campo">
-              <div class="gp-hud-topo">
-                <span class="k-label gp-hud-cap">☀ hora do mundo</span>
-                <span class="k-num">{{ horaLabel }}</span>
-              </div>
-              <NotchStepper
-                v-model="horaEditavel" :min="0" :max="23.5" :step="0.5" :entalhes="24"
-                rotulo="hora do mundo" :disabled="horaDoMundo === null && false"
-                @commit="definirHora"
+      <!-- Chat e controles dividem a coluna esquerda: o centro da tela é
+           do avatar e do aviso de interação, e nada persistente entra lá -->
+      <div class="gp-canto-esq">
+        <div class="gp-chat">
+          <!-- duas conversas convivendo: por padrão você fala no Mundo mesmo estando
+               dentro de uma sala — falar na sala é uma escolha, não um efeito de onde
+               o corpo está -->
+          <div class="gp-chat-abas">
+            <button
+              class="gp-chat-aba" :class="{ 'gp-chat-aba-on': abaChat === 'mundo' }"
+              @click="abaChat = 'mundo'"
+            >mundo</button>
+            <button
+              v-if="salaDoChat"
+              class="gp-chat-aba" :class="{ 'gp-chat-aba-on': abaChat === 'sala' }"
+              @click="abaChat = 'sala'"
+            >
+              <span class="ellipsis">{{ salaDoChat.nome }}</span>
+              <span v-if="naoLidasSala" class="gp-chat-bolha">{{ naoLidasSala }}</span>
+            </button>
+            <span v-else class="gp-chat-aba gp-chat-aba-vazia">sem sala</span>
+          </div>
+          <div v-if="messages.length" ref="chatLog" class="gp-chat-log" @scroll="onChatScroll">
+            <div v-for="(m, i) in messages" :key="i" class="gp-chat-msg">
+              <span class="gp-chat-name" :style="{ color: chatColor(m) }">{{ m.name }}:</span>
+              <span class="gp-chat-text"> {{ m.text }}</span>
+            </div>
+            <button
+              v-if="chatUnread"
+              class="k-btn k-btn-primary k-btn-sm gp-chat-jump"
+              @click="scrollChatToEnd"
+            >novas mensagens ↓</button>
+          </div>
+          <div class="gp-chat-field">
+            <div class="gp-chat-foot">
+              <span
+                v-if="chatInput.length > CHAT_COUNT_FROM"
+                class="gp-chat-count"
+                :class="{ 'gp-chat-count-max': chatInput.length >= CHAT_MAX_LEN }"
+              >{{ chatInput.length }}/{{ CHAT_MAX_LEN }}</span>
+            </div>
+            <div class="gp-chat-input-wrap">
+              <span class="gp-chat-prefixo ellipsis">{{ prefixoChat }}</span>
+              <input
+                v-model="chatInput" :maxlength="CHAT_MAX_LEN" placeholder="mensagem… (Enter)"
+                class="gp-chat-input"
+                @keydown.enter="sendChat"
               />
             </div>
-            <div class="gp-hud-campo gp-hud-slot">
-              <span class="k-label gp-hud-cap">trava</span>
-              <button
-                class="k-btn k-btn-sm gp-hud-full"
-                :class="{ 'k-active': horaDoMundo !== null }"
-                :title="horaDoMundo !== null ? 'voltar a seguir a hora real' : 'travar a hora atual para todos'"
-                @click="definirHora(horaDoMundo !== null ? null : horaEditavel)"
-              >{{ horaDoMundo !== null ? 'auto' : 'travar' }}</button>
-            </div>
+            <span v-if="chatCooldown" class="gp-chat-cooldown" />
           </div>
-        </ClusterCard>
-
-        <ClusterCard v-if="hudVisible" titulo="eu · só meu avatar" nota="h recolhe" escopo="eu">
-          <div class="gp-hud-linha">
-            <div class="gp-hud-campo">
-              <div class="gp-hud-topo">
-                <span class="k-label gp-hud-cap">⇧ turbo</span>
-                <span class="k-num">{{ turboMult.toFixed(1) }}×</span>
+        </div>
+        <div class="gp-hud gp-hud-ctl" :class="{ 'gp-hud-ctl-mini': !hudVisible }">
+          <ClusterCard v-if="hudVisible && ehSudo" titulo="mundo · afeta todos" nota="sudo" escopo="mundo">
+            <div class="gp-hud-linha">
+              <div class="gp-hud-campo">
+                <div class="gp-hud-topo">
+                  <span class="k-label gp-hud-cap">☀ hora do mundo</span>
+                  <span class="k-num">{{ horaLabel }}</span>
+                </div>
+                <NotchStepper
+                  v-model="horaEditavel" :min="0" :max="23.5" :step="0.5" :entalhes="24"
+                  rotulo="hora do mundo" :disabled="horaDoMundo === null && false"
+                  @commit="definirHora"
+                />
               </div>
-              <NotchStepper
-                v-model="turboMult" :min="TURBO_MIN" :max="TURBO_MAX" :step="0.1" :entalhes="9"
-                rotulo="velocidade turbo"
-              />
+              <div class="gp-hud-campo gp-hud-slot">
+                <span class="k-label gp-hud-cap">trava</span>
+                <button
+                  class="k-btn k-btn-sm gp-hud-full"
+                  :class="{ 'k-active': horaDoMundo !== null }"
+                  :title="horaDoMundo !== null ? 'voltar a seguir a hora real' : 'travar a hora atual para todos'"
+                  @click="definirHora(horaDoMundo !== null ? null : horaEditavel)"
+                >{{ horaDoMundo !== null ? 'auto' : 'travar' }}</button>
+              </div>
             </div>
-            <div class="gp-hud-campo gp-hud-slot">
-              <span class="k-label gp-hud-cap">sala</span>
-              <button
-                v-if="salaFechavelId"
-                class="k-btn k-btn-sm gp-hud-full"
-                :class="{ 'k-active': salaTrancada }"
-                :title="`${salaTrancada ? 'destrancar' : 'trancar'} ${nomeDaSala || 'a sala'} (L)`"
-                @click="toggleSalaTrancada"
-              ><PixelIcon :name="salaTrancada ? 'lock' : 'unlock'" size="0.6875rem" />{{ salaTrancada ? 'destrancar' : 'trancar' }}</button>
-              <GhostSlot v-else label="sem sala" />
-            </div>
-          </div>
+          </ClusterCard>
 
-          <template #rodape>
-            <button class="gp-hud-rodape" title="esconder as dicas (H)" @click="hudVisible = false">
-              <PixelIcon name="chevron-up" size="0.75rem" />dicas
+          <ClusterCard v-if="hudVisible" titulo="eu · só meu avatar" nota="h recolhe" escopo="eu">
+            <div class="gp-hud-linha">
+              <div class="gp-hud-campo">
+                <div class="gp-hud-topo">
+                  <span class="k-label gp-hud-cap">⇧ turbo</span>
+                  <span class="k-num">{{ turboMult.toFixed(1) }}×</span>
+                </div>
+                <NotchStepper
+                  v-model="turboMult" :min="TURBO_MIN" :max="TURBO_MAX" :step="0.1" :entalhes="9"
+                  rotulo="velocidade turbo"
+                />
+              </div>
+              <div class="gp-hud-campo gp-hud-slot">
+                <span class="k-label gp-hud-cap">sala</span>
+                <button
+                  v-if="salaFechavelId"
+                  class="k-btn k-btn-sm gp-hud-full"
+                  :class="{ 'k-active': salaTrancada }"
+                  :title="`${salaTrancada ? 'destrancar' : 'trancar'} ${nomeDaSala || 'a sala'} (L)`"
+                  @click="toggleSalaTrancada"
+                ><PixelIcon :name="salaTrancada ? 'lock' : 'unlock'" size="0.6875rem" />{{ salaTrancada ? 'destrancar' : 'trancar' }}</button>
+                <GhostSlot v-else label="sem sala" />
+              </div>
+            </div>
+
+            <template #rodape>
+              <button class="gp-hud-rodape" title="esconder as dicas (H)" @click="hudVisible = false">
+                <PixelIcon name="chevron-up" size="0.75rem" />dicas
+              </button>
+              <button
+                class="gp-hud-rodape" :class="{ 'gp-hud-rodape-on': minimapaVisivel }"
+                :title="minimapaVisivel ? 'esconder o minimapa (M)' : 'mostrar o minimapa (M)'"
+                @click="minimapaVisivel = !minimapaVisivel"
+              ><PixelIcon name="map-pin" size="0.75rem" />mini</button>
+              <button
+                v-if="minimapaVisivel"
+                class="gp-hud-rodape gp-hud-icone" :class="{ 'gp-hud-rodape-on': minimapaGrande }"
+                :title="minimapaGrande ? 'diminuir o minimapa' : 'aumentar o minimapa'"
+                @click="minimapaGrande = !minimapaGrande"
+              ><PixelIcon :name="minimapaGrande ? 'zoom-out' : 'zoom-in'" size="0.75rem" /></button>
+              <button class="gp-hud-rodape" title="abrir o mapa grande" @click="mapaExpandido = true">
+                <PixelIcon name="expand" size="0.75rem" />mapa
+              </button>
+              <button class="gp-hud-rodape gp-hud-icone" title="atalhos do teclado" @click="atalhosAbertos = !atalhosAbertos">?</button>
+              <button
+                v-if="ehSudo"
+                class="gp-hud-rodape gp-hud-icone" :class="{ 'gp-hud-rodape-on': sudoPanelOpen }"
+                title="poderes de sudo" @click="sudoPanelOpen = !sudoPanelOpen"
+              ><PixelIcon name="crown" size="0.75rem" /></button>
+            </template>
+          </ClusterCard>
+
+          <!-- recolhido: só as AÇÕES, em ícone. os valores de hora e turbo eram
+               leitura pura e viviam aqui sem poder sumir — a hora já está no
+               cartão do canto esquerdo e o turbo só importa com o controle à mão.
+               a tira fica porque é o único caminho de volta pra quem usa o mouse. -->
+          <div v-else class="gp-hud-mini">
+            <button class="gp-hud-mini-btn" title="mostrar as dicas (H)" @click="hudVisible = true">
+              <PixelIcon name="chevron-down" size="0.875rem" />
             </button>
             <button
-              class="gp-hud-rodape" :class="{ 'gp-hud-rodape-on': minimapaVisivel }"
+              class="gp-hud-mini-btn" :class="{ 'gp-hud-rodape-on': minimapaVisivel }"
               :title="minimapaVisivel ? 'esconder o minimapa (M)' : 'mostrar o minimapa (M)'"
               @click="minimapaVisivel = !minimapaVisivel"
-            ><PixelIcon name="map-pin" size="0.75rem" />mini</button>
-            <button
-              v-if="minimapaVisivel"
-              class="gp-hud-rodape gp-hud-icone" :class="{ 'gp-hud-rodape-on': minimapaGrande }"
-              :title="minimapaGrande ? 'diminuir o minimapa' : 'aumentar o minimapa'"
-              @click="minimapaGrande = !minimapaGrande"
-            ><PixelIcon :name="minimapaGrande ? 'zoom-out' : 'zoom-in'" size="0.75rem" /></button>
-            <button class="gp-hud-rodape" title="abrir o mapa grande" @click="mapaExpandido = true">
-              <PixelIcon name="expand" size="0.75rem" />mapa
+            ><PixelIcon name="map-pin" size="0.875rem" /></button>
+            <button class="gp-hud-mini-btn" title="abrir o mapa grande" @click="mapaExpandido = true">
+              <PixelIcon name="expand" size="0.875rem" />
             </button>
-            <button class="gp-hud-rodape gp-hud-icone" title="atalhos do teclado" @click="atalhosAbertos = !atalhosAbertos">?</button>
+            <button
+              v-if="salaFechavelId"
+              class="gp-hud-mini-btn" :class="{ 'gp-hud-rodape-on': salaTrancada }"
+              :title="`${salaTrancada ? 'destrancar' : 'trancar'} ${nomeDaSala || 'a sala'} (L)`"
+              @click="toggleSalaTrancada"
+            ><PixelIcon :name="salaTrancada ? 'lock' : 'unlock'" size="0.875rem" /></button>
+            <button class="gp-hud-mini-btn" title="atalhos do teclado" @click="atalhosAbertos = !atalhosAbertos">?</button>
             <button
               v-if="ehSudo"
-              class="gp-hud-rodape gp-hud-icone" :class="{ 'gp-hud-rodape-on': sudoPanelOpen }"
+              class="gp-hud-mini-btn" :class="{ 'gp-hud-rodape-on': sudoPanelOpen }"
               title="poderes de sudo" @click="sudoPanelOpen = !sudoPanelOpen"
-            ><PixelIcon name="crown" size="0.75rem" /></button>
-          </template>
-        </ClusterCard>
+            ><PixelIcon name="crown" size="0.875rem" /></button>
+          </div>
 
-        <!-- recolhido: só as AÇÕES, em ícone. os valores de hora e turbo eram
-             leitura pura e viviam aqui sem poder sumir — a hora já está no
-             cartão do canto esquerdo e o turbo só importa com o controle à mão.
-             a tira fica porque é o único caminho de volta pra quem usa o mouse. -->
-        <div v-else class="gp-hud-mini">
-          <button class="gp-hud-mini-btn" title="mostrar as dicas (H)" @click="hudVisible = true">
-            <PixelIcon name="chevron-down" size="0.875rem" />
-          </button>
-          <button
-            class="gp-hud-mini-btn" :class="{ 'gp-hud-rodape-on': minimapaVisivel }"
-            :title="minimapaVisivel ? 'esconder o minimapa (M)' : 'mostrar o minimapa (M)'"
-            @click="minimapaVisivel = !minimapaVisivel"
-          ><PixelIcon name="map-pin" size="0.875rem" /></button>
-          <button class="gp-hud-mini-btn" title="abrir o mapa grande" @click="mapaExpandido = true">
-            <PixelIcon name="expand" size="0.875rem" />
-          </button>
-          <button
-            v-if="salaFechavelId"
-            class="gp-hud-mini-btn" :class="{ 'gp-hud-rodape-on': salaTrancada }"
-            :title="`${salaTrancada ? 'destrancar' : 'trancar'} ${nomeDaSala || 'a sala'} (L)`"
-            @click="toggleSalaTrancada"
-          ><PixelIcon :name="salaTrancada ? 'lock' : 'unlock'" size="0.875rem" /></button>
-          <button class="gp-hud-mini-btn" title="atalhos do teclado" @click="atalhosAbertos = !atalhosAbertos">?</button>
-          <button
-            v-if="ehSudo"
-            class="gp-hud-mini-btn" :class="{ 'gp-hud-rodape-on': sudoPanelOpen }"
-            title="poderes de sudo" @click="sudoPanelOpen = !sudoPanelOpen"
-          ><PixelIcon name="crown" size="0.875rem" /></button>
+          <AtivosBar v-if="ehSudo" :itens="poderesAtivos" @desligar="desligarPoder" />
         </div>
-
-        <AtivosBar v-if="ehSudo" :itens="poderesAtivos" @desligar="desligarPoder" />
       </div>
 
       <MapaExpandido
@@ -1859,11 +1862,23 @@ onUnmounted(() => {
   }
 }
 
-.gp-chat {
+.gp-canto-esq {
   position: absolute;
-  /* acima da barra de controles, que agora divide a coluna esquerda */
-  bottom: 4.25rem;
+  bottom: 1rem;
   left: 1rem;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  max-width: calc(100% - 2rem);
+  pointer-events: none;
+}
+
+.gp-canto-esq > * { pointer-events: auto; }
+
+.gp-chat {
+  position: static;
   width: min(17.5rem, calc(100vw - 2rem));
   z-index: 10;
 }
@@ -2018,11 +2033,9 @@ onUnmounted(() => {
 }
 
 .gp-hud-ctl {
-  position: absolute;
-  left: 1rem;
-  bottom: 1rem;
+  position: static;
   width: 25.25rem;
-  max-width: calc(100vw - 2rem);
+  max-width: 100%;
   display: flex;
   flex-direction: column;
   align-items: stretch;
