@@ -248,6 +248,7 @@
         :sala-atual-id="salaAtualId"
         @fechar="mapaExpandido = false"
         @ir-para-sala="(id: string) => { mapaExpandido = false; irParaSala(id) }"
+        @ir-para-ponto="(x: number, y: number) => { mapaExpandido = false; irParaPonto(x, y) }"
       />
 
       <div v-if="atalhosAbertos" class="k-card gp-atalhos">
