@@ -5,39 +5,99 @@
       <h1>Criar conta</h1>
       <p class="reg-sub">Crie sua conta pra entrar no Kairos e ter seu mundo.</p>
 
-      <label class="reg-label">E-mail</label>
-      <input v-model="email" type="email" class="k-input" placeholder="voce@email.com" @keyup.enter="submit" />
-
-      <label class="reg-label">Nome de usuário</label>
-      <div class="reg-user-field">
-        <span class="reg-at">@</span>
+      <div class="field-group">
+        <label class="k-label" for="reg-email">E-mail</label>
         <input
-          :value="username"
-          type="text"
-          class="k-input reg-user-input"
-          placeholder="seunome"
-          autocomplete="off"
-          autocapitalize="off"
-          spellcheck="false"
-          maxlength="20"
-          @input="onUsernameInput"
+          id="reg-email"
+          ref="emailInputRef"
+          v-model="email"
+          type="email"
+          class="k-input"
+          :class="{ 'k-input-error': emailError }"
+          placeholder="voce@email.com"
+          autocomplete="email"
+          :aria-invalid="!!emailError"
+          :aria-describedby="emailError ? 'reg-email-error' : undefined"
+          @blur="emailTouched = true"
           @keyup.enter="submit"
         />
+        <p v-if="emailError" id="reg-email-error" class="k-field-error">{{ emailError }}</p>
       </div>
-      <p class="k-hint-text reg-hint">
-        3 a 20 caracteres — letras, números, ponto e sublinhado. Sem começar ou terminar com ponto,
-        e sem pontos seguidos. É por ele que seus amigos te encontram, e ele só pode ser trocado a
-        cada 30 dias.
-      </p>
-      <p v-if="usernameMessage" class="reg-status" :class="usernameOk ? 'is-ok' : 'is-bad'">
-        {{ usernameMessage }}
-      </p>
 
-      <label class="reg-label">Senha</label>
-      <input v-model="password" type="password" class="k-input" placeholder="mínimo 6 caracteres" @keyup.enter="submit" />
+      <div class="field-group">
+        <div class="reg-label-row">
+          <label class="k-label" for="reg-username">Nome de usuário</label>
+          <span class="reg-counter" :class="{ 'is-near-limit': usernameCount >= 16, 'is-at-limit': usernameCount >= 20 }">
+            {{ usernameCount }}/20
+          </span>
+        </div>
+        <div class="reg-user-field">
+          <span class="reg-at">@</span>
+          <input
+            id="reg-username"
+            ref="usernameInputRef"
+            :value="username"
+            type="text"
+            class="k-input reg-user-input"
+            :class="{ 'k-input-error': usernameStatusKind === 'error' }"
+            placeholder="seunome"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            maxlength="20"
+            :aria-invalid="usernameStatusKind === 'error'"
+            :aria-describedby="usernameMessage ? 'reg-username-status' : undefined"
+            @input="onUsernameInput"
+            @keyup.enter="submit"
+          />
+        </div>
+        <p class="k-hint-text reg-hint">
+          3 a 20 caracteres — letras, números, ponto e sublinhado. Sem começar ou terminar com ponto,
+          e sem pontos seguidos. É por ele que seus amigos te encontram, e ele só pode ser trocado a
+          cada 30 dias.
+        </p>
+        <p v-if="usernameMessage" id="reg-username-status" class="reg-status" :class="'is-' + usernameStatusKind">
+          {{ usernameMessage }}
+        </p>
+      </div>
 
-      <label class="reg-label">Confirmar senha</label>
-      <input v-model="confirm" type="password" class="k-input" placeholder="repita a senha" @keyup.enter="submit" />
+      <div class="field-group">
+        <label class="k-label" for="reg-password">Senha</label>
+        <input
+          id="reg-password"
+          ref="passwordInputRef"
+          v-model="password"
+          type="password"
+          class="k-input"
+          :class="{ 'k-input-error': passwordError }"
+          placeholder="mínimo 6 caracteres"
+          autocomplete="new-password"
+          :aria-invalid="!!passwordError"
+          :aria-describedby="passwordError ? 'reg-password-error' : undefined"
+          @blur="passwordTouched = true"
+          @keyup.enter="submit"
+        />
+        <p v-if="passwordError" id="reg-password-error" class="k-field-error">{{ passwordError }}</p>
+      </div>
+
+      <div class="field-group">
+        <label class="k-label" for="reg-confirm">Confirmar senha</label>
+        <input
+          id="reg-confirm"
+          ref="confirmInputRef"
+          v-model="confirm"
+          type="password"
+          class="k-input"
+          :class="{ 'k-input-error': confirmError }"
+          placeholder="repita a senha"
+          autocomplete="new-password"
+          :aria-invalid="!!confirmError"
+          :aria-describedby="confirmError ? 'reg-confirm-error' : undefined"
+          @blur="confirmTouched = true"
+          @keyup.enter="submit"
+        />
+        <p v-if="confirmError" id="reg-confirm-error" class="k-field-error">{{ confirmError }}</p>
+      </div>
 
       <button class="k-btn k-btn-primary reg-submit" :disabled="loading" @click="submit">
         {{ loading ? 'Criando…' : 'Cadastrar →' }}
@@ -47,7 +107,7 @@
 
       <p class="reg-foot">
         Já tem conta?
-        <a href="#" @click.prevent="router.push('/login')">Entrar →</a>
+        <a class="reg-foot-link" href="#" @click.prevent="router.push('/login')">Entrar →</a>
       </p>
     </div>
   </div>
@@ -71,7 +131,39 @@ const confirm = ref('')
 const error = ref('')
 const loading = ref(false)
 
+const emailInputRef = ref<HTMLInputElement>()
+const usernameInputRef = ref<HTMLInputElement>()
+const passwordInputRef = ref<HTMLInputElement>()
+const confirmInputRef = ref<HTMLInputElement>()
+
+const emailTouched = ref(false)
+const passwordTouched = ref(false)
+const confirmTouched = ref(false)
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+const usernameCount = computed(() => username.value.length)
+
+// Erro por campo (borda + mensagem) — só aparece após sair do campo ou tentar
+// enviar, nunca durante a digitação em andamento.
+const emailError = computed(() => {
+  if (!emailTouched.value) return ''
+  if (!email.value) return 'Informe um email.'
+  if (!EMAIL_RE.test(email.value)) return 'Informe um email válido.'
+  return ''
+})
+const passwordError = computed(() => {
+  if (!passwordTouched.value) return ''
+  if (!password.value) return 'Informe uma senha.'
+  if (password.value.length < 6) return 'A senha precisa de pelo menos 6 caracteres.'
+  return ''
+})
+const confirmError = computed(() => {
+  if (!confirmTouched.value) return ''
+  if (!confirm.value) return 'Confirme a senha.'
+  if (confirm.value !== password.value) return 'As senhas não conferem.'
+  return ''
+})
 
 const USERNAME_RE = /^[A-Za-z0-9._]{3,20}$/
 const RESERVED = ['admin', 'kairos', 'suporte', 'sistema', 'moderador', 'eu']
@@ -81,8 +173,18 @@ const CHECK_DELAY_MS = 450
 
 type UsernameState = 'idle' | 'checking' | 'livre' | 'em-uso' | 'formato' | 'reservado' | 'limitado' | 'offline'
 
+const USERNAME_ERROR_STATES: UsernameState[] = ['em-uso', 'formato', 'reservado', 'limitado']
+
 const usernameState = ref<UsernameState>('idle')
-const usernameOk = computed(() => usernameState.value === 'livre')
+
+// Estado do status abaixo do campo: 'ok' (verde), 'error' (vermelho — dispara
+// também a borda do input) ou 'neutral' (verificando/offline — informativo,
+// não é um erro).
+const usernameStatusKind = computed<'ok' | 'error' | 'neutral'>(() => {
+  if (usernameState.value === 'livre') return 'ok'
+  if (USERNAME_ERROR_STATES.includes(usernameState.value)) return 'error'
+  return 'neutral'
+})
 const usernameMessage = computed(() => {
   switch (usernameState.value) {
     case 'checking':
@@ -150,25 +252,30 @@ onBeforeUnmount(() => clearTimeout(checkTimer))
 
 async function submit() {
   error.value = ''
-  if (!EMAIL_RE.test(email.value)) {
-    error.value = 'Informe um email válido.'
+  emailTouched.value = true
+  passwordTouched.value = true
+  confirmTouched.value = true
+
+  if (emailError.value) {
+    emailInputRef.value?.focus()
     return
   }
   const problem = localProblem(username.value)
   if (problem) {
-    error.value = problem === 'reservado' ? 'Esse nome de usuário é reservado pelo Kairos.' : RULES_MESSAGE
+    usernameState.value = problem
+    usernameInputRef.value?.focus()
     return
   }
   if (usernameState.value === 'em-uso') {
-    error.value = 'Esse nome de usuário já está em uso. Escolha outro.'
+    usernameInputRef.value?.focus()
     return
   }
-  if (password.value.length < 6) {
-    error.value = 'A senha precisa de pelo menos 6 caracteres.'
+  if (passwordError.value) {
+    passwordInputRef.value?.focus()
     return
   }
-  if (password.value !== confirm.value) {
-    error.value = 'As senhas não conferem.'
+  if (confirmError.value) {
+    confirmInputRef.value?.focus()
     return
   }
   loading.value = true
@@ -222,13 +329,52 @@ const REGISTER_ERRORS: Record<string, string> = {
   font-size: 0.875rem;
   margin: 0 0 0.75rem;
 }
-.reg-label {
-  font-size: 0.6875rem;
-  letter-spacing: 0.14em;
-  color: var(--text-3);
-  text-transform: uppercase;
-  margin-top: 0.5rem;
+
+.field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  margin-top: 0.375rem;
 }
+
+/* Erro de campo: dois sinais sempre juntos — borda #A83232 no input (via
+   k-input-error) e mensagem Nunito 12px na mesma cor logo abaixo. */
+.k-input-error {
+  border-color: var(--err);
+}
+.k-input-error:focus {
+  border-color: var(--err);
+}
+.k-field-error {
+  margin: 0;
+  font-family: var(--f-sans);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--err);
+}
+
+.reg-label-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+/* Contador de caracteres do @nome — visível antes de estourar (fica âmbar
+   perto do limite e vermelho ao chegar nos 20). */
+.reg-counter {
+  font-family: var(--f-sans);
+  font-size: 0.75rem;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+.reg-counter.is-near-limit {
+  color: var(--warn);
+}
+.reg-counter.is-at-limit {
+  color: var(--err);
+}
+
 .reg-user-field {
   position: relative;
   display: flex;
@@ -256,8 +402,11 @@ const REGISTER_ERRORS: Record<string, string> = {
 .reg-status.is-ok {
   color: var(--ok);
 }
-.reg-status.is-bad {
-  color: var(--warn);
+.reg-status.is-error {
+  color: var(--err);
+}
+.reg-status.is-neutral {
+  color: var(--text-3);
 }
 .reg-submit {
   margin-top: 1.125rem;
@@ -274,9 +423,18 @@ const REGISTER_ERRORS: Record<string, string> = {
   color: var(--text-3);
   margin: 0.875rem 0 0;
 }
-.reg-foot a {
+/* Alvo de toque de 32px (2rem) — padding vertical fecha a altura mínima. */
+.reg-foot-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.25rem 0;
   color: var(--accent-texto);
   font-weight: 600;
   text-decoration: none;
+}
+.reg-foot-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.1875rem var(--accent);
 }
 </style>

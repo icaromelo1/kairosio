@@ -72,26 +72,40 @@
 
         <!-- Email -->
         <div class="field-group">
-          <label class="k-label">E-mail</label>
+          <label class="k-label" for="login-email">E-mail</label>
           <input
+            id="login-email"
+            ref="emailInputRef"
             v-model="email"
             class="k-input"
+            :class="{ 'k-input-error': emailError }"
             type="email"
             placeholder="voce@kairos.io"
             autocomplete="email"
+            :aria-invalid="!!emailError"
+            :aria-describedby="emailError ? 'login-email-error' : undefined"
+            @blur="emailTouched = true"
           />
+          <p v-if="emailError" id="login-email-error" class="k-field-error">{{ emailError }}</p>
         </div>
 
         <!-- Password -->
         <div class="field-group">
-          <label class="k-label">Senha</label>
+          <label class="k-label" for="login-password">Senha</label>
           <input
+            id="login-password"
+            ref="passwordInputRef"
             v-model="password"
             class="k-input"
+            :class="{ 'k-input-error': passwordError }"
             type="password"
             placeholder="••••••••"
             autocomplete="current-password"
+            :aria-invalid="!!passwordError"
+            :aria-describedby="passwordError ? 'login-password-error' : undefined"
+            @blur="passwordTouched = true"
           />
+          <p v-if="passwordError" id="login-password-error" class="k-field-error">{{ passwordError }}</p>
         </div>
 
         <!-- Remember + forgot -->
@@ -106,9 +120,9 @@
         <!-- Submit -->
         <button class="k-btn k-btn-primary submit-btn" :disabled="loading" @click="handleLogin">{{ loading ? 'Entrando…' : 'Entrar →' }}</button>
         <ErroBloco v-if="error" class="login-erro" :mensagem="error" />
-        <p style="font-size:0.75rem;margin:0.625rem 0 0;text-align:center;color:var(--text-3)">
+        <p class="login-footer-text">
           Não tem conta?
-          <a href="#" style="color:var(--accent-texto);font-weight:600;text-decoration:none" @click.prevent="goRegister">Criar conta →</a>
+          <a class="create-account-link" href="#" @click.prevent="goRegister">Criar conta →</a>
         </p>
 
         <!-- Divider -->
@@ -118,7 +132,7 @@
 
         <!-- Social login grid -->
         <div class="social-grid">
-          <button class="k-btn k-btn-ghost social-btn" @click="socialSoon">
+          <button class="k-btn k-btn-ghost social-btn" type="button" disabled aria-disabled="true" title="Login com Google em breve">
             <svg width="16" height="16" viewBox="0 0 24 24">
               <path fill="#4285f4" d="M22.5 12.2c0-.7-.1-1.4-.2-2H12v3.8h5.9c-.3 1.4-1 2.6-2.2 3.4v2.8h3.6c2.1-1.9 3.2-4.7 3.2-8z" />
               <path fill="#34a853" d="M12 23c2.9 0 5.4-1 7.2-2.8l-3.6-2.8c-1 .7-2.3 1.1-3.6 1.1-2.8 0-5.1-1.9-6-4.4H2.3v2.8C4.1 20.5 7.8 23 12 23z" />
@@ -127,13 +141,14 @@
             </svg>
             Google
           </button>
-          <button class="k-btn k-btn-ghost social-btn" @click="socialSoon">
+          <button class="k-btn k-btn-ghost social-btn" type="button" disabled aria-disabled="true" title="Login com GitHub em breve">
             <svg width="16" height="16" viewBox="0 0 24 24">
               <path fill="currentColor" d="M12 .5C5.7.5.5 5.7.5 12c0 5 3.3 9.3 7.8 10.8.6.1.8-.3.8-.6v-2c-3.2.7-3.9-1.5-3.9-1.5-.5-1.3-1.3-1.7-1.3-1.7-1.1-.7.1-.7.1-.7 1.2.1 1.8 1.2 1.8 1.2 1 1.8 2.7 1.3 3.4 1 .1-.8.4-1.3.8-1.6-2.6-.3-5.3-1.3-5.3-5.7 0-1.3.5-2.3 1.2-3.1-.1-.3-.5-1.5.1-3.1 0 0 1-.3 3.3 1.2.9-.3 2-.4 3-.4s2 .1 3 .4c2.3-1.5 3.3-1.2 3.3-1.2.7 1.6.2 2.8.1 3.1.7.8 1.2 1.8 1.2 3.1 0 4.4-2.7 5.4-5.3 5.7.4.4.8 1.1.8 2.2v3.3c0 .3.2.7.8.6 4.5-1.5 7.8-5.8 7.8-10.8C23.5 5.7 18.3.5 12 .5z" />
             </svg>
             GitHub
           </button>
         </div>
+        <p class="social-hint k-hint-text">login social em breve — use email e senha</p>
 
       </div>
 
@@ -153,7 +168,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { computed, ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import MeanderBorder from '@/components/pixel/MeanderBorder.vue'
 import PixelColumn from '@/components/pixel/PixelColumn.vue'
@@ -172,17 +187,38 @@ const keepConnected = ref(false)
 const error = ref('')
 const loading = ref(false)
 
+const emailInputRef = ref<HTMLInputElement>()
+const passwordInputRef = ref<HTMLInputElement>()
+const emailTouched = ref(false)
+const passwordTouched = ref(false)
+
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
+// Erro por campo (borda + mensagem) — só aparece depois que a pessoa saiu do
+// campo ou tentou enviar; nunca antes disso, senão pune digitação em andamento.
+const emailError = computed(() => {
+  if (!emailTouched.value) return ''
+  if (!email.value) return 'Informe o email.'
+  if (!EMAIL_RE.test(email.value)) return 'Informe um email válido.'
+  return ''
+})
+const passwordError = computed(() => {
+  if (!passwordTouched.value) return ''
+  if (!password.value) return 'Informe a senha.'
+  return ''
+})
 
 // Entrar: SÓ login. Conta inexistente → manda criar conta (não cria automático).
 async function handleLogin() {
   error.value = ''
-  if (!EMAIL_RE.test(email.value)) {
-    error.value = 'Informe um email válido.'
+  emailTouched.value = true
+  passwordTouched.value = true
+  if (emailError.value) {
+    emailInputRef.value?.focus()
     return
   }
-  if (!password.value) {
-    error.value = 'Informe a senha.'
+  if (passwordError.value) {
+    passwordInputRef.value?.focus()
     return
   }
   loading.value = true
@@ -202,10 +238,6 @@ async function handleLogin() {
 
 function goRegister() {
   router.push('/register')
-}
-
-function socialSoon() {
-  error.value = 'Login com Google/GitHub em breve. Use email e senha.'
 }
 
 // callback de OAuth: /login?token=... → guarda a sessão e entra.
@@ -356,6 +388,24 @@ onMounted(async () => {
   color: var(--text-4);
 }
 
+/* Erro de campo: dois sinais sempre juntos — borda #A83232 no input (via
+   k-input-error) e mensagem Nunito 12px na mesma cor logo abaixo. */
+.k-input-error {
+  border-color: var(--err);
+}
+
+.k-input-error:focus {
+  border-color: var(--err);
+}
+
+.k-field-error {
+  margin: 0;
+  font-family: var(--f-sans);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--err);
+}
+
 .remember-row {
   display: flex;
   align-items: center;
@@ -397,7 +447,18 @@ onMounted(async () => {
   background: var(--primary-hi);
 }
 
+.k-checkbox:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.1875rem var(--accent);
+}
+
+/* Alvo de toque de 32px (2rem) — padding vertical fecha a altura mínima
+   sem alargar o texto do link. */
 .forgot-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.25rem 0;
   font-family: var(--f-sans);
   font-size: 0.8125rem;
   color: var(--primary-hi);
@@ -409,6 +470,11 @@ onMounted(async () => {
   text-decoration: underline;
 }
 
+.forgot-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.1875rem var(--accent);
+}
+
 .submit-btn {
   width: 100%;
   padding: 0.875rem 1.125rem;
@@ -416,6 +482,28 @@ onMounted(async () => {
 
 .login-erro {
   margin-top: 0.5rem;
+}
+
+.login-footer-text {
+  font-size: 0.75rem;
+  margin: 0.625rem 0 0;
+  text-align: center;
+  color: var(--text-3);
+}
+
+.create-account-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2rem;
+  padding: 0.25rem 0;
+  color: var(--accent-texto);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.create-account-link:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 0.1875rem var(--accent);
 }
 
 .k-divider {
@@ -445,6 +533,14 @@ onMounted(async () => {
   font-size: 0.6875rem;
   padding: 0.625rem 0.75rem;
   gap: 0.375rem;
+}
+
+/* Login social ainda não existe no back (sem OAuth) — botão fica desabilitado
+   de verdade (cor #A99C84, sem sombra, via .k-btn:disabled do tokens.css),
+   nunca clicável fingindo funcionar. */
+.social-hint {
+  margin: -0.25rem 0 0;
+  text-align: center;
 }
 
 .login-footer {
