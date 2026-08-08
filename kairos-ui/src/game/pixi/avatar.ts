@@ -2,6 +2,7 @@ import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js'
 import presetsRaw from '../furniture/avatar/presets.json'
 import { ESCALA_PADRAO } from '../escala-avatar'
 import { GESTO_DANCA, quadroEm, type DirecaoGesto } from '../gestos'
+import { precisaRecolorir, temMascara, texturaRecolorida, type CoresAlvo } from '../recolorir'
 
 export interface AvatarPresetInfo {
   id: string
@@ -38,10 +39,38 @@ export function avatarSpriteUrl(preset: string, direcao: Direcao, quadro: 0 | 1 
   return set?.[`${direcao}-${quadro}`] ?? ''
 }
 
-function resolveTexture(preset: string, direcao: Direcao, quadro: number): Texture {
+// texturas recoloridas ficam aqui assim que saem do forno; o desenho é
+// síncrono, então a primeira leitura devolve o preset original e o quadro
+// seguinte já pega a versão pintada
+const RECOLORIDAS = new Map<string, Texture>()
+const EM_FORNO = new Set<string>()
+
+function chaveRecolor(preset: string, quadro: string, c: CoresAlvo): string {
+  return `${preset}/${quadro}|${c.pele ?? ''}|${c.cabelo ?? ''}|${c.roupa ?? ''}`
+}
+
+function resolveTexture(
+  preset: string,
+  direcao: Direcao,
+  quadro: number,
+  cores?: CoresAlvo,
+): Texture {
   const set = AVATAR_SPRITES[preset] || AVATAR_SPRITES[DEFAULT_PRESET]
-  const url = set?.[`${direcao}-${quadro}`]
-  return url ? Texture.from(url) : Texture.EMPTY
+  const nome = `${direcao}-${quadro}`
+  const url = set?.[nome]
+  const base = url ? Texture.from(url) : Texture.EMPTY
+  if (!cores || !precisaRecolorir(cores) || !temMascara(preset, nome)) return base
+
+  const chave = chaveRecolor(preset, nome, cores)
+  const pronta = RECOLORIDAS.get(chave)
+  if (pronta) return pronta
+  if (!EM_FORNO.has(chave)) {
+    EM_FORNO.add(chave)
+    void texturaRecolorida(base, preset, nome, cores)
+      .then((t) => { if (t) RECOLORIDAS.set(chave, t) })
+      .finally(() => EM_FORNO.delete(chave))
+  }
+  return base
 }
 
 export interface AvatarLook {
@@ -80,6 +109,21 @@ export function sanitizeLook(raw: unknown): AvatarLook {
   }
 }
 
+// sanitizeLook sempre preenche uma cor, então cor igual ao padrão significa
+// "não escolheu" — recolorir nesse caso repintaria todo mundo sem ninguém ter
+// pedido. Só entra na rampa o que difere do padrão
+const COR_PADRAO = { hairColor: '#3d2817', skin: '#e8b894', topColor: '#2c7441' }
+
+function coresEscolhidas(look: AvatarLook): CoresAlvo {
+  const usar = (v: string, padrao: string) =>
+    v && v.toLowerCase() !== padrao ? v : null
+  return {
+    cabelo: usar(look.hairColor, COR_PADRAO.hairColor),
+    pele: usar(look.skin, COR_PADRAO.skin),
+    roupa: usar(look.topColor, COR_PADRAO.topColor),
+  }
+}
+
 const DIR_FOR_FACING: Record<Facing, Direcao> = {
   down: 'baixo',
   up: 'cima',
@@ -94,6 +138,7 @@ export class AvatarPuppet {
   private bodyLayer: Container
   private body: Sprite
   private preset: string
+  private cores: CoresAlvo
 
   private t = 0
   private pose: Pose = 'idle'
@@ -108,6 +153,7 @@ export class AvatarPuppet {
   constructor(look: AvatarLook) {
     this.root = new Container()
     this.preset = PRESET_IDS.has(look.hairStyle) ? look.hairStyle : DEFAULT_PRESET
+    this.cores = coresEscolhidas(look)
 
     const shadow = new Graphics()
     shadow.ellipse(8 * UNIT, 20 * UNIT, 4 * UNIT, 0.8 * UNIT).fill({ color: 0x000000, alpha: 0.4 })
@@ -135,7 +181,7 @@ export class AvatarPuppet {
 
     this.bodyLayer = new Container()
     this.bodyLayer.position.set(8 * UNIT, 20 * UNIT)
-    this.body = new Sprite(resolveTexture(this.preset, 'baixo', 0))
+    this.body = new Sprite(resolveTexture(this.preset, 'baixo', 0, this.cores))
     this.body.texture.source.scaleMode = 'nearest'
     this.body.anchor.set(0.5, 1)
     this.body.width = BODY_SIZE
@@ -209,7 +255,7 @@ export class AvatarPuppet {
 
   private applyTexture() {
     const dir = DIR_FOR_FACING[this.facing]
-    const tex = resolveTexture(this.preset, dir, this.frame)
+    const tex = resolveTexture(this.preset, dir, this.frame, this.cores)
     tex.source.scaleMode = 'nearest'
     this.body.texture = tex
   }
@@ -311,7 +357,7 @@ export class AvatarPuppet {
 
     if (direcaoGesto) {
       this.frame = frame
-      const tex = resolveTexture(this.preset, direcaoGesto, frame)
+      const tex = resolveTexture(this.preset, direcaoGesto, frame, this.cores)
       tex.source.scaleMode = 'nearest'
       this.body.texture = tex
     } else if (frame !== this.frame) {
