@@ -1,5 +1,5 @@
 <template>
-  <PanelShell title="amigos" icon="users" size="lg" @close="emit('close')">
+  <PanelShell title="amigos" icon="users" size="lg" dock @close="emit('close')">
     <div class="fp-body">
       <section v-if="auth.isGuest" class="fp-section">
         <h3 class="fp-title"><PixelIcon name="lock" size="0.9375rem" />Amigos precisa de conta</h3>

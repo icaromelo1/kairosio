@@ -1,6 +1,6 @@
 <template>
-  <div class="ps-overlay" @click="fechar" @keydown.esc="fechar">
-    <div class="k-card ps-card" :class="`ps-card-${size}`" @click.stop>
+  <div class="ps-overlay" :class="{ 'ps-overlay-dock': dock }" @click="fechar" @keydown.esc="fechar">
+    <div class="k-card ps-card" :class="[`ps-card-${size}`, { 'ps-card-dock': dock }]" @click.stop>
       <header class="ps-head">
         <span class="k-chip"><PixelIcon :name="icon" size="0.6875rem" />{{ title }}</span>
         <button v-if="!bloqueado" class="k-btn k-btn-ghost k-btn-sm" @click="emit('close')">
@@ -19,8 +19,8 @@
 import PixelIcon from '@/components/PixelIcon.vue'
 
 const props = withDefaults(
-  defineProps<{ title: string; icon: string; size?: 'md' | 'lg'; bloqueado?: boolean }>(),
-  { size: 'md', bloqueado: false },
+  defineProps<{ title: string; icon: string; size?: 'md' | 'lg'; bloqueado?: boolean; dock?: boolean }>(),
+  { size: 'md', bloqueado: false, dock: false },
 )
 
 const emit = defineEmits<{ close: [] }>()
@@ -54,6 +54,29 @@ function fechar() {
 
 .ps-card-md { max-width: 30rem; }
 .ps-card-lg { max-width: 54rem; }
+
+/* ancorado à direita: a coluna central é do avatar e do aviso de interação, e
+   painel centralizado cobria os dois. Sem escurecer o mapa, que continua sendo
+   o que a pessoa precisa ver para decidir o que fazer no painel */
+.ps-overlay-dock {
+  place-items: stretch end;
+  background: none;
+  backdrop-filter: none;
+  padding: 1rem;
+}
+
+.ps-overlay-dock .ps-card { max-height: 100%; }
+
+.ps-card-dock { max-width: 26rem; }
+
+@media (max-width: 48rem) {
+  .ps-overlay-dock {
+    place-items: center;
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: blur(0.375rem);
+  }
+  .ps-card-dock { max-width: 30rem; }
+}
 
 .ps-head {
   display: flex;
