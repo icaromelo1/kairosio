@@ -348,10 +348,11 @@ onUnmounted(() => window.removeEventListener('keydown', aoTeclado))
 
 .tp-foco {
   display: grid;
-  grid-template-columns: minmax(16rem, 22rem) 1fr;
+  grid-template-columns: minmax(14rem, 20rem) minmax(0, 46rem);
   gap: 1.5rem;
   padding: 1.5rem;
   align-items: start;
+  justify-content: center;
 }
 
 .tp-palco { display: flex; flex-direction: column; gap: 1rem; }
@@ -378,8 +379,8 @@ onUnmounted(() => window.removeEventListener('keydown', aoTeclado))
 }
 
 .tp-cab { border-bottom: 0.125rem solid var(--border); padding-bottom: 0.5rem; }
-.tp-campo { display: flex; flex-direction: column; gap: 0.375rem; }
-.tp-input { font-family: var(--f-sans); font-size: 0.8125rem; }
+.tp-campo { display: flex; flex-direction: column; align-items: flex-start; gap: 0.375rem; }
+.tp-input { width: 100%; max-width: 28rem; font-family: var(--f-sans); font-size: 0.8125rem; }
 .tp-cats { display: flex; flex-wrap: wrap; gap: 0.25rem; }
 .tp-cat { gap: 0.375rem; }
 .tp-tecla {
