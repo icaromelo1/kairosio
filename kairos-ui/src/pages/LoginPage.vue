@@ -105,7 +105,7 @@
 
         <!-- Submit -->
         <button class="k-btn k-btn-primary submit-btn" :disabled="loading" @click="handleLogin">{{ loading ? 'Entrando…' : 'Entrar →' }}</button>
-        <p v-if="error" style="color:var(--err);font-size:0.75rem;margin:0.5rem 0 0;text-align:center">{{ error }}</p>
+        <ErroBloco v-if="error" class="login-erro" :mensagem="error" />
         <p style="font-size:0.75rem;margin:0.625rem 0 0;text-align:center;color:var(--text-3)">
           Não tem conta?
           <a href="#" style="color:var(--accent-texto);font-weight:600;text-decoration:none" @click.prevent="goRegister">Criar conta →</a>
@@ -158,6 +158,7 @@ import { useRouter, useRoute } from 'vue-router'
 import MeanderBorder from '@/components/pixel/MeanderBorder.vue'
 import PixelColumn from '@/components/pixel/PixelColumn.vue'
 import Logo from '@/components/logos/Logo.vue'
+import ErroBloco from '@/components/ErroBloco.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { login } from '@/services/auth.api'
 import { postAuthDest } from '@/services/postAuth'
@@ -410,6 +411,10 @@ onMounted(async () => {
 .submit-btn {
   width: 100%;
   padding: 0.875rem 1.125rem;
+}
+
+.login-erro {
+  margin-top: 0.5rem;
 }
 
 .k-divider {
