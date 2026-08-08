@@ -16,6 +16,8 @@
         :can-edit-current-world="!!currentMap && currentMap.ownerId === auth.userId"
         :is-guest="auth.isGuest"
         :eh-sudo="ehSudo"
+        :hora-mundo="horaMundoLabel"
+        :periodo-do-dia="horario"
         @select-world="selectMap"
         @server-changed="onServerChanged"
         @open-media="openMediaStage"
@@ -45,7 +47,6 @@
           <span class="gp-hud-name">{{ playerName }}</span>
           <span v-if="nomeDaSala" class="gp-hud-sala">{{ nomeDaSala }}</span>
           <span class="gp-hud-mapname">● {{ currentMap?.name || '…' }}</span>
-          <span class="gp-hud-hora">{{ horario }}</span>
         </div>
       </div>
 
@@ -449,7 +450,7 @@ import { callsDoMapa, historeseMidia } from '@/game/audio/calls'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
 import { precisaCriarPersonagem, panelFromQuery, type GamePanel } from '@/services/postAuth'
-import { estadoDeLuz } from '@/game/lighting'
+import { estadoDeLuz, horaCanonica } from '@/game/lighting'
 import { mostrarAviso } from '@/services/avisos'
 import { me } from '@/services/auth.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
@@ -611,6 +612,10 @@ const TURBO_MAX = 5
 const turboMult = ref(parseFloat(localStorage.getItem('kairos_turbo') || '') || 2.8)
 const hudVisible = ref(localStorage.getItem('kairos_hud') !== 'off')
 const horario = ref(estadoDeLuz().estagio)
+// relógio numérico do cabeçalho da barra: segue horaDoMundo quando travada pelo
+// sudo, senão a hora real — o texto (horario, acima) já cobre isso pro período,
+// este ref cobre a leitura em números
+const horaMundoAtual = ref(horaDoMundo.value ?? horaCanonica())
 const ehSudo = ref(false)
 const horaEditavel = ref(12)
 const sudoPanelOpen = ref(false)
@@ -646,6 +651,13 @@ const horaLabel = computed(() => {
   return `${String(h).padStart(2, '0')}h${horaEditavel.value % 1 ? '30' : '00'}`
 })
 
+const horaMundoLabel = computed(() => {
+  const h = horaMundoAtual.value
+  const hh = Math.floor(h)
+  const mm = Math.round((h % 1) * 60)
+  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
+})
+
 // espelha o que está ligado quando o painel está fechado — dá pra sair andando
 // invisível e esquecer, e o chip é o caminho de volta em um clique
 const poderesAtivos = computed<PoderAtivo[]>(() => {
@@ -670,6 +682,7 @@ function aplicarLuzDoMundo() {
   const h = horaDoMundo.value ?? undefined
   scene?.atualizarLuz(h)
   horario.value = estadoDeLuz(h).estagio
+  horaMundoAtual.value = h ?? horaCanonica()
 }
 
 function definirHora(h: number | null) {
@@ -2023,14 +2036,6 @@ onUnmounted(() => {
   padding: 0.5rem 0.875rem;
 }
 .gp-hud-action { color: var(--accent-texto); }
-
-.gp-hud-hora {
-  font-family: var(--f-num);
-  font-size: 0.875rem;
-  color: var(--text-3);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
 
 .gp-hud-ctl {
   position: static;

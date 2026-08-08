@@ -82,7 +82,8 @@
       <template v-else>
       <header class="ss-head">
         <span class="ss-head-name ellipsis">{{ shownServer?.name || 'Mundos abertos' }}</span>
-        <span v-if="showingHere" class="ss-head-tag">aqui</span>
+        <span class="ss-head-hora">{{ horaMundo }}</span>
+        <span class="k-badge k-badge-info ss-head-periodo">{{ periodoDoDia }}</span>
       </header>
 
       <div v-if="!showingHere" class="ss-away">
@@ -345,6 +346,8 @@ const props = defineProps<{
   isGuest: boolean
   ehSudo: boolean
   minhaPosicao: { x: number; y: number }
+  horaMundo: string
+  periodoDoDia: string
 }>()
 
 const emit = defineEmits<{
@@ -867,17 +870,17 @@ onUnmounted(() => {
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
-.ss-head-tag {
+/* relógio do mundo: número lido de relance, então --f-num como o contador de
+   sala — pelo menos 1rem pra não repetir o achado de auditoria da barra */
+.ss-head-hora {
   flex: none;
-  display: inline-flex;
-  align-items: center;
-  min-height: 2rem;
-  padding: 0 0.375rem;
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  color: var(--ok);
-  letter-spacing: 0.08em;
+  font-family: var(--f-num);
+  font-size: 1rem;
+  color: var(--text-2);
+  letter-spacing: 0.02em;
 }
+
+.ss-head-periodo { flex: none; }
 
 .ss-away {
   display: flex;
@@ -959,6 +962,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 0.25rem;
+  min-height: 2rem;
   border: 0.0625rem solid transparent;
   padding: 0.125rem 0.25rem 0.125rem 0;
 }
@@ -970,8 +974,8 @@ onUnmounted(() => {
   background: transparent;
   border: none;
   color: var(--text-4);
-  width: 1.25rem;
-  height: 1.5rem;
+  width: 2rem;
+  height: 2rem;
   flex: none;
   display: grid;
   place-items: center;
@@ -983,6 +987,9 @@ onUnmounted(() => {
   appearance: none;
   flex: 1;
   min-width: 0;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
   text-align: left;
   background: transparent;
   border: none;
@@ -995,12 +1002,21 @@ onUnmounted(() => {
 .ss-world-name:hover { color: var(--text); }
 .ss-world-row-here .ss-world-name { color: var(--text); }
 
+/* chip "aqui" do mundo ativo: veio do cabeçalho (.ss-head-tag, 24×10px — achado
+   de auditoria) pra dentro da linha do mundo, com o vocabulário de chip do
+   projeto (âmbar preenchido + borda + texto --tinta, 8,40:1) */
 .ss-world-here {
   flex: none;
+  display: inline-flex;
+  align-items: center;
+  padding: 0.1875rem 0.375rem;
+  background: var(--accent);
+  border: 0.0625rem solid var(--tinta);
+  color: var(--tinta);
   font-family: var(--f-pixel);
   font-size: 0.5rem;
-  color: var(--accent-texto);
   letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .ss-world-count {
@@ -1202,8 +1218,8 @@ onUnmounted(() => {
 
 .ss-ctrl {
   appearance: none;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 2rem;
+  height: 2rem;
   display: grid;
   place-items: center;
   cursor: pointer;
