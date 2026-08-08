@@ -32,7 +32,7 @@
           </div>
           <div class="me-rolagem">
             <section
-              v-for="s in salasOrdenadas" :key="s.id"
+              v-for="s in salasOcupadas" :key="s.id"
               class="me-sala me-sala-alvo" :class="{ 'me-sala-sua': s.id === salaAtualId }"
               :title="`Dois cliques para ir até ${s.nome}`"
               @dblclick="emit('ir-para-sala', s.id)"
@@ -43,11 +43,33 @@
                 </span>
                 <span class="me-sala-n">{{ s.gente.length }}</span>
               </div>
-              <p v-if="!s.gente.length" class="me-vazia">vazia</p>
-              <ul v-else class="me-gente">
-                <li v-for="p in s.gente" :key="p.id" :class="{ 'me-eu': p.eu }">
-                  <span class="me-ponto" :style="{ background: p.eu ? 'var(--accent)' : 'var(--mundo)' }" />
+              <ul class="me-gente">
+                <li v-for="p in s.gente" :key="p.id" class="me-pessoa" :class="{ 'me-eu': p.eu }">
+                  <span class="me-ponto" :class="{ 'me-ponto-eu': p.eu }" />
                   <span class="ellipsis">{{ p.nome }}</span>
+                  <button
+                    v-if="!p.eu"
+                    class="k-btn k-btn-ghost k-btn-xs me-andar"
+                    :title="`Andar até ${p.nome}`"
+                    @click.stop="emit('ir-para-ponto', p.x, p.y)"
+                  >andar até</button>
+                </li>
+              </ul>
+            </section>
+
+            <section v-if="salasVazias.length" class="me-sala">
+              <button class="me-vazias-cab" @click="vaziasAbertas = !vaziasAbertas">
+                <PixelIcon :name="vaziasAbertas ? 'chevron-down' : 'chevron-right'" size="0.625rem" />
+                <span class="ellipsis">{{ salasVazias.length }} salas vazias</span>
+              </button>
+              <ul v-if="vaziasAbertas" class="me-gente">
+                <li
+                  v-for="s in salasVazias" :key="s.id"
+                  class="me-vazia-linha" :title="`Dois cliques para ir até ${s.nome}`"
+                  @dblclick="emit('ir-para-sala', s.id)"
+                >
+                  <PixelIcon v-if="s.trancada" name="lock" size="0.625rem" />
+                  <span class="ellipsis">{{ s.nome }}</span>
                 </li>
               </ul>
             </section>
@@ -58,9 +80,15 @@
                 <span class="me-sala-n">{{ foraDeSala.length }}</span>
               </div>
               <ul class="me-gente">
-                <li v-for="p in foraDeSala" :key="p.id" :class="{ 'me-eu': p.eu }">
-                  <span class="me-ponto" :style="{ background: p.eu ? 'var(--accent)' : 'var(--mundo)' }" />
+                <li v-for="p in foraDeSala" :key="p.id" class="me-pessoa" :class="{ 'me-eu': p.eu }">
+                  <span class="me-ponto" :class="{ 'me-ponto-eu': p.eu }" />
                   <span class="ellipsis">{{ p.nome }}</span>
+                  <button
+                    v-if="!p.eu"
+                    class="k-btn k-btn-ghost k-btn-xs me-andar"
+                    :title="`Andar até ${p.nome}`"
+                    @click.stop="emit('ir-para-ponto', p.x, p.y)"
+                  >andar até</button>
                 </li>
               </ul>
             </section>
@@ -94,7 +122,7 @@ const props = defineProps<{
   salaAtualId: string | null
 }>()
 
-const emit = defineEmits<{ fechar: []; 'ir-para-sala': [salaId: string] }>()
+const emit = defineEmits<{ fechar: []; 'ir-para-sala': [salaId: string]; 'ir-para-ponto': [x: number, y: number] }>()
 
 const tela = ref<HTMLCanvasElement | null>(null)
 const palco = ref<HTMLElement | null>(null)
@@ -124,6 +152,11 @@ const salasComGente = computed(() => salas.value.filter((s) => s.gente.length > 
 const salasOrdenadas = computed(() =>
   [...salas.value].sort((a, b) => b.gente.length - a.gente.length || a.nome.localeCompare(b.nome)),
 )
+// seis linhas repetidas de "vazia" empurravam para fora quem de fato está em
+// algum lugar: a lista mostra onde há gente, o resto colapsa
+const salasOcupadas = computed(() => salasOrdenadas.value.filter((s) => s.gente.length))
+const salasVazias = computed(() => salasOrdenadas.value.filter((s) => !s.gente.length))
+const vaziasAbertas = ref(false)
 const foraDeSala = computed(() => forasDoMapa(props.map, todos.value))
 const totalDeGente = computed(() => todos.value.length)
 
@@ -319,11 +352,30 @@ watch(() => [props.eu.x, props.eu.y, props.outros.length, props.trancadas.size],
   min-width: 0;
 }
 .me-sala-n { font-family: var(--f-num); font-size: 0.875rem; font-weight: 700; color: var(--text-2); }
-.me-vazia { margin: 0.125rem 0 0; font-size: 0.6875rem; color: var(--text-3); }
+.me-pessoa { display: flex; align-items: center; gap: 0.375rem; min-height: 2rem; }
+.me-andar { margin-left: auto; flex: none; opacity: 0; }
+.me-pessoa:hover .me-andar, .me-andar:focus-visible { opacity: 1; }
+.me-ponto-eu {
+  /* âmbar sozinho some sobre a grama e sobre o creme do mapa; o anel creme
+     dentro da borda de tinta é o que sobrevive aos dois fundos */
+  background: var(--accent);
+  box-shadow: 0 0 0 0.0625rem var(--bg-2), 0 0 0 0.125rem var(--tinta);
+}
+.me-vazias-cab {
+  display: flex; align-items: center; gap: 0.375rem; width: 100%; min-height: 2rem;
+  padding: 0 0.25rem; background: none; border: 0; cursor: pointer;
+  font-family: var(--f-sans); font-size: 0.75rem; font-weight: 600; color: var(--text-3);
+}
+.me-vazias-cab:hover { color: var(--text); }
+.me-vazia-linha {
+  display: flex; align-items: center; gap: 0.375rem; min-height: 2rem;
+  font-size: 0.75rem; color: var(--text-3); cursor: pointer;
+}
+.me-vazia-linha:hover { color: var(--text); }
 .me-gente { list-style: none; margin: 0.25rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.125rem; }
 .me-gente li { display: flex; align-items: center; gap: 0.375rem; font-size: 0.75rem; color: var(--text-2); min-width: 0; }
 .me-eu { font-weight: 700; color: var(--text); }
-.me-ponto { width: 0.5rem; height: 0.5rem; flex: none; border: 0.0625rem solid var(--tinta); }
+.me-ponto { width: 0.5rem; height: 0.5rem; flex: none; background: var(--mundo); border: 0.0625rem solid var(--tinta); }
 .me-ponto-tranca { background: transparent; border: 0.125rem solid var(--err); }
 
 .me-pe { display: flex; align-items: center; gap: 0.875rem; flex-wrap: wrap; }
