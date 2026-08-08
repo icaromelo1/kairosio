@@ -81,9 +81,14 @@
         <ul class="ap-list">
           <li v-for="w in serverMaps" :key="w.id" class="ap-item">
             <span>{{ w.name }} <span class="ap-dim">· {{ w.width }}×{{ w.height }}</span></span>
-            <button class="k-btn k-btn-ghost k-btn-xs ap-danger" :disabled="busy" @click="del(w)">
-              <PixelIcon name="trash" size="0.75rem" />apagar
-            </button>
+            <div class="k-perigo ap-perigo-chip">
+              <div class="k-perigo-faixa" />
+              <HoldButton
+                rotulo="apagar" rotulo-carregando="apagando…"
+                :disabled="busy" :carregando="deletingMapId === w.id"
+                @confirmar="del(w)"
+              />
+            </div>
           </li>
           <li v-if="!serverMaps.length" class="ap-empty">Nenhum mundo criado ainda.</li>
         </ul>
@@ -165,6 +170,7 @@ import { fetchMaps, deleteMap } from '@/services/maps.api'
 import type { MapDef } from '@/game/maps'
 import PanelShell from '@/components/PanelShell.vue'
 import PixelIcon from '@/components/PixelIcon.vue'
+import HoldButton from '@/components/pixel/HoldButton.vue'
 
 type Tab = 'Membros' | 'Convite' | 'Mundos' | 'Servidor'
 
@@ -184,6 +190,7 @@ const archiving = ref(false)
 const copied = ref(false)
 const saved = ref(false)
 const restored = ref('')
+const deletingMapId = ref<string | null>(null)
 const busy = ref(false)
 const err = ref<Record<string, string>>({})
 
@@ -329,13 +336,15 @@ function saveName() {
   })
 }
 
+// segurar o HoldButton por 600ms é a confirmação — não dá pra desfazer, então
+// não usa mais o confirm() do navegador: soltar antes do fim já cancela sozinho.
 function del(w: MapDef) {
-  if (!confirm(`Apagar o mundo "${w.name}"? Não dá pra desfazer.`)) return
+  deletingMapId.value = w.id
   void run('maps', async () => {
     await deleteMap(w.id)
     serverMaps.value = serverMaps.value.filter((m) => m.id !== w.id)
     emit('mundos-alterados')
-  })
+  }).finally(() => { deletingMapId.value = null })
 }
 
 onMounted(() => run('load', load))
@@ -411,14 +420,23 @@ onMounted(() => run('load', load))
 }
 
 .ap-member { display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
-.ap-email { color: var(--text); overflow-wrap: anywhere; }
+.ap-email { font-family: var(--f-sans); font-size: 0.8125rem; font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
 .ap-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.ap-actions .k-btn { min-width: 2rem; }
 
-.ap-dim { color: var(--text-3); font-size: 0.75rem; }
+.ap-dim { font-family: var(--f-sans); color: var(--text-3); font-size: 0.75rem; }
 .ap-empty { color: var(--text-3); font-size: 0.8125rem; }
 
 .ap-danger { color: var(--err); border-color: color-mix(in srgb, var(--err) 40%, transparent); }
 .ap-danger:hover:not(:disabled) { border-color: var(--err); color: var(--err); }
+
+/* apagar mundo escreve/desfaz permanentemente no servidor de todos: sai da
+   caixa creme, ganha a faixa hachurada de ação sem volta e troca o clique
+   simples pelo HoldButton (600ms, soltar antes cancela). */
+.ap-perigo-chip {
+  width: 9rem;
+  flex-shrink: 0;
+}
 
 .ap-invite-row {
   display: flex;
