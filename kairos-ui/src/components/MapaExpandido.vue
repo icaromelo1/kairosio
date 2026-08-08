@@ -97,7 +97,7 @@
       </div>
 
       <footer class="me-pe">
-        <span class="me-legenda"><span class="me-ponto" style="background: var(--accent)" />você</span>
+        <span class="me-legenda"><span class="me-ponto me-ponto-eu" />você</span>
         <span class="me-legenda"><span class="me-ponto" style="background: var(--mundo)" />outras pessoas</span>
         <span class="me-legenda"><span class="me-ponto me-ponto-tranca" />sala trancada</span>
         <span class="me-legenda me-legenda-dica">esc fecha</span>
@@ -264,7 +264,7 @@ watch(() => [props.eu.x, props.eu.y, props.outros.length, props.trancadas.size],
   z-index: 60;
   display: grid;
   place-items: center;
-  background: rgba(36, 28, 21, 0.55);
+  background: rgba(15, 10, 6, 0.35);
   padding: 1.5rem;
 }
 
