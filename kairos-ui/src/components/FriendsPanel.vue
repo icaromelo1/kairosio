@@ -20,6 +20,7 @@
           </p>
           <div class="fp-add">
             <input
+              ref="alvoInput"
               v-model.trim="alvo"
               class="k-input k-input-sm fp-add-input"
               maxlength="64"
@@ -118,7 +119,10 @@
             </li>
 
             <li v-if="!(tab === 'online' ? online : todos).length" class="fp-empty">
-              {{ todos.length ? 'Ninguém online agora.' : 'Você ainda não tem amigos. Procure alguém pelo @nome ali em cima.' }}
+              <span>{{ todos.length ? 'Ninguém online agora.' : 'Você ainda não tem amigos. Procure alguém pelo @nome ali em cima.' }}</span>
+              <button class="k-btn k-btn-ghost k-btn-xs" @click="focusAlvo">
+                <PixelIcon name="user-plus" size="0.75rem" />adicionar por @nome
+              </button>
             </li>
           </ul>
         </section>
@@ -146,7 +150,12 @@
                 </button>
               </span>
             </li>
-            <li v-if="!recebidos.length" class="fp-empty">Nenhum pedido esperando resposta.</li>
+            <li v-if="!recebidos.length" class="fp-empty">
+              <span>Nenhum pedido esperando resposta.</span>
+              <button class="k-btn k-btn-ghost k-btn-xs" @click="tab = 'todos'">
+                <PixelIcon name="users" size="0.75rem" />ver seus amigos
+              </button>
+            </li>
           </ul>
 
           <h3 class="fp-title">Você pediu ({{ enviados.length }})</h3>
@@ -256,6 +265,7 @@ const emit = defineEmits<{
 const router = useRouter()
 const auth = useAuthStore()
 
+const alvoInput = ref<HTMLInputElement | null>(null)
 const tab = ref<Tab>('online')
 const aceitos = ref<FriendView[]>([])
 const recebidosRaw = ref<FriendView[]>([])
@@ -443,6 +453,10 @@ function unblock(row: FriendRow) {
   })
 }
 
+function focusAlvo() {
+  alvoInput.value?.focus()
+}
+
 function toggleInvite(id: string) {
   inviting.value = inviting.value === id ? '' : id
 }
@@ -613,10 +627,24 @@ onUnmounted(() => {
 }
 .fp-invite-label { font-size: 0.75rem; color: var(--text-3); }
 
-.fp-empty { color: var(--text-3); font-size: 0.8125rem; }
+/* tracejada = vazio ("não há nada"), sólida vermelha (.k-perigo, global) = erro
+   ("algo falhou"). O vazio nunca é um beco sem saída: quando há próxima ação,
+   o botão leva direto pra ela. */
+.fp-empty {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  color: var(--text-3);
+  font-size: 0.8125rem;
+  background: var(--bg-1);
+  border: 0.0625rem dashed var(--border);
+  padding: 0.875rem;
+}
 
-.fp-danger { color: var(--err); border-color: color-mix(in srgb, var(--err) 40%, transparent); }
-.fp-danger:hover:not(:disabled) { border-color: var(--err); color: var(--err); }
+.fp-danger { color: var(--err); border-color: var(--err); }
+.fp-danger:hover:not(:disabled) { background: color-mix(in srgb, var(--err) 12%, transparent); color: var(--err); }
 
 .fp-error { color: var(--err); font-size: 0.8125rem; margin: 0; }
 .fp-ok {
