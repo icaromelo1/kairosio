@@ -210,8 +210,8 @@ onUnmounted(() => {
 }
 
 .wb-color-swatch {
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 2rem;
+  height: 2rem;
   border: 0.125rem solid var(--border-strong);
   border-radius: 0;
   cursor: pointer;

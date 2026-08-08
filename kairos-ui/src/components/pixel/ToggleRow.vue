@@ -42,6 +42,9 @@ const emit = defineEmits<{ 'update:modelValue': [boolean] }>()
   width: 2.125rem;
   min-width: 2.125rem;
   height: 1.125rem;
+  /* a pista é fina de propósito; quem entrega os 32px de alvo é a linha inteira */
+  box-sizing: content-box;
+  padding-block: 0.4375rem;
   padding: 0.0625rem;
   background: #d9c9aa;
   border: 0.125rem solid var(--tinta);

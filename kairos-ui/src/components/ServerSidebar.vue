@@ -728,8 +728,8 @@ onUnmounted(() => {
   background: transparent;
   border: 0.0625rem solid var(--border);
   color: var(--text-3);
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 2rem;
+  height: 2rem;
   flex: none;
   cursor: pointer;
   display: grid;
