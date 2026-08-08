@@ -527,6 +527,7 @@ onUnmounted(() => {
 .fp-dm { margin-left: auto; }
 
 .fp-list {
+  container-type: inline-size;
   list-style: none;
   margin: 0;
   padding: 0;
@@ -539,7 +540,7 @@ onUnmounted(() => {
 .fp-item {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.5rem 0.75rem;
   flex-wrap: wrap;
   background: var(--bg-2);
   border: 0.0625rem solid var(--border);
@@ -591,6 +592,14 @@ onUnmounted(() => {
   align-items: center;
   flex-wrap: wrap;
   margin-left: auto;
+}
+
+/* no dock a linha tem ~26rem: nome e estado ocupam a primeira linha e as cinco
+   ações descem inteiras para a segunda, em vez de serem cortadas */
+@container (max-width: 30rem) {
+  .fp-who { flex: 1 1 100%; }
+  .fp-state { flex: 1 1 auto; }
+  .fp-acts { flex: 1 1 100%; margin-left: 0; }
 }
 
 .fp-invite {
