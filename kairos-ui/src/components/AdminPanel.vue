@@ -1,5 +1,5 @@
 <template>
-  <PanelShell title="administração" icon="shield" size="lg" @close="emit('close')">
+  <PanelShell title="administração" icon="shield" size="lg" dock @close="emit('close')">
     <div class="ap-body">
       <div class="ap-top">
         <h2 class="ap-name ellipsis">{{ server ? server.name : 'Painel do servidor' }}</h2>

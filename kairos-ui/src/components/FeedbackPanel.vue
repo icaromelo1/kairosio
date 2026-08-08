@@ -1,5 +1,5 @@
 <template>
-  <PanelShell title="feedback" icon="bug" size="lg" @close="emit('close')">
+  <PanelShell title="feedback" icon="bug" size="lg" dock @close="emit('close')">
     <div class="fp-grid">
       <section class="fp-card">
         <h3 class="fp-title">Relatar bug ou pedir melhoria</h3>
