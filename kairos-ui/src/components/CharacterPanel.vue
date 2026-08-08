@@ -2,15 +2,14 @@
   <PanelShell title="personagem" icon="user" size="lg" :bloqueado="obrigatorio" @close="emit('close')">
     <div class="cp-grid">
       <div class="cp-stage">
-        <span class="cp-eyebrow">seu avatar</span>
+        <span class="cp-eyebrow">seu avatar no mapa</span>
         <div class="cp-preview">
-          <PixiAvatarPreview
-            :hairStyle="characterStore.hairStyle"
-            :hairColor="characterStore.hairColor"
-            :skin="characterStore.skin"
-            :topColor="characterStore.topColor"
-            :pantsColor="characterStore.pantsColor"
-            :accessory="characterStore.accessory"
+          <AvatarVista
+            v-for="vista in VISTAS" :key="vista.id"
+            :preset="characterStore.hairStyle"
+            :direcao="vista.direcao"
+            :rotulo="vista.rotulo"
+            :cores="coresAlvo"
           />
         </div>
         <div class="cp-handle">
@@ -33,12 +32,13 @@
               @keyup.enter="salvarHandle"
             />
             <button
-              class="k-btn k-btn-ghost k-btn-sm"
+              class="k-btn k-btn-sm"
               :disabled="!podeSalvarHandle"
               @click="salvarHandle"
             >{{ salvandoHandle ? 'Salvando…' : (handleAtual ? 'Trocar' : 'Definir') }}</button>
           </div>
 
+          <p v-if="dicaHandle" class="cp-handle-hint">{{ dicaHandle }}</p>
           <p v-if="handleErro" class="cp-error">{{ handleErro }}</p>
           <p v-else-if="handleOk" class="cp-handle-ok">{{ handleOk }}</p>
           <p v-else-if="handleAviso" class="cp-handle-aviso">{{ handleAviso }}</p>
@@ -72,6 +72,35 @@
               <span class="cp-hair-label">{{ preset.nome }}</span>
             </button>
           </div>
+
+          <div class="cp-label">Cores</div>
+          <div v-for="grupo in GRUPOS_COR" :key="grupo.chave" class="cp-cor-linha">
+            <span class="cp-cor-nome">{{ grupo.nome }}</span>
+            <div class="cp-swatches">
+              <button
+                class="cp-swatch cp-swatch-orig"
+                :class="{ 'cp-swatch-on': corAtual(grupo.chave) === grupo.padrao }"
+                :aria-pressed="corAtual(grupo.chave) === grupo.padrao"
+                :aria-label="`${grupo.nome}: cor original do personagem`"
+                :title="`${grupo.nome}: cor original do personagem`"
+                @click="definirCor(grupo.chave, grupo.padrao)"
+              >orig</button>
+              <button
+                v-for="cor in grupo.cores" :key="cor"
+                class="cp-swatch"
+                :class="{ 'cp-swatch-on': corAtual(grupo.chave) === cor }"
+                :style="{ background: cor }"
+                :aria-pressed="corAtual(grupo.chave) === cor"
+                :aria-label="`${grupo.nome}: ${cor}`"
+                :title="`${grupo.nome}: ${cor}`"
+                @click="definirCor(grupo.chave, cor)"
+              ></button>
+            </div>
+          </div>
+          <p class="k-hint-text cp-hint">
+            «orig» devolve a cor que veio com o personagem. Você vê a mudança na hora aqui do lado,
+            mas ninguém mais vê nada até você salvar.
+          </p>
         </div>
 
         <div v-if="activeTab === 'photo'" class="cp-tab-content">
@@ -87,7 +116,7 @@
             </div>
             <div class="cp-photo-actions">
               <input ref="fileInput" type="file" accept="image/jpeg,image/png,image/webp" class="cp-file" @change="onPhotoPicked" />
-              <button class="k-btn k-btn-ghost k-btn-sm" :disabled="uploadingPhoto" @click="fileInput?.click()">
+              <button class="k-btn k-btn-sm" :disabled="uploadingPhoto" @click="fileInput?.click()">
                 {{ uploadingPhoto ? 'Enviando…' : (characterStore.photoFile ? 'Trocar foto' : 'Enviar foto') }}
               </button>
               <button v-if="characterStore.photoFile" class="k-btn k-btn-ghost k-btn-sm" @click="onRemovePhoto">Remover foto</button>
@@ -97,9 +126,12 @@
         </div>
 
         <p v-if="saveErro" class="cp-error">{{ saveErro }}</p>
-        <button class="k-btn k-btn-accent cp-save" :disabled="saving" @click="save">
-          {{ saving ? 'Salvando…' : 'Salvar e voltar ao jogo' }}
-        </button>
+        <div class="cp-actions">
+          <button class="k-btn k-btn-ghost" :disabled="saving" @click="aleatorio">Aleatório</button>
+          <button class="k-btn k-btn-accent cp-save" :disabled="saving" @click="save">
+            {{ saving ? 'Salvando…' : 'Salvar e voltar ao jogo' }}
+          </button>
+        </div>
       </div>
     </div>
   </PanelShell>
@@ -108,8 +140,9 @@
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
 import PanelShell from '@/components/PanelShell.vue'
-import PixiAvatarPreview from '@/components/PixiAvatarPreview.vue'
+import AvatarVista from '@/components/AvatarVista.vue'
 import { AVATAR_PRESETS, avatarSpriteUrl } from '@/game/pixi/avatar'
+import type { CoresAlvo } from '@/game/recolorir'
 import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { emitNomeAtualizado } from '@/services/presence'
@@ -145,6 +178,88 @@ const bloqueadoAte = computed(() => {
 const podeSalvarHandle = computed(
   () => !salvandoHandle.value && !!handle.value && handle.value.toLowerCase() !== handleAtual.value.toLowerCase(),
 )
+
+// botão apagado não diz o que falta: a cor sozinha não comunica o motivo
+const dicaHandle = computed(() => {
+  if (salvandoHandle.value) return ''
+  if (!handle.value) return 'Digite um @nome no campo para liberar o botão.'
+  if (handle.value.toLowerCase() === handleAtual.value.toLowerCase()) {
+    return 'Esse já é o seu @nome — mude alguma letra para liberar a troca.'
+  }
+  return ''
+})
+
+const VISTAS = [
+  { id: 'frente', rotulo: 'frente', direcao: 'baixo' },
+  { id: 'lado', rotulo: 'lado', direcao: 'esquerda' },
+  { id: 'costas', rotulo: 'costas', direcao: 'cima' },
+] as const
+
+type ChaveCor = 'skin' | 'hairColor' | 'topColor'
+
+// mesma regra do jogo (coresEscolhidas, em game/pixi/avatar.ts): cor igual ao
+// padrão quer dizer "não escolhi", e o preset mantém a arte original. Se o
+// preview recolorisse mesmo assim, ele mostraria uma cor que o mapa não mostra.
+const COR_PADRAO: Record<ChaveCor, string> = {
+  skin: '#e8b894',
+  hairColor: '#3d2817',
+  topColor: '#2c7441',
+}
+
+const GRUPOS_COR: { chave: ChaveCor; nome: string; padrao: string; cores: string[] }[] = [
+  {
+    chave: 'skin',
+    nome: 'Pele',
+    padrao: COR_PADRAO.skin,
+    cores: ['#f7dcc3', '#efc9a4', '#e0ac7e', '#c68642', '#9c6134', '#6b4326'],
+  },
+  {
+    chave: 'hairColor',
+    nome: 'Cabelo',
+    padrao: COR_PADRAO.hairColor,
+    cores: ['#1a1410', '#6b4423', '#b5651d', '#d9a441', '#a83232', '#5b3fa8', '#10695f', '#e3e3e3'],
+  },
+  {
+    chave: 'topColor',
+    nome: 'Roupa',
+    padrao: COR_PADRAO.topColor,
+    cores: ['#2a4d8f', '#10695f', '#a83232', '#f2a93b', '#7b5ea7', '#a03562', '#241c15', '#fff6e0'],
+  },
+]
+
+function corAtual(chave: ChaveCor): string {
+  if (chave === 'skin') return characterStore.skin
+  if (chave === 'hairColor') return characterStore.hairColor
+  return characterStore.topColor
+}
+
+function definirCor(chave: ChaveCor, cor: string) {
+  if (chave === 'skin') characterStore.skin = cor
+  else if (chave === 'hairColor') characterStore.hairColor = cor
+  else characterStore.topColor = cor
+}
+
+const coresAlvo = computed<CoresAlvo>(() => {
+  const usar = (chave: ChaveCor) => {
+    const v = corAtual(chave)
+    return v && v.toLowerCase() !== COR_PADRAO[chave] ? v : null
+  }
+  return { pele: usar('skin'), cabelo: usar('hairColor'), roupa: usar('topColor') }
+})
+
+function sorteia<T>(lista: readonly T[]): T | undefined {
+  return lista[Math.floor(Math.random() * lista.length)]
+}
+
+// sorteio é rascunho: mexe só no que está na tela, sem tocar no servidor
+function aleatorio() {
+  const preset = sorteia(AVATAR_PRESETS)
+  if (preset) characterStore.hairStyle = preset.id
+  for (const grupo of GRUPOS_COR) {
+    const cor = sorteia([grupo.padrao, ...grupo.cores])
+    if (cor) definirCor(grupo.chave, cor)
+  }
+}
 
 onMounted(async () => {
   if (!auth.isAuthenticated) return
@@ -266,8 +381,9 @@ const TABS = [
 
 .cp-preview {
   width: 100%;
-  height: 11rem;
-  background: radial-gradient(ellipse at center, var(--primary-glow) 0%, transparent 70%);
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.375rem;
 }
 
 
@@ -392,10 +508,52 @@ const TABS = [
   max-width: 100%;
 }
 
+.cp-cor-linha {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.cp-cor-nome {
+  font-family: var(--f-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--text-2);
+}
+
 .cp-swatches {
   display: flex;
   flex-wrap: wrap;
   gap: 0.5rem;
+}
+
+/* 2.125rem = 34px: passa do alvo mínimo de 32px mesmo com a borda contando. */
+.cp-swatch {
+  appearance: none;
+  width: 2.125rem;
+  height: 2.125rem;
+  padding: 0;
+  cursor: pointer;
+  border: 0.125rem solid var(--border);
+  background: var(--bg-2);
+  flex: none;
+}
+.cp-swatch:hover { border-color: var(--border-strong); }
+.cp-swatch:focus-visible { outline: none; border-color: var(--tinta); box-shadow: 0 0 0 0.1875rem var(--accent); }
+
+/* âmbar tem 1,00:1 sobre a grama e some sozinho: o anel só carrega a seleção
+   porque vem colado na borda de tinta. */
+.cp-swatch-on {
+  border-color: var(--tinta);
+  box-shadow: 0 0 0 0.1875rem var(--accent);
+}
+
+.cp-swatch-orig {
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
 }
 
 .cp-hint { margin: 0; }
@@ -437,10 +595,23 @@ const TABS = [
 
 .cp-error { color: var(--err); font-size: 0.75rem; margin: 0; }
 
-.cp-save { width: 100%; margin-top: 0.25rem; }
+/* um destaque só por painel: âmbar é "confirmar e voltar ao jogo". Aleatório
+   não escreve nada, então não disputa a atenção — fica em ghost. */
+.cp-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: stretch;
+  margin-top: 0.25rem;
+}
+
+.cp-save { flex: 1; }
 
 @media (max-width: 44rem) {
   .cp-grid { grid-template-columns: 1fr; }
-  .cp-preview { height: 9rem; }
+  .cp-stage { max-width: 22rem; margin: 0 auto; }
+}
+
+@media (max-width: 26.25rem) {
+  .cp-actions { flex-direction: column; }
 }
 </style>
