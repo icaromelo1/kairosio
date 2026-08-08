@@ -9,6 +9,10 @@ export interface TileIndiceEntry {
   tags: string[]
   opaco: { w: number; h: number }
   solido: boolean
+  // usos alternativos além da categoria principal (ex.: coluna = parede + decoracao)
+  serveComo: string[]
+  // true depois da revisão manual do índice (tela /admin/tiles, ainda não implementada)
+  revisado: boolean
 }
 
 interface TileIndice {
