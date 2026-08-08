@@ -19,7 +19,14 @@ export function packsDisponiveis(): string[] {
 }
 
 export async function carregarPacks(): Promise<void> {
-  const urls = [...Object.values(PNG_POR_PACK).flatMap((m) => Object.values(m)), ...superficieUrls()]
+  // os tilesheets entram aqui também: criarSpriteDeTile usa Texture.from, que no
+  // Pixi 8 só lê o cache — sem carregar, todo objeto com tileRef caía calado no
+  // desenho antigo em vez da arte. São 56 KB no total
+  const urls = [
+    ...Object.values(PNG_POR_PACK).flatMap((m) => Object.values(m)),
+    ...superficieUrls(),
+    ...tilemapUrls(),
+  ]
   if (!urls.length) return
   await Assets.load(urls)
 }
