@@ -8,6 +8,7 @@
         :maps="maps"
         :minha-posicao="pos"
         @ir-para-sala="irParaSala"
+        @andar-ate="irParaPonto"
         :current-map-id="currentId"
         :player-name="playerName"
         :look="look"
@@ -377,7 +378,6 @@
         @changed="sidebar?.reloadFriendRequests()"
         @dm="openDm"
       />
-      <DmPanel v-if="dmOpen" :friend-id="dmFriendId" @close="closeModal" />
 
       <!-- Controles touch (mobile) -->
       <div class="touch-ctl gp-touch-ctl">
@@ -464,7 +464,6 @@ import CharacterPanel from '@/components/CharacterPanel.vue'
 import AdminPanel from '@/components/AdminPanel.vue'
 import FeedbackPanel from '@/components/FeedbackPanel.vue'
 import FriendsPanel from '@/components/FriendsPanel.vue'
-import DmPanel from '@/components/DmPanel.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -522,8 +521,6 @@ const boardObjectId = ref('')
 const panel = ref<GamePanel | null>(null)
 const panelInvite = ref('')
 const friendsOpen = ref(false)
-const dmOpen = ref(false)
-const dmFriendId = ref('')
 const JUKEBOX_RADIUS = 6 // tiles — alcance do modo "proximidade"
 const SELF_CALL_ID = '@me'
 
@@ -1121,8 +1118,6 @@ function closeModal() {
   panel.value = null
   panelInvite.value = ''
   friendsOpen.value = false
-  dmOpen.value = false
-  dmFriendId.value = ''
   sudoPanelOpen.value = false
 }
 
@@ -1139,11 +1134,12 @@ function openFriends() {
   gameStore.isModalOpen = true
 }
 
+// a conversa vive na barra lateral: nada de isModalOpen, porque o mapa continua
+// jogável ao lado — é justamente o ponto da mudança
 function openDm(friendId = '') {
   closeModal()
-  dmFriendId.value = friendId
-  dmOpen.value = true
-  gameStore.isModalOpen = true
+  gameStore.sidebarOpen = true
+  void sidebar.value?.abrirConversas(friendId || undefined)
 }
 
 function jumpToFriend(serverId: string, mapId: string) {
