@@ -93,6 +93,7 @@
       </div>
 
       <div class="ss-body">
+        <div class="ss-tree">
         <template v-if="showingHere">
           <div class="ss-label">Mundos</div>
 
@@ -187,32 +188,40 @@
         </div>
 
         <p v-if="error" class="ss-error">{{ error }}</p>
+        </div>
 
-        <div class="ss-label">Ações</div>
-        <div class="ss-acts">
-          <button class="k-btn k-btn-ghost ss-act ss-act-dm" :title="dmTitle" @click="aoClicarDm">
-            <PixelIcon name="message" size="0.75rem" /><span>Conversas</span>
-            <span v-if="dmUnreadTotal" class="ss-act-badge ss-act-badge-dm">{{ dmUnreadTotal }}</span>
-          </button>
-          <button class="k-btn k-btn-ghost ss-act" :title="friendsTitle" @click="emit('open-friends')">
-            <PixelIcon name="users" size="0.75rem" /><span>Amigos</span>
-            <span v-if="friendRequests" class="ss-act-badge">{{ friendRequests }}</span>
-          </button>
-          <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="router.push('/editor/new')">
-            <PixelIcon name="plus-box" size="0.75rem" /><span>Criar mundo</span>
-          </button>
-          <button v-if="canEditCurrentWorld" class="k-btn k-btn-ghost ss-act" @click="router.push(`/editor/${currentMapId}`)">
-            <PixelIcon name="pen-square" size="0.75rem" /><span>Editar este mundo</span>
-          </button>
-          <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="emit('open-panel', 'admin')">
-            <PixelIcon name="shield" size="0.75rem" /><span>Administração</span>
-          </button>
-          <button class="k-btn k-btn-ghost ss-act" @click="emit('open-panel', 'feedback')">
-            <PixelIcon name="bug" size="0.75rem" /><span>Feedback / Reportar</span>
-          </button>
-          <button class="k-btn k-btn-ghost ss-act" @click="emit('leave')">
-            <PixelIcon name="logout" size="0.75rem" /><span>Sair</span>
-          </button>
+        <!-- a árvore rola por dentro (ss-tree); o fim dela ganha uma borda tracejada
+             sinalizando que a lista continua acima — as ações ficam fixas, fora do
+             fluxo rolante, senão "Sair" e companhia somem atrás das 24+ salas -->
+        <div class="ss-scroll-edge" aria-hidden="true" />
+
+        <div class="ss-acts-wrap">
+          <div class="ss-label">Ações</div>
+          <div class="ss-acts">
+            <button class="k-btn k-btn-ghost ss-act ss-act-dm" :title="dmTitle" @click="aoClicarDm">
+              <PixelIcon name="message" size="0.75rem" /><span>Conversas</span>
+              <span v-if="dmUnreadTotal" class="ss-act-badge ss-act-badge-dm">{{ dmUnreadTotal }}</span>
+            </button>
+            <button class="k-btn k-btn-ghost ss-act" :title="friendsTitle" @click="emit('open-friends')">
+              <PixelIcon name="users" size="0.75rem" /><span>Amigos</span>
+              <span v-if="friendRequests" class="ss-act-badge">{{ friendRequests }}</span>
+            </button>
+            <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="router.push('/editor/new')">
+              <PixelIcon name="plus-box" size="0.75rem" /><span>Criar mundo</span>
+            </button>
+            <button v-if="canEditCurrentWorld" class="k-btn k-btn-ghost ss-act" @click="router.push(`/editor/${currentMapId}`)">
+              <PixelIcon name="pen-square" size="0.75rem" /><span>Editar este mundo</span>
+            </button>
+            <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="emit('open-panel', 'admin')">
+              <PixelIcon name="shield" size="0.75rem" /><span>Administração</span>
+            </button>
+            <button class="k-btn k-btn-ghost ss-act" @click="emit('open-panel', 'feedback')">
+              <PixelIcon name="bug" size="0.75rem" /><span>Feedback / Reportar</span>
+            </button>
+            <button class="k-btn k-btn-ghost ss-act" @click="emit('leave')">
+              <PixelIcon name="logout" size="0.75rem" /><span>Sair</span>
+            </button>
+          </div>
         </div>
       </div>
       </template>
@@ -831,6 +840,7 @@ onUnmounted(() => {
 .ss-main {
   flex: 1;
   min-width: 0;
+  min-height: 0;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -887,7 +897,20 @@ onUnmounted(() => {
 }
 .ss-away-back:hover { background: rgba(251, 191, 36, 0.16); }
 
+/* ss-body só empilha as duas partes: a árvore rolante e as ações fixas.
+   Quem rola é ss-tree — ss-body fica com overflow:hidden e min-height:0 pra não
+   crescer com o conteúdo, senão o filho flex:1 nunca teria altura sobrando pra
+   virar barra de rolagem (a armadilha: sem isso a lista não corta, ela empurra
+   as ações pra fora igual antes — só que agora sem overflow visível pra notar) */
 .ss-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.ss-tree {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -895,6 +918,20 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   gap: 0.125rem;
+}
+
+/* traço tracejado (mesma técnica do .k-divider: repeating-linear-gradient em
+   tinta sólida, sem fade colorido) marcando o fim da área rolante — sinaliza
+   que a lista de mundos continua acima mesmo quando ela já está no topo */
+.ss-scroll-edge {
+  flex: none;
+  height: 0.125rem;
+  background-image: repeating-linear-gradient(90deg, var(--border-strong) 0 0.25rem, transparent 0.25rem 0.5rem);
+}
+
+.ss-acts-wrap {
+  flex: none;
+  padding: 0.5rem 0.5rem 0;
 }
 
 .ss-label {
