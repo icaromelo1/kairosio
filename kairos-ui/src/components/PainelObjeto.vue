@@ -375,7 +375,7 @@ function trocarSprite(r: TileResultado) {
 
 .po-nome {
   font-family: var(--f-pixel);
-  font-size: 0.6875rem;
+  font-size: 0.5rem;
   line-height: 1.3;
   text-transform: uppercase;
   letter-spacing: 0.06em;

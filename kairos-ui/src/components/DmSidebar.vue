@@ -370,8 +370,9 @@ onUnmounted(() => {
 }
 
 .dms-alvo-onde {
-  font-family: var(--f-mono);
-  font-size: 0.5625rem;
+  font-family: var(--f-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--text-3);
 }
 
@@ -433,8 +434,8 @@ onUnmounted(() => {
 
 .dms-conv-hora {
   flex: none;
-  font-family: var(--f-mono);
-  font-size: 0.5625rem;
+  font-family: var(--f-num);
+  font-size: 0.6875rem;
   color: var(--text-3);
 }
 
@@ -463,8 +464,9 @@ onUnmounted(() => {
 }
 
 .dms-conv-handle {
-  font-family: var(--f-mono);
-  font-size: 0.5625rem;
+  font-family: var(--f-sans);
+  font-size: 0.75rem;
+  font-weight: 600;
   color: var(--text-3);
 }
 
@@ -600,8 +602,8 @@ onUnmounted(() => {
 
 .dms-msg-hora {
   flex: none;
-  font-family: var(--f-mono);
-  font-size: 0.5625rem;
+  font-family: var(--f-num);
+  font-size: 0.6875rem;
   color: var(--text-3);
 }
 
@@ -640,8 +642,8 @@ onUnmounted(() => {
 
 .dms-conta {
   margin-left: auto;
-  font-family: var(--f-mono);
-  font-size: 0.625rem;
+  font-family: var(--f-num);
+  font-size: 0.75rem;
   color: var(--text-3);
 }
 

@@ -94,8 +94,9 @@ watch(() => `${props.peca.pack}:${props.peca.i}`, desenhar)
   inset: 0;
   display: grid;
   place-items: center;
-  font-family: var(--f-pixel);
+  font-family: var(--f-sans);
   font-size: 0.75rem;
+  font-weight: 600;
   line-height: 1;
   color: var(--text-3);
 }
