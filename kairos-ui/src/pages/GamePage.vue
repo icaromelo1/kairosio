@@ -88,10 +88,14 @@
             <span class="gp-chat-name" :style="{ color: chatColor(m) }">{{ m.name }}:</span>
             <span class="gp-chat-text"> {{ m.text }}</span>
           </div>
+          <button
+            v-if="chatUnread"
+            class="k-btn k-btn-primary k-btn-sm gp-chat-jump"
+            @click="scrollChatToEnd"
+          >novas mensagens ↓</button>
         </div>
         <div class="gp-chat-field">
           <div class="gp-chat-foot">
-            <button v-if="chatUnread" class="gp-chat-jump" @click="scrollChatToEnd">novas mensagens ↓</button>
             <span
               v-if="chatInput.length > CHAT_COUNT_FROM"
               class="gp-chat-count"
@@ -1871,11 +1875,10 @@ onUnmounted(() => {
   overscroll-behavior: contain;
   margin-bottom: 0.375rem;
   padding: 0.5rem 0.5rem;
-  background: var(--bg-1);
-  background: color-mix(in srgb, var(--bg-1) 55%, transparent);
-  border: 0.0625rem solid var(--border);
-  backdrop-filter: blur(0.1875rem);
-  -webkit-backdrop-filter: blur(0.1875rem);
+  background: var(--bg-2);
+  background: color-mix(in srgb, var(--bg-2) 96%, transparent);
+  border: var(--ui-border-style);
+  box-shadow: var(--contorno-duplo);
   scrollbar-width: thin;
   scrollbar-color: var(--border-strong) transparent;
 }
@@ -1909,19 +1912,12 @@ onUnmounted(() => {
 }
 
 .gp-chat-jump {
+  position: sticky;
+  bottom: 0;
+  align-self: center;
+  margin-top: 0.25rem;
   pointer-events: auto;
-  cursor: pointer;
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--bg-0);
-  background: var(--primary-hi);
-  border: 0.0625rem solid var(--primary-hi);
-  border-radius: var(--r-sm);
-  padding: 0.25rem 0.375rem;
 }
-.gp-chat-jump:hover { background: var(--accent-hi); border-color: var(--accent-hi); }
 
 .gp-chat-count {
   margin-left: auto;
