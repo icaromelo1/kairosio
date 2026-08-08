@@ -34,3 +34,21 @@ export function fecharAviso(id: number): void {
   const idx = avisos.findIndex((a) => a.id === id)
   if (idx !== -1) avisos.splice(idx, 1)
 }
+
+/**
+ * Mensagem que pode chegar à tela.
+ *
+ * `(e as Error).message` numa falha de rede devolve "Failed to fetch" — cru, em
+ * inglês, sem ação. Erro de domínio é outra coisa: ele carrega `code` e uma
+ * mensagem que o servidor já escreveu em português, e essa dá para mostrar.
+ * Qualquer outra coisa vira o texto de contexto de quem chamou, e o detalhe
+ * técnico só vai para o console.
+ */
+export function explicarErro(e: unknown, contexto: string): string {
+  const alvo = e as { code?: unknown; message?: unknown } | null
+  if (alvo && typeof alvo === 'object' && 'code' in alvo && typeof alvo.message === 'string') {
+    return alvo.message
+  }
+  console.error(contexto, e)
+  return contexto
+}

@@ -35,6 +35,7 @@ import {
   videoElements,
   type ScreenMode,
 } from './media.state'
+import { explicarErro } from './avisos'
 
 const SCREEN_STATS_MS = 3000
 
@@ -176,7 +177,7 @@ export class MediaRoom {
       try {
         config = await fetchMediaToken(mapId)
       } catch (e) {
-        this.state.error = (e as Error).message || 'Falha ao autorizar a voz'
+        this.state.error = explicarErro(e, 'Não deu pra autorizar a voz.')
         return false
       }
       // desistiram enquanto o token vinha: sair da tela, trocar de mundo ou de
@@ -193,7 +194,7 @@ export class MediaRoom {
       } catch (e) {
         if (this.room === room) this.room = null
         await this.abandon(room)
-        this.state.error = (e as Error).message || 'Não foi possível conectar à sala de voz'
+        this.state.error = explicarErro(e, 'Não foi possível conectar à sala de voz.')
         return false
       }
       // saiu da tela durante o handshake: a Room ficaria viva sem dono
@@ -311,7 +312,7 @@ export class MediaRoom {
       try {
         tracks = await room.localParticipant.createScreenTracks(profile.capture)
       } catch (e) {
-        if (!isPickerDismissed(e)) this.state.screenError = (e as Error).message || 'Não foi possível capturar a tela'
+        if (!isPickerDismissed(e)) this.state.screenError = explicarErro(e, 'Não foi possível capturar a tela.')
         return false
       }
 
@@ -332,7 +333,7 @@ export class MediaRoom {
           await room.localParticipant.unpublishTrack(track, true).catch(() => {})
           track.stop()
         }
-        this.state.screenError = (e as Error).message || 'Não foi possível publicar a tela'
+        this.state.screenError = explicarErro(e, 'Não foi possível publicar a tela.')
         return false
       }
 

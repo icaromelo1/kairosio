@@ -75,6 +75,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, onMounted, onUnmounted } from 'vue'
+import { explicarErro } from '@/services/avisos'
 import { createFeedback, fetchFeedback, type Feedback, type FeedbackKind, type FeedbackStatus } from '@/services/feedback.api'
 import { useAuthStore } from '@/stores/useAuthStore'
 import PanelShell from '@/components/PanelShell.vue'
@@ -153,7 +154,7 @@ async function submit() {
     form.message = ''
     await load()
   } catch (e) {
-    err.value = (e as Error).message
+    err.value = explicarErro(e, 'Não deu pra enviar o feedback. Tente de novo.')
   } finally {
     sending.value = false
   }

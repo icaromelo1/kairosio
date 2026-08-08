@@ -159,6 +159,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { explicarErro } from '@/services/avisos'
 import { useAuthStore } from '@/stores/useAuthStore'
 import {
   getMyServer, getArchivedServers, getInvite, revokeInvite, inviteLink,
@@ -207,7 +208,7 @@ const visibleTabs = computed<Tab[]>(() => {
 })
 
 function fail(key: string, e: unknown) {
-  err.value = { ...err.value, [key]: (e as Error).message }
+  err.value = { ...err.value, [key]: explicarErro(e, 'Não deu pra concluir. Tente de novo.') }
 }
 
 function canManage(m: ServerMember) {

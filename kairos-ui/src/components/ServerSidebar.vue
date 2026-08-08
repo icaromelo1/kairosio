@@ -298,6 +298,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { explicarErro } from '@/services/avisos'
 import { useRouter } from 'vue-router'
 import { getMyServers, switchServer, type MyServerSummary } from '@/services/server.api'
 import { agruparPorSala, salaFechadaDoPonto, type PessoaNaSala } from '@/game/salas'
@@ -489,7 +490,7 @@ async function enterServer(serverId: string | null, mapId?: string) {
     // servidor do handshake e precisa reconectar pra sair da sala antiga
     emit('server-changed', serverId, mapId)
   } catch (e) {
-    error.value = (e as Error).message
+    error.value = explicarErro(e, 'Não deu pra trocar de servidor.')
   } finally {
     busy.value = false
   }
