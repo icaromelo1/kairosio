@@ -301,6 +301,10 @@ export async function recarregarConversas() {
 export function voltarParaLista() {
   vista.value = 'lista'
   erroEnvio.value = ''
+  // o marcador fica até você responder ou sair da conversa — reabrir depois
+  // disso não deve mostrar "novas" de novo
+  marcadorEm.value = ''
+  marcadorQuantas.value = 0
 }
 
 export async function abrir(linha: LinhaConversa) {
