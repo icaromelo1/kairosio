@@ -227,6 +227,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { explicarErro } from '@/services/avisos'
 import { useRouter } from 'vue-router'
 import {
   acceptFriend, blockFriend, blockedFriends, inviteFriendToServer, listFriends,
@@ -296,7 +297,7 @@ const MENSAGENS: Record<string, string> = {
 
 function texto(e: unknown): string {
   const code = e instanceof FriendError ? e.code : ''
-  return MENSAGENS[code] || (e as Error).message || 'Algo deu errado.'
+  return MENSAGENS[code] || explicarErro(e, 'Algo deu errado. Tente de novo.')
 }
 
 function handleOf(user: FriendUser | null | undefined): string {

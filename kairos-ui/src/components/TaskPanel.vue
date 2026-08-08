@@ -39,6 +39,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { explicarErro } from '@/services/avisos'
 import { listTasks, createTask, updateTask, deleteTask, type TaskItem } from '@/services/task.api'
 import PixelIcon from '@/components/PixelIcon.vue'
 
@@ -73,7 +74,7 @@ async function add() {
     tasks.value.push(created)
     titleInput.value = ''
   } catch (e) {
-    error.value = (e as Error).message || 'falha ao criar tarefa'
+    error.value = explicarErro(e, 'Não deu pra criar a tarefa.')
   } finally {
     adding.value = false
   }

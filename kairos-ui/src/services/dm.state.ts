@@ -1,4 +1,5 @@
 import { computed, nextTick, ref } from 'vue'
+import { explicarErro } from './avisos'
 import {
   DM_INTERVALO_MIN_MS, DM_TEXTO_MAX, DmError,
   dmHistory, listConversas, markDmRead, sendDm,
@@ -96,7 +97,7 @@ export const MENSAGENS: Record<string, string> = {
 
 export function explicar(e: unknown): string {
   const code = e instanceof DmError ? e.code : ''
-  return MENSAGENS[code] || (e as Error).message || 'Algo deu errado.'
+  return MENSAGENS[code] || explicarErro(e, 'Algo deu errado. Tente de novo.')
 }
 
 function handleOf(user: FriendUser | null | undefined): string {

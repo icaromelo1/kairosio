@@ -41,6 +41,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { explicarErro } from '@/services/avisos'
 import { listNotes, createNote, updateNote, deleteNote, type NoteItem } from '@/services/note.api'
 import PixelIcon from '@/components/PixelIcon.vue'
 
@@ -75,7 +76,7 @@ async function add() {
     notes.value.push(created)
     bodyInput.value = ''
   } catch (e) {
-    error.value = (e as Error).message || 'falha ao criar nota'
+    error.value = explicarErro(e, 'Não deu pra criar a nota.')
   } finally {
     adding.value = false
   }
@@ -104,7 +105,7 @@ async function saveEdit(n: NoteItem) {
     if (i >= 0) notes.value[i] = salva
     cancelEdit()
   } catch (e) {
-    error.value = (e as Error).message || 'falha ao salvar nota'
+    error.value = explicarErro(e, 'Não deu pra salvar a nota.')
   }
 }
 

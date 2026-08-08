@@ -61,6 +61,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { explicarErro } from '@/services/avisos'
 import { useRouter } from 'vue-router'
 import {
   createServer, joinServer, getMyServers, switchServer, setPendingInvite,
@@ -113,7 +114,7 @@ async function run(action: () => Promise<void>) {
   try {
     await action()
   } catch (e) {
-    error.value = (e as Error).message
+    error.value = explicarErro(e, 'Não deu pra concluir. Tente de novo.')
   } finally {
     busy.value = false
   }

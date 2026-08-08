@@ -435,7 +435,7 @@ onUnmounted(() => {
 .dms-conv-hora {
   flex: none;
   font-family: var(--f-num);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--text-3);
 }
 
@@ -603,7 +603,7 @@ onUnmounted(() => {
 .dms-msg-hora {
   flex: none;
   font-family: var(--f-num);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   color: var(--text-3);
 }
 
