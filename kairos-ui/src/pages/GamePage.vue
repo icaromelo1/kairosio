@@ -395,8 +395,6 @@
         <button class="tbtn" aria-label="acenar" @pointerdown.prevent="emote()"><PixelIcon name="hand" size="1.25rem" /></button>
       </div>
 
-      <div v-if="error" class="gp-error">{{ error }}</div>
-
       <!-- Sessão aberta em outra aba/dispositivo -->
       <div v-if="sessionKicked" class="gp-modal-overlay">
         <div class="k-card gp-modal-card column q-gutter-md">
@@ -443,6 +441,7 @@ import { jukeboxAudio } from '@/services/jukeboxAudio'
 import { photoUrl } from '@/services/character.api'
 import { precisaCriarPersonagem, panelFromQuery, type GamePanel } from '@/services/postAuth'
 import { estadoDeLuz } from '@/game/lighting'
+import { mostrarAviso } from '@/services/avisos'
 import { me } from '@/services/auth.api'
 import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import MapaExpandido from '@/components/MapaExpandido.vue'
@@ -488,7 +487,6 @@ const host = ref<HTMLElement | null>(null)
 const sidebar = ref<InstanceType<typeof ServerSidebar> | null>(null)
 const maps = ref<MapDef[]>([])
 const currentId = ref('')
-const error = ref('')
 const activeZone = ref<MapObject | null>(null)
 
 // o que E faz AGORA. banco e cadeira entram em interactableObjects por serem
@@ -1201,7 +1199,7 @@ async function onMundosAlterados() {
     // o mundo em que eu estava foi apagado: sair dele é obrigatório, senão fico
     // num mapa fantasma que ninguém mais enxerga
     const destino = maps.value[0]
-    if (!destino) { error.value = 'Nenhum mundo disponível'; return }
+    if (!destino) { mostrarAviso('Nenhum mundo disponível neste servidor.', 'aviso'); return }
     currentId.value = ''
     selectMap(destino.id)
   } catch {
@@ -1214,13 +1212,12 @@ async function onMundosAlterados() {
 // não tem como atualizá-lo, então tem de reconectar — sem isso o avatar
 // continuaria na sala do servidor anterior.
 async function onServerChanged(_serverId?: string, mapId?: string) {
-  error.value = ''
   try {
     maps.value = await fetchMaps()
     const target = maps.value.find((m) => m.id === mapId)
       || maps.value.find((m) => m.id === currentId.value)
       || maps.value[0]
-    if (!target) { error.value = 'Nenhum mundo disponível'; return }
+    if (!target) { mostrarAviso('Nenhum mundo disponível neste servidor.', 'aviso'); return }
     if (target.id !== currentId.value) applyMap(target)
     disconnectPresence()
     // o histórico é da sala do servidor anterior
@@ -1229,8 +1226,8 @@ async function onServerChanged(_serverId?: string, mapId?: string) {
     connectPresence({ avatar: joinAvatarPayload.value, map: target.id, x: pos.x, y: pos.y })
     void sidebar.value?.reloadServers()
     void enterVoice(target.id, true)
-  } catch (e) {
-    error.value = (e as Error).message
+  } catch {
+    mostrarAviso('Não deu pra trocar de mundo. Tente de novo em instantes.')
   }
 }
 
@@ -1439,15 +1436,15 @@ onMounted(async () => {
       }
     }
     const first = maps.value.find((m) => m.id === startId) || maps.value[0]
-    if (!first) { error.value = 'Nenhum mundo disponível'; return }
+    if (!first) { mostrarAviso('Nenhum mundo disponível neste servidor.', 'aviso'); return }
     selectMap(first.id)
     if (savedPos) { pos.x = savedPos.x; pos.y = savedPos.y }
     connectPresence({ avatar: joinAvatarPayload.value, map: first.id, x: pos.x, y: pos.y })
     // a barra lateral já montou (e já pediu a lista de servidores) antes do
     // socket existir: o observador de presença só cola agora
     sidebar.value?.syncPresence()
-  } catch (e) {
-    error.value = (e as Error).message
+  } catch {
+    mostrarAviso('Não deu pra entrar no mundo. Recarregue a página.')
   }
 
   window.addEventListener('keydown', onKeyDown)
@@ -2225,15 +2222,6 @@ onUnmounted(() => {
   user-select: none;
 }
 
-.gp-error {
-  position: absolute;
-  top: 7rem;
-  left: 50%;
-  transform: translateX(-50%);
-  color: var(--err);
-  font-size: 0.8125rem;
-  z-index: 10;
-}
 
 .tbtn {
   background: var(--bg-1);
