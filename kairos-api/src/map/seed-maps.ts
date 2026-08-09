@@ -2,5 +2,6 @@
 // correcao de mundo oficial chega em producao. Mundo oficial nao e editavel no
 // jogo, entao nao ha trabalho de usuario para descartar.
 import { CIDADE } from './cidade'
+import { VILA } from './vila'
 
-export const SEED_MAPS = [CIDADE]
+export const SEED_MAPS = [CIDADE, VILA]
