@@ -59,7 +59,7 @@ const DIRECOES: Direcao[] = ['baixo', 'cima', 'esquerda', 'direita']
  * chamado quando a direção ou o quadro do ciclo mudam. Andando os quadros trocam e
  * a segunda passada pegava a versão pintada — parado, nunca.
  */
-export async function prepararAvatar(preset: string, cores?: CoresAlvo): Promise<void> {
+async function prepararAvatar(preset: string, cores?: CoresAlvo): Promise<void> {
   if (!cores || !precisaRecolorir(cores)) return
   const pedidos: Promise<unknown>[] = []
   for (const dir of DIRECOES) {

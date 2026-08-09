@@ -120,6 +120,34 @@ const TITULOS = {
 
 const contar = (r) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, v.length]))
 
+// Vocabulário de corpos: a API grava `base` e o front é quem tem os sprites e as
+// máscaras. Um id que exista só de um lado vira boneco sem arte — foi assim que o
+// hairStyle 'short' sobreviveu apontando para um corpo que não existia mais.
+//
+// Não é catraca: divergência aqui nunca é aceitável, então reprova sempre.
+export function compararVocabulario(daApi, doFront) {
+  const api = new Set(daApi)
+  const front = new Set(doFront)
+  return {
+    soNaApi: [...api].filter((id) => !front.has(id)),
+    soNoFront: [...front].filter((id) => !api.has(id)),
+  }
+}
+
+function vocabulario() {
+  const api = readFileSync(join(AQUI, '..', 'kairos-api/src/avatar/avatar.presets.ts'), 'utf8')
+  const front = readFileSync(
+    join(AQUI, '..', 'kairos-ui/src/game/furniture/avatar/presets.json'),
+    'utf8',
+  )
+  const daApi = [...api.matchAll(/id:\s*'([^']+)'/g)].map((m) => m[1])
+  const doFront = JSON.parse(front).map((c) => c.id)
+  if (!daApi.length || !doFront.length) {
+    return { soNaApi: [], soNoFront: [], vazio: true }
+  }
+  return compararVocabulario(daApi, doFront)
+}
+
 function autoteste() {
   const dir = join(AQUI, '..', '.restos-autoteste')
   rmSync(dir, { recursive: true, force: true })
@@ -143,6 +171,11 @@ function autoteste() {
     ['NÃO acusa arquivo importado', !r['arquivo-orfao'].includes('usado.ts')],
     ['acha o que só o teste mantém vivo', r['vivo-so-pelo-teste'].some((x) => x.includes('Zumbi'))],
     ['NÃO chama de morto o que o teste usa junto com produção', !r['export-morto'].some((x) => x.includes('VIVO'))],
+    ['acha corpo que só existe na API', compararVocabulario(['a', 'b'], ['a']).soNaApi.length === 1],
+    ['acha corpo que só existe no front', compararVocabulario(['a'], ['a', 'b']).soNoFront.length === 1],
+    ['NÃO acusa vocabulários iguais fora de ordem',
+      compararVocabulario(['a', 'b'], ['b', 'a']).soNaApi.length === 0 &&
+      compararVocabulario(['a', 'b'], ['b', 'a']).soNoFront.length === 0],
   ]
   rmSync(dir, { recursive: true, force: true })
 
@@ -155,6 +188,19 @@ function autoteste() {
 }
 
 function catraca() {
+  const v = vocabulario()
+  if (v.vazio) {
+    console.log('  vocabulário: não deu para ler os dois lados — checagem pulada')
+  } else if (v.soNaApi.length || v.soNoFront.length) {
+    console.log('Vocabulário de corpos divergente entre API e front:')
+    if (v.soNaApi.length) console.log(`  só na API:   ${v.soNaApi.join(', ')}`)
+    if (v.soNoFront.length) console.log(`  só no front: ${v.soNoFront.join(', ')}`)
+    console.log('\nAvatar com base sem arte correspondente vira boneco vazio.')
+    return 1
+  } else {
+    console.log('  vocabulário de corpos: API e front batem')
+  }
+
   const base = existsSync(BASE) ? JSON.parse(readFileSync(BASE, 'utf8')) : null
   const agora = Object.fromEntries(PROJETOS.map(([n, d]) => [n, contar(varrer(d))]))
   if (!base) {
