@@ -25,10 +25,6 @@ function urlDoBanco() {
   return linha.slice('DATABASE_URL='.length).trim().replace(/^["']|["']$/g, '')
 }
 
-const CORPOS = JSON.parse(
-  readFileSync(join(AQUI, '..', 'kairos-ui/src/game/furniture/avatar/presets.json'), 'utf8'),
-).map((c) => c.id)
-const CORPO_PADRAO = CORPOS[0]
 
 // sanitizeLook do front trata cor igual à padrão como "não escolheu"; o backfill
 // segue a mesma regra, senão criaria avatar personalizado para quem nunca escolheu
@@ -53,8 +49,14 @@ const { rows: avatares } = await cliente.query(
   `SELECT id, base, pele, cabelo, roupa, origem FROM avatares`,
 )
 
-if (!avatares.length) {
-  console.error('A tabela avatares está vazia — suba a API uma vez para semear os 6 corpos.')
+// a lista de corpos vem das linhas origem='base', não de um arquivo: elas SÃO o
+// acervo, e ler do banco elimina a chance de o script normalizar para um corpo que
+// a instalação não tem semeado
+const CORPOS = avatares.filter((a) => a.origem === 'base').map((a) => a.base)
+const CORPO_PADRAO = CORPOS[0]
+
+if (!CORPOS.length) {
+  console.error('Nenhum avatar origem=base — suba a API uma vez para semear os corpos.')
   process.exit(1)
 }
 
