@@ -236,21 +236,39 @@ export class AvatarPuppet {
       // era um carrinho desenhado à mão em Graphics, com paleta própria que não
       // conversava com o resto do mundo. Agora é o caminhão do Tiny Battle no time
       // vermelho — mesma cor de antes, mas arte do mesmo acervo do cenário
-      // o veículo é maior que o boneco e fica NA FRENTE, cobrindo da cintura para
-      // baixo: atrás dele o corpo escondia a peça inteira, que foi o que apareceu
-      // na primeira versão
-      const larg = BODY_SIZE * 1.5
+      // Duas peças da MESMA arte, como o carrinho antigo fazia: uma atrás inteira e
+      // uma na frente recortada só na metade de baixo. Só atrás, o corpo escondia o
+      // veículo; só na frente e grande, o veículo escondia a pessoa — que foi
+      // exatamente o que apareceu nas duas primeiras versões.
+      const larg = BODY_SIZE * 1.15
       const caixa = { x: 0, y: 0, w: larg, h: larg }
-      const carro = criarSpriteDeTile({ pack: 'tiny-battle', i: 149, cols: 18, tile: 16 }, caixa)
-      if (!carro) return
-      carro.anchor.set(0.5, 1)
-      carro.position.set(8 * UNIT, 20 * UNIT + 5 * UNIT)
+      const peca = { pack: 'tiny-battle', i: 149, cols: 18, tile: 16 }
+      const baseY = 20 * UNIT + 3 * UNIT
+
+      const deTras = criarSpriteDeTile(peca, caixa)
+      const daFrente = criarSpriteDeTile(peca, caixa)
+      if (!deTras || !daFrente) return
+      for (const sp of [deTras, daFrente]) {
+        sp.anchor.set(0.5, 1)
+        sp.position.set(8 * UNIT, baseY)
+      }
+
+      const atras = new Container()
+      atras.addChild(deTras)
 
       const frente = new Container()
-      frente.addChild(carro)
+      // recorte: da cintura do boneco para baixo, para a cabeça e o tronco ficarem
+      // sempre visíveis por cima do veículo
+      const corte = new Graphics()
+        .rect(8 * UNIT - larg / 2, baseY - larg * 0.42, larg, larg * 0.42)
+        .fill(0xffffff)
+      frente.addChild(corte, daFrente)
+      daFrente.mask = corte
+
+      this.cartBack = atras
       this.cartFront = frente
-      this.cartBack = new Container()
-      this.root.addChild(frente)
+      this.root.addChildAt(atras, 1)
+      this.root.addChildAt(frente, this.root.getChildIndex(this.bodyLayer) + 1)
     }
     if (this.cartBack) this.cartBack.visible = on
     if (this.cartFront) this.cartFront.visible = on
