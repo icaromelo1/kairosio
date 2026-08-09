@@ -2,6 +2,7 @@ import { Assets, Container, Graphics, Sprite, Text, Texture } from 'pixi.js'
 import presetsRaw from '../furniture/avatar/presets.json'
 import { ESCALA_PADRAO } from '../escala-avatar'
 import { GESTO_DANCA, quadroEm, type DirecaoGesto } from '../gestos'
+import { criarSpriteDeTile } from '../furniture/catalog'
 import { precisaRecolorir, temMascara, texturaRecolorida, type CoresAlvo } from '../recolorir'
 
 export interface AvatarPresetInfo {
@@ -232,46 +233,22 @@ export class AvatarPuppet {
   private cartFront?: Container
   setBoost(on: boolean) {
     if (on && !this.cartBack) {
-      const U = UNIT
-      const red = 0xd11f2a
-      const redDark = 0x8e1018
-      const redLite = 0xf2545b
-      const tire = 0x141418
-      const rim = 0xc8c8d6
+      // era um carrinho desenhado à mão em Graphics, com paleta própria que não
+      // conversava com o resto do mundo. Agora é o caminhão do Tiny Battle no time
+      // vermelho — mesma cor de antes, mas arte do mesmo acervo do cenário
+      const caixa = { x: 0, y: 0, w: BODY_SIZE, h: BODY_SIZE }
+      const carro = criarSpriteDeTile({ pack: 'tiny-battle', i: 149, cols: 18, tile: 16 }, caixa)
+      if (!carro) return
+      carro.anchor.set(0.5, 1)
+      carro.position.set(8 * UNIT, 20 * UNIT + 2 * UNIT)
 
-      const back = new Container()
-      const gb = new Graphics()
-      for (const wx of [2.2, 13.8]) {
-        gb.circle(wx * U, 18.5 * U, 2.7 * U).fill({ color: tire })
-        gb.circle(wx * U, 18.5 * U, 1.3 * U).fill({ color: rim })
-        gb.circle(wx * U, 18.5 * U, 0.5 * U).fill({ color: 0x2a2a32 })
-      }
-      gb.rect(0.5 * U, 11.5 * U, 15 * U, 7 * U).fill({ color: red })
-      gb.rect(0.5 * U, 11.5 * U, 15 * U, 1 * U).fill({ color: redLite })
-      gb.rect(3.5 * U, 11 * U, 9 * U, 6 * U).fill({ color: 0x2a0a0c })
-      gb.rect(0.5 * U, 10 * U, 3 * U, 7 * U).fill({ color: red })
-      gb.rect(12.5 * U, 10 * U, 3 * U, 7 * U).fill({ color: red })
-      gb.rect(0.5 * U, 10 * U, 3 * U, 1 * U).fill({ color: redLite })
-      gb.rect(12.5 * U, 10 * U, 3 * U, 1 * U).fill({ color: redLite })
-      gb.rect(-1.5 * U, 10 * U, 1.2 * U, 4.5 * U).fill({ color: redDark })
-      gb.rect(-2 * U, 10 * U, 3 * U, 1 * U).fill({ color: red })
-      back.addChild(gb)
-
-      const front = new Container()
-      const gf = new Graphics()
-      gf.rect(0.5 * U, 16.5 * U, 15 * U, 4 * U).fill({ color: red })
-      gf.rect(0.5 * U, 16.5 * U, 15 * U, 1 * U).fill({ color: redLite })
-      gf.rect(0.5 * U, 19.8 * U, 15 * U, 0.8 * U).fill({ color: redDark })
-      gf.rect(15.5 * U, 16.5 * U, 2.6 * U, 3 * U).fill({ color: red })
-      gf.rect(15.5 * U, 16.5 * U, 2.6 * U, 0.9 * U).fill({ color: redLite })
-      gf.rect(17.2 * U, 17 * U, 1 * U, 2 * U).fill({ color: redDark })
-      gf.rect(7.2 * U, 16.5 * U, 1.6 * U, 4 * U).fill({ color: 0xf4f4f8, alpha: 0.9 })
-      front.addChild(gf)
-
-      this.cartBack = back
-      this.cartFront = front
-      this.root.addChildAt(back, 1)
-      this.root.addChildAt(front, this.root.getChildIndex(this.bodyLayer) + 1)
+      const atras = new Container()
+      atras.addChild(carro)
+      this.cartBack = atras
+      // sem peça na frente: o sprite é uma silhueta só, e sobrepor metade dele ao
+      // boneco esconderia justamente o avatar que a pessoa escolheu
+      this.cartFront = new Container()
+      this.root.addChildAt(atras, 1)
     }
     if (this.cartBack) this.cartBack.visible = on
     if (this.cartFront) this.cartFront.visible = on
