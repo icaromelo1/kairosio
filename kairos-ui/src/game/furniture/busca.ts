@@ -38,6 +38,24 @@ function semAcento(s: string): string {
     .toLowerCase()
 }
 
+export interface Folha {
+  pack: string
+  cols: number
+  tile: number
+  tiles: TileResultado[]
+}
+
+// a folha inteira de um pack, na ordem do tilesheet — é o que permite exibir o
+// catálogo com a disposição original, onde o objeto de vários tiles se lê inteiro
+export function folhas(): Folha[] {
+  return INDICES.map((idx) => ({
+    pack: idx.pack,
+    cols: idx.cols,
+    tile: idx.tile,
+    tiles: idx.tiles.map((t) => ({ ...t, pack: idx.pack, cols: idx.cols, tile: idx.tile })),
+  }))
+}
+
 export function categorias(): string[] {
   const set = new Set<string>()
   for (const idx of INDICES) {
@@ -62,17 +80,30 @@ export function expandir(termo: string): string[] {
   return [base, ...extra].filter(Boolean)
 }
 
+// serveComo entra aqui e não só no filtro de categoria porque é o que a revisão
+// manual grava: a coluna revisada como "parede + decoracao" tem que aparecer nas duas
+export function casa(t: TileIndiceEntry, alvos: string[], cat?: string): boolean {
+  if (cat && t.cat !== cat && !t.serveComo.includes(cat)) return false
+  if (!alvos.length) return true
+  const nome = semAcento(t.nome)
+  return alvos.some(
+    (a) =>
+      nome.includes(a) ||
+      t.tags.some((tag) => semAcento(tag).includes(a)) ||
+      t.serveComo.some((s) => semAcento(s).includes(a)),
+  )
+}
+
+export function alvosDe(termo: string): string[] {
+  return expandir(termo).map(semAcento).filter(Boolean)
+}
+
 export function buscar(termo: string, cat?: string): TileResultado[] {
-  const alvos = expandir(termo).map(semAcento).filter(Boolean)
+  const alvos = alvosDe(termo)
   const resultado: TileResultado[] = []
   for (const idx of INDICES) {
     for (const t of idx.tiles) {
-      if (cat && t.cat !== cat) continue
-      if (alvos.length) {
-        const nome = semAcento(t.nome)
-        const bate = alvos.some((a) => nome.includes(a) || t.tags.some((tag) => semAcento(tag).includes(a)))
-        if (!bate) continue
-      }
+      if (!casa(t, alvos, cat)) continue
       resultado.push({ ...t, pack: idx.pack, cols: idx.cols, tile: idx.tile })
     }
   }

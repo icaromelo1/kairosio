@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, useId } from 'vue'
+import { computed, ref, useId, watch } from 'vue'
 import PixelIcon from '@/components/PixelIcon.vue'
 import TileThumb from '@/components/TileThumb.vue'
-import { buscar, categorias, type TileResultado } from '@/game/furniture/busca'
+import { alvosDe, buscar, casa, categorias, folhas, type TileResultado } from '@/game/furniture/busca'
 
 const props = withDefaults(
   defineProps<{
@@ -24,6 +24,25 @@ const cat = ref('')
 const emDestaque = ref<TileResultado | null>(null)
 
 const categoriasDisponiveis = categorias()
+
+const todasAsFolhas = folhas()
+const modo = ref<'lista' | 'folha'>(
+  localStorage.getItem('kairos_catalogo_modo') === 'folha' ? 'folha' : 'lista',
+)
+const packFolha = ref(todasAsFolhas[0].pack)
+
+const folhaAtual = computed(
+  () => todasAsFolhas.find((f) => f.pack === packFolha.value) ?? todasAsFolhas[0],
+)
+
+// mesma regra do buscar(), não uma segunda cópia: divergir aqui faria a folha
+// destacar peça que a lista não acha
+function casaNaBusca(t: TileResultado): boolean {
+  if (!termo.value.trim() && !cat.value) return true
+  return casa(t, alvosDe(termo.value), cat.value || undefined)
+}
+
+watch(modo, (m) => localStorage.setItem('kairos_catalogo_modo', m))
 
 const resultados = computed<TileResultado[]>(() => {
   if (!termo.value.trim() && !cat.value) return []
@@ -65,7 +84,55 @@ const legenda = computed(() => {
       <PixelIcon name="chevron-down" size="0.75rem" class="cat-select-seta" />
     </div>
 
-    <p v-if="!buscando" class="cat-dica">Digite um nome ou escolha uma categoria pra ver as peças.</p>
+    <div class="cat-modos">
+      <button
+        type="button" class="k-btn k-btn-ghost k-btn-xs" :class="{ 'k-active': modo === 'lista' }"
+        :disabled="desabilitado" @click="modo = 'lista'"
+      >lista</button>
+      <button
+        type="button" class="k-btn k-btn-ghost k-btn-xs" :class="{ 'k-active': modo === 'folha' }"
+        :disabled="desabilitado" @click="modo = 'folha'"
+      >folha</button>
+      <template v-if="modo === 'folha'">
+        <button
+          v-for="f in todasAsFolhas" :key="f.pack"
+          type="button" class="k-btn k-btn-ghost k-btn-xs" :class="{ 'k-active': packFolha === f.pack }"
+          :disabled="desabilitado" @click="packFolha = f.pack"
+        >{{ f.pack }}</button>
+      </template>
+    </div>
+
+    <template v-if="modo === 'folha'">
+      <p class="cat-dica">
+        Disposição original do tilesheet. Buscar escurece o que não bate, sem tirar do lugar.
+      </p>
+      <div class="cat-folha-rolagem">
+        <div
+          class="cat-folha" role="listbox" aria-label="Folha do tilesheet"
+          :style="{ '--folha-cols': folhaAtual.cols }"
+        >
+          <button
+            v-for="r in folhaAtual.tiles"
+            :key="r.i"
+            type="button"
+            role="option"
+            class="cat-cel"
+            :class="{ 'k-active': ehAtual(r), 'cat-cel-fora': !casaNaBusca(r) }"
+            :aria-selected="ehAtual(r)"
+            :aria-label="r.nome"
+            :title="`${r.nome} (${r.pack})`"
+            :disabled="desabilitado"
+            @click="emit('escolher', r)"
+            @pointerenter="emDestaque = r"
+            @focus="emDestaque = r"
+          >
+            <TileThumb :peca="{ pack: r.pack, i: r.i, cols: r.cols, tile: r.tile }" :lado="24" />
+          </button>
+        </div>
+      </div>
+    </template>
+
+    <p v-else-if="!buscando" class="cat-dica">Digite um nome ou escolha uma categoria pra ver as peças.</p>
     <p v-else-if="!resultados.length" class="cat-dica">Nenhuma peça encontrada.</p>
 
     <div v-else class="cat-grade" role="listbox" aria-label="Peças do catálogo">
@@ -131,6 +198,41 @@ const legenda = computed(() => {
   line-height: 1.4;
   color: var(--text-3);
 }
+
+.cat-modos { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-top: 0.375rem; }
+
+/* rolagem só aqui dentro: modern-city tem 37 colunas e nunca cabe no painel */
+.cat-folha-rolagem {
+  max-height: 15rem;
+  overflow: auto;
+  margin-top: 0.25rem;
+  border: 0.125rem solid var(--tinta);
+}
+
+.cat-folha {
+  display: grid;
+  grid-template-columns: repeat(var(--folha-cols), 24px);
+  gap: 0;
+  width: max-content;
+  background: var(--bg-2);
+}
+
+.cat-cel {
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  display: block;
+}
+.cat-cel:hover:not(:disabled) {
+  box-shadow: inset 0 0 0 0.125rem var(--tinta), inset 0 0 0 0.25rem var(--bg-2);
+}
+.cat-cel:focus-visible { outline: none; box-shadow: inset 0 0 0 0.1875rem var(--accent); }
+.cat-cel.k-active { box-shadow: inset 0 0 0 0.125rem var(--accent); }
+/* escurece no lugar em vez de sumir: perder a posição na folha é perder o contexto */
+.cat-cel-fora { opacity: 0.18; }
 
 .cat-grade {
   display: grid;
