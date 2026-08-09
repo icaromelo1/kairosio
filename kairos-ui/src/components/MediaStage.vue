@@ -13,7 +13,7 @@
       @pointercancel="onDragEnd"
       @lostpointercapture="onDragEnd"
     >
-      <span class="ms-title">sala de voz</span>
+      <span class="ms-title">palco de mídia</span>
 
       <span v-if="minimized" class="ms-strip ellipsis">{{ stripLabel }}</span>
 
@@ -53,6 +53,7 @@
 
     <template v-if="!minimized">
       <div class="ms-tiles" :class="{ 'ms-tiles-foco': emFoco }">
+        <p v-if="!tiles.length" class="ms-palco-vazio">nada no palco ainda</p>
         <template v-for="tile in tiles" :key="tile.key">
           <button
             v-if="tile.kind === 'person'"
@@ -225,11 +226,11 @@
           type="button"
           class="k-btn k-btn-primary k-btn-sm ms-join"
           :disabled="connecting"
-          title="Entrar na voz deste mundo"
+          title="Entrar no palco de mídia deste mundo"
           @click="emit('connect')"
         >
           <PixelIcon name="headphone" size="0.875rem" />
-          {{ connecting ? 'conectando…' : 'entrar na voz' }}
+          {{ connecting ? 'conectando…' : 'entrar no palco' }}
         </button>
       </div>
 
@@ -829,6 +830,16 @@ onBeforeUnmount(() => {
 .ms-wbtn:hover {
   color: var(--text);
   border-color: var(--primary-hi);
+}
+
+.ms-palco-vazio {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 1.5rem;
+  text-align: center;
+  font-size: 0.8125rem;
+  color: var(--text-3);
+  border: 0.125rem dashed var(--border);
 }
 
 .ms-tiles {
