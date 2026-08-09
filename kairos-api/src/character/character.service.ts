@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { Character } from './character.entity'
 import { AvatarPhotoStorageService } from './avatar-photo-storage.service'
+import { AvatarService } from '../avatar/avatar.service'
 
 const PHOTO_MAX_BYTES = 5 * 1024 * 1024 // 5MB
 const PHOTO_EXT: Record<string, string> = {
@@ -16,6 +17,7 @@ export class CharacterService {
   constructor(
     @InjectRepository(Character) private repo: Repository<Character>,
     private readonly photoStorage: AvatarPhotoStorageService,
+    private readonly avatares: AvatarService,
   ) {}
 
   async get(userId: string) {
@@ -23,6 +25,11 @@ export class CharacterService {
   }
 
   async save(userId: string, data: Partial<Character>) {
+    // avatar inexistente aqui viraria violação de chave estrangeira e 500; recusar
+    // na entrada devolve o 400 que o front sabe tratar
+    if (data.avatarId && !(await this.avatares.existe(data.avatarId))) {
+      throw new BadRequestException('Avatar não encontrado')
+    }
     let char = await this.repo.findOne({ where: { user: { id: userId } } })
     if (char) {
       Object.assign(char, data)
