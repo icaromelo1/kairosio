@@ -1,6 +1,6 @@
 import { apiFetch } from './http'
 
-export type OrigemAvatar = 'base' | 'sudo' | 'usuario'
+type OrigemAvatar = 'base' | 'sudo' | 'usuario'
 
 export interface Avatar {
   id: string
@@ -19,7 +19,7 @@ export interface AvatarDoAcervo extends Avatar {
   emUso: number
 }
 
-export interface NovoAvatar {
+interface NovoAvatar {
   base: string
   pele?: string | null
   cabelo?: string | null
