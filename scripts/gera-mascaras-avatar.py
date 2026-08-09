@@ -8,6 +8,11 @@ distingue; cor sozinha não.
 
 Saída: um PNG por quadro, com a região codificada na cor —
   vermelho = pele · verde = cabelo · azul = roupa · branco = contorno
+
+E um confianca.json com COMO cada pixel foi decidido, um caractere por pixel na
+ordem de leitura: '.' transparente · 'c' pela cor · 'v' por vizinhança · 'f' só
+pela faixa. O editor de máscara usa isso para dizer onde o bootstrap chutou —
+sem essa informação, quem revisa não sabe onde olhar.
 """
 import json
 import sys
@@ -66,7 +71,7 @@ def perfil_de_cores(quadros):
     return por_cor, total
 
 
-def classificar(preset: Path):
+def classificar(preset: Path, confianca: dict):
     quadros = carregar(preset)
     por_cor, total = perfil_de_cores(quadros)
 
@@ -111,6 +116,7 @@ def classificar(preset: Path):
         w, h = im.size
         px = im.load()
         regiao = [[None] * w for _ in range(h)]
+        origem = [['.'] * w for _ in range(h)]
 
         for y in range(h):
             for x in range(w):
@@ -126,9 +132,11 @@ def classificar(preset: Path):
                 )
                 if borda and cor in escuras:
                     regiao[y][x] = 'contorno'
+                    origem[y][x] = 'c'
                     por_cor_n += 1
                 elif cor in dono:
                     regiao[y][x] = dono[cor]
+                    origem[y][x] = 'c'
                     por_cor_n += 1
                 else:
                     regiao[y][x] = 'pendente'
@@ -157,6 +165,7 @@ def classificar(preset: Path):
                 break
             for (x, y), v in decisoes.items():
                 regiao[y][x] = v
+                origem[y][x] = 'v'
                 propagados += 1
 
         # o que ninguém alcançou cai na faixa, e é o que sobra para revisão
@@ -164,6 +173,7 @@ def classificar(preset: Path):
             for x in range(w):
                 if regiao[y][x] == 'pendente':
                     regiao[y][x] = faixa(y, h)
+                    origem[y][x] = 'f'
                     so_faixa += 1
 
         mascara = Image.new('RGBA', (w, h), (0, 0, 0, 0))
@@ -173,6 +183,7 @@ def classificar(preset: Path):
                 if regiao[y][x]:
                     mp[x, y] = REGIAO[regiao[y][x]]
         mascara.save(destino / f'{nome}.png')
+        confianca[f'{preset.name}/{nome}'] = ''.join(''.join(linha) for linha in origem)
 
     return por_cor_n, propagados, so_faixa, len(espalhadas), len(total)
 
@@ -180,10 +191,11 @@ def classificar(preset: Path):
 def main():
     presets = sorted(p for p in RAIZ.iterdir() if p.is_dir())
     relatorio = {}
+    confianca = {}
     a = b = c = 0
     print(f'{len(presets)} presets\n')
     for p in presets:
-        cor_n, prop, faixa_n, esp, cores = classificar(p)
+        cor_n, prop, faixa_n, esp, cores = classificar(p, confianca)
         a += cor_n; b += prop; c += faixa_n
         relatorio[p.name] = {'porCor': cor_n, 'propagados': prop, 'soFaixa': faixa_n,
                              'coresEspalhadas': esp, 'cores': cores}
@@ -195,6 +207,16 @@ def main():
     print(f'  decididos por VIZINHANÇA (confiança média): {b:5} ({100*b/total:.1f}%)')
     print(f'  decididos só pela FAIXA (revisar):          {c:5} ({100*c/total:.1f}%)')
     (SAIDA / 'relatorio.json').write_text(json.dumps(relatorio, indent=2, ensure_ascii=False))
+    (SAIDA / 'confianca.json').write_text(json.dumps(confianca, ensure_ascii=False))
+
+    # a soma do arquivo tem que reproduzir o que foi impresso acima; se divergir,
+    # a gravação por pixel introduziu erro e o overlay mentiria
+    from collections import Counter as _C
+    conta = _C(ch for v in confianca.values() for ch in v)
+    if (conta['c'], conta['v'], conta['f']) != (a, b, c):
+        print(f"\nERRO: confianca.json nao bate — arquivo {dict(conta)} vs contadores {a}/{b}/{c}")
+        return 1
+    print(f'  confianca.json: {len(confianca)} quadros, conferido contra os contadores')
     return 0
 
 
