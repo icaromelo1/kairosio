@@ -4,7 +4,7 @@
 // front é quem tem os sprites e as máscaras: um `base` gravado aqui que não exista lá
 // vira boneco sem arte. É o mesmo acoplamento que produziu o antigo hairStyle 'short'
 // apontando pra corpo inexistente, e por isso scripts/restos.mjs compara os dois.
-export interface CorpoBase {
+interface CorpoBase {
   id: string
   nome: string
 }
@@ -18,6 +18,5 @@ export const CORPOS: CorpoBase[] = [
   { id: 'moletom-marrom', nome: 'Moletom marrom' },
 ]
 
-export const CORPO_PADRAO = CORPOS[0].id
 
 export const IDS_DE_CORPO = new Set(CORPOS.map((c) => c.id))
