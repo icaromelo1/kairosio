@@ -1,0 +1,2260 @@
+{
+ "pack": "tiny-dungeon",
+ "tile": 16,
+ "cols": 12,
+ "categorias": [
+  "decoracao",
+  "item",
+  "janela",
+  "movel",
+  "natureza",
+  "parede",
+  "personagem",
+  "piso",
+  "porta",
+  "sinal",
+  "vazio",
+  "veiculo"
+ ],
+ "tiles": [
+  {
+   "i": 0,
+   "nome": "fundo escuro da masmorra",
+   "cat": "vazio",
+   "tags": [
+    "fundo",
+    "preenchimento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 1,
+   "nome": "fundo escuro da masmorra",
+   "cat": "vazio",
+   "tags": [
+    "fundo",
+    "preenchimento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 2,
+   "nome": "topo de balcão de pedra",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "balcao",
+    "topo"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 3,
+   "nome": "topo de balcão de pedra",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "balcao",
+    "topo"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 4,
+   "nome": "topo de muro com acabamento de madeira",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "madeira",
+    "muro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 5,
+   "nome": "topo de muro com acabamento de madeira",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "madeira",
+    "muro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 6,
+   "nome": "coluna de pedra",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "coluna",
+    "pilar"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 7,
+   "nome": "arco de pedra com vão",
+   "cat": "janela",
+   "tags": [
+    "pedra",
+    "arco",
+    "vao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 8,
+   "nome": "arco de pedra com vão",
+   "cat": "janela",
+   "tags": [
+    "pedra",
+    "arco",
+    "vao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 9,
+   "nome": "vão escuro emoldurado em pedra",
+   "cat": "porta",
+   "tags": [
+    "passagem",
+    "vao",
+    "entrada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 10,
+   "nome": "vão escuro emoldurado em pedra",
+   "cat": "porta",
+   "tags": [
+    "passagem",
+    "vao",
+    "entrada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 11,
+   "nome": "vão escuro emoldurado em pedra",
+   "cat": "porta",
+   "tags": [
+    "passagem",
+    "vao",
+    "entrada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 12,
+   "nome": "entulho no chão escuro",
+   "cat": "decoracao",
+   "tags": [
+    "entulho",
+    "pedra",
+    "cascalho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 13,
+   "nome": "fundo escuro da masmorra",
+   "cat": "vazio",
+   "tags": [
+    "fundo",
+    "preenchimento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 14,
+   "nome": "parede de tijolo de pedra",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "pedra",
+    "muro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 15,
+   "nome": "parede de tijolo de pedra",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "pedra",
+    "muro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 16,
+   "nome": "nicho escuro na parede",
+   "cat": "decoracao",
+   "tags": [
+    "nicho",
+    "alcova",
+    "vao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 17,
+   "nome": "nicho escuro na parede",
+   "cat": "decoracao",
+   "tags": [
+    "nicho",
+    "alcova",
+    "vao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 18,
+   "nome": "coluna de pedra",
+   "cat": "parede",
+   "tags": [
+    "pedra",
+    "coluna",
+    "pilar"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 19,
+   "nome": "caveira entalhada na pedra",
+   "cat": "decoracao",
+   "tags": [
+    "caveira",
+    "entalhe",
+    "ornamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 20,
+   "nome": "caveira entalhada na pedra",
+   "cat": "decoracao",
+   "tags": [
+    "caveira",
+    "entalhe",
+    "ornamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 21,
+   "nome": "porta de madeira em moldura de pedra",
+   "cat": "porta",
+   "tags": [
+    "madeira",
+    "porta",
+    "entrada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 22,
+   "nome": "porta de madeira em moldura de pedra",
+   "cat": "porta",
+   "tags": [
+    "madeira",
+    "porta",
+    "entrada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 23,
+   "nome": "porta de madeira em moldura de pedra",
+   "cat": "porta",
+   "tags": [
+    "madeira",
+    "porta",
+    "entrada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 24,
+   "nome": "entulho no chão escuro",
+   "cat": "decoracao",
+   "tags": [
+    "entulho",
+    "pedra",
+    "cascalho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 25,
+   "nome": "fundo escuro da masmorra",
+   "cat": "vazio",
+   "tags": [
+    "fundo",
+    "preenchimento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 26,
+   "nome": "parede de tijolo de pedra",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "pedra",
+    "muro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 27,
+   "nome": "parede de tijolo de pedra",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "pedra",
+    "muro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 28,
+   "nome": "janela gradeada de pedra",
+   "cat": "janela",
+   "tags": [
+    "grade",
+    "janela",
+    "pedra"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 29,
+   "nome": "estandarte de chama",
+   "cat": "decoracao",
+   "tags": [
+    "chama",
+    "bandeira",
+    "fogo"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 30,
+   "nome": "piso de pedra clara com borda",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "pedra",
+    "borda"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 31,
+   "nome": "alçapão escuro no piso",
+   "cat": "porta",
+   "tags": [
+    "alcapao",
+    "passagem",
+    "buraco"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 32,
+   "nome": "cristal verde no piso",
+   "cat": "item",
+   "tags": [
+    "cristal",
+    "gema",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 33,
+   "nome": "porta de madeira estreita",
+   "cat": "porta",
+   "tags": [
+    "madeira",
+    "porta",
+    "entrada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 34,
+   "nome": "porta de madeira estreita",
+   "cat": "porta",
+   "tags": [
+    "madeira",
+    "porta",
+    "entrada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 35,
+   "nome": "porta de madeira estreita",
+   "cat": "porta",
+   "tags": [
+    "madeira",
+    "porta",
+    "entrada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 36,
+   "nome": "faixa de muro de pedra",
+   "cat": "parede",
+   "tags": [
+    "muro",
+    "pedra",
+    "faixa"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 37,
+   "nome": "faixa de muro de pedra",
+   "cat": "parede",
+   "tags": [
+    "muro",
+    "pedra",
+    "faixa"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 38,
+   "nome": "faixa de muro de pedra",
+   "cat": "parede",
+   "tags": [
+    "muro",
+    "pedra",
+    "faixa"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 39,
+   "nome": "faixa de muro de pedra",
+   "cat": "parede",
+   "tags": [
+    "muro",
+    "pedra",
+    "faixa"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 40,
+   "nome": "parede de tijolo de pedra",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "pedra",
+    "muro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 41,
+   "nome": "grade de ferro levadiça",
+   "cat": "porta",
+   "tags": [
+    "grade",
+    "portao",
+    "ferro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 42,
+   "nome": "piso claro com ladrilho solto",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "ladrilho",
+    "pedra"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 43,
+   "nome": "alçapão escuro no piso",
+   "cat": "porta",
+   "tags": [
+    "alcapao",
+    "passagem",
+    "buraco"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 44,
+   "nome": "cristal verde no piso",
+   "cat": "item",
+   "tags": [
+    "cristal",
+    "gema",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 45,
+   "nome": "porta dupla de madeira",
+   "cat": "porta",
+   "tags": [
+    "madeira",
+    "porta",
+    "dupla"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 46,
+   "nome": "porta dupla de madeira",
+   "cat": "porta",
+   "tags": [
+    "madeira",
+    "porta",
+    "dupla"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 47,
+   "nome": "porta dupla de madeira",
+   "cat": "porta",
+   "tags": [
+    "madeira",
+    "porta",
+    "dupla"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 48,
+   "nome": "piso de terra batida",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "terra",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 49,
+   "nome": "piso de terra batida",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "terra",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 50,
+   "nome": "piso de terra batida",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "terra",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 51,
+   "nome": "piso de terra batida",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "terra",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 52,
+   "nome": "piso de terra batida",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "terra",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 53,
+   "nome": "piso de terra batida",
+   "cat": "piso",
+   "tags": [
+    "piso",
+    "terra",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 54,
+   "nome": "bloco de pedra lavrada",
+   "cat": "decoracao",
+   "tags": [
+    "bloco",
+    "pedra",
+    "lavrado"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 55,
+   "nome": "bloco de pedra lavrada",
+   "cat": "decoracao",
+   "tags": [
+    "bloco",
+    "pedra",
+    "lavrado"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 56,
+   "nome": "pedra solta",
+   "cat": "natureza",
+   "tags": [
+    "pedra",
+    "rocha",
+    "minerio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 57,
+   "nome": "parede de tijolo de pedra",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "pedra",
+    "muro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 58,
+   "nome": "parede de tijolo de pedra",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "pedra",
+    "muro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 59,
+   "nome": "parede de tijolo de pedra",
+   "cat": "parede",
+   "tags": [
+    "tijolo",
+    "pedra",
+    "muro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 60,
+   "nome": "marcador de seleção",
+   "cat": "sinal",
+   "tags": [
+    "marcador",
+    "selecao",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 61,
+   "nome": "marcador de seleção",
+   "cat": "sinal",
+   "tags": [
+    "marcador",
+    "selecao",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 62,
+   "nome": "marcador de seleção",
+   "cat": "sinal",
+   "tags": [
+    "marcador",
+    "selecao",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 63,
+   "nome": "estante de madeira",
+   "cat": "movel",
+   "tags": [
+    "estante",
+    "prateleira",
+    "madeira"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 64,
+   "nome": "cogumelo de pedra",
+   "cat": "natureza",
+   "tags": [
+    "cogumelo",
+    "fungo"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 65,
+   "nome": "caixa de metal",
+   "cat": "movel",
+   "tags": [
+    "caixa",
+    "metal",
+    "engenho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 66,
+   "nome": "tábua de madeira",
+   "cat": "decoracao",
+   "tags": [
+    "tabua",
+    "madeira",
+    "placa"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 67,
+   "nome": "cerca de madeira",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "grade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 68,
+   "nome": "cerca de madeira",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "madeira",
+    "grade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 69,
+   "nome": "corrimão de metal",
+   "cat": "parede",
+   "tags": [
+    "corrimao",
+    "grade",
+    "metal"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 70,
+   "nome": "corrimão de metal",
+   "cat": "parede",
+   "tags": [
+    "corrimao",
+    "grade",
+    "metal"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 71,
+   "nome": "corrimão de metal",
+   "cat": "parede",
+   "tags": [
+    "corrimao",
+    "grade",
+    "metal"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 72,
+   "nome": "mesa de madeira",
+   "cat": "movel",
+   "tags": [
+    "mesa",
+    "madeira",
+    "bancada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 73,
+   "nome": "banquinho de madeira",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "banqueta",
+    "assento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 74,
+   "nome": "bigorna",
+   "cat": "movel",
+   "tags": [
+    "bigorna",
+    "forja",
+    "ferraria"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 75,
+   "nome": "estante de madeira",
+   "cat": "movel",
+   "tags": [
+    "estante",
+    "prateleira",
+    "madeira"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 76,
+   "nome": "grade de ferro",
+   "cat": "parede",
+   "tags": [
+    "grade",
+    "ferro",
+    "cerca"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 77,
+   "nome": "grade de ferro",
+   "cat": "parede",
+   "tags": [
+    "grade",
+    "ferro",
+    "cerca"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 78,
+   "nome": "grade de ferro",
+   "cat": "parede",
+   "tags": [
+    "grade",
+    "ferro",
+    "cerca"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 79,
+   "nome": "grade de ferro",
+   "cat": "parede",
+   "tags": [
+    "grade",
+    "ferro",
+    "cerca"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 80,
+   "nome": "corrimão de metal",
+   "cat": "parede",
+   "tags": [
+    "corrimao",
+    "grade",
+    "metal"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 81,
+   "nome": "corrimão de metal",
+   "cat": "parede",
+   "tags": [
+    "corrimao",
+    "grade",
+    "metal"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 82,
+   "nome": "barril de madeira",
+   "cat": "movel",
+   "tags": [
+    "barril",
+    "tonel",
+    "madeira"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 83,
+   "nome": "corrimão de metal",
+   "cat": "parede",
+   "tags": [
+    "corrimao",
+    "grade",
+    "metal"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 84,
+   "nome": "mago de chapéu roxo",
+   "cat": "personagem",
+   "tags": [
+    "mago",
+    "feiticeiro",
+    "pessoa"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 85,
+   "nome": "aventureiro careca",
+   "cat": "personagem",
+   "tags": [
+    "aventureiro",
+    "pessoa",
+    "heroi"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 86,
+   "nome": "esqueleto",
+   "cat": "personagem",
+   "tags": [
+    "esqueleto",
+    "morto-vivo",
+    "monstro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 87,
+   "nome": "anão de barba grisalha",
+   "cat": "personagem",
+   "tags": [
+    "anao",
+    "barba",
+    "pessoa"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 88,
+   "nome": "criatura peluda",
+   "cat": "personagem",
+   "tags": [
+    "monstro",
+    "criatura",
+    "bicho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 89,
+   "nome": "baú de tesouro",
+   "cat": "movel",
+   "tags": [
+    "bau",
+    "tesouro",
+    "arca"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 90,
+   "nome": "baú de tesouro",
+   "cat": "movel",
+   "tags": [
+    "bau",
+    "tesouro",
+    "arca"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 91,
+   "nome": "baú de tesouro",
+   "cat": "movel",
+   "tags": [
+    "bau",
+    "tesouro",
+    "arca"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 92,
+   "nome": "baú com armadilha",
+   "cat": "movel",
+   "tags": [
+    "bau",
+    "armadilha",
+    "monstro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 93,
+   "nome": "corrimão de metal",
+   "cat": "parede",
+   "tags": [
+    "corrimao",
+    "grade",
+    "metal"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 94,
+   "nome": "corrimão de metal",
+   "cat": "parede",
+   "tags": [
+    "corrimao",
+    "grade",
+    "metal"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 95,
+   "nome": "corrimão de metal",
+   "cat": "parede",
+   "tags": [
+    "corrimao",
+    "grade",
+    "metal"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 96,
+   "nome": "cavaleiro de elmo",
+   "cat": "personagem",
+   "tags": [
+    "cavaleiro",
+    "guerreiro",
+    "pessoa"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 97,
+   "nome": "cavaleiro de elmo",
+   "cat": "personagem",
+   "tags": [
+    "cavaleiro",
+    "guerreiro",
+    "pessoa"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 98,
+   "nome": "aventureiro de cabelo castanho",
+   "cat": "personagem",
+   "tags": [
+    "aventureiro",
+    "pessoa",
+    "heroi"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 99,
+   "nome": "maga de cabelo longo",
+   "cat": "personagem",
+   "tags": [
+    "maga",
+    "pessoa",
+    "feiticeira"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 100,
+   "nome": "anciã de cabelo branco",
+   "cat": "personagem",
+   "tags": [
+    "anciao",
+    "idoso",
+    "pessoa"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 101,
+   "nome": "moldura de item",
+   "cat": "sinal",
+   "tags": [
+    "moldura",
+    "slot",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 10
+   },
+   "solido": false
+  },
+  {
+   "i": 102,
+   "nome": "pedra solta",
+   "cat": "natureza",
+   "tags": [
+    "pedra",
+    "rocha",
+    "minerio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 10
+   },
+   "solido": true
+  },
+  {
+   "i": 103,
+   "nome": "espada curta",
+   "cat": "item",
+   "tags": [
+    "espada",
+    "arma",
+    "lamina"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 104,
+   "nome": "espada curta",
+   "cat": "item",
+   "tags": [
+    "espada",
+    "arma",
+    "lamina"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 105,
+   "nome": "espada curta",
+   "cat": "item",
+   "tags": [
+    "espada",
+    "arma",
+    "lamina"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 106,
+   "nome": "espada longa",
+   "cat": "item",
+   "tags": [
+    "espada",
+    "arma",
+    "lamina"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 107,
+   "nome": "espada longa",
+   "cat": "item",
+   "tags": [
+    "espada",
+    "arma",
+    "lamina"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 108,
+   "nome": "fantasma verde",
+   "cat": "personagem",
+   "tags": [
+    "fantasma",
+    "monstro",
+    "assombracao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 109,
+   "nome": "aventureiro careca",
+   "cat": "personagem",
+   "tags": [
+    "aventureiro",
+    "pessoa",
+    "heroi"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 110,
+   "nome": "caranguejo vermelho",
+   "cat": "personagem",
+   "tags": [
+    "caranguejo",
+    "monstro",
+    "bicho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 111,
+   "nome": "aventureiro de cabelo comprido",
+   "cat": "personagem",
+   "tags": [
+    "aventureiro",
+    "pessoa",
+    "heroi"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 112,
+   "nome": "arqueiro de faixa verde",
+   "cat": "personagem",
+   "tags": [
+    "arqueiro",
+    "pessoa",
+    "heroi"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 113,
+   "nome": "frasco vazio",
+   "cat": "item",
+   "tags": [
+    "frasco",
+    "poção",
+    "vidro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 114,
+   "nome": "poção verde",
+   "cat": "item",
+   "tags": [
+    "pocao",
+    "frasco",
+    "cura"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 115,
+   "nome": "poção vermelha",
+   "cat": "item",
+   "tags": [
+    "pocao",
+    "frasco",
+    "vida"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 116,
+   "nome": "poção azul",
+   "cat": "item",
+   "tags": [
+    "pocao",
+    "frasco",
+    "mana"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 117,
+   "nome": "martelo de guerra",
+   "cat": "item",
+   "tags": [
+    "martelo",
+    "arma",
+    "malho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 118,
+   "nome": "machado",
+   "cat": "item",
+   "tags": [
+    "machado",
+    "arma",
+    "lamina"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 119,
+   "nome": "machado",
+   "cat": "item",
+   "tags": [
+    "machado",
+    "arma",
+    "lamina"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 120,
+   "nome": "morcego",
+   "cat": "personagem",
+   "tags": [
+    "morcego",
+    "monstro",
+    "bicho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 121,
+   "nome": "caveira flutuante",
+   "cat": "personagem",
+   "tags": [
+    "caveira",
+    "morto-vivo",
+    "monstro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 122,
+   "nome": "aranha",
+   "cat": "personagem",
+   "tags": [
+    "aranha",
+    "monstro",
+    "bicho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 123,
+   "nome": "verme",
+   "cat": "personagem",
+   "tags": [
+    "verme",
+    "monstro",
+    "bicho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 124,
+   "nome": "elmo de metal",
+   "cat": "item",
+   "tags": [
+    "elmo",
+    "armadura",
+    "capacete"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 125,
+   "nome": "cajado simples",
+   "cat": "item",
+   "tags": [
+    "cajado",
+    "bastao",
+    "arma"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 126,
+   "nome": "cajado verde",
+   "cat": "item",
+   "tags": [
+    "cajado",
+    "bastao",
+    "magia"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 127,
+   "nome": "cajado vermelho",
+   "cat": "item",
+   "tags": [
+    "cajado",
+    "bastao",
+    "magia"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 128,
+   "nome": "cajado azul",
+   "cat": "item",
+   "tags": [
+    "cajado",
+    "bastao",
+    "magia"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 129,
+   "nome": "cajado roxo",
+   "cat": "item",
+   "tags": [
+    "cajado",
+    "bastao",
+    "magia"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 130,
+   "nome": "cajado ciano",
+   "cat": "item",
+   "tags": [
+    "cajado",
+    "bastao",
+    "magia"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 131,
+   "nome": "porrete de madeira",
+   "cat": "item",
+   "tags": [
+    "porrete",
+    "clava",
+    "arma"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": false
+  }
+ ]
+}

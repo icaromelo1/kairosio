@@ -25,7 +25,8 @@ from pathlib import Path
 from PIL import Image
 
 RAIZ = Path(__file__).resolve().parent.parent / 'kairos-ui/src/game/furniture'
-PACKS = ['tiny-town', 'rpg-urban', 'modern-city']
+PACKS = ['tiny-town', 'tiny-farm', 'tiny-battle', 'tiny-ski', 'tiny-dungeon',
+         'rpg-urban', 'modern-city']
 
 
 def calhas_vazias(img: Image.Image, tile: int) -> int:
@@ -85,7 +86,7 @@ def main() -> int:
         for f in falhas:
             print(f'  - {f}')
         return 1
-    print('\nOs 3 índices descrevem a folha real: a grade presa em cols reproduz o tilesheet.')
+    print(f'\nOs {len(PACKS)} índices descrevem a folha real: a grade presa em cols reproduz o tilesheet.')
     return 0
 
 

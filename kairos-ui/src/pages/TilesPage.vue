@@ -150,8 +150,10 @@ import SoSudo from '@/components/SoSudo.vue'
 import TileThumb from '@/components/TileThumb.vue'
 import { listarRevisoes, salvarRevisao, type TileRevisao } from '@/services/tiles.api'
 import tinyTown from '@/game/furniture/indice-tiny-town.json'
-import rpgUrban from '@/game/furniture/indice-rpg-urban.json'
-import modernCity from '@/game/furniture/indice-modern-city.json'
+import tinyFarm from '@/game/furniture/indice-tiny-farm.json'
+import tinyBattle from '@/game/furniture/indice-tiny-battle.json'
+import tinySki from '@/game/furniture/indice-tiny-ski.json'
+import tinyDungeon from '@/game/furniture/indice-tiny-dungeon.json'
 
 interface TileIndice {
   i: number
@@ -169,7 +171,7 @@ const CATEGORIAS = [
 ]
 const TECLAS = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', 'q', 'w']
 
-const PACKS = [tinyTown, rpgUrban, modernCity] as unknown as PackIndice[]
+const PACKS = [tinyTown, tinyFarm, tinyBattle, tinySki, tinyDungeon] as unknown as PackIndice[]
 const TOTAL = PACKS.reduce((n, p) => n + p.tiles.length, 0)
 
 const router = useRouter()

@@ -1,0 +1,2296 @@
+{
+ "pack": "tiny-ski",
+ "tile": 16,
+ "cols": 12,
+ "categorias": [
+  "decoracao",
+  "item",
+  "janela",
+  "movel",
+  "natureza",
+  "parede",
+  "personagem",
+  "piso",
+  "porta",
+  "sinal",
+  "vazio",
+  "veiculo"
+ ],
+ "tiles": [
+  {
+   "i": 0,
+   "nome": "neve lisa",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "chao",
+    "branco"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 1,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 2,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 3,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 4,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 5,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 6,
+   "nome": "pinheiro nevado",
+   "cat": "natureza",
+   "tags": [
+    "pinheiro",
+    "arvore",
+    "neve"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 7,
+   "nome": "árvore seca na neve",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "tronco",
+    "seco"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 8,
+   "nome": "bandeira vermelha de baliza",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "baliza",
+    "vermelho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 9,
+   "nome": "bandeira azul de baliza",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "baliza",
+    "azul"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 11,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 10,
+   "nome": "rede de baliza vermelha",
+   "cat": "sinal",
+   "tags": [
+    "rede",
+    "baliza",
+    "vermelho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 11,
+   "nome": "rede de baliza azul",
+   "cat": "sinal",
+   "tags": [
+    "rede",
+    "baliza",
+    "azul"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 12,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 13,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 14,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 15,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 16,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 17,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 18,
+   "nome": "pinheiro nevado",
+   "cat": "natureza",
+   "tags": [
+    "pinheiro",
+    "arvore",
+    "neve"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 19,
+   "nome": "árvore seca na neve",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "tronco",
+    "seco"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 20,
+   "nome": "bandeira vermelha de baliza",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "baliza",
+    "vermelho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 21,
+   "nome": "bandeira azul de baliza",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "baliza",
+    "azul"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 22,
+   "nome": "faixa azul de percurso",
+   "cat": "sinal",
+   "tags": [
+    "faixa",
+    "percurso",
+    "azul"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 23,
+   "nome": "faixa azul de percurso",
+   "cat": "sinal",
+   "tags": [
+    "faixa",
+    "percurso",
+    "azul"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 24,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 25,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 26,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 27,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 28,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 29,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 30,
+   "nome": "pinheiro nevado",
+   "cat": "natureza",
+   "tags": [
+    "pinheiro",
+    "arvore",
+    "neve"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 31,
+   "nome": "árvore seca na neve",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "tronco",
+    "seco"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 32,
+   "nome": "placa de curva à esquerda",
+   "cat": "sinal",
+   "tags": [
+    "placa",
+    "seta",
+    "esquerda"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 33,
+   "nome": "placa de curva à direita",
+   "cat": "sinal",
+   "tags": [
+    "placa",
+    "seta",
+    "direita"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 34,
+   "nome": "faixa vermelha de percurso",
+   "cat": "sinal",
+   "tags": [
+    "faixa",
+    "percurso",
+    "vermelho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 35,
+   "nome": "faixa vermelha de percurso",
+   "cat": "sinal",
+   "tags": [
+    "faixa",
+    "percurso",
+    "vermelho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 36,
+   "nome": "canaleta de largada",
+   "cat": "decoracao",
+   "tags": [
+    "largada",
+    "pista",
+    "raia"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 37,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 38,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 39,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 40,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 41,
+   "nome": "neve com pedregulho",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pedra",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 42,
+   "nome": "poste do teleférico",
+   "cat": "parede",
+   "tags": [
+    "teleferico",
+    "poste",
+    "pilar"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 43,
+   "nome": "cabo do teleférico",
+   "cat": "parede",
+   "tags": [
+    "teleferico",
+    "cabo",
+    "linha"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 44,
+   "nome": "cabo do teleférico",
+   "cat": "parede",
+   "tags": [
+    "teleferico",
+    "cabo",
+    "linha"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 45,
+   "nome": "cabo do teleférico",
+   "cat": "parede",
+   "tags": [
+    "teleferico",
+    "cabo",
+    "linha"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 46,
+   "nome": "cabo do teleférico",
+   "cat": "parede",
+   "tags": [
+    "teleferico",
+    "cabo",
+    "linha"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 47,
+   "nome": "monte de terra",
+   "cat": "natureza",
+   "tags": [
+    "terra",
+    "monte",
+    "barro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 48,
+   "nome": "placa de gelo",
+   "cat": "piso",
+   "tags": [
+    "gelo",
+    "chao",
+    "escorregadio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 49,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 50,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 51,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 52,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 53,
+   "nome": "neve com pedregulho",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pedra",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 54,
+   "nome": "poste do teleférico",
+   "cat": "parede",
+   "tags": [
+    "teleferico",
+    "poste",
+    "pilar"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 55,
+   "nome": "estação do teleférico",
+   "cat": "movel",
+   "tags": [
+    "teleferico",
+    "estacao",
+    "embarque"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 56,
+   "nome": "estação do teleférico",
+   "cat": "movel",
+   "tags": [
+    "teleferico",
+    "estacao",
+    "embarque"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 57,
+   "nome": "par de esquis",
+   "cat": "item",
+   "tags": [
+    "esqui",
+    "equipamento",
+    "par"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 58,
+   "nome": "bastões de esqui",
+   "cat": "item",
+   "tags": [
+    "bastao",
+    "esqui",
+    "equipamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 59,
+   "nome": "bastões de esqui",
+   "cat": "item",
+   "tags": [
+    "bastao",
+    "esqui",
+    "equipamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 60,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 61,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 62,
+   "nome": "portal de largada",
+   "cat": "decoracao",
+   "tags": [
+    "largada",
+    "portal",
+    "pista"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 63,
+   "nome": "portal de largada",
+   "cat": "decoracao",
+   "tags": [
+    "largada",
+    "portal",
+    "pista"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 64,
+   "nome": "portal de largada",
+   "cat": "decoracao",
+   "tags": [
+    "largada",
+    "portal",
+    "pista"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 65,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 66,
+   "nome": "mochila",
+   "cat": "item",
+   "tags": [
+    "mochila",
+    "bagagem",
+    "equipamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 67,
+   "nome": "cabine do teleférico",
+   "cat": "veiculo",
+   "tags": [
+    "cabine",
+    "gondola",
+    "teleferico"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 68,
+   "nome": "cabine do teleférico",
+   "cat": "veiculo",
+   "tags": [
+    "cabine",
+    "gondola",
+    "teleferico"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 69,
+   "nome": "boneco de neve",
+   "cat": "decoracao",
+   "tags": [
+    "boneco",
+    "neve",
+    "enfeite"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 70,
+   "nome": "esquiador de casaco verde",
+   "cat": "personagem",
+   "tags": [
+    "esquiador",
+    "pessoa",
+    "atleta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 71,
+   "nome": "esquiador de casaco verde",
+   "cat": "personagem",
+   "tags": [
+    "esquiador",
+    "pessoa",
+    "atleta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 72,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 73,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 74,
+   "nome": "rampa de salto",
+   "cat": "decoracao",
+   "tags": [
+    "rampa",
+    "salto",
+    "pista"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 75,
+   "nome": "rampa de salto",
+   "cat": "decoracao",
+   "tags": [
+    "rampa",
+    "salto",
+    "pista"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 76,
+   "nome": "rampa de salto",
+   "cat": "decoracao",
+   "tags": [
+    "rampa",
+    "salto",
+    "pista"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 77,
+   "nome": "neve com borda de pista",
+   "cat": "piso",
+   "tags": [
+    "neve",
+    "pista",
+    "borda",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 78,
+   "nome": "lobo",
+   "cat": "personagem",
+   "tags": [
+    "lobo",
+    "bicho",
+    "monstro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 79,
+   "nome": "lobo",
+   "cat": "personagem",
+   "tags": [
+    "lobo",
+    "bicho",
+    "monstro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 80,
+   "nome": "lobo",
+   "cat": "personagem",
+   "tags": [
+    "lobo",
+    "bicho",
+    "monstro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 81,
+   "nome": "rocha na neve",
+   "cat": "natureza",
+   "tags": [
+    "rocha",
+    "pedra",
+    "obstaculo"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 82,
+   "nome": "esquiadora de casaco rosa",
+   "cat": "personagem",
+   "tags": [
+    "esquiadora",
+    "pessoa",
+    "atleta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 83,
+   "nome": "esquiadora de casaco rosa",
+   "cat": "personagem",
+   "tags": [
+    "esquiadora",
+    "pessoa",
+    "atleta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 84,
+   "nome": "algarismo 0",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 85,
+   "nome": "algarismo 1",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 86,
+   "nome": "algarismo 2",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 87,
+   "nome": "algarismo 3",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 88,
+   "nome": "algarismo 4",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 89,
+   "nome": "algarismo 5",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 90,
+   "nome": "algarismo 6",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 91,
+   "nome": "algarismo 7",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 92,
+   "nome": "algarismo 8",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 93,
+   "nome": "algarismo 9",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 94,
+   "nome": "dois-pontos",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "pontuacao",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 6,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 95,
+   "nome": "bola de neve",
+   "cat": "item",
+   "tags": [
+    "neve",
+    "bola",
+    "objeto"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 6
+   },
+   "solido": false
+  },
+  {
+   "i": 96,
+   "nome": "letra A",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 97,
+   "nome": "letra B",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 98,
+   "nome": "letra C",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 99,
+   "nome": "letra D",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 100,
+   "nome": "letra E",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 101,
+   "nome": "letra F",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 102,
+   "nome": "letra G",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 103,
+   "nome": "letra H",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 104,
+   "nome": "letra I",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 105,
+   "nome": "letra J",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 106,
+   "nome": "letra K",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 107,
+   "nome": "letra L",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 108,
+   "nome": "letra M",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 109,
+   "nome": "letra N",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 110,
+   "nome": "letra O",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 111,
+   "nome": "letra P",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 112,
+   "nome": "letra Q",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 113,
+   "nome": "letra R",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 114,
+   "nome": "letra S",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 115,
+   "nome": "letra T",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 116,
+   "nome": "letra U",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 117,
+   "nome": "letra V",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 118,
+   "nome": "letra W",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 119,
+   "nome": "letra X",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 120,
+   "nome": "letra Y",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 121,
+   "nome": "letra Z",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "letra",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 122,
+   "nome": "símbolo exclamação",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "simbolo",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 6,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 123,
+   "nome": "símbolo cerquilha",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "simbolo",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 124,
+   "nome": "símbolo cifrão",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "simbolo",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 125,
+   "nome": "símbolo porcentagem",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "simbolo",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 126,
+   "nome": "símbolo mais",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "simbolo",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 127,
+   "nome": "símbolo menos",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "simbolo",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 6
+   },
+   "solido": false
+  },
+  {
+   "i": 128,
+   "nome": "símbolo vezes",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "simbolo",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 129,
+   "nome": "símbolo dividido",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "simbolo",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 130,
+   "nome": "símbolo igual",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "simbolo",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 10
+   },
+   "solido": false
+  },
+  {
+   "i": 131,
+   "nome": "símbolo ponto",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "simbolo",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 6,
+    "h": 6
+   },
+   "solido": false
+  }
+ ]
+}

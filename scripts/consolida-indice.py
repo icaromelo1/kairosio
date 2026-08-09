@@ -5,8 +5,11 @@ Junta os arquivos parciais, confere que a cobertura e total e sem duplicata,
 mede a area opaca de cada tile (para o renderizador derivar proporcao do
 proprio sprite em vez de espremer na caixa canonica do SVG) e grava o indice.
 
+O `cols` vem da largura do PNG, e o nome do pack e argumento — antes os dois eram
+constantes de rpg-urban, o que media o tile errado em qualquer pack mais estreito.
+
 Uso:
-    python3 scripts/consolida-indice.py <dirParciais> <tilemap.png> <saida.json>
+    python3 scripts/consolida-indice.py <dirParciais> <tilemap.png> <saida.json> <pack>
 
 Sai 1 se faltar tile, houver duplicata ou categoria fora do vocabulario.
 """
@@ -25,20 +28,31 @@ SOLIDOS = {"parede", "movel", "natureza", "veiculo", "decoracao"}
 
 TILE = 16
 GAP = 1
-COLS = 27
 
 
-def medir_opacos(tilemap):
+def colunas_de(tilemap):
+    """cols vem da largura do PNG, não de constante: com o valor errado o script
+    mede o tile vizinho e ninguém percebe olhando o JSON."""
     try:
         from PIL import Image
     except ImportError:
         sys.exit("ERRO: Pillow ausente — pip install Pillow")
+    largura = Image.open(tilemap).size[0]
+    cols = (largura + GAP) // (TILE + GAP)
+    if cols * (TILE + GAP) - GAP != largura:
+        sys.exit(f"ERRO: {tilemap} tem {largura}px, que não fecha grade de {TILE}px com {GAP}px de gap")
+    return cols
+
+
+def medir_opacos(tilemap, cols):
+    from PIL import Image
+
     im = Image.open(tilemap).convert("RGBA")
     medidas = {}
     linhas = (im.height + GAP) // (TILE + GAP)
     for r in range(linhas):
-        for c in range(COLS):
-            i = r * COLS + c
+        for c in range(cols):
+            i = r * cols + c
             sx, sy = c * (TILE + GAP), r * (TILE + GAP)
             recorte = im.crop((sx, sy, sx + TILE, sy + TILE))
             bb = recorte.getbbox()
@@ -49,9 +63,10 @@ def medir_opacos(tilemap):
 
 
 def main():
-    if len(sys.argv) != 4:
+    if len(sys.argv) != 5:
         sys.exit(__doc__)
-    dir_parciais, tilemap, saida = sys.argv[1:4]
+    dir_parciais, tilemap, saida, pack = sys.argv[1:5]
+    cols = colunas_de(tilemap)
 
     arquivos = sorted(glob.glob(os.path.join(dir_parciais, "*.json")))
     if not arquivos:
@@ -90,16 +105,19 @@ def main():
             print(f"  - {p}", file=sys.stderr)
         sys.exit(1)
 
-    medidas = medir_opacos(tilemap)
+    medidas = medir_opacos(tilemap, cols)
     for i, t in tiles.items():
         m = medidas.get(i, {"w": 0, "h": 0})
         t["opaco"] = m
         t["solido"] = t["cat"] in SOLIDOS
+        t.setdefault("tags", [])
+        t.setdefault("serveComo", [])
+        t.setdefault("revisado", False)
 
     indice = {
-        "pack": "rpg-urban",
+        "pack": pack,
         "tile": TILE,
-        "cols": COLS,
+        "cols": cols,
         "categorias": sorted(CATEGORIAS),
         "tiles": [tiles[i] for i in sorted(tiles)],
     }
