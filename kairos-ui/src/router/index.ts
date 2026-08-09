@@ -5,6 +5,7 @@ import RegisterPage from '@/pages/RegisterPage.vue'
 import GamePage from '@/pages/GamePage.vue'
 import EditorPage from '@/pages/EditorPage.vue'
 import TilesPage from '@/pages/TilesPage.vue'
+import MascarasPage from '@/pages/MascarasPage.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { setPendingInvite } from '@/services/server.api'
 import { PANEL_QUERY, type GamePanel } from '@/services/postAuth'
@@ -43,6 +44,7 @@ const router = createRouter({
     { path: '/game', component: GamePage, meta: { requiresAuth: true } },
     { path: '/editor/:id', component: EditorPage, meta: { requiresAuth: true } },
     { path: '/admin/tiles', component: TilesPage, meta: { requiresAuth: true } },
+    { path: '/admin/mascaras', component: MascarasPage, meta: { requiresAuth: true } },
     { path: '/:pathMatch(.*)*', redirect: '/' },
   ],
 })
