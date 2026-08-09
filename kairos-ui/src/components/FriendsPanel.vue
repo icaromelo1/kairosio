@@ -102,9 +102,12 @@
                 <button class="k-btn k-btn-ghost k-btn-xs fp-danger" :disabled="busy" @click="remove(row)">
                   <PixelIcon name="user-minus" size="0.75rem" />remover
                 </button>
-                <button class="k-btn k-btn-ghost k-btn-xs fp-danger" :disabled="busy" @click="block(row)">
-                  <PixelIcon name="user-x" size="0.75rem" />bloquear
-                </button>
+                <button
+                  class="k-btn k-btn-ghost k-btn-xs fp-danger"
+                  :disabled="busy"
+                  title="Bloqueio esconde a pessoa de você em todos os mundos."
+                  @click="block(row)"
+                ><PixelIcon name="user-x" size="0.75rem" />bloquear</button>
               </span>
 
               <div v-if="inviting === row.id" class="fp-invite">
@@ -119,7 +122,7 @@
             </li>
 
             <li v-if="!(tab === 'online' ? online : todos).length" class="fp-empty">
-              <span>{{ todos.length ? 'Ninguém online agora.' : 'Você ainda não tem amigos. Procure alguém pelo @nome ali em cima.' }}</span>
+              <span>{{ todos.length ? 'Ninguém online agora.' : 'Procure alguém pelo @nome na aba Online.' }}</span>
               <button class="k-btn k-btn-ghost k-btn-xs" @click="focusAlvo">
                 <PixelIcon name="user-plus" size="0.75rem" />adicionar por @nome
               </button>
@@ -151,7 +154,7 @@
               </span>
             </li>
             <li v-if="!recebidos.length" class="fp-empty">
-              <span>Nenhum pedido esperando resposta.</span>
+              <span>Nenhum pedido pendente.</span>
               <button class="k-btn k-btn-ghost k-btn-xs" @click="tab = 'todos'">
                 <PixelIcon name="users" size="0.75rem" />ver seus amigos
               </button>
@@ -217,9 +220,12 @@
                 </button>
               </span>
             </li>
-            <li v-if="!bloqueados.length" class="fp-empty">Você não bloqueou ninguém.</li>
+            <li v-if="!bloqueados.length" class="fp-empty"><span>Ninguém bloqueado.</span></li>
           </ul>
         </section>
+        <p class="k-hint-text fp-contrato">
+          Campo focado sequestra o teclado; Esc devolve ao jogo.
+        </p>
       </template>
     </div>
   </PanelShell>
@@ -631,6 +637,12 @@ onUnmounted(() => {
 /* tracejada = vazio ("não há nada"), sólida vermelha (.k-perigo, global) = erro
    ("algo falhou"). O vazio nunca é um beco sem saída: quando há próxima ação,
    o botão leva direto pra ela. */
+.fp-contrato {
+  margin: 0.5rem 0 0;
+  padding-top: 0.5rem;
+  border-top: 0.125rem solid var(--border);
+}
+
 .fp-empty {
   width: 100%;
   display: flex;
