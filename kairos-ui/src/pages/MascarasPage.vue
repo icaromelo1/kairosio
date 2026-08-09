@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 import PixelIcon from '@/components/PixelIcon.vue'
 import SoSudo from '@/components/SoSudo.vue'
 import PreviaMascara from '@/components/PreviaMascara.vue'
@@ -47,7 +47,13 @@ const PALETA: { chave: keyof CoresAlvo; nome: string; cores: string[] }[] = [
   { chave: 'roupa', nome: 'roupa', cores: ['#2a4d8f', '#10695f', '#f2a93b', '#a03562'] },
 ]
 
-const preset = ref(PRESETS[0]?.id ?? 'ruivo-verde')
+const rota = useRoute()
+// chegando pelo foco de um avatar, abre já no corpo daquele avatar em vez de sempre
+// no primeiro — a máscara é do corpo, e o corpo é o que se veio corrigir
+const presetDaQuery = String(rota.query.preset ?? '')
+const preset = ref(
+  PRESETS.some((p) => p.id === presetDaQuery) ? presetDaQuery : (PRESETS[0]?.id ?? 'ruivo-verde'),
+)
 const quadro = ref(QUADROS[0])
 
 const carregando = ref(true)
