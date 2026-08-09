@@ -14,6 +14,8 @@ const INITIAL_STATE = {
   pantsColor: '#1f2937',
   accessory: 'none' as Accessory,
   photoFile: null as string | null,
+  // qual avatar do acervo está vestido; nulo = personagem anterior ao acervo
+  avatarId: null as string | null,
 }
 
 export const useCharacterStore = defineStore('character', {

@@ -64,12 +64,12 @@
           <div class="cp-label">Personagem</div>
           <div class="cp-preset-grid">
             <button
-              v-for="preset in AVATAR_PRESETS" :key="preset.id"
-              class="cp-preset" :class="{ 'k-active': characterStore.hairStyle === preset.id }"
-              @click="characterStore.hairStyle = preset.id"
+              v-for="op in catalogoVisivel" :key="op.id"
+              class="cp-preset" :class="{ 'k-active': op.id === idEquivalente }"
+              @click="vestir(op)"
             >
-              <img class="pixelated cp-preset-thumb" :src="avatarSpriteUrl(preset.id, 'baixo', 0)" :alt="preset.nome" />
-              <span class="cp-hair-label">{{ preset.nome }}</span>
+              <img class="pixelated cp-preset-thumb" :src="avatarSpriteUrl(op.base, 'baixo', 0)" :alt="op.nome" />
+              <span class="cp-hair-label">{{ op.nome }}</span>
             </button>
           </div>
 
@@ -141,7 +141,8 @@
 import { computed, onMounted, ref } from 'vue'
 import PanelShell from '@/components/PanelShell.vue'
 import AvatarVista from '@/components/AvatarVista.vue'
-import { AVATAR_PRESETS, avatarSpriteUrl } from '@/game/pixi/avatar'
+import { AVATAR_PRESETS, avatarSpriteUrl, sanitizeLook } from '@/game/pixi/avatar'
+import { acervoDoSeletor, aleatorioDoAcervo, garantirAvatar, type OpcaoDeAvatar, type Rascunho } from '@/services/avatar.escolha'
 import type { CoresAlvo } from '@/game/recolorir'
 import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -251,8 +252,36 @@ function sorteia<T>(lista: readonly T[]): T | undefined {
   return lista[Math.floor(Math.random() * lista.length)]
 }
 
-// sorteio é rascunho: mexe só no que está na tela, sem tocar no servidor
-function aleatorio() {
+const catalogoVisivel = ref<OpcaoDeAvatar[]>([])
+
+// o card destacado é o do avatar equivalente ao rascunho — não o "último clicado".
+// Assim mexer numa cor tira o destaque sozinho, que é a verdade: já não é mais aquele
+const idEquivalente = computed(() => {
+  const alvo = coresAlvo.value
+  return catalogoVisivel.value.find(
+    (o) => o.base === characterStore.hairStyle &&
+      o.pele === (alvo.pele ?? null) && o.cabelo === (alvo.cabelo ?? null) &&
+      o.roupa === (alvo.roupa ?? null),
+  )?.id ?? null
+})
+
+function vestir(op: OpcaoDeAvatar) {
+  characterStore.hairStyle = op.base
+  definirCor('skin', op.pele ?? COR_PADRAO.skin)
+  definirCor('hairColor', op.cabelo ?? COR_PADRAO.hairColor)
+  definirCor('topColor', op.roupa ?? COR_PADRAO.topColor)
+}
+
+// sorteio é rascunho: mexe só no que está na tela, sem tocar no servidor.
+// Sorteia do acervo inteiro, inclusive avatares criados por outras pessoas — que é
+// o que faz o mundo ficar mais variado à medida que gente cria.
+async function aleatorio() {
+  const doAcervo = await aleatorioDoAcervo()
+  if (doAcervo) {
+    vestir(doAcervo)
+    return
+  }
+  // acervo indisponível: cai no sorteio local em vez de não fazer nada
   const preset = sorteia(AVATAR_PRESETS)
   if (preset) characterStore.hairStyle = preset.id
   for (const grupo of GRUPOS_COR) {
@@ -261,10 +290,32 @@ function aleatorio() {
   }
 }
 
+// o rascunho como estava ao abrir: se nada mudou, salvar não pode criar avatar novo
+const inicial = ref<Rascunho | null>(null)
+
+const rascunhoAtual = computed<Rascunho>(() => ({
+  base: characterStore.hairStyle,
+  pele: coresAlvo.value.pele ?? null,
+  cabelo: coresAlvo.value.cabelo ?? null,
+  roupa: coresAlvo.value.roupa ?? null,
+}))
+
 onMounted(async () => {
   if (!auth.isAuthenticated) return
   const saved = await getCharacter()
-  if (saved && saved.hairStyle) characterStore.$patch(saved)
+  // sanitizeLook antes de gravar no store: sem isso um hairStyle legado (o antigo
+  // default 'short') entrava cru, nenhum card destacava e o mundo caía calado no
+  // corpo padrão — painel e mapa mostravam coisas diferentes
+  if (saved && saved.hairStyle) {
+    const limpo = sanitizeLook(saved)
+    characterStore.$patch({ ...saved, hairStyle: limpo.hairStyle })
+  }
+  inicial.value = { ...rascunhoAtual.value }
+  try {
+    catalogoVisivel.value = await acervoDoSeletor()
+  } catch {
+    catalogoVisivel.value = []
+  }
   try {
     const perfil = await me()
     handleAtual.value = perfil.username ?? ''
@@ -308,7 +359,27 @@ async function save() {
   saveErro.value = ''
   // fechar sem olhar a resposta escondia falha de salvamento: o painel sumia
   // como se tivesse dado certo e a mudança voltava atrás no próximo carregamento
+  // só vira avatar novo se o rascunho realmente mudou; reabrir e salvar sem mexer
+  // continua vestindo a mesma linha
+  let avatarId = characterStore.avatarId
+  const mudou =
+    !inicial.value ||
+    inicial.value.base !== rascunhoAtual.value.base ||
+    inicial.value.pele !== rascunhoAtual.value.pele ||
+    inicial.value.cabelo !== rascunhoAtual.value.cabelo ||
+    inicial.value.roupa !== rascunhoAtual.value.roupa
+  if (mudou || !avatarId) {
+    try {
+      avatarId = await garantirAvatar(rascunhoAtual.value)
+    } catch {
+      saving.value = false
+      saveErro.value = 'Não deu pra guardar esse avatar. Tente de novo em instantes.'
+      return
+    }
+  }
+
   const ok = await saveCharacter({
+    avatarId,
     hairStyle: characterStore.hairStyle,
     hairColor: characterStore.hairColor,
     skin: characterStore.skin,
@@ -321,6 +392,8 @@ async function save() {
     saveErro.value = 'Não deu pra salvar o avatar. Tente de novo em instantes.'
     return
   }
+  characterStore.avatarId = avatarId
+  inicial.value = { ...rascunhoAtual.value }
   emit('close')
 }
 
