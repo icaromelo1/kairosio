@@ -12,11 +12,15 @@
           >{{ t }}</button>
         </nav>
       </div>
+      <p v-if="server" class="k-hint-text ap-legend">Ação de mundo assina azul-noite; pessoal assina musgo.</p>
 
       <p v-if="err.load" class="ap-error">{{ err.load }}</p>
 
       <section v-if="tab === 'Membros'" class="ap-section">
         <h3 class="ap-title"><PixelIcon name="users" size="0.9375rem" />Membros ({{ members.length }})</h3>
+        <div v-if="members.length" class="ap-list-head">
+          <span class="ap-list-head-cargo">Cargo</span>
+        </div>
         <ul class="ap-list">
           <li v-for="m in members" :key="m.id" class="ap-item">
             <span class="ap-member">
@@ -45,14 +49,14 @@
       </section>
 
       <section v-if="tab === 'Convite'" class="ap-section">
-        <h3 class="ap-title"><PixelIcon name="link" size="0.9375rem" />Link de convite</h3>
+        <h3 class="ap-title"><PixelIcon name="link" size="0.9375rem" />Código de convite</h3>
         <p class="k-hint-text ap-hint">
           Este é o link do servidor. Ele não expira e não tem limite de usos — mande hoje ou daqui a
           seis meses que continua valendo. Quem abrir entra direto aqui (faz login ou cria conta e já cai no convite).
         </p>
         <div class="ap-invite-row">
           <input
-            class="k-input k-input-xs ap-invite-input" :value="inviteUrl" readonly
+            class="k-input k-input-sm ap-invite-input" :value="inviteUrl" readonly
             @focus="($event.target as HTMLInputElement).select()"
           />
           <button class="k-btn k-btn-primary k-btn-xs" :disabled="!invite" @click="copyInvite">
@@ -62,6 +66,11 @@
         <p v-if="invite" class="ap-dim">
           {{ invite.uses }} {{ invite.uses === 1 ? 'pessoa entrou' : 'pessoas entraram' }} por este link.
         </p>
+
+        <div class="ap-zone">
+          <h4 class="ap-zone-title"><PixelIcon name="user-plus" size="0.875rem" />Aprovação de convites</h4>
+          <div class="ap-vazio-tracejada">Nenhum convite pendente de aprovação.</div>
+        </div>
 
         <div class="ap-zone">
           <h4 class="ap-zone-title"><PixelIcon name="square-alert" size="0.875rem" />Revogar</h4>
@@ -78,11 +87,16 @@
 
       <section v-if="tab === 'Mundos'" class="ap-section">
         <h3 class="ap-title">Mundos do servidor ({{ serverMaps.length }})</h3>
+        <button class="k-btn k-btn-primary k-btn-xs" @click="router.push('/editor/new')">
+          <PixelIcon name="plus-box" size="0.875rem" />Criar mundo no editor
+        </button>
         <ul class="ap-list">
           <li v-for="w in serverMaps" :key="w.id" class="ap-item">
             <span>{{ w.name }} <span class="ap-dim">· {{ w.width }}×{{ w.height }}</span></span>
             <div class="k-perigo ap-perigo-chip">
               <div class="k-perigo-faixa" />
+              <p class="ap-perigo-titulo">Excluir este mundo apaga para todos</p>
+              <p class="ap-perigo-explicacao">Não dá para desfazer. Segure para confirmar.</p>
               <HoldButton
                 rotulo="apagar" rotulo-carregando="apagando…"
                 :disabled="busy" :carregando="deletingMapId === w.id"
@@ -159,6 +173,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import { explicarErro } from '@/services/avisos'
 import { useAuthStore } from '@/stores/useAuthStore'
 import {
@@ -178,6 +193,7 @@ type Tab = 'Membros' | 'Convite' | 'Mundos' | 'Servidor'
 const emit = defineEmits<{ close: []; 'server-changed': []; 'mundos-alterados': []; 'open-servers': [] }>()
 
 const auth = useAuthStore()
+const router = useRouter()
 const tab = ref<Tab>('Membros')
 
 const server = ref<Server | null>(null)
@@ -198,7 +214,7 @@ const err = ref<Record<string, string>>({})
 const me = computed(() => members.value.find((m) => m.id === auth.userId))
 const isAdmin = computed(() => me.value?.serverRole === 'admin')
 const isOwner = computed(() => !!server.value && server.value.ownerId === auth.userId)
-const myRoleLabel = computed(() => (isOwner.value ? 'dono' : isAdmin.value ? 'admin' : 'membro'))
+const myRoleLabel = computed(() => (isOwner.value ? 'dono · mundo' : isAdmin.value ? 'admin' : 'membro'))
 const inviteUrl = computed(() => (invite.value ? inviteLink(invite.value.code) : ''))
 const archiveMatches = computed(() => archiveConfirm.value.trim() === server.value?.name)
 
@@ -378,6 +394,8 @@ onMounted(() => run('load', load))
   flex-wrap: wrap;
 }
 
+.ap-legend { margin: 0; }
+
 .ap-section {
   display: flex;
   flex-direction: column;
@@ -420,6 +438,20 @@ onMounted(() => run('load', load))
   flex-wrap: wrap;
 }
 
+.ap-list-head {
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  padding: 0 0.75rem;
+}
+.ap-list-head-cargo {
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
 .ap-member { display: flex; flex-direction: column; gap: 0.125rem; min-width: 0; }
 .ap-email { font-family: var(--f-sans); font-size: 0.8125rem; font-weight: 600; color: var(--text); overflow-wrap: anywhere; }
 .ap-actions { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
@@ -435,8 +467,26 @@ onMounted(() => run('load', load))
    caixa creme, ganha a faixa hachurada de ação sem volta e troca o clique
    simples pelo HoldButton (600ms, soltar antes cancela). */
 .ap-perigo-chip {
-  width: 9rem;
+  width: 15rem;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+.ap-perigo-titulo {
+  margin: 0;
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--err-hi);
+}
+.ap-perigo-explicacao {
+  margin: 0;
+  font-family: var(--f-sans);
+  font-size: 0.75rem;
+  color: var(--err-hi);
 }
 
 .ap-invite-row {
@@ -445,7 +495,17 @@ onMounted(() => run('load', load))
   width: 100%;
   align-items: center;
 }
-.k-input.ap-invite-input { flex: 1; min-width: 0; font-family: var(--f-mono); }
+.k-input.ap-invite-input { flex: 1; min-width: 0; font-family: var(--f-mono); font-weight: 700; letter-spacing: 0.02em; }
+
+.ap-vazio-tracejada {
+  width: 100%;
+  margin: 0;
+  padding: 0.875rem;
+  background: var(--bg-1);
+  border: 0.0625rem dashed var(--border);
+  color: var(--text-3);
+  font-size: 0.8125rem;
+}
 
 .ap-zone {
   width: 100%;
