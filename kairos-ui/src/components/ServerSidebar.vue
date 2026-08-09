@@ -119,6 +119,7 @@
                  posição de quem está em outro mundo não chega até aqui, então lá
                  continua a lista simples em vez de um agrupamento inventado -->
             <template v-if="!w.collapsed && w.current">
+              <div v-if="salasDoMundoAtual.length" class="ss-label ss-label-sub">Salas com gente</div>
               <div v-for="sala in salasDoMundoAtual" :key="sala.id" class="ss-sala">
                 <div
                   class="ss-sala-cab ss-sala-alvo"
@@ -197,6 +198,29 @@
         <div class="ss-scroll-edge" aria-hidden="true" />
 
         <div class="ss-acts-wrap">
+          <template v-if="ehSudo">
+            <div class="ss-label">Ferramentas de revisão</div>
+            <div class="ss-tools">
+              <button
+                v-for="ferramenta in ferramentasRevisao"
+                :key="ferramenta.rota"
+                class="ss-tool"
+                :title="`${ferramenta.nome} — abrir a ferramenta`"
+                @click="router.push(ferramenta.rota)"
+              >
+                <PixelIcon :name="ferramenta.icone" size="0.875rem" />
+                <span class="ss-tool-info">
+                  <span class="ss-tool-linha">
+                    <span class="ss-tool-nome">{{ ferramenta.nome }}</span>
+                    <span class="ss-tool-sep">·</span>
+                    <span class="ss-tool-count">{{ ferramenta.total.toLocaleString('pt-BR') }}</span>
+                  </span>
+                  <span class="ss-tool-hint">abrir a ferramenta</span>
+                </span>
+              </button>
+            </div>
+          </template>
+
           <div class="ss-label">Ações</div>
           <div class="ss-acts">
             <button class="k-btn k-btn-ghost ss-act ss-act-dm" :title="dmTitle" @click="aoClicarDm">
@@ -207,10 +231,7 @@
               <PixelIcon name="users" size="0.75rem" /><span>Amigos</span>
               <span v-if="friendRequests" class="ss-act-badge">{{ friendRequests }}</span>
             </button>
-            <button v-if="ehSudo" class="k-btn k-btn-ghost ss-act" @click="router.push('/admin/tiles')">
-            <PixelIcon name="grid" size="0.75rem" /><span>Revisar tiles</span>
-          </button>
-          <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="router.push('/editor/new')">
+            <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="router.push('/editor/new')">
               <PixelIcon name="plus-box" size="0.75rem" /><span>Criar mundo</span>
             </button>
             <button v-if="canEditCurrentWorld" class="k-btn k-btn-ghost ss-act" @click="router.push(`/editor/${currentMapId}`)">
@@ -327,6 +348,30 @@ import {
   abrirConversaDe, abrirNaoLidaMaisRecente, assinarDm, desassinarDm, recarregarConversas,
   voltarParaLista,
 } from '@/services/dm.state'
+import indiceTinyTown from '@/game/furniture/indice-tiny-town.json'
+import indiceRpgUrban from '@/game/furniture/indice-rpg-urban.json'
+import indiceModernCity from '@/game/furniture/indice-modern-city.json'
+
+// contagens do acervo pras Ferramentas de revisão: somadas dos 3 índices e do
+// glob real dos arquivos de máscara, nunca escritas à mão — senão mentem assim
+// que o acervo crescer
+const TOTAL_TILES = [indiceTinyTown, indiceRpgUrban, indiceModernCity]
+  .reduce((n, indice) => n + (indice as { tiles: unknown[] }).tiles.length, 0)
+
+const MASCARAS_GLOB = import.meta.glob('../game/furniture/avatar-mascaras/*/*.png')
+const TOTAL_MASCARAS = Object.keys(MASCARAS_GLOB).length
+
+interface FerramentaRevisao {
+  rota: string
+  nome: string
+  total: number
+  icone: string
+}
+
+const ferramentasRevisao: FerramentaRevisao[] = [
+  { rota: '/admin/tiles', nome: 'Tiles', total: TOTAL_TILES, icone: 'grid' },
+  { rota: '/admin/mascaras', nome: 'Máscaras', total: TOTAL_MASCARAS, icone: 'user' },
+]
 
 interface WorldRow {
   id: string
@@ -957,6 +1002,11 @@ onUnmounted(() => {
   padding: 0.5rem 0.375rem 0.25rem;
 }
 
+/* sub-rótulo da lista de salas: mesma tinta do .ss-label, indentado até a
+   coluna onde o traço esquerdo das salas (.ss-sala, margin-left 0.5rem +
+   .ss-sala-cab, padding-left 0.375rem) começa */
+.ss-label-sub { padding: 0.25rem 0.375rem 0.25rem 1rem; }
+
 .ss-world { display: flex; flex-direction: column; }
 
 .ss-world-row {
@@ -1075,6 +1125,62 @@ onUnmounted(() => {
   margin: 0.375rem 0.25rem 0;
   font-size: 0.75rem;
   color: var(--err);
+}
+
+/* ---- ferramentas de revisão (sudo): tiles + máscaras, com contagem real do
+   acervo — o defeito de origem era o editor de máscara não ter entrada
+   nenhuma, então as duas ficam juntas aqui, nunca uma solta ---- */
+.ss-tools { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.5rem; }
+
+.ss-tool {
+  appearance: none;
+  width: 100%;
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: transparent;
+  border: 0.0625rem solid var(--border);
+  color: var(--text-2);
+  font-family: inherit;
+  text-align: left;
+  padding: 0.375rem 0.5rem;
+  cursor: pointer;
+}
+.ss-tool:hover { border-color: var(--primary-hi); background: var(--bg-1); color: var(--text); }
+
+.ss-tool-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 0.0625rem;
+  line-height: 1.2;
+}
+
+.ss-tool-linha { display: flex; align-items: baseline; gap: 0.25rem; }
+
+.ss-tool-nome {
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.ss-tool-sep { color: var(--text-4); }
+
+.ss-tool-count {
+  font-family: var(--f-num);
+  font-size: 0.75rem;
+  color: var(--accent-texto);
+}
+
+.ss-tool-hint {
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-4);
 }
 
 .ss-acts { display: flex; flex-direction: column; gap: 0.25rem; }
