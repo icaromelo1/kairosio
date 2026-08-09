@@ -49,6 +49,13 @@ function semAcento(s: string): string {
     .toLowerCase()
 }
 
+// única fonte da contagem do acervo: quem quiser o total lê daqui em vez de
+// remontar a lista de índices, que foi o que fez a barra lateral contar pack
+// aposentado e ignorar pack novo
+export function totalDeTiles(): number {
+  return INDICES.reduce((n, idx) => n + idx.tiles.length, 0)
+}
+
 export interface Folha {
   pack: string
   cols: number

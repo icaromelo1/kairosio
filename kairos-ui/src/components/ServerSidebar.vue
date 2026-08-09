@@ -348,15 +348,12 @@ import {
   abrirConversaDe, abrirNaoLidaMaisRecente, assinarDm, desassinarDm, recarregarConversas,
   voltarParaLista,
 } from '@/services/dm.state'
-import indiceTinyTown from '@/game/furniture/indice-tiny-town.json'
-import indiceRpgUrban from '@/game/furniture/indice-rpg-urban.json'
-import indiceModernCity from '@/game/furniture/indice-modern-city.json'
+import { totalDeTiles } from '@/game/furniture/busca'
 
-// contagens do acervo pras Ferramentas de revisão: somadas dos 3 índices e do
-// glob real dos arquivos de máscara, nunca escritas à mão — senão mentem assim
-// que o acervo crescer
-const TOTAL_TILES = [indiceTinyTown, indiceRpgUrban, indiceModernCity]
-  .reduce((n, indice) => n + (indice as { tiles: unknown[] }).tiles.length, 0)
+// contagens do acervo pras Ferramentas de revisão: do catálogo real e do glob dos
+// arquivos de máscara, nunca escritas à mão nem remontadas aqui — repetir a lista de
+// índices foi o que fez este número contar pack aposentado e ignorar pack novo
+const TOTAL_TILES = totalDeTiles()
 
 const MASCARAS_GLOB = import.meta.glob('../game/furniture/avatar-mascaras/*/*.png')
 const TOTAL_MASCARAS = Object.keys(MASCARAS_GLOB).length
