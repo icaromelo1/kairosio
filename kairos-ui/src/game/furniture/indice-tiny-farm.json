@@ -1,0 +1,2290 @@
+{
+ "pack": "tiny-farm",
+ "tile": 16,
+ "cols": 12,
+ "categorias": [
+  "decoracao",
+  "item",
+  "janela",
+  "movel",
+  "natureza",
+  "parede",
+  "personagem",
+  "piso",
+  "porta",
+  "sinal",
+  "vazio",
+  "veiculo"
+ ],
+ "tiles": [
+  {
+   "i": 0,
+   "nome": "canteiro arado na grama",
+   "cat": "piso",
+   "tags": [
+    "canteiro",
+    "terra",
+    "arado",
+    "horta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 1,
+   "nome": "canteiro arado na grama",
+   "cat": "piso",
+   "tags": [
+    "canteiro",
+    "terra",
+    "arado",
+    "horta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 2,
+   "nome": "tronco seco",
+   "cat": "natureza",
+   "tags": [
+    "tronco",
+    "galho",
+    "arvore",
+    "seco"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 3,
+   "nome": "pinheiro",
+   "cat": "natureza",
+   "tags": [
+    "pinheiro",
+    "arvore",
+    "conifera"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 4,
+   "nome": "muda recém-brotada",
+   "cat": "natureza",
+   "tags": [
+    "muda",
+    "broto",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 6
+   },
+   "solido": true
+  },
+  {
+   "i": 5,
+   "nome": "cenoura brotando",
+   "cat": "natureza",
+   "tags": [
+    "cenoura",
+    "muda",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 8
+   },
+   "solido": true
+  },
+  {
+   "i": 6,
+   "nome": "cenoura crescida no canteiro",
+   "cat": "natureza",
+   "tags": [
+    "cenoura",
+    "planta",
+    "colheita"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 11
+   },
+   "solido": true
+  },
+  {
+   "i": 7,
+   "nome": "planta murcha",
+   "cat": "natureza",
+   "tags": [
+    "murcha",
+    "seca",
+    "praga"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 8,
+   "nome": "cenoura colhida",
+   "cat": "item",
+   "tags": [
+    "cenoura",
+    "legume",
+    "colheita"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 9,
+   "nome": "saco de sementes",
+   "cat": "item",
+   "tags": [
+    "semente",
+    "saco",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 10,
+   "nome": "saco de colheita",
+   "cat": "item",
+   "tags": [
+    "saco",
+    "colheita",
+    "armazenamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 11,
+   "nome": "banca de feira",
+   "cat": "movel",
+   "tags": [
+    "banca",
+    "feira",
+    "venda",
+    "balcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 12,
+   "nome": "canteiro arado na grama",
+   "cat": "piso",
+   "tags": [
+    "canteiro",
+    "terra",
+    "arado",
+    "horta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 13,
+   "nome": "canteiro arado na grama",
+   "cat": "piso",
+   "tags": [
+    "canteiro",
+    "terra",
+    "arado",
+    "horta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 14,
+   "nome": "tronco seco",
+   "cat": "natureza",
+   "tags": [
+    "tronco",
+    "galho",
+    "arvore",
+    "seco"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 15,
+   "nome": "pinheiro",
+   "cat": "natureza",
+   "tags": [
+    "pinheiro",
+    "arvore",
+    "conifera"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 16,
+   "nome": "muda recém-brotada",
+   "cat": "natureza",
+   "tags": [
+    "muda",
+    "broto",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 6
+   },
+   "solido": true
+  },
+  {
+   "i": 17,
+   "nome": "berinjela brotando",
+   "cat": "natureza",
+   "tags": [
+    "berinjela",
+    "muda",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 18,
+   "nome": "berinjela crescida no canteiro",
+   "cat": "natureza",
+   "tags": [
+    "berinjela",
+    "planta",
+    "colheita"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 10
+   },
+   "solido": true
+  },
+  {
+   "i": 19,
+   "nome": "planta murcha",
+   "cat": "natureza",
+   "tags": [
+    "murcha",
+    "seca",
+    "praga"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 20,
+   "nome": "berinjela colhida",
+   "cat": "item",
+   "tags": [
+    "berinjela",
+    "legume",
+    "colheita"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 21,
+   "nome": "saco de sementes",
+   "cat": "item",
+   "tags": [
+    "semente",
+    "saco",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 22,
+   "nome": "saco de colheita",
+   "cat": "item",
+   "tags": [
+    "saco",
+    "colheita",
+    "armazenamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 23,
+   "nome": "banca de feira",
+   "cat": "movel",
+   "tags": [
+    "banca",
+    "feira",
+    "venda",
+    "balcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 24,
+   "nome": "canteiro arado na grama",
+   "cat": "piso",
+   "tags": [
+    "canteiro",
+    "terra",
+    "arado",
+    "horta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 25,
+   "nome": "canteiro arado na grama",
+   "cat": "piso",
+   "tags": [
+    "canteiro",
+    "terra",
+    "arado",
+    "horta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 26,
+   "nome": "tronco seco",
+   "cat": "natureza",
+   "tags": [
+    "tronco",
+    "galho",
+    "arvore",
+    "seco"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 11
+   },
+   "solido": true
+  },
+  {
+   "i": 27,
+   "nome": "pinheiro",
+   "cat": "natureza",
+   "tags": [
+    "pinheiro",
+    "arvore",
+    "conifera"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 28,
+   "nome": "muda recém-brotada",
+   "cat": "natureza",
+   "tags": [
+    "muda",
+    "broto",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 29,
+   "nome": "milho brotando",
+   "cat": "natureza",
+   "tags": [
+    "milho",
+    "muda",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 30,
+   "nome": "milho crescido no canteiro",
+   "cat": "natureza",
+   "tags": [
+    "milho",
+    "planta",
+    "colheita"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 31,
+   "nome": "planta murcha",
+   "cat": "natureza",
+   "tags": [
+    "murcha",
+    "seca",
+    "praga"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 32,
+   "nome": "espiga de milho colhida",
+   "cat": "item",
+   "tags": [
+    "milho",
+    "espiga",
+    "colheita"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 33,
+   "nome": "saco de sementes",
+   "cat": "item",
+   "tags": [
+    "semente",
+    "saco",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 34,
+   "nome": "saco de colheita",
+   "cat": "item",
+   "tags": [
+    "saco",
+    "colheita",
+    "armazenamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 35,
+   "nome": "banca de feira",
+   "cat": "movel",
+   "tags": [
+    "banca",
+    "feira",
+    "venda",
+    "balcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 36,
+   "nome": "canteiro arado na grama",
+   "cat": "piso",
+   "tags": [
+    "canteiro",
+    "terra",
+    "arado",
+    "horta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 37,
+   "nome": "canteiro arado na grama",
+   "cat": "piso",
+   "tags": [
+    "canteiro",
+    "terra",
+    "arado",
+    "horta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 38,
+   "nome": "tronco seco",
+   "cat": "natureza",
+   "tags": [
+    "tronco",
+    "galho",
+    "arvore",
+    "seco"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 11,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 39,
+   "nome": "arbusto redondo",
+   "cat": "natureza",
+   "tags": [
+    "arbusto",
+    "moita",
+    "folhagem"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 40,
+   "nome": "muda recém-brotada",
+   "cat": "natureza",
+   "tags": [
+    "muda",
+    "broto",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 7
+   },
+   "solido": true
+  },
+  {
+   "i": 41,
+   "nome": "tomateiro brotando",
+   "cat": "natureza",
+   "tags": [
+    "tomate",
+    "muda",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 11
+   },
+   "solido": true
+  },
+  {
+   "i": 42,
+   "nome": "tomateiro carregado",
+   "cat": "natureza",
+   "tags": [
+    "tomate",
+    "planta",
+    "colheita"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 43,
+   "nome": "planta murcha",
+   "cat": "natureza",
+   "tags": [
+    "murcha",
+    "seca",
+    "praga"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 44,
+   "nome": "tomate colhido",
+   "cat": "item",
+   "tags": [
+    "tomate",
+    "legume",
+    "colheita"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 45,
+   "nome": "saco de sementes",
+   "cat": "item",
+   "tags": [
+    "semente",
+    "saco",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 46,
+   "nome": "saco de colheita",
+   "cat": "item",
+   "tags": [
+    "saco",
+    "colheita",
+    "armazenamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 47,
+   "nome": "banca de feira",
+   "cat": "movel",
+   "tags": [
+    "banca",
+    "feira",
+    "venda",
+    "balcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 48,
+   "nome": "campo arado escuro",
+   "cat": "piso",
+   "tags": [
+    "campo",
+    "terra",
+    "arado",
+    "lavoura"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 49,
+   "nome": "campo arado escuro",
+   "cat": "piso",
+   "tags": [
+    "campo",
+    "terra",
+    "arado",
+    "lavoura"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 50,
+   "nome": "campo arado escuro",
+   "cat": "piso",
+   "tags": [
+    "campo",
+    "terra",
+    "arado",
+    "lavoura"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 51,
+   "nome": "campo arado escuro",
+   "cat": "piso",
+   "tags": [
+    "campo",
+    "terra",
+    "arado",
+    "lavoura"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 52,
+   "nome": "muda recém-brotada",
+   "cat": "natureza",
+   "tags": [
+    "muda",
+    "broto",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 6
+   },
+   "solido": true
+  },
+  {
+   "i": 53,
+   "nome": "repolho brotando",
+   "cat": "natureza",
+   "tags": [
+    "repolho",
+    "muda",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 8
+   },
+   "solido": true
+  },
+  {
+   "i": 54,
+   "nome": "repolho crescido no canteiro",
+   "cat": "natureza",
+   "tags": [
+    "repolho",
+    "planta",
+    "colheita"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 11
+   },
+   "solido": true
+  },
+  {
+   "i": 55,
+   "nome": "planta murcha",
+   "cat": "natureza",
+   "tags": [
+    "murcha",
+    "seca",
+    "praga"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 10
+   },
+   "solido": true
+  },
+  {
+   "i": 56,
+   "nome": "repolho colhido",
+   "cat": "item",
+   "tags": [
+    "repolho",
+    "verdura",
+    "colheita"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 57,
+   "nome": "saco de sementes",
+   "cat": "item",
+   "tags": [
+    "semente",
+    "saco",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 58,
+   "nome": "saco de colheita",
+   "cat": "item",
+   "tags": [
+    "saco",
+    "colheita",
+    "armazenamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 59,
+   "nome": "banca de feira",
+   "cat": "movel",
+   "tags": [
+    "banca",
+    "feira",
+    "venda",
+    "balcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 60,
+   "nome": "campo arado claro",
+   "cat": "piso",
+   "tags": [
+    "campo",
+    "terra",
+    "arado",
+    "lavoura"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 61,
+   "nome": "campo arado claro",
+   "cat": "piso",
+   "tags": [
+    "campo",
+    "terra",
+    "arado",
+    "lavoura"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 62,
+   "nome": "campo arado claro",
+   "cat": "piso",
+   "tags": [
+    "campo",
+    "terra",
+    "arado",
+    "lavoura"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 63,
+   "nome": "campo arado claro",
+   "cat": "piso",
+   "tags": [
+    "campo",
+    "terra",
+    "arado",
+    "lavoura"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 64,
+   "nome": "tufo de mato",
+   "cat": "natureza",
+   "tags": [
+    "mato",
+    "grama",
+    "tufo"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 8
+   },
+   "solido": true
+  },
+  {
+   "i": 65,
+   "nome": "trigo brotando",
+   "cat": "natureza",
+   "tags": [
+    "trigo",
+    "muda",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 66,
+   "nome": "trigo maduro no canteiro",
+   "cat": "natureza",
+   "tags": [
+    "trigo",
+    "planta",
+    "colheita"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 67,
+   "nome": "planta murcha",
+   "cat": "natureza",
+   "tags": [
+    "murcha",
+    "seca",
+    "praga"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 68,
+   "nome": "feixe de trigo colhido",
+   "cat": "item",
+   "tags": [
+    "trigo",
+    "feixe",
+    "colheita"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 69,
+   "nome": "saco de sementes",
+   "cat": "item",
+   "tags": [
+    "semente",
+    "saco",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 70,
+   "nome": "saco de colheita",
+   "cat": "item",
+   "tags": [
+    "saco",
+    "colheita",
+    "armazenamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 71,
+   "nome": "banca de feira",
+   "cat": "movel",
+   "tags": [
+    "banca",
+    "feira",
+    "venda",
+    "balcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 72,
+   "nome": "balde vazio",
+   "cat": "movel",
+   "tags": [
+    "balde",
+    "agua",
+    "ferramenta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 73,
+   "nome": "balde com água",
+   "cat": "movel",
+   "tags": [
+    "balde",
+    "agua",
+    "cheio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 74,
+   "nome": "saca de estopa",
+   "cat": "movel",
+   "tags": [
+    "saca",
+    "saco",
+    "armazenamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 75,
+   "nome": "cesto de vime",
+   "cat": "movel",
+   "tags": [
+    "cesto",
+    "balaio",
+    "armazenamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 76,
+   "nome": "caixote de madeira",
+   "cat": "movel",
+   "tags": [
+    "caixote",
+    "engradado",
+    "madeira"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 77,
+   "nome": "bomba d’água",
+   "cat": "movel",
+   "tags": [
+    "bomba",
+    "agua",
+    "poco"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 78,
+   "nome": "moita de frutinhas",
+   "cat": "natureza",
+   "tags": [
+    "frutinha",
+    "arbusto",
+    "baga"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 79,
+   "nome": "cogumelo",
+   "cat": "natureza",
+   "tags": [
+    "cogumelo",
+    "fungo"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 80,
+   "nome": "tufo de mato",
+   "cat": "natureza",
+   "tags": [
+    "mato",
+    "grama",
+    "tufo"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 81,
+   "nome": "muda com raiz exposta",
+   "cat": "natureza",
+   "tags": [
+    "muda",
+    "raiz",
+    "plantio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 82,
+   "nome": "cumeeira do telhado",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "cumeeira",
+    "cobertura"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 9
+   },
+   "solido": true
+  },
+  {
+   "i": 83,
+   "nome": "girassol",
+   "cat": "natureza",
+   "tags": [
+    "girassol",
+    "flor",
+    "amarelo"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 84,
+   "nome": "forcado",
+   "cat": "item",
+   "tags": [
+    "forcado",
+    "ferramenta",
+    "feno"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 85,
+   "nome": "barril de aduelas",
+   "cat": "movel",
+   "tags": [
+    "barril",
+    "tonel",
+    "madeira"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 86,
+   "nome": "marreta",
+   "cat": "item",
+   "tags": [
+    "marreta",
+    "martelo",
+    "ferramenta"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 87,
+   "nome": "machado",
+   "cat": "item",
+   "tags": [
+    "machado",
+    "ferramenta",
+    "lenha"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 88,
+   "nome": "foice",
+   "cat": "item",
+   "tags": [
+    "foice",
+    "ferramenta",
+    "ceifa"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 89,
+   "nome": "pedras soltas",
+   "cat": "natureza",
+   "tags": [
+    "pedra",
+    "rocha",
+    "cascalho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 90,
+   "nome": "parede de celeiro com travessa em X",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "madeira",
+    "parede"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 91,
+   "nome": "parede de celeiro com travessa em X",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "madeira",
+    "parede"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 92,
+   "nome": "parede de celeiro com travessa em X",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "madeira",
+    "parede"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 93,
+   "nome": "parede clara de celeiro",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "parede",
+    "tabua"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 94,
+   "nome": "telhado verde",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "cobertura",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 95,
+   "nome": "telhado verde",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "cobertura",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 96,
+   "nome": "fardo de feno",
+   "cat": "movel",
+   "tags": [
+    "feno",
+    "fardo",
+    "palha"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 97,
+   "nome": "fardo de feno amarrado",
+   "cat": "movel",
+   "tags": [
+    "feno",
+    "fardo",
+    "palha"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 98,
+   "nome": "banco de madeira",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "assento",
+    "madeira"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 99,
+   "nome": "banco de madeira",
+   "cat": "movel",
+   "tags": [
+    "banco",
+    "assento",
+    "madeira"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 100,
+   "nome": "cama de colcha branca",
+   "cat": "movel",
+   "tags": [
+    "cama",
+    "leito",
+    "dormir"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 101,
+   "nome": "cama de colcha branca",
+   "cat": "movel",
+   "tags": [
+    "cama",
+    "leito",
+    "dormir"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 102,
+   "nome": "parede vermelha de celeiro",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "vermelho",
+    "parede"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 103,
+   "nome": "parede vermelha de celeiro",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "vermelho",
+    "parede"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 104,
+   "nome": "parede vermelha de celeiro",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "vermelho",
+    "parede"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 105,
+   "nome": "parede clara de celeiro",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "parede",
+    "tabua"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 106,
+   "nome": "telhado verde",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "cobertura",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 107,
+   "nome": "telhado verde",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "cobertura",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 108,
+   "nome": "lavradora de macacão",
+   "cat": "personagem",
+   "tags": [
+    "fazendeira",
+    "pessoa",
+    "lavradora"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": false
+  },
+  {
+   "i": 109,
+   "nome": "lavrador de chapéu de palha",
+   "cat": "personagem",
+   "tags": [
+    "fazendeiro",
+    "pessoa",
+    "lavrador"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 110,
+   "nome": "bebedouro de água",
+   "cat": "movel",
+   "tags": [
+    "bebedouro",
+    "cocho",
+    "agua"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 111,
+   "nome": "bebedouro de água",
+   "cat": "movel",
+   "tags": [
+    "bebedouro",
+    "cocho",
+    "agua"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 112,
+   "nome": "cama de colcha amarela",
+   "cat": "movel",
+   "tags": [
+    "cama",
+    "leito",
+    "dormir"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 113,
+   "nome": "cama de colcha amarela",
+   "cat": "movel",
+   "tags": [
+    "cama",
+    "leito",
+    "dormir"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 15,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 114,
+   "nome": "parede vermelha de celeiro",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "vermelho",
+    "parede"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 115,
+   "nome": "parede vermelha de celeiro",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "vermelho",
+    "parede"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 116,
+   "nome": "parede vermelha de celeiro",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "vermelho",
+    "parede"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 117,
+   "nome": "parede clara de celeiro",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "parede",
+    "tabua"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 118,
+   "nome": "telhado verde",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "cobertura",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 119,
+   "nome": "telhado verde",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "cobertura",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 120,
+   "nome": "vaca malhada",
+   "cat": "personagem",
+   "tags": [
+    "vaca",
+    "gado",
+    "bicho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 121,
+   "nome": "vaca cinza",
+   "cat": "personagem",
+   "tags": [
+    "vaca",
+    "gado",
+    "bicho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 122,
+   "nome": "galinha branca",
+   "cat": "personagem",
+   "tags": [
+    "galinha",
+    "ave",
+    "bicho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 13
+   },
+   "solido": false
+  },
+  {
+   "i": 123,
+   "nome": "galinha cinza",
+   "cat": "personagem",
+   "tags": [
+    "galinha",
+    "ave",
+    "bicho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 124,
+   "nome": "cesto de vime",
+   "cat": "movel",
+   "tags": [
+    "cesto",
+    "balaio",
+    "armazenamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 125,
+   "nome": "saca de estopa",
+   "cat": "movel",
+   "tags": [
+    "saca",
+    "saco",
+    "armazenamento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 126,
+   "nome": "parede de celeiro com travessa em X",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "madeira",
+    "parede"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 127,
+   "nome": "parede de celeiro com travessa em X",
+   "cat": "parede",
+   "tags": [
+    "celeiro",
+    "madeira",
+    "parede"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 128,
+   "nome": "portão de celeiro",
+   "cat": "porta",
+   "tags": [
+    "portao",
+    "celeiro",
+    "entrada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 129,
+   "nome": "telhado verde",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "cobertura",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 130,
+   "nome": "telhado verde",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "cobertura",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 2
+   },
+   "solido": true
+  },
+  {
+   "i": 131,
+   "nome": "telhado verde",
+   "cat": "parede",
+   "tags": [
+    "telhado",
+    "cobertura",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  }
+ ]
+}

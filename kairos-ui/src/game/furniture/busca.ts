@@ -1,6 +1,8 @@
-import indiceRpgUrban from './indice-rpg-urban.json'
-import indiceModernCity from './indice-modern-city.json'
 import indiceTinyTown from './indice-tiny-town.json'
+import indiceTinyFarm from './indice-tiny-farm.json'
+import indiceTinyBattle from './indice-tiny-battle.json'
+import indiceTinySki from './indice-tiny-ski.json'
+import indiceTinyDungeon from './indice-tiny-dungeon.json'
 
 export interface TileIndiceEntry {
   i: number
@@ -29,7 +31,16 @@ export interface TileResultado extends TileIndiceEntry {
   tile: number
 }
 
-const INDICES = [indiceRpgUrban, indiceModernCity, indiceTinyTown] as unknown as TileIndice[]
+/* O vocabulário do mundo é a série Tiny — um artista, uma série, feita para conviver.
+   rpg-urban e modern-city saíram daqui de propósito: eram 1.522 dos 1.654 tiles a
+   revisar e são de outra família visual. Não foram apagados — os PNG e os índices
+   continuam no repo, e a cena desenha peça já colocada por criarSpriteDeTile, que lê
+   o tileRef do objeto e nunca este arquivo. Logo mapa antigo continua igual, e voltar
+   um pack é reimportar o JSON e acrescentar na lista abaixo.
+   Os avatares vêm de recortes próprios em avatar/, também alheios a esta lista. */
+const INDICES = [
+  indiceTinyTown, indiceTinyFarm, indiceTinyBattle, indiceTinySki, indiceTinyDungeon,
+] as unknown as TileIndice[]
 
 function semAcento(s: string): string {
   return s

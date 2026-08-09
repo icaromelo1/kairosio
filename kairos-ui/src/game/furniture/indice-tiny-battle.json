@@ -1,0 +1,3610 @@
+{
+ "pack": "tiny-battle",
+ "tile": 16,
+ "cols": 18,
+ "categorias": [
+  "decoracao",
+  "item",
+  "janela",
+  "movel",
+  "natureza",
+  "parede",
+  "personagem",
+  "piso",
+  "porta",
+  "sinal",
+  "vazio",
+  "veiculo"
+ ],
+ "tiles": [
+  {
+   "i": 0,
+   "nome": "grama",
+   "cat": "piso",
+   "tags": [
+    "grama",
+    "campo",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 1,
+   "nome": "grama",
+   "cat": "piso",
+   "tags": [
+    "grama",
+    "campo",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 2,
+   "nome": "grama",
+   "cat": "piso",
+   "tags": [
+    "grama",
+    "campo",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 3,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 4,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 5,
+   "nome": "moita",
+   "cat": "natureza",
+   "tags": [
+    "moita",
+    "arbusto",
+    "mato"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 6,
+   "nome": "escombros",
+   "cat": "natureza",
+   "tags": [
+    "escombro",
+    "pedra",
+    "ruina"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 7,
+   "nome": "periscópio",
+   "cat": "decoracao",
+   "tags": [
+    "periscopio",
+    "cano",
+    "tubo"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 8,
+   "nome": "prédios da cidade (cinza)",
+   "cat": "decoracao",
+   "tags": [
+    "cidade",
+    "predio",
+    "quarteirao",
+    "cinza",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 9,
+   "nome": "base (cinza)",
+   "cat": "decoracao",
+   "tags": [
+    "base",
+    "posto",
+    "abrigo",
+    "cinza",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 10,
+   "nome": "edifício (cinza)",
+   "cat": "decoracao",
+   "tags": [
+    "predio",
+    "torre",
+    "construcao",
+    "cinza",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 11,
+   "nome": "fábrica (cinza)",
+   "cat": "decoracao",
+   "tags": [
+    "fabrica",
+    "industria",
+    "chamine",
+    "cinza",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 12,
+   "nome": "porto (cinza)",
+   "cat": "decoracao",
+   "tags": [
+    "porto",
+    "doca",
+    "guindaste",
+    "cinza",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 13,
+   "nome": "aeroporto (cinza)",
+   "cat": "decoracao",
+   "tags": [
+    "aeroporto",
+    "pista",
+    "hangar",
+    "cinza",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 14,
+   "nome": "quartel-general (cinza)",
+   "cat": "decoracao",
+   "tags": [
+    "quartel-general",
+    "sede",
+    "comando",
+    "cinza",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 15,
+   "nome": "quartel (cinza)",
+   "cat": "decoracao",
+   "tags": [
+    "quartel",
+    "caserna",
+    "tropa",
+    "cinza",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 16,
+   "nome": "bandeira (cinza)",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "time",
+    "cinza"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 17,
+   "nome": "bandeira (cinza)",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "time",
+    "cinza"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 18,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 19,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 20,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 21,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 22,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 23,
+   "nome": "barreira antitanque",
+   "cat": "decoracao",
+   "tags": [
+    "barreira",
+    "obstaculo",
+    "antitanque"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 24,
+   "nome": "mina terrestre",
+   "cat": "decoracao",
+   "tags": [
+    "mina",
+    "explosivo",
+    "armadilha"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 13
+   },
+   "solido": true
+  },
+  {
+   "i": 25,
+   "nome": "cerca de arame",
+   "cat": "parede",
+   "tags": [
+    "cerca",
+    "arame",
+    "grade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 26,
+   "nome": "prédios da cidade (verde)",
+   "cat": "decoracao",
+   "tags": [
+    "cidade",
+    "predio",
+    "quarteirao",
+    "verde",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 27,
+   "nome": "base (verde)",
+   "cat": "decoracao",
+   "tags": [
+    "base",
+    "posto",
+    "abrigo",
+    "verde",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 28,
+   "nome": "edifício (verde)",
+   "cat": "decoracao",
+   "tags": [
+    "predio",
+    "torre",
+    "construcao",
+    "verde",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 29,
+   "nome": "fábrica (verde)",
+   "cat": "decoracao",
+   "tags": [
+    "fabrica",
+    "industria",
+    "chamine",
+    "verde",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 30,
+   "nome": "porto (verde)",
+   "cat": "decoracao",
+   "tags": [
+    "porto",
+    "doca",
+    "guindaste",
+    "verde",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 31,
+   "nome": "aeroporto (verde)",
+   "cat": "decoracao",
+   "tags": [
+    "aeroporto",
+    "pista",
+    "hangar",
+    "verde",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 32,
+   "nome": "quartel-general (verde)",
+   "cat": "decoracao",
+   "tags": [
+    "quartel-general",
+    "sede",
+    "comando",
+    "verde",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 33,
+   "nome": "quartel (verde)",
+   "cat": "decoracao",
+   "tags": [
+    "quartel",
+    "caserna",
+    "tropa",
+    "verde",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 34,
+   "nome": "bandeira (verde)",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "time",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 35,
+   "nome": "bandeira (verde)",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "time",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 36,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 37,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 38,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 39,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 40,
+   "nome": "seta de movimento",
+   "cat": "sinal",
+   "tags": [
+    "seta",
+    "movimento",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 41,
+   "nome": "seta horizontal de movimento",
+   "cat": "sinal",
+   "tags": [
+    "seta",
+    "movimento",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 42,
+   "nome": "seta horizontal de movimento",
+   "cat": "sinal",
+   "tags": [
+    "seta",
+    "movimento",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 8
+   },
+   "solido": false
+  },
+  {
+   "i": 43,
+   "nome": "vazio",
+   "cat": "vazio",
+   "tags": [
+    "vazio",
+    "transparente"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 44,
+   "nome": "prédios da cidade (azul)",
+   "cat": "decoracao",
+   "tags": [
+    "cidade",
+    "predio",
+    "quarteirao",
+    "azul",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 45,
+   "nome": "base (azul)",
+   "cat": "decoracao",
+   "tags": [
+    "base",
+    "posto",
+    "abrigo",
+    "azul",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 46,
+   "nome": "edifício (azul)",
+   "cat": "decoracao",
+   "tags": [
+    "predio",
+    "torre",
+    "construcao",
+    "azul",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 47,
+   "nome": "fábrica (azul)",
+   "cat": "decoracao",
+   "tags": [
+    "fabrica",
+    "industria",
+    "chamine",
+    "azul",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 48,
+   "nome": "porto (azul)",
+   "cat": "decoracao",
+   "tags": [
+    "porto",
+    "doca",
+    "guindaste",
+    "azul",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 49,
+   "nome": "aeroporto (azul)",
+   "cat": "decoracao",
+   "tags": [
+    "aeroporto",
+    "pista",
+    "hangar",
+    "azul",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 50,
+   "nome": "quartel-general (azul)",
+   "cat": "decoracao",
+   "tags": [
+    "quartel-general",
+    "sede",
+    "comando",
+    "azul",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 51,
+   "nome": "quartel (azul)",
+   "cat": "decoracao",
+   "tags": [
+    "quartel",
+    "caserna",
+    "tropa",
+    "azul",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 52,
+   "nome": "bandeira (azul)",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "time",
+    "azul"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 53,
+   "nome": "bandeira (azul)",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "time",
+    "azul"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 54,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 55,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 56,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 57,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 58,
+   "nome": "seta de movimento",
+   "cat": "sinal",
+   "tags": [
+    "seta",
+    "movimento",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 59,
+   "nome": "contorno de alcance",
+   "cat": "sinal",
+   "tags": [
+    "alcance",
+    "contorno",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 60,
+   "nome": "contorno de alcance",
+   "cat": "sinal",
+   "tags": [
+    "alcance",
+    "contorno",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 61,
+   "nome": "marcador de seleção",
+   "cat": "sinal",
+   "tags": [
+    "marcador",
+    "selecao",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 62,
+   "nome": "prédios da cidade (vermelho)",
+   "cat": "decoracao",
+   "tags": [
+    "cidade",
+    "predio",
+    "quarteirao",
+    "vermelho",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 63,
+   "nome": "base (vermelho)",
+   "cat": "decoracao",
+   "tags": [
+    "base",
+    "posto",
+    "abrigo",
+    "vermelho",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 64,
+   "nome": "edifício (vermelho)",
+   "cat": "decoracao",
+   "tags": [
+    "predio",
+    "torre",
+    "construcao",
+    "vermelho",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 65,
+   "nome": "fábrica (vermelho)",
+   "cat": "decoracao",
+   "tags": [
+    "fabrica",
+    "industria",
+    "chamine",
+    "vermelho",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 66,
+   "nome": "porto (vermelho)",
+   "cat": "decoracao",
+   "tags": [
+    "porto",
+    "doca",
+    "guindaste",
+    "vermelho",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 67,
+   "nome": "aeroporto (vermelho)",
+   "cat": "decoracao",
+   "tags": [
+    "aeroporto",
+    "pista",
+    "hangar",
+    "vermelho",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 68,
+   "nome": "quartel-general (vermelho)",
+   "cat": "decoracao",
+   "tags": [
+    "quartel-general",
+    "sede",
+    "comando",
+    "vermelho",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 69,
+   "nome": "quartel (vermelho)",
+   "cat": "decoracao",
+   "tags": [
+    "quartel",
+    "caserna",
+    "tropa",
+    "vermelho",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 70,
+   "nome": "bandeira (vermelho)",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "time",
+    "vermelho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 71,
+   "nome": "bandeira (vermelho)",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "time",
+    "vermelho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 72,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 73,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 74,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 75,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 76,
+   "nome": "seta de movimento",
+   "cat": "sinal",
+   "tags": [
+    "seta",
+    "movimento",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 77,
+   "nome": "contorno de alcance",
+   "cat": "sinal",
+   "tags": [
+    "alcance",
+    "contorno",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 78,
+   "nome": "contorno de alcance",
+   "cat": "sinal",
+   "tags": [
+    "alcance",
+    "contorno",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 79,
+   "nome": "faixa de perigo",
+   "cat": "sinal",
+   "tags": [
+    "perigo",
+    "listra",
+    "aviso"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 80,
+   "nome": "prédios da cidade (laranja)",
+   "cat": "decoracao",
+   "tags": [
+    "cidade",
+    "predio",
+    "quarteirao",
+    "laranja",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 81,
+   "nome": "base (laranja)",
+   "cat": "decoracao",
+   "tags": [
+    "base",
+    "posto",
+    "abrigo",
+    "laranja",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 82,
+   "nome": "edifício (laranja)",
+   "cat": "decoracao",
+   "tags": [
+    "predio",
+    "torre",
+    "construcao",
+    "laranja",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 83,
+   "nome": "fábrica (laranja)",
+   "cat": "decoracao",
+   "tags": [
+    "fabrica",
+    "industria",
+    "chamine",
+    "laranja",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 84,
+   "nome": "porto (laranja)",
+   "cat": "decoracao",
+   "tags": [
+    "porto",
+    "doca",
+    "guindaste",
+    "laranja",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 85,
+   "nome": "aeroporto (laranja)",
+   "cat": "decoracao",
+   "tags": [
+    "aeroporto",
+    "pista",
+    "hangar",
+    "laranja",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 86,
+   "nome": "quartel-general (laranja)",
+   "cat": "decoracao",
+   "tags": [
+    "quartel-general",
+    "sede",
+    "comando",
+    "laranja",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 87,
+   "nome": "quartel (laranja)",
+   "cat": "decoracao",
+   "tags": [
+    "quartel",
+    "caserna",
+    "tropa",
+    "laranja",
+    "construcao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 88,
+   "nome": "bandeira (laranja)",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "time",
+    "laranja"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 89,
+   "nome": "bandeira (laranja)",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "time",
+    "laranja"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 14,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 90,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 91,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 92,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 93,
+   "nome": "água com margem",
+   "cat": "piso",
+   "tags": [
+    "agua",
+    "lago",
+    "margem",
+    "rio"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 94,
+   "nome": "árvore",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "copa",
+    "folhagem"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 12
+   },
+   "solido": true
+  },
+  {
+   "i": 95,
+   "nome": "caminhão (cinza)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "transporte",
+    "cinza",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 96,
+   "nome": "caminhão de carga (cinza)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "carga",
+    "suprimento",
+    "cinza",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 97,
+   "nome": "blindado de transporte (cinza)",
+   "cat": "veiculo",
+   "tags": [
+    "blindado",
+    "transporte",
+    "tropa",
+    "cinza",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 98,
+   "nome": "tanque (cinza)",
+   "cat": "veiculo",
+   "tags": [
+    "tanque",
+    "blindado",
+    "guerra",
+    "cinza",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 99,
+   "nome": "artilharia (cinza)",
+   "cat": "veiculo",
+   "tags": [
+    "artilharia",
+    "canhao",
+    "obus",
+    "cinza",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 100,
+   "nome": "caça (cinza)",
+   "cat": "veiculo",
+   "tags": [
+    "caca",
+    "aviao",
+    "jato",
+    "cinza",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 101,
+   "nome": "helicóptero (cinza)",
+   "cat": "veiculo",
+   "tags": [
+    "helicoptero",
+    "aeronave",
+    "cinza",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 102,
+   "nome": "helicóptero de transporte (cinza)",
+   "cat": "veiculo",
+   "tags": [
+    "helicoptero",
+    "transporte",
+    "aeronave",
+    "cinza",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 103,
+   "nome": "navio (cinza)",
+   "cat": "veiculo",
+   "tags": [
+    "navio",
+    "barco",
+    "embarcacao",
+    "cinza",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 104,
+   "nome": "submarino (cinza)",
+   "cat": "veiculo",
+   "tags": [
+    "submarino",
+    "embarcacao",
+    "cinza",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 105,
+   "nome": "barcaça de desembarque (cinza)",
+   "cat": "veiculo",
+   "tags": [
+    "barcaca",
+    "desembarque",
+    "embarcacao",
+    "cinza",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 106,
+   "nome": "soldado (cinza)",
+   "cat": "personagem",
+   "tags": [
+    "soldado",
+    "infantaria",
+    "tropa",
+    "cinza"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 107,
+   "nome": "soldado (cinza)",
+   "cat": "personagem",
+   "tags": [
+    "soldado",
+    "infantaria",
+    "tropa",
+    "cinza"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 108,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 109,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 110,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 111,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 112,
+   "nome": "par de árvores",
+   "cat": "natureza",
+   "tags": [
+    "arvore",
+    "bosque",
+    "folhagem"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 113,
+   "nome": "caminhão (verde)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "transporte",
+    "verde",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 114,
+   "nome": "caminhão de carga (verde)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "carga",
+    "suprimento",
+    "verde",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 115,
+   "nome": "blindado de transporte (verde)",
+   "cat": "veiculo",
+   "tags": [
+    "blindado",
+    "transporte",
+    "tropa",
+    "verde",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 116,
+   "nome": "tanque (verde)",
+   "cat": "veiculo",
+   "tags": [
+    "tanque",
+    "blindado",
+    "guerra",
+    "verde",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 117,
+   "nome": "artilharia (verde)",
+   "cat": "veiculo",
+   "tags": [
+    "artilharia",
+    "canhao",
+    "obus",
+    "verde",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 118,
+   "nome": "caça (verde)",
+   "cat": "veiculo",
+   "tags": [
+    "caca",
+    "aviao",
+    "jato",
+    "verde",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 119,
+   "nome": "helicóptero (verde)",
+   "cat": "veiculo",
+   "tags": [
+    "helicoptero",
+    "aeronave",
+    "verde",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 120,
+   "nome": "helicóptero de transporte (verde)",
+   "cat": "veiculo",
+   "tags": [
+    "helicoptero",
+    "transporte",
+    "aeronave",
+    "verde",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 121,
+   "nome": "navio (verde)",
+   "cat": "veiculo",
+   "tags": [
+    "navio",
+    "barco",
+    "embarcacao",
+    "verde",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 122,
+   "nome": "submarino (verde)",
+   "cat": "veiculo",
+   "tags": [
+    "submarino",
+    "embarcacao",
+    "verde",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 123,
+   "nome": "barcaça de desembarque (verde)",
+   "cat": "veiculo",
+   "tags": [
+    "barcaca",
+    "desembarque",
+    "embarcacao",
+    "verde",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 124,
+   "nome": "soldado (verde)",
+   "cat": "personagem",
+   "tags": [
+    "soldado",
+    "infantaria",
+    "tropa",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 125,
+   "nome": "soldado (verde)",
+   "cat": "personagem",
+   "tags": [
+    "soldado",
+    "infantaria",
+    "tropa",
+    "verde"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 126,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 127,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 128,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 129,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 130,
+   "nome": "ponte sobre a água",
+   "cat": "piso",
+   "tags": [
+    "ponte",
+    "travessia",
+    "estrada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 131,
+   "nome": "caminhão (azul)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "transporte",
+    "azul",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 132,
+   "nome": "caminhão de carga (azul)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "carga",
+    "suprimento",
+    "azul",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 133,
+   "nome": "blindado de transporte (azul)",
+   "cat": "veiculo",
+   "tags": [
+    "blindado",
+    "transporte",
+    "tropa",
+    "azul",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 134,
+   "nome": "tanque (azul)",
+   "cat": "veiculo",
+   "tags": [
+    "tanque",
+    "blindado",
+    "guerra",
+    "azul",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 135,
+   "nome": "artilharia (azul)",
+   "cat": "veiculo",
+   "tags": [
+    "artilharia",
+    "canhao",
+    "obus",
+    "azul",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 136,
+   "nome": "caça (azul)",
+   "cat": "veiculo",
+   "tags": [
+    "caca",
+    "aviao",
+    "jato",
+    "azul",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 137,
+   "nome": "helicóptero (azul)",
+   "cat": "veiculo",
+   "tags": [
+    "helicoptero",
+    "aeronave",
+    "azul",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 138,
+   "nome": "helicóptero de transporte (azul)",
+   "cat": "veiculo",
+   "tags": [
+    "helicoptero",
+    "transporte",
+    "aeronave",
+    "azul",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 139,
+   "nome": "navio (azul)",
+   "cat": "veiculo",
+   "tags": [
+    "navio",
+    "barco",
+    "embarcacao",
+    "azul",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 140,
+   "nome": "submarino (azul)",
+   "cat": "veiculo",
+   "tags": [
+    "submarino",
+    "embarcacao",
+    "azul",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 141,
+   "nome": "barcaça de desembarque (azul)",
+   "cat": "veiculo",
+   "tags": [
+    "barcaca",
+    "desembarque",
+    "embarcacao",
+    "azul",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 142,
+   "nome": "soldado (azul)",
+   "cat": "personagem",
+   "tags": [
+    "soldado",
+    "infantaria",
+    "tropa",
+    "azul"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 143,
+   "nome": "soldado (azul)",
+   "cat": "personagem",
+   "tags": [
+    "soldado",
+    "infantaria",
+    "tropa",
+    "azul"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 144,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 145,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 146,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 147,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 148,
+   "nome": "ponte sobre a água",
+   "cat": "piso",
+   "tags": [
+    "ponte",
+    "travessia",
+    "estrada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 149,
+   "nome": "caminhão (vermelho)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "transporte",
+    "vermelho",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 150,
+   "nome": "caminhão de carga (vermelho)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "carga",
+    "suprimento",
+    "vermelho",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 151,
+   "nome": "blindado de transporte (vermelho)",
+   "cat": "veiculo",
+   "tags": [
+    "blindado",
+    "transporte",
+    "tropa",
+    "vermelho",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 152,
+   "nome": "tanque (vermelho)",
+   "cat": "veiculo",
+   "tags": [
+    "tanque",
+    "blindado",
+    "guerra",
+    "vermelho",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 153,
+   "nome": "artilharia (vermelho)",
+   "cat": "veiculo",
+   "tags": [
+    "artilharia",
+    "canhao",
+    "obus",
+    "vermelho",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 154,
+   "nome": "caça (vermelho)",
+   "cat": "veiculo",
+   "tags": [
+    "caca",
+    "aviao",
+    "jato",
+    "vermelho",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 155,
+   "nome": "helicóptero (vermelho)",
+   "cat": "veiculo",
+   "tags": [
+    "helicoptero",
+    "aeronave",
+    "vermelho",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 156,
+   "nome": "helicóptero de transporte (vermelho)",
+   "cat": "veiculo",
+   "tags": [
+    "helicoptero",
+    "transporte",
+    "aeronave",
+    "vermelho",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 157,
+   "nome": "navio (vermelho)",
+   "cat": "veiculo",
+   "tags": [
+    "navio",
+    "barco",
+    "embarcacao",
+    "vermelho",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 158,
+   "nome": "submarino (vermelho)",
+   "cat": "veiculo",
+   "tags": [
+    "submarino",
+    "embarcacao",
+    "vermelho",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 159,
+   "nome": "barcaça de desembarque (vermelho)",
+   "cat": "veiculo",
+   "tags": [
+    "barcaca",
+    "desembarque",
+    "embarcacao",
+    "vermelho",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 160,
+   "nome": "soldado (vermelho)",
+   "cat": "personagem",
+   "tags": [
+    "soldado",
+    "infantaria",
+    "tropa",
+    "vermelho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 161,
+   "nome": "soldado (vermelho)",
+   "cat": "personagem",
+   "tags": [
+    "soldado",
+    "infantaria",
+    "tropa",
+    "vermelho"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 162,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 163,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 164,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 165,
+   "nome": "pista de asfalto",
+   "cat": "piso",
+   "tags": [
+    "asfalto",
+    "estrada",
+    "pista",
+    "chao"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 166,
+   "nome": "ponte sobre a água",
+   "cat": "piso",
+   "tags": [
+    "ponte",
+    "travessia",
+    "estrada"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": false
+  },
+  {
+   "i": 167,
+   "nome": "caminhão (laranja)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "transporte",
+    "laranja",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 168,
+   "nome": "caminhão de carga (laranja)",
+   "cat": "veiculo",
+   "tags": [
+    "caminhao",
+    "carga",
+    "suprimento",
+    "laranja",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 169,
+   "nome": "blindado de transporte (laranja)",
+   "cat": "veiculo",
+   "tags": [
+    "blindado",
+    "transporte",
+    "tropa",
+    "laranja",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 170,
+   "nome": "tanque (laranja)",
+   "cat": "veiculo",
+   "tags": [
+    "tanque",
+    "blindado",
+    "guerra",
+    "laranja",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 171,
+   "nome": "artilharia (laranja)",
+   "cat": "veiculo",
+   "tags": [
+    "artilharia",
+    "canhao",
+    "obus",
+    "laranja",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 172,
+   "nome": "caça (laranja)",
+   "cat": "veiculo",
+   "tags": [
+    "caca",
+    "aviao",
+    "jato",
+    "laranja",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 173,
+   "nome": "helicóptero (laranja)",
+   "cat": "veiculo",
+   "tags": [
+    "helicoptero",
+    "aeronave",
+    "laranja",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 174,
+   "nome": "helicóptero de transporte (laranja)",
+   "cat": "veiculo",
+   "tags": [
+    "helicoptero",
+    "transporte",
+    "aeronave",
+    "laranja",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 16
+   },
+   "solido": true
+  },
+  {
+   "i": 175,
+   "nome": "navio (laranja)",
+   "cat": "veiculo",
+   "tags": [
+    "navio",
+    "barco",
+    "embarcacao",
+    "laranja",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 176,
+   "nome": "submarino (laranja)",
+   "cat": "veiculo",
+   "tags": [
+    "submarino",
+    "embarcacao",
+    "laranja",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 15
+   },
+   "solido": true
+  },
+  {
+   "i": 177,
+   "nome": "barcaça de desembarque (laranja)",
+   "cat": "veiculo",
+   "tags": [
+    "barcaca",
+    "desembarque",
+    "embarcacao",
+    "laranja",
+    "unidade"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": true
+  },
+  {
+   "i": 178,
+   "nome": "soldado (laranja)",
+   "cat": "personagem",
+   "tags": [
+    "soldado",
+    "infantaria",
+    "tropa",
+    "laranja"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 13,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 179,
+   "nome": "soldado (laranja)",
+   "cat": "personagem",
+   "tags": [
+    "soldado",
+    "infantaria",
+    "tropa",
+    "laranja"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 16,
+    "h": 14
+   },
+   "solido": false
+  },
+  {
+   "i": 180,
+   "nome": "algarismo 0",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 9
+   },
+   "solido": false
+  },
+  {
+   "i": 181,
+   "nome": "algarismo 1",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 9
+   },
+   "solido": false
+  },
+  {
+   "i": 182,
+   "nome": "algarismo 2",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 9
+   },
+   "solido": false
+  },
+  {
+   "i": 183,
+   "nome": "algarismo 3",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 9
+   },
+   "solido": false
+  },
+  {
+   "i": 184,
+   "nome": "algarismo 4",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 9
+   },
+   "solido": false
+  },
+  {
+   "i": 185,
+   "nome": "algarismo 5",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 9
+   },
+   "solido": false
+  },
+  {
+   "i": 186,
+   "nome": "algarismo 6",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 9
+   },
+   "solido": false
+  },
+  {
+   "i": 187,
+   "nome": "algarismo 7",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 9
+   },
+   "solido": false
+  },
+  {
+   "i": 188,
+   "nome": "algarismo 8",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 9
+   },
+   "solido": false
+  },
+  {
+   "i": 189,
+   "nome": "algarismo 9",
+   "cat": "sinal",
+   "tags": [
+    "fonte",
+    "numero",
+    "letreiro"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 9
+   },
+   "solido": false
+  },
+  {
+   "i": 190,
+   "nome": "ponto de interrogação",
+   "cat": "sinal",
+   "tags": [
+    "duvida",
+    "interrogacao",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 8,
+    "h": 9
+   },
+   "solido": false
+  },
+  {
+   "i": 191,
+   "nome": "ficha de unidade",
+   "cat": "sinal",
+   "tags": [
+    "ficha",
+    "carta",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 8
+   },
+   "solido": false
+  },
+  {
+   "i": 192,
+   "nome": "galão de combustível",
+   "cat": "item",
+   "tags": [
+    "combustivel",
+    "galao",
+    "suprimento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 11,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 193,
+   "nome": "caixa de munição",
+   "cat": "item",
+   "tags": [
+    "municao",
+    "caixa",
+    "suprimento"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 194,
+   "nome": "bandeira de rendição",
+   "cat": "sinal",
+   "tags": [
+    "bandeira",
+    "rendicao",
+    "branca"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 10,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 195,
+   "nome": "coração de vida",
+   "cat": "item",
+   "tags": [
+    "vida",
+    "coracao",
+    "energia"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 10
+   },
+   "solido": false
+  },
+  {
+   "i": 196,
+   "nome": "cursor de mão",
+   "cat": "sinal",
+   "tags": [
+    "cursor",
+    "mao",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 12
+   },
+   "solido": false
+  },
+  {
+   "i": 197,
+   "nome": "névoa de guerra",
+   "cat": "sinal",
+   "tags": [
+    "nevoa",
+    "oculto",
+    "interface"
+   ],
+   "serveComo": [],
+   "revisado": false,
+   "opaco": {
+    "w": 12,
+    "h": 8
+   },
+   "solido": false
+  }
+ ]
+}

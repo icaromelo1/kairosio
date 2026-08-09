@@ -1,0 +1,23 @@
+Tilesheets usados pelo Kairos.
+
+Todos criados/distribuídos por Kenney (www.kenney.nl) sob Creative Commons Zero (CC0)
+http://creativecommons.org/publicdomain/zero/1.0/
+
+Conteúdo livre para uso em projetos pessoais, educacionais e comerciais.
+Crédito a Kenney (www.kenney.nl) apreciado, mas não obrigatório.
+
+  tiny-town.png     Tiny Town        12x11 = 132 tiles
+  tiny-farm.png     Tiny Farm        12x11 = 132 tiles
+  tiny-battle.png   Tiny Battle      18x11 = 198 tiles
+  tiny-ski.png      Tiny Ski         12x11 = 132 tiles
+  tiny-dungeon.png  Tiny Dungeon     12x11 = 132 tiles
+  rpg-urban.png     RPG Urban Pack   27x18 = 486 tiles
+  modern-city.png   Modern City      37x28 = 1036 tiles
+
+Todos seguem a mesma convenção: tile de 16x16 com 1px de espaçamento, o que é
+verificado contra as dimensões reais do PNG por scripts/prova-folha-tilesheet.py.
+
+rpg-urban e modern-city continuam aqui e continuam desenhando as peças já colocadas
+nos mapas, mas saíram do catálogo do editor (ver INDICES em ../busca.ts).
+
+Os avatares são recortes de rpg-urban.png e têm licença própria em ../avatar/LICENSE.txt.
