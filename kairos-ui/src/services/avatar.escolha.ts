@@ -1,5 +1,5 @@
 import { AVATAR_PRESETS } from '@/game/pixi/avatar'
-import { acervo as lerAcervo, aleatorio, catalogo, criar, type Avatar } from './avatares.api'
+import { aleatorio, catalogo, criar, type Avatar } from './avatares.api'
 
 /** Um avatar do acervo já com o nome legível do corpo, que é o que a tela mostra. */
 export interface OpcaoDeAvatar {
@@ -64,5 +64,3 @@ export async function garantirAvatar(rascunho: Rascunho): Promise<string> {
   })
   return novo.id
 }
-
-export { lerAcervo }

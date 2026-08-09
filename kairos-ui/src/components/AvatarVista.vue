@@ -10,10 +10,12 @@ const props = withDefaults(
     direcao: 'baixo' | 'cima' | 'esquerda' | 'direita'
     rotulo: string
     cores?: CoresAlvo
+    /** Quadro do ciclo de caminhada; 0 é o parado. */
+    quadro?: 0 | 1 | 2
     /** Lado do bitmap interno em px — o tamanho na tela vem do CSS. */
     lado?: number
   }>(),
-  { lado: 48 },
+  { lado: 48, quadro: 0 },
 )
 
 interface Recorte {
@@ -28,10 +30,10 @@ interface Recorte {
    implementação de recoloração: se o preview divergir do jogo, a pessoa escolhe
    uma cor e recebe outra ao entrar no mapa. */
 async function recorte(): Promise<Recorte | null> {
-  const url = avatarSpriteUrl(props.preset, props.direcao, 0)
+  const url = avatarSpriteUrl(props.preset, props.direcao, props.quadro)
   if (!url) return null
   const base = await Assets.load<Texture>(url)
-  const quadro = `${props.direcao}-0`
+  const quadro = `${props.direcao}-${props.quadro}`
   const cores = props.cores ?? {}
 
   if (precisaRecolorir(cores) && temMascara(props.preset, quadro)) {
@@ -68,7 +70,7 @@ async function desenhar() {
 
 onMounted(desenhar)
 watch(
-  () => [props.preset, props.direcao, props.cores?.pele, props.cores?.cabelo, props.cores?.roupa].join('|'),
+  () => [props.preset, props.direcao, props.quadro, props.cores?.pele, props.cores?.cabelo, props.cores?.roupa].join('|'),
   desenhar,
 )
 </script>
