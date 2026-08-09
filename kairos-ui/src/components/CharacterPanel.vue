@@ -73,6 +73,14 @@
             </button>
           </div>
 
+          <div class="cp-avancado">
+            <button
+              class="k-btn k-btn-ghost k-btn-xs" :disabled="!characterStore.avatarId"
+              :title="characterStore.avatarId ? 'Editar seus avatares em detalhe' : 'Salve um avatar primeiro'"
+              @click="router.push('/admin/avatares')"
+            >edição avançada dos meus avatares</button>
+          </div>
+
           <div class="cp-label">Cores</div>
           <div v-for="grupo in GRUPOS_COR" :key="grupo.chave" class="cp-cor-linha">
             <span class="cp-cor-nome">{{ grupo.nome }}</span>
@@ -139,6 +147,7 @@
 
 <script setup lang="ts">
 import { computed, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import PanelShell from '@/components/PanelShell.vue'
 import AvatarVista from '@/components/AvatarVista.vue'
 import { AVATAR_PRESETS, avatarSpriteUrl, sanitizeLook } from '@/game/pixi/avatar'
@@ -154,6 +163,7 @@ withDefaults(defineProps<{ obrigatorio?: boolean }>(), { obrigatorio: false })
 
 const emit = defineEmits<{ close: [] }>()
 
+const router = useRouter()
 const characterStore = useCharacterStore()
 const auth = useAuthStore()
 

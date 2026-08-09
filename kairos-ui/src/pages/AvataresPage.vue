@@ -1,13 +1,12 @@
 <template>
-  <SoSudo>
-    <div class="ap-root" data-captura-teclado>
+  <div class="ap-root" data-captura-teclado>
       <header class="ap-topo">
         <button class="k-btn k-btn-ghost k-btn-sm" @click="router.push('/game')">
           <PixelIcon name="corner-up-left" size="0.75rem" />jogo
         </button>
-        <span class="k-chip">acervo de avatares</span>
+        <span class="k-chip">{{ ehSudo ? 'acervo de avatares' : 'meus avatares' }}</span>
 
-        <nav class="ap-filtros">
+        <nav v-if="ehSudo" class="ap-filtros">
           <button
             v-for="f in FILTROS" :key="f.id"
             class="k-btn k-btn-ghost k-btn-xs" :class="{ 'k-active': filtro === f.id }"
@@ -58,6 +57,43 @@
             no meio do ciclo.
           </p>
 
+          <div v-if="podeEditar" class="ap-editar">
+            <span class="k-label">corpo</span>
+            <div class="ap-corpos">
+              <button
+                v-for="c in CORPOS" :key="c.id"
+                class="k-btn k-btn-ghost k-btn-xs" :class="{ 'k-active': rascunho.base === c.id }"
+                :title="c.nome" @click="rascunho.base = c.id"
+              >
+                <img class="pixelated ap-corpo-thumb" :src="miniatura(c.id)" :alt="c.nome" />
+              </button>
+            </div>
+
+            <div v-for="g in GRUPOS_COR" :key="g.chave" class="ap-cor-linha">
+              <span class="k-label">{{ g.nome }}</span>
+              <div class="ap-swatches">
+                <button
+                  class="ap-swatch ap-swatch-orig" :class="{ 'k-active': rascunho[g.chave] === null }"
+                  title="cor original do corpo" @click="rascunho[g.chave] = null"
+                >orig</button>
+                <button
+                  v-for="cor in g.cores" :key="cor"
+                  class="ap-swatch" :class="{ 'k-active': rascunho[g.chave] === cor }"
+                  :style="{ background: cor }" :title="cor"
+                  @click="rascunho[g.chave] = cor"
+                ></button>
+              </div>
+            </div>
+
+            <button
+              class="k-btn k-btn-primary k-btn-sm"
+              :disabled="!mudou || ocupado" @click="salvarEdicao"
+            >{{ ocupado ? 'salvando…' : 'salvar alterações' }}</button>
+            <p v-if="selecionado.emUso" class="k-hint-text">
+              {{ selecionado.emUso }} pessoa(s) estão usando: salvar muda o avatar delas também.
+            </p>
+          </div>
+
           <dl class="ap-ficha">
             <div><dt>corpo</dt><dd>{{ nomeDoCorpo(selecionado.base) }}</dd></div>
             <div><dt>origem</dt><dd>{{ selecionado.origem }}</dd></div>
@@ -67,12 +103,12 @@
 
           <div class="ap-acoes">
             <button
-              v-if="selecionado.origem === 'usuario'"
+              v-if="ehSudo && selecionado.origem === 'usuario'"
               class="k-btn k-btn-ghost k-btn-sm"
               :disabled="ocupado" @click="promoverSelecionado"
             >promover ao seletor</button>
             <button
-              v-else-if="selecionado.origem === 'sudo'"
+              v-else-if="ehSudo && selecionado.origem === 'sudo'"
               class="k-btn k-btn-ghost k-btn-sm"
               :disabled="ocupado" @click="rebaixarSelecionado"
             >tirar do seletor</button>
@@ -85,7 +121,7 @@
             >{{ rotuloExcluir }}</button>
           </div>
 
-          <p v-if="selecionado.base" class="k-hint-text ap-mascara">
+          <p v-if="ehSudo" class="k-hint-text ap-mascara">
             A máscara é do <strong>corpo</strong>, não deste avatar: corrigir um pixel
             arruma todos os {{ contaDoCorpo(selecionado.base) }} avatares de
             {{ nomeDoCorpo(selecionado.base) }} de uma vez.
@@ -96,17 +132,17 @@
         </aside>
       </main>
     </div>
-  </SoSudo>
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import PixelIcon from '@/components/PixelIcon.vue'
-import SoSudo from '@/components/SoSudo.vue'
 import AvatarVista from '@/components/AvatarVista.vue'
 import { AVATAR_PRESETS } from '@/game/pixi/avatar'
-import { acervo, excluir, promover, type AvatarDoAcervo } from '@/services/avatares.api'
+import { acervo, atualizar, excluir, promover, type AvatarDoAcervo } from '@/services/avatares.api'
+import { avatarSpriteUrl } from '@/game/pixi/avatar'
+import { me } from '@/services/auth.api'
 
 type Filtro = 'todos' | 'base' | 'sudo' | 'usuario' | 'livres'
 
@@ -125,7 +161,18 @@ const DIRECOES = [
   { id: 'cima' as const, rotulo: 'costas' },
 ]
 
+const CORPOS = AVATAR_PRESETS
 const NOME_DO_CORPO = new Map(AVATAR_PRESETS.map((p) => [p.id, p.nome]))
+const miniatura = (base: string) => avatarSpriteUrl(base, 'baixo', 0)
+
+// mesma paleta do painel de personagem: duas listas divergiriam e a pessoa veria
+// cores aqui que não consegue escolher lá
+type ChaveCor = 'pele' | 'cabelo' | 'roupa'
+const GRUPOS_COR: { chave: ChaveCor; nome: string; cores: string[] }[] = [
+  { chave: 'pele', nome: 'pele', cores: ['#f7dcc3', '#efc9a4', '#e0ac7e', '#c68642', '#9c6134', '#6b4326'] },
+  { chave: 'cabelo', nome: 'cabelo', cores: ['#1a1410', '#6b4423', '#b5651d', '#d9a441', '#a83232', '#5b3fa8', '#10695f', '#e3e3e3'] },
+  { chave: 'roupa', nome: 'roupa', cores: ['#2a4d8f', '#10695f', '#a83232', '#f2a93b', '#7b5ea7', '#a03562', '#241c15', '#fff6e0'] },
+]
 const nomeDoCorpo = (id: string) => NOME_DO_CORPO.get(id) ?? id
 
 const router = useRouter()
@@ -135,6 +182,12 @@ const ocupado = ref(false)
 const aviso = ref('')
 const filtro = ref<Filtro>('todos')
 const selecionadoId = ref<string | null>(null)
+const ehSudo = ref(false)
+
+// rascunho da edição: nada vai ao servidor até salvar
+const rascunho = ref<{ base: string; pele: string | null; cabelo: string | null; roupa: string | null }>({
+  base: '', pele: null, cabelo: null, roupa: null,
+})
 
 // o ciclo de 3 quadros do jogo, no mesmo ritmo — é o que revela máscara errada
 const andando = ref(false)
@@ -154,6 +207,41 @@ const contaDe = (f: Filtro) => lista.value.filter((a) => casa(a, f)).length
 const contaDoCorpo = (base: string) => lista.value.filter((a) => a.base === base).length
 
 const coresDe = (a: AvatarDoAcervo) => ({ pele: a.pele, cabelo: a.cabelo, roupa: a.roupa })
+
+// corpo do acervo não se edita: é a raiz dos outros. O resto o servidor confere de
+// novo — dono ou sudo
+const podeEditar = computed(() => !!selecionado.value && selecionado.value.origem !== 'base')
+
+const mudou = computed(() => {
+  const a = selecionado.value
+  if (!a) return false
+  return rascunho.value.base !== a.base || rascunho.value.pele !== a.pele ||
+    rascunho.value.cabelo !== a.cabelo || rascunho.value.roupa !== a.roupa
+})
+
+function carregarRascunho() {
+  const a = selecionado.value
+  rascunho.value = a
+    ? { base: a.base, pele: a.pele, cabelo: a.cabelo, roupa: a.roupa }
+    : { base: '', pele: null, cabelo: null, roupa: null }
+}
+
+watch(selecionado, carregarRascunho, { immediate: true })
+
+async function salvarEdicao() {
+  const a = selecionado.value
+  if (!a || !mudou.value) return
+  ocupado.value = true
+  aviso.value = ''
+  try {
+    await atualizar(a.id, { ...rascunho.value })
+    await recarregar()
+  } catch {
+    aviso.value = 'Não deu pra salvar a alteração agora.'
+  } finally {
+    ocupado.value = false
+  }
+}
 
 // corpo do acervo nunca se exclui: é a raiz de todos os outros
 const podeExcluir = computed(
@@ -226,6 +314,7 @@ const rebaixarSelecionado = () => trocarOrigem('usuario')
 const abrirMascara = (base: string) => router.push({ path: '/admin/mascaras', query: { preset: base } })
 
 onMounted(() => {
+  void me().then((p) => { ehSudo.value = !!p.isAdmin }).catch(() => { ehSudo.value = false })
   void recarregar()
   relogio = setInterval(() => {
     if (!andando.value) return
@@ -300,6 +389,27 @@ onUnmounted(() => {
   text-transform: uppercase; color: var(--text-3);
 }
 .ap-ficha dd { margin: 0; font-size: 0.8125rem; }
+
+.ap-editar {
+  display: flex; flex-direction: column; gap: 0.5rem;
+  border-top: var(--ui-border-style); padding-top: 0.75rem;
+}
+.ap-corpos { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+.ap-corpo-thumb { width: 1.5rem; height: 1.5rem; display: block; }
+.ap-cor-linha { display: flex; flex-direction: column; gap: 0.25rem; }
+.ap-swatches { display: flex; flex-wrap: wrap; gap: 0.25rem; }
+
+/* 1.75rem = 28px; abaixo disso o alvo fica difícil no toque */
+.ap-swatch {
+  width: 1.75rem; height: 1.75rem; padding: 0; cursor: pointer;
+  border: 0.125rem solid var(--tinta); background: var(--bg-2);
+}
+.ap-swatch.k-active { box-shadow: 0 0 0 0.125rem var(--accent); }
+.ap-swatch-orig {
+  width: auto; padding: 0 0.375rem;
+  font-family: var(--f-sans); font-size: 0.625rem; font-weight: 700;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-2);
+}
 
 .ap-acoes { display: flex; flex-wrap: wrap; gap: 0.375rem; }
 .ap-excluir:not(:disabled) { color: var(--err); }

@@ -11,7 +11,11 @@ export interface CoresAlvo {
   roupa?: string | null
 }
 
-/** ImageData, ou qualquer coisa com a mesma forma — é o que permite testar em Node. */
+/**
+ * ImageData, ou qualquer coisa com a mesma forma — é o que permite testar em Node.
+ * Exportado junto com `luminancia` para o scripts/prova-contorno.mjs, que mede o
+ * resultado da conta de fora da árvore que o restos.mjs varre.
+ */
 export interface Pixels {
   data: Uint8ClampedArray
   width: number
@@ -22,14 +26,14 @@ export function luminancia(r: number, g: number, b: number): number {
   return (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255
 }
 
-export function hexParaRgb(hex: string): [number, number, number] | null {
+function hexParaRgb(hex: string): [number, number, number] | null {
   const m = /^#?([0-9a-f]{6})$/i.exec(hex.trim())
   if (!m) return null
   const n = parseInt(m[1], 16)
   return [(n >> 16) & 255, (n >> 8) & 255, n & 255]
 }
 
-export function rgbParaHsl(r: number, g: number, b: number): [number, number, number] {
+function rgbParaHsl(r: number, g: number, b: number): [number, number, number] {
   const rn = r / 255, gn = g / 255, bn = b / 255
   const max = Math.max(rn, gn, bn), min = Math.min(rn, gn, bn)
   const l = (max + min) / 2
@@ -43,7 +47,7 @@ export function rgbParaHsl(r: number, g: number, b: number): [number, number, nu
   return [h, s, l]
 }
 
-export function hslParaRgb(h: number, s: number, l: number): [number, number, number] {
+function hslParaRgb(h: number, s: number, l: number): [number, number, number] {
   if (s === 0) {
     const v = Math.round(l * 255)
     return [v, v, v]

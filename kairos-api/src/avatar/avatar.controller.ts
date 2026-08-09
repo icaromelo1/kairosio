@@ -17,10 +17,11 @@ export class AvatarController {
     return this.avatares.catalogo()
   }
 
-  @UseGuards(SudoGuard)
+  // sem SudoGuard: a pessoa comum entra aqui para a edição avançada dos avatares
+  // dela. Quem separa o que cada uma vê é o serviço, não a rota
   @Get('acervo')
-  acervo() {
-    return this.avatares.acervo()
+  acervo(@Request() req: { user: { sub: string; isSudo: boolean } }) {
+    return this.avatares.acervo(req.user.sub, req.user.isSudo)
   }
 
   @Get('aleatorio')
@@ -48,9 +49,11 @@ export class AvatarController {
     return this.avatares.atualizar(id, body, req.user.sub, req.user.isSudo)
   }
 
-  @UseGuards(SudoGuard)
   @Delete(':id')
-  remover(@Param('id', ParseUUIDPipe) id: string) {
-    return this.avatares.remover(id)
+  remover(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req: { user: { sub: string; isSudo: boolean } },
+  ) {
+    return this.avatares.remover(id, req.user.sub, req.user.isSudo)
   }
 }
