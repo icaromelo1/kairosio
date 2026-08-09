@@ -1744,23 +1744,36 @@ onUnmounted(() => {
 
 <style scoped>
 .gp-root {
+  --barra-larg: 3.5rem;
   height: 100vh;
-  display: grid;
-  grid-template-columns: 3.5rem 1fr;
+  position: relative;
   background: var(--bg-0);
   overflow: hidden;
-  transition: grid-template-columns 0.25s ease;
-}
-.gp-root.gp-sidebar-open {
-  grid-template-columns: 18rem 1fr;
 }
 
+/* a barra flutua SOBRE o mapa, descolada das bordas — não é coluna de grid.
+   O mapa corre por baixo dela, e é isso que dá o respiro do desenho. Como
+   coluna, ela empurrava o mapa e o Pixi redimensionava a cada quadro da
+   transição de largura; flutuando, abrir e fechar não mexe no palco. */
 .gp-sidebar {
-  background: var(--bg-2);
-  border-right: 0.0625rem solid var(--border);
+  position: absolute;
+  left: 0.875rem;
+  top: 0.875rem;
+  bottom: 0.875rem;
+  width: 3.5rem;
+  z-index: 20;
   display: flex;
   min-width: 0;
   overflow: hidden;
+  background: var(--bg-1);
+  border: var(--ui-border-style);
+  box-shadow: var(--contorno-duplo), var(--sombra-solida);
+}
+
+.gp-root.gp-sidebar-open { --barra-larg: 18rem; }
+
+.gp-sidebar.gp-sidebar-open {
+  width: 18rem;
 }
 
 .gp-avatar-box {
@@ -1774,7 +1787,8 @@ onUnmounted(() => {
 }
 
 .gp-stage {
-  position: relative;
+  position: absolute;
+  inset: 0;
   overflow: hidden;
   background: var(--bg-0);
 }
@@ -1877,8 +1891,10 @@ onUnmounted(() => {
 
 .gp-canto-esq {
   position: absolute;
-  bottom: 1rem;
-  left: 1rem;
+  bottom: 0.875rem;
+  /* depois da barra, não por baixo dela: 0,875 de margem + a largura dela + respiro */
+  left: calc(0.875rem + var(--barra-larg, 3.5rem) + 0.75rem);
+  transition: left 0.2s ease;
   z-index: 10;
   display: flex;
   flex-direction: column;
@@ -2263,18 +2279,14 @@ onUnmounted(() => {
 }
 
 /* Telas estreitas (ou zoom alto do navegador, que reduz os mesmos px de CSS):
-   a sidebar aberta virava um grid-column de 18rem e sobrava quase nada pro palco.
-   Vira overlay flutuante em vez de empurrar o grid — o palco sempre ocupa o resto. */
+   a barra colada nas bordas ganha a tela inteira, porque 18rem descolados não
+   sobram num celular. */
 @media (max-width: 48rem) {
-  .gp-root.gp-sidebar-open {
-    grid-template-columns: 3.5rem 1fr;
-  }
   .gp-sidebar.gp-sidebar-open {
-    position: fixed;
-    top: 0;
     left: 0;
+    top: 0;
+    bottom: 0;
     width: min(18rem, 80vw);
-    height: 100vh;
     z-index: 100;
     box-shadow: 0.5rem 0 1.5rem rgba(0, 0, 0, 0.5);
   }
