@@ -2,7 +2,7 @@
   <PanelShell title="personagem" icon="user" size="lg" :bloqueado="obrigatorio" @close="emit('close')">
     <div class="cp-grid">
       <div class="cp-stage">
-        <span class="cp-eyebrow">seu avatar no mapa</span>
+        <span class="cp-eyebrow">seu avatar · ao vivo</span>
         <div class="cp-preview">
           <AvatarVista
             v-for="vista in VISTAS" :key="vista.id"
