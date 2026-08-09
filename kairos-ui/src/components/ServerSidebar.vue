@@ -355,6 +355,8 @@ import { totalDeTiles } from '@/game/furniture/busca'
 // índices foi o que fez este número contar pack aposentado e ignorar pack novo
 const TOTAL_TILES = totalDeTiles()
 
+// os 72 quadros de máscara, que são do CORPO (6 x 12) e não do avatar: é a
+// contagem do que a curadoria de avatar tem por baixo
 const MASCARAS_GLOB = import.meta.glob('../game/furniture/avatar-mascaras/*/*.png')
 const TOTAL_MASCARAS = Object.keys(MASCARAS_GLOB).length
 
@@ -367,7 +369,7 @@ interface FerramentaRevisao {
 
 const ferramentasRevisao: FerramentaRevisao[] = [
   { rota: '/admin/tiles', nome: 'Tiles', total: TOTAL_TILES, icone: 'grid' },
-  { rota: '/admin/mascaras', nome: 'Máscaras', total: TOTAL_MASCARAS, icone: 'user' },
+  { rota: '/admin/avatares', nome: 'Avatares', total: TOTAL_MASCARAS, icone: 'user' },
 ]
 
 interface WorldRow {
