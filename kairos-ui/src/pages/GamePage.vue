@@ -78,7 +78,9 @@
       <!-- ancorado no avatar, não no rodapé: o aviso fala do que está ao lado do
            corpo, e no rodapé ele disputava espaço com a HUD centralizada -->
       <div v-if="acaoDoE" class="gp-hud gp-hud-agir">
-        <span class="k-key">E</span><span class="gp-hud-action">{{ acaoDoE }}</span>
+        <span class="gp-hud-agir-txt">aperte</span>
+        <span class="k-key">E</span>
+        <span class="gp-hud-agir-txt gp-hud-action">para {{ acaoDoE }}</span>
       </div>
 
       <!-- HUD separada por escopo: MUNDO (azul, sudo, escreve pra todos) em cima,
@@ -105,8 +107,38 @@
               <span v-if="naoLidasSala" class="gp-chat-bolha">{{ naoLidasSala }}</span>
             </button>
             <span v-else class="gp-chat-aba gp-chat-aba-vazia">sem sala</span>
+            <!-- terceira aba: a conversa privada ATIVA. não substitui a barra
+                 lateral (que segue sendo a lista inteira) — é o atalho pra não
+                 sair do mapa pra responder uma mensagem. as duas leem dm.state. -->
+            <button
+              v-if="abaDmDisponivel && alvoDm"
+              class="gp-chat-aba gp-chat-aba-dm" :class="{ 'gp-chat-aba-on': abaChat === 'dm' }"
+              :title="`conversa com ${alvoDm.nome}`"
+              @click="abrirAbaDm"
+            >
+              <span class="ellipsis">{{ alvoDm.nome }}</span>
+              <span v-if="alvoDm.naoLidas" class="gp-chat-bolha">{{ alvoDm.naoLidas }}</span>
+            </button>
+            <button
+              class="gp-chat-chip" :class="{ 'gp-chat-chip-on': dmComoAba }"
+              title="Mostrar conversas de amigos como abas aqui"
+              @click="dmComoAba = !dmComoAba"
+            >DMs {{ dmComoAba ? 'on' : 'off' }}</button>
           </div>
-          <div v-if="messages.length" ref="chatLog" class="gp-chat-log" @scroll="onChatScroll">
+          <div v-if="abaChat === 'dm'" ref="dmLog" class="gp-chat-log">
+            <p v-if="!itensDm.length" class="gp-dm-nota">nada por aqui ainda</p>
+            <template v-for="item in itensDm" :key="item.chave">
+              <div
+                v-if="item.tipo === 'msg'"
+                class="gp-dm-msg" :class="{ 'gp-dm-msg-minha': item.minha }"
+              >
+                <span class="gp-dm-texto">{{ item.texto }}</span>
+                <span v-if="item.hora" class="gp-dm-hora">{{ item.hora }}</span>
+              </div>
+              <p v-else class="gp-dm-nota">{{ item.texto }}</p>
+            </template>
+          </div>
+          <div v-else-if="messages.length" ref="chatLog" class="gp-chat-log" @scroll="onChatScroll">
             <div v-for="(m, i) in messages" :key="i" class="gp-chat-msg">
               <span class="gp-chat-name" :style="{ color: chatColor(m) }">{{ m.name }}:</span>
               <span class="gp-chat-text"> {{ m.text }}</span>
@@ -120,21 +152,24 @@
           <div class="gp-chat-field">
             <div class="gp-chat-foot">
               <span
-                v-if="chatInput.length > CHAT_COUNT_FROM"
+                v-if="textoDoCampo.length > contarAPartir"
                 class="gp-chat-count"
-                :class="{ 'gp-chat-count-max': chatInput.length >= CHAT_MAX_LEN }"
-              >{{ chatInput.length }}/{{ CHAT_MAX_LEN }}</span>
+                :class="{ 'gp-chat-count-max': textoDoCampo.length >= limiteDoCampo }"
+              >{{ textoDoCampo.length }}/{{ limiteDoCampo }}</span>
             </div>
             <div class="gp-chat-input-wrap">
               <span class="gp-chat-prefixo ellipsis">{{ prefixoChat }}</span>
               <input
-                v-model="chatInput" :maxlength="CHAT_MAX_LEN" placeholder="mensagem… (Enter)"
+                v-model="textoDoCampo" :maxlength="limiteDoCampo" placeholder="mensagem… (Enter)"
                 class="gp-chat-input"
                 @keydown.enter="sendChat"
               />
             </div>
             <span v-if="chatCooldown" class="gp-chat-cooldown" />
           </div>
+          <!-- o contrato do teclado é escrito, não adivinhado: o mapa responde a
+               WASD até um campo pegar o foco, e ESC é sempre o caminho de volta -->
+          <p class="k-label gp-chat-contrato">esc volta · campo focado sequestra o teclado</p>
         </div>
         <div class="gp-hud gp-hud-ctl" :class="{ 'gp-hud-ctl-mini': !hudVisible }">
           <ClusterCard v-if="hudVisible && ehSudo" titulo="mundo · afeta todos" nota="sudo" escopo="mundo">
@@ -203,7 +238,7 @@
                 @click="minimapaGrande = !minimapaGrande"
               ><PixelIcon :name="minimapaGrande ? 'zoom-out' : 'zoom-in'" size="0.75rem" /></button>
               <button class="gp-hud-rodape" title="abrir o mapa grande" @click="mapaExpandido = true">
-                <PixelIcon name="expand" size="0.75rem" />mapa
+                <span class="gp-hud-glifo" aria-hidden="true">⌖</span>mapa
               </button>
               <button class="gp-hud-rodape gp-hud-icone" title="atalhos do teclado" @click="atalhosAbertos = !atalhosAbertos">?</button>
               <button
@@ -444,6 +479,11 @@ import {
   emitSudoInvisivel, emitSudoFesta, emitSudoTeleporte, emitSudoPuxar, onPuxado, onFesta,
   type AvatarProps, type ChatMessage, type ScreenShareState,
 } from '@/services/presence'
+import {
+  abertaId as dmAbertaId, alvo as alvoDm, enviar as enviarDm, itens as itensDm,
+  marcarLida as marcarDmLida, rascunho as rascunhoDm,
+} from '@/services/dm.state'
+import { DM_TEXTO_MAX } from '@/services/dm.api'
 import { media } from '@/services/media'
 import { ganhoDoPeer, salaDoPonto } from '@/game/audio/espacial'
 import { callsDoMapa, historeseMidia } from '@/game/audio/calls'
@@ -827,13 +867,39 @@ watch(salasTrancadas, (t) => {
   if (r && t.has(r.salaId)) cancelarRota(`${r.nome} foi trancada.`)
 }, { deep: true })
 
-const abaChat = ref<'mundo' | 'sala'>('mundo')
+// 'dm' é a conversa privada ativa. O tipo entra aqui de propósito: emitChat só
+// aceita 'mundo' | 'sala', então qualquer caminho que tente empurrar a aba de
+// conversa pro socket para de compilar em vez de vazar mensagem privada.
+const abaChat = ref<'mundo' | 'sala' | 'dm'>('mundo')
 const naoLidasSala = ref(0)
 const messages = computed(() => (abaChat.value === 'sala' ? chatSala : chatMundo))
+
+// preferência do chip, no mesmo padrão de kairos_hud/kairos_minimapa/kairos_turbo
+const dmComoAba = ref(localStorage.getItem('kairos_dm_aba') !== 'off')
+watch(dmComoAba, (v) => localStorage.setItem('kairos_dm_aba', v ? 'on' : 'off'))
+// a aba só existe com conversa ativa E o chip ligado — sem as duas coisas ela
+// não tem o que mostrar nem pra onde mandar
+const abaDmDisponivel = computed(() => dmComoAba.value && !!alvoDm.value)
+
 // prefixo persistente dentro do campo: repete o escopo da aba ativa mesmo
 // depois que a pessoa começa a digitar, quando o placeholder já sumiu — é o
 // que evita escrever na aba errada com duas conversas abertas ao mesmo tempo
-const prefixoChat = computed(() => (abaChat.value === 'sala' && salaDoChat.value ? salaDoChat.value.nome : 'mundo'))
+const prefixoChat = computed(() => {
+  if (abaChat.value === 'dm') return alvoDm.value?.nome ?? 'conversa'
+  return abaChat.value === 'sala' && salaDoChat.value ? salaDoChat.value.nome : 'mundo'
+})
+
+// um campo só, dois rascunhos: na aba de conversa ele É o rascunho do dm.state,
+// o mesmo que a barra lateral edita. Guardar uma cópia local aqui faria o texto
+// digitado na HUD sumir ao abrir a barra — e, pior, deixaria enviar() mandando
+// um rascunho velho enquanto a tela mostra outro.
+const textoDoCampo = computed({
+  get: () => (abaChat.value === 'dm' ? rascunhoDm.value : chatInput.value),
+  set: (v: string) => {
+    if (abaChat.value === 'dm') rascunhoDm.value = v
+    else chatInput.value = v
+  },
+})
 
 // entrar numa sala não muda a aba: quem estava falando no mundo continua no
 // mundo. o contador avisa que tem conversa acontecendo do outro lado.
@@ -845,6 +911,35 @@ watch(abaChat, (v) => { if (v === 'sala') naoLidasSala.value = 0 })
 watch(salaDoChat, (v) => {
   if (!v) { abaChat.value = 'mundo'; naoLidasSala.value = 0 }
 })
+// mesma regra pra conversa: desligou o chip ou a conversa fechou, a aba some e o
+// campo NÃO pode continuar apontando pra ela — senão o próximo Enter cairia num
+// destino que não existe mais
+watch(abaDmDisponivel, (v) => {
+  if (!v && abaChat.value === 'dm') abaChat.value = 'mundo'
+})
+
+function abrirAbaDm() {
+  abaChat.value = 'dm'
+  const id = alvoDm.value?.conversaId || dmAbertaId.value
+  if (id) void marcarDmLida(id)
+}
+
+// com a aba aberta o log está à vista, então deixar o badge contando seria
+// mentira. o guard de n > 0 evita o laço com o marcarLida que zera o contador.
+watch(() => alvoDm.value?.naoLidas ?? 0, (n) => {
+  if (n <= 0 || abaChat.value !== 'dm' || document.visibilityState !== 'visible') return
+  const id = alvoDm.value?.conversaId || dmAbertaId.value
+  if (id) void marcarDmLida(id)
+})
+
+const dmLog = ref<HTMLElement | null>(null)
+watch([itensDm, abaChat], async () => {
+  if (abaChat.value !== 'dm') return
+  await nextTick()
+  const el = dmLog.value
+  if (el) el.scrollTop = el.scrollHeight
+})
+
 const CHAT_NAME_COLORS = 10
 
 function chatColor(m: ChatMessage): string {
@@ -856,6 +951,11 @@ function chatColor(m: ChatMessage): string {
 
 const CHAT_MAX_LEN = 255
 const CHAT_COUNT_FROM = 200
+// o limite do campo é o do destino: a conversa privada aceita muito mais texto
+// que o chat do mundo, e o contador aparece na mesma folga dos 55 caracteres
+const CONTADOR_FOLGA = CHAT_MAX_LEN - CHAT_COUNT_FROM
+const limiteDoCampo = computed(() => (abaChat.value === 'dm' ? DM_TEXTO_MAX : CHAT_MAX_LEN))
+const contarAPartir = computed(() => limiteDoCampo.value - CONTADOR_FOLGA)
 const CHAT_COOLDOWN_MS = 500
 const CHAT_BOTTOM_SLACK = 24
 const chatLog = ref<HTMLElement | null>(null)
@@ -1012,7 +1112,17 @@ function emote() {
   emoteUntil = Date.now() + 2500
 }
 
+// ROTEAMENTO — o ponto mais perigoso desta tela. Com três abas, o mesmo Enter
+// pode virar mensagem privada ou broadcast pro mundo inteiro. A conversa sai
+// ANTES por caminho próprio (enviar() do dm.state, que fala com a API de DM) e
+// nunca encosta no socket. O early-return também estreita o tipo de abaChat para
+// 'mundo' | 'sala' — que é exatamente o que emitChat aceita, então o compilador
+// recusa qualquer versão futura em que 'dm' escorregue para o broadcast.
 function sendChat() {
+  if (abaChat.value === 'dm') {
+    void enviarDm()
+    return
+  }
   if (chatCooldown.value) return
   const t = chatInput.value.trim()
   if (!t) return
@@ -2051,6 +2161,16 @@ onUnmounted(() => {
   box-shadow: var(--ui-shadow);
   padding: 0.5rem 0.875rem;
 }
+/* "aperte [E] para sentar": a frase é curta e de comando, então vai em caixa
+   alta espaçada — a tecla é o único pedaço em fonte pixel, via .k-key */
+.gp-hud-agir-txt {
+  font-family: var(--f-sans);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
 .gp-hud-action { color: var(--accent-texto); }
 
 .gp-hud-ctl {
@@ -2125,6 +2245,9 @@ onUnmounted(() => {
   justify-content: center;
   gap: 0.375rem;
 }
+/* o glifo do protótipo entra como texto, não como PixelIcon: ⌖ não existe no
+   conjunto de ícones e desenhar um só pra este botão sairia do desenho */
+.gp-hud-glifo { font-family: var(--f-sans); font-size: 0.875rem; line-height: 1; }
 .gp-hud-rodape:last-child { border-right: none; }
 .gp-hud-rodape:hover { background: var(--bg-2); }
 .gp-hud-rodape-on { background: var(--accent); }
@@ -2301,7 +2424,7 @@ onUnmounted(() => {
   }
 }
 
-.gp-chat-abas { display: flex; gap: 0.25rem; margin-bottom: 0.25rem; }
+.gp-chat-abas { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.25rem; }
 .gp-chat-aba {
   min-height: 2rem;
   appearance: none;
@@ -2328,6 +2451,68 @@ onUnmounted(() => {
   border: 0.125rem solid var(--tinta);
   padding: 0 0.25rem;
   font-size: 0.5rem;
+}
+
+/* a aba da conversa ganha um pouco mais de largura que a da sala: nome de
+   pessoa corta pior que nome de sala, que costuma ser curto */
+.gp-chat-aba-dm { max-width: 11rem; }
+
+/* o chip fica no fim da fila de abas — é preferência, não destino de mensagem */
+.gp-chat-chip {
+  appearance: none;
+  cursor: pointer;
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  min-width: 2rem;
+  min-height: 2rem;
+  padding: 0.3125rem 0.5rem;
+  background: var(--bg-1);
+  border: 0.125rem dashed var(--tinta);
+  color: var(--text-3);
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.gp-chat-chip:hover { background: var(--bg-2); }
+.gp-chat-chip-on { background: var(--accent); color: var(--tinta); border-style: solid; }
+
+.gp-dm-msg {
+  display: flex;
+  align-items: baseline;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--text);
+  overflow-wrap: anywhere;
+  text-shadow: 0 0.0625rem 0.125rem var(--bg-0);
+}
+.gp-dm-msg-minha { justify-content: flex-end; }
+.gp-dm-msg-minha .gp-dm-texto { color: var(--accent-texto); }
+.gp-dm-texto { min-width: 0; }
+.gp-dm-hora {
+  flex-shrink: 0;
+  font-family: var(--f-num);
+  font-size: 0.625rem;
+  color: var(--text-3);
+}
+
+/* separador de dia, marcador de não lido e "vista às" caem todos aqui: são
+   anotações do log, não fala de ninguém */
+.gp-dm-nota {
+  margin: 0.25rem 0;
+  text-align: center;
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.gp-chat-contrato {
+  margin: 0.375rem 0 0;
+  color: var(--text-3);
 }
 .gp-rota {
   top: 1rem;
