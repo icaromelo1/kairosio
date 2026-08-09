@@ -24,7 +24,7 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 FURNITURE = os.path.join(AQUI, '..', 'kairos-ui/src/game/furniture')
 PACK, COLS, TILE = 'tiny-town', 12, 16
 
-L, A = 64, 64
+L, A = 48, 48
 
 # ── vocabulário, pelos nomes do índice curado do tiny-town ────────────────────
 GRAMA = [0, 1, 2]
@@ -132,21 +132,23 @@ class Vila:
 def gerar():
     v = Vila()
     # avenidas: duas horizontais e duas verticais, largura 2, deixando 9 quarteirões
-    for y in (14, 34, 52):
+    for y in (11, 25, 39):
         v.rua(1, y, L - 2, y + 1)
-    for x in (14, 34, 52):
+    for x in (11, 25, 39):
         v.rua(x, 1, x + 1, A - 2)
 
-    limites_x = [(2, 13), (16, 33), (36, 51), (54, L - 3)]
-    limites_y = [(2, 13), (16, 33), (36, 51), (54, A - 3)]
+    limites_x = [(2, 10), (13, 24), (27, 38), (41, L - 3)]
+    limites_y = [(2, 10), (13, 24), (27, 38), (41, A - 3)]
     for (qx0, qx1) in limites_x:
         for (qy0, qy1) in limites_y:
             larg_q, alt_q = qx1 - qx0, qy1 - qy0
             if larg_q < 5 or alt_q < 4:
                 continue
             for _ in range(1 if larg_q < 10 else 2):
-                cl = rnd.randrange(4, min(7, larg_q))
-                ca = rnd.randrange(3, min(5, alt_q))
+                cl = rnd.randrange(4, max(5, min(7, larg_q)))
+                ca = rnd.randrange(3, max(4, min(5, alt_q)))
+                if qx1 - cl <= qx0 or qy1 - ca - 1 <= qy0:
+                    continue
                 cx = rnd.randrange(qx0, qx1 - cl)
                 cy = rnd.randrange(qy0, qy1 - ca - 1)
                 if all(v.livre[yy][xx] for yy in range(cy, cy + ca + 1) for xx in range(cx, cx + cl)):
@@ -154,7 +156,7 @@ def gerar():
             v.enfeitar(qx0, qy0, qx1, qy1, max(8, (larg_q * alt_q) // 9))
 
     # bosque na moldura: a vila fica cercada de mata em vez de grama vazia
-    for _ in range(220):
+    for _ in range(160):
         x, y = rnd.randrange(1, L - 1), rnd.randrange(1, A - 1)
         na_borda = x < 3 or y < 3 or x > L - 4 or y > A - 4
         if na_borda and v.livre[y][x]:
@@ -170,12 +172,19 @@ def gerar():
     return v
 
 
+GRAMA_LISA = 0
+
 def para_objetos(v):
+    """Grama lisa NÃO vira objeto: o palette.ground pinta #84c669, que é a cor
+    exata do tile 0, então a omissão é invisível. Emitir as 2304 células como
+    objeto próprio inflava o seed em 12x e punha um container por célula na cena."""
     objetos = []
     n = 0
     for y in range(A):
         for x in range(L):
             piso = v.chao[y][x]
+            if piso == GRAMA_LISA:
+                continue
             n += 1
             objetos.append({
                 'id': f'p{n}', 'kind': 'tile', 'x': x, 'y': y, 'w': 1, 'h': 1,
@@ -222,7 +231,7 @@ def main():
         mapa = {
             'name': 'Vila', 'width': L, 'height': A,
             'spawn': {'x': L // 2, 'y': 15},
-            'palette': {'ground': '#6a9b4a', 'accent': '#f0b03c', 'wallTop': '#8d6b4a', 'floorTrim': '#b39b74'},
+            'palette': {'ground': '#84c669', 'accent': '#f0b03c', 'wallTop': '#8d6b4a', 'floorTrim': '#b39b74'},
             'objects': objetos,
         }
         with open(args.json, 'w') as f:
