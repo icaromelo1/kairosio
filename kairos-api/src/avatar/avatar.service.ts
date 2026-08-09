@@ -105,11 +105,14 @@ export class AvatarService implements OnModuleInit {
     return this.repo.save(avatar)
   }
 
-  async remover(id: string): Promise<void> {
-    const avatar = await this.repo.findOne({ where: { id } })
+  async remover(id: string, userId: string, ehSudo: boolean): Promise<void> {
+    const avatar = await this.repo.findOne({ where: { id }, relations: ['criadoPor'] })
     if (!avatar) throw new NotFoundException('Avatar não encontrado')
     if (avatar.origem === 'base') {
       throw new ForbiddenException('Os corpos do acervo não se excluem')
+    }
+    if (!ehSudo && avatar.criadoPor?.id !== userId) {
+      throw new ForbiddenException('Este avatar é de outra pessoa')
     }
     try {
       await this.repo.delete({ id })
@@ -135,8 +138,16 @@ export class AvatarService implements OnModuleInit {
 
   // a tela de curadoria: tudo, com autor e quantas pessoas estão vestindo — é a
   // contagem que decide se o botão de excluir fica disponível
-  async acervo() {
-    const avatares = await this.repo.find({ relations: ['criadoPor'], order: { criadoEm: 'ASC' } })
+  async acervo(userId: string, ehSudo: boolean) {
+    // sudo cura o acervo inteiro; a pessoa comum entra na mesma tela para editar de
+    // verdade os avatares dela, e só vê os dela
+    const avatares = ehSudo
+      ? await this.repo.find({ relations: ['criadoPor'], order: { criadoEm: 'ASC' } })
+      : await this.repo.find({
+          where: { criadoPor: { id: userId } },
+          relations: ['criadoPor'],
+          order: { criadoEm: 'ASC' },
+        })
     const usos = await this.personagens
       .createQueryBuilder('c')
       .select('c.avatarId', 'avatarId')
