@@ -49,6 +49,37 @@ function chaveRecolor(preset: string, quadro: string, c: CoresAlvo): string {
   return `${preset}/${quadro}|${c.pele ?? ''}|${c.cabelo ?? ''}|${c.roupa ?? ''}`
 }
 
+const DIRECOES: Direcao[] = ['baixo', 'cima', 'esquerda', 'direita']
+
+/**
+ * Assa os 12 quadros do visual e só resolve quando todos estão prontos.
+ *
+ * Sem isto o boneco parado ficava para sempre com a cor original: resolveTexture é
+ * síncrona e devolve a textura crua no cache miss, enquanto applyTexture só é
+ * chamado quando a direção ou o quadro do ciclo mudam. Andando os quadros trocam e
+ * a segunda passada pegava a versão pintada — parado, nunca.
+ */
+export async function prepararAvatar(preset: string, cores?: CoresAlvo): Promise<void> {
+  if (!cores || !precisaRecolorir(cores)) return
+  const pedidos: Promise<unknown>[] = []
+  for (const dir of DIRECOES) {
+    for (const quadro of [0, 1, 2] as const) {
+      const nome = `${dir}-${quadro}`
+      if (!temMascara(preset, nome)) continue
+      const chave = chaveRecolor(preset, nome, cores)
+      if (RECOLORIDAS.has(chave)) continue
+      const set = AVATAR_SPRITES[preset] || AVATAR_SPRITES[DEFAULT_PRESET]
+      const url = set?.[nome]
+      if (!url) continue
+      pedidos.push(
+        texturaRecolorida(Texture.from(url), preset, nome, cores)
+          .then((t) => { if (t) RECOLORIDAS.set(chave, t) }),
+      )
+    }
+  }
+  await Promise.all(pedidos)
+}
+
 function resolveTexture(
   preset: string,
   direcao: Direcao,
@@ -192,7 +223,15 @@ export class AvatarPuppet {
     this.root.pivot.set(8 * UNIT, 20 * UNIT)
     this.root.addChild(this.nameLabel)
     this.updateRootScale()
+
+    // o forno é assíncrono e o desenho é síncrono: sem reaplicar aqui, quem entra
+    // parado fica com a cor original até dar o primeiro passo
+    void prepararAvatar(this.preset, this.cores).then(() => {
+      if (!this.morto) this.applyTexture()
+    })
   }
+
+  private morto = false
 
   private cartBack?: Container
   private cartFront?: Container
@@ -367,6 +406,7 @@ export class AvatarPuppet {
   }
 
   destroy() {
+    this.morto = true
     this.root.destroy({ children: true })
   }
 }
