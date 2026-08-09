@@ -10,6 +10,7 @@ export interface CharacterData {
   pantsColor: string
   accessory: Accessory
   photoFile?: string | null
+  avatarId?: string | null
 }
 
 export async function getCharacter(): Promise<CharacterData | null> {
