@@ -12,9 +12,6 @@ export class Character {
   @JoinColumn()
   user: User
 
-  @Column({ default: '' })
-  name: string
-
   @Column({ default: 'short' })
   hairStyle: string
 
@@ -29,9 +26,6 @@ export class Character {
 
   @Column({ default: '#1f2937' })
   pantsColor: string
-
-  @Column({ default: 'none' })
-  accessory: string
 
   // Qual avatar a pessoa está vestindo. Nullable porque a coluna nasce antes do
   // backfill: marcar NOT NULL com a tabela já povoada derrubaria o boot.

@@ -385,7 +385,6 @@ async function save() {
     skin: characterStore.skin,
     topColor: characterStore.topColor,
     pantsColor: characterStore.pantsColor,
-    accessory: characterStore.accessory,
   })
   saving.value = false
   if (!ok) {

@@ -1,4 +1,4 @@
-import { IsIn, IsOptional, IsString, IsUUID, Matches, MaxLength } from 'class-validator'
+import { IsOptional, IsUUID, Matches } from 'class-validator'
 
 const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/
 // id de preset de avatar — hoje vem de kairos-ui/src/game/furniture/avatar/presets.json.
@@ -10,11 +10,6 @@ const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/
 const PRESET_ID = /^[a-z0-9-]{1,40}$/
 
 export class SaveCharacterDto {
-  @IsOptional()
-  @IsString()
-  @MaxLength(40)
-  name?: string
-
   @IsOptional()
   @Matches(PRESET_ID)
   hairStyle?: string
@@ -34,10 +29,6 @@ export class SaveCharacterDto {
   @IsOptional()
   @Matches(HEX_COLOR)
   pantsColor?: string
-
-  @IsOptional()
-  @IsIn(['none', 'glasses', 'hat'])
-  accessory?: string
 
   // qual avatar do acervo a pessoa está vestindo
   @IsOptional()
