@@ -21,22 +21,36 @@
           <span v-else-if="erro" class="tp-erro">{{ erro }}</span>
         </span>
   
+        <span v-if="grade" class="tp-zoom">
+          <span class="k-label">zoom</span>
+          <button
+            v-for="z in ZOOMS" :key="z"
+            class="k-btn k-btn-ghost k-btn-xs" :class="{ 'k-active': zoom === z }"
+            @click="zoom = z"
+          >{{ z }}</button>
+        </span>
+
         <button class="k-btn k-btn-ghost k-btn-xs" @click="grade = !grade">
-          {{ grade ? 'foco (g)' : 'grade (g)' }}
+          {{ grade ? 'foco (g)' : 'folha (g)' }}
         </button>
       </header>
   
       <main v-if="carregando" class="tp-vazio">carregando as revisões já feitas…</main>
   
       <main v-else-if="grade" class="tp-grade">
-        <button
-          v-for="t in tilesDoPack" :key="t.i"
-          class="tp-cel" :class="{ 'tp-cel-ok': feito(t.i), 'tp-cel-duvida': duvidas.has(t.i) }"
-          :title="`${t.i} · ${nomeDe(t)}`"
-          @click="irPara(t.i)"
-        >
-          <TileThumb :peca="{ pack, i: t.i, cols: packAtual.cols, tile: packAtual.tile }" :lado="32" />
-        </button>
+        <p class="k-hint-text tp-folha-dica">
+          A folha na disposição original do tilesheet: casa vira casa, boneco vira boneco.
+        </p>
+        <div class="tp-folha" :style="{ '--folha-cols': packAtual.cols, '--folha-lado': `${zoom}px` }">
+          <button
+            v-for="t in tilesDoPack" :key="t.i"
+            class="tp-cel" :class="{ 'tp-cel-ok': feito(t.i), 'tp-cel-duvida': duvidas.has(t.i) }"
+            :title="`${t.i} · ${nomeDe(t)}`"
+            @click="irPara(t.i)"
+          >
+            <TileThumb :peca="{ pack, i: t.i, cols: packAtual.cols, tile: packAtual.tile }" :lado="zoom" />
+          </button>
+        </div>
       </main>
   
       <main v-else-if="atual" class="tp-foco">
@@ -160,9 +174,12 @@ const TOTAL = PACKS.reduce((n, p) => n + p.tiles.length, 0)
 
 const router = useRouter()
 
+const ZOOMS = [16, 24, 32, 48]
+
 const pack = ref(PACKS[0].pack)
 const posicao = ref(0)
 const grade = ref(false)
+const zoom = ref(parseInt(localStorage.getItem('kairos_tiles_zoom') || '', 10) || 32)
 const carregando = ref(true)
 const salvando = ref(false)
 const salvoEm = ref('')
@@ -210,6 +227,7 @@ function carregarCampos() {
   serveComo.value = [...(r?.serveComo ?? t.serveComo ?? [])]
 }
 watch([atual, pack], carregarCampos, { immediate: true })
+watch(zoom, (z) => localStorage.setItem('kairos_tiles_zoom', String(z)))
 
 function irPara(i: number) {
   const idx = tilesDoPack.value.findIndex((t) => t.i === i)
@@ -330,24 +348,34 @@ onUnmounted(() => window.removeEventListener('keydown', aoTeclado))
 
 .tp-vazio { padding: 2rem; font-size: 0.8125rem; color: var(--text-3); }
 
-.tp-grade {
+.tp-grade { padding: 1rem; overflow: auto; }
+.tp-folha-dica { margin-bottom: 0.75rem; }
+
+/* a folha reproduz o tilesheet: colunas presas ao cols do pack e gap zero, senão
+   o objeto de vários tiles (casa, boneco, carro) se parte e vira ruído */
+.tp-folha {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(3rem, 1fr));
-  gap: 0.25rem;
-  padding: 1rem;
+  grid-template-columns: repeat(var(--folha-cols), var(--folha-lado));
+  gap: 0;
+  width: max-content;
+  background: var(--bg-2);
+  border: var(--ui-border-style);
 }
 
 .tp-cel {
-  min-width: 3rem;
-  min-height: 3rem;
-  display: grid;
-  place-items: center;
-  background: var(--bg-2);
-  border: var(--ui-border-style);
+  width: var(--folha-lado);
+  height: var(--folha-lado);
+  padding: 0;
+  display: block;
+  background: transparent;
+  border: 0;
   cursor: pointer;
 }
-.tp-cel-ok { box-shadow: inset 0 0 0 0.1875rem var(--ok); }
-.tp-cel-duvida { box-shadow: inset 0 0 0 0.1875rem var(--warn); }
+.tp-cel:hover { box-shadow: inset 0 0 0 0.125rem var(--ink), inset 0 0 0 0.25rem var(--cream); }
+.tp-cel-ok { box-shadow: inset 0 0 0 0.125rem var(--ok); }
+.tp-cel-duvida { box-shadow: inset 0 0 0 0.125rem var(--warn); }
+
+.tp-zoom { display: flex; align-items: center; gap: 0.25rem; }
 
 .tp-foco {
   display: grid;
