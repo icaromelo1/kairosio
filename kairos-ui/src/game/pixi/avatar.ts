@@ -236,19 +236,21 @@ export class AvatarPuppet {
       // era um carrinho desenhado à mão em Graphics, com paleta própria que não
       // conversava com o resto do mundo. Agora é o caminhão do Tiny Battle no time
       // vermelho — mesma cor de antes, mas arte do mesmo acervo do cenário
-      const caixa = { x: 0, y: 0, w: BODY_SIZE, h: BODY_SIZE }
+      // o veículo é maior que o boneco e fica NA FRENTE, cobrindo da cintura para
+      // baixo: atrás dele o corpo escondia a peça inteira, que foi o que apareceu
+      // na primeira versão
+      const larg = BODY_SIZE * 1.5
+      const caixa = { x: 0, y: 0, w: larg, h: larg }
       const carro = criarSpriteDeTile({ pack: 'tiny-battle', i: 149, cols: 18, tile: 16 }, caixa)
       if (!carro) return
       carro.anchor.set(0.5, 1)
-      carro.position.set(8 * UNIT, 20 * UNIT + 2 * UNIT)
+      carro.position.set(8 * UNIT, 20 * UNIT + 5 * UNIT)
 
-      const atras = new Container()
-      atras.addChild(carro)
-      this.cartBack = atras
-      // sem peça na frente: o sprite é uma silhueta só, e sobrepor metade dele ao
-      // boneco esconderia justamente o avatar que a pessoa escolheu
-      this.cartFront = new Container()
-      this.root.addChildAt(atras, 1)
+      const frente = new Container()
+      frente.addChild(carro)
+      this.cartFront = frente
+      this.cartBack = new Container()
+      this.root.addChild(frente)
     }
     if (this.cartBack) this.cartBack.visible = on
     if (this.cartFront) this.cartFront.visible = on
