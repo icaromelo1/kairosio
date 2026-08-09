@@ -1,135 +1,138 @@
 <template>
-  <div class="tp-root" data-captura-teclado>
-    <header class="tp-topo">
-      <button class="k-btn k-btn-ghost k-btn-sm" @click="router.push('/game')">
-        <PixelIcon name="corner-up-left" size="0.75rem" />jogo
-      </button>
-      <span class="k-chip">revisão de tiles</span>
-
-      <nav class="tp-packs">
+  <SoSudo>
+    <div class="tp-root" data-captura-teclado>
+      <header class="tp-topo">
+        <button class="k-btn k-btn-ghost k-btn-sm" @click="router.push('/game')">
+          <PixelIcon name="corner-up-left" size="0.75rem" />jogo
+        </button>
+        <span class="k-chip">revisão de tiles</span>
+  
+        <nav class="tp-packs">
+          <button
+            v-for="p in PACKS" :key="p.pack"
+            class="k-btn k-btn-ghost k-btn-xs" :class="{ 'k-active': pack === p.pack }"
+            @click="trocarPack(p.pack)"
+          >{{ p.pack }} <span class="tp-n">{{ revisadosNoPack(p.pack) }}/{{ p.tiles.length }}</span></button>
+        </nav>
+  
+        <span class="tp-progresso">
+          <span class="tp-n">{{ totalRevisado }}/{{ TOTAL }}</span>
+          <span v-if="salvoEm" class="tp-salvo">salvo {{ salvoEm }}</span>
+          <span v-else-if="erro" class="tp-erro">{{ erro }}</span>
+        </span>
+  
+        <button class="k-btn k-btn-ghost k-btn-xs" @click="grade = !grade">
+          {{ grade ? 'foco (g)' : 'grade (g)' }}
+        </button>
+      </header>
+  
+      <main v-if="carregando" class="tp-vazio">carregando as revisões já feitas…</main>
+  
+      <main v-else-if="grade" class="tp-grade">
         <button
-          v-for="p in PACKS" :key="p.pack"
-          class="k-btn k-btn-ghost k-btn-xs" :class="{ 'k-active': pack === p.pack }"
-          @click="trocarPack(p.pack)"
-        >{{ p.pack }} <span class="tp-n">{{ revisadosNoPack(p.pack) }}/{{ p.tiles.length }}</span></button>
-      </nav>
-
-      <span class="tp-progresso">
-        <span class="tp-n">{{ totalRevisado }}/{{ TOTAL }}</span>
-        <span v-if="salvoEm" class="tp-salvo">salvo {{ salvoEm }}</span>
-        <span v-else-if="erro" class="tp-erro">{{ erro }}</span>
-      </span>
-
-      <button class="k-btn k-btn-ghost k-btn-xs" @click="grade = !grade">
-        {{ grade ? 'foco (g)' : 'grade (g)' }}
-      </button>
-    </header>
-
-    <main v-if="carregando" class="tp-vazio">carregando as revisões já feitas…</main>
-
-    <main v-else-if="grade" class="tp-grade">
-      <button
-        v-for="t in tilesDoPack" :key="t.i"
-        class="tp-cel" :class="{ 'tp-cel-ok': feito(t.i), 'tp-cel-duvida': duvidas.has(t.i) }"
-        :title="`${t.i} · ${nomeDe(t)}`"
-        @click="irPara(t.i)"
-      >
-        <TileThumb :peca="{ pack, i: t.i, cols: packAtual.cols, tile: packAtual.tile }" :lado="32" />
-      </button>
-    </main>
-
-    <main v-else-if="atual" class="tp-foco">
-      <section class="tp-palco">
-        <div class="tp-grande">
-          <TileThumb :peca="{ pack, i: atual.i, cols: packAtual.cols, tile: packAtual.tile }" :lado="128" />
-        </div>
-        <div class="tp-vizinhos">
-          <span class="k-label">vizinhos no sheet</span>
-          <div class="tp-vizinhos-linha">
-            <TileThumb
-              v-for="v in vizinhos" :key="v"
-              :peca="{ pack, i: v, cols: packAtual.cols, tile: packAtual.tile }"
-              :lado="40"
-              :class="{ 'tp-viz-atual': v === atual.i }"
+          v-for="t in tilesDoPack" :key="t.i"
+          class="tp-cel" :class="{ 'tp-cel-ok': feito(t.i), 'tp-cel-duvida': duvidas.has(t.i) }"
+          :title="`${t.i} · ${nomeDe(t)}`"
+          @click="irPara(t.i)"
+        >
+          <TileThumb :peca="{ pack, i: t.i, cols: packAtual.cols, tile: packAtual.tile }" :lado="32" />
+        </button>
+      </main>
+  
+      <main v-else-if="atual" class="tp-foco">
+        <section class="tp-palco">
+          <div class="tp-grande">
+            <TileThumb :peca="{ pack, i: atual.i, cols: packAtual.cols, tile: packAtual.tile }" :lado="128" />
+          </div>
+          <div class="tp-vizinhos">
+            <span class="k-label">vizinhos no sheet</span>
+            <div class="tp-vizinhos-linha">
+              <TileThumb
+                v-for="v in vizinhos" :key="v"
+                :peca="{ pack, i: v, cols: packAtual.cols, tile: packAtual.tile }"
+                :lado="40"
+                :class="{ 'tp-viz-atual': v === atual.i }"
+              />
+            </div>
+            <p class="k-hint-text">O sheet é o que desfaz a ambiguidade: isto é topo de árvore, não arbusto.</p>
+          </div>
+        </section>
+  
+        <section class="tp-form">
+          <div class="tp-cab">
+            <span class="k-label">tile {{ posicao + 1 }} de {{ tilesDoPack.length }} · {{ pack }} #{{ atual.i }}</span>
+          </div>
+  
+          <div class="tp-campo">
+            <span class="k-label">nome (n)</span>
+            <input
+              ref="campoNome" v-model="nome" class="k-input tp-input" maxlength="80"
+              @keydown.enter.prevent="confirmar" @keydown.esc.prevent="campoNome?.blur()"
             />
           </div>
-          <p class="k-hint-text">O sheet é o que desfaz a ambiguidade: isto é topo de árvore, não arbusto.</p>
-        </div>
-      </section>
-
-      <section class="tp-form">
-        <div class="tp-cab">
-          <span class="k-label">tile {{ posicao + 1 }} de {{ tilesDoPack.length }} · {{ pack }} #{{ atual.i }}</span>
-        </div>
-
-        <div class="tp-campo">
-          <span class="k-label">nome (n)</span>
-          <input
-            ref="campoNome" v-model="nome" class="k-input tp-input" maxlength="80"
-            @keydown.enter.prevent="confirmar" @keydown.esc.prevent="campoNome?.blur()"
-          />
-        </div>
-
-        <div class="tp-campo">
-          <span class="k-label">categoria (1–9, 0, q, w)</span>
-          <div class="tp-cats">
-            <button
-              v-for="(c, i) in CATEGORIAS" :key="c"
-              class="k-btn k-btn-ghost k-btn-xs tp-cat" :class="{ 'k-active': cat === c }"
-              @click="cat = c"
-            ><span class="tp-tecla">{{ TECLAS[i] }}</span>{{ c }}</button>
+  
+          <div class="tp-campo">
+            <span class="k-label">categoria (1–9, 0, q, w)</span>
+            <div class="tp-cats">
+              <button
+                v-for="(c, i) in CATEGORIAS" :key="c"
+                class="k-btn k-btn-ghost k-btn-xs tp-cat" :class="{ 'k-active': cat === c }"
+                @click="cat = c"
+              ><span class="tp-tecla">{{ TECLAS[i] }}</span>{{ c }}</button>
+            </div>
           </div>
-        </div>
-
-        <div class="tp-campo">
-          <span class="k-label">solidez (s)</span>
-          <button class="k-btn k-btn-sm" :class="{ 'k-active': solido }" @click="solido = !solido">
-            {{ solido ? 'sólido — barra o caminho' : 'não sólido — dá para atravessar' }}
-          </button>
-          <p class="k-hint-text">Campo do tile, não da categoria: a coluna que também é decoração continua sólida.</p>
-        </div>
-
-        <div class="tp-campo">
-          <span class="k-label">serve como (a)</span>
-          <div class="tp-cats">
-            <button
-              v-for="c in CATEGORIAS.filter((x) => x !== cat)" :key="c"
-              class="k-btn k-btn-ghost k-btn-xs tp-cat" :class="{ 'k-active': serveComo.includes(c) }"
-              @click="alternarServe(c)"
-            >{{ c }}</button>
+  
+          <div class="tp-campo">
+            <span class="k-label">solidez (s)</span>
+            <button class="k-btn k-btn-sm" :class="{ 'k-active': solido }" @click="solido = !solido">
+              {{ solido ? 'sólido — barra o caminho' : 'não sólido — dá para atravessar' }}
+            </button>
+            <p class="k-hint-text">Campo do tile, não da categoria: a coluna que também é decoração continua sólida.</p>
           </div>
-        </div>
-
-        <div class="tp-acoes">
-          <button class="k-btn k-btn-ghost k-btn-sm" :disabled="posicao === 0" @click="irPara(tilesDoPack[posicao - 1].i)">
-            ← voltar
-          </button>
-          <button class="k-btn k-btn-ghost k-btn-sm" :class="{ 'k-active': duvidas.has(atual.i) }" @click="marcarDuvida">
-            dúvida (d)
-          </button>
-          <button class="k-btn k-btn-primary k-btn-sm tp-confirmar" :disabled="salvando" @click="confirmar">
-            {{ salvando ? 'salvando…' : 'confirmar e avançar · enter' }}
-          </button>
-        </div>
-
-        <div v-if="duvidas.size" class="tp-duvidas">
-          <span class="k-label">fila de dúvidas ({{ duvidas.size }})</span>
-          <div class="tp-cats">
-            <button
-              v-for="i in [...duvidas]" :key="i"
-              class="k-btn k-btn-ghost k-btn-xs" @click="irPara(i)"
-            >#{{ i }}</button>
+  
+          <div class="tp-campo">
+            <span class="k-label">serve como (a)</span>
+            <div class="tp-cats">
+              <button
+                v-for="c in CATEGORIAS.filter((x) => x !== cat)" :key="c"
+                class="k-btn k-btn-ghost k-btn-xs tp-cat" :class="{ 'k-active': serveComo.includes(c) }"
+                @click="alternarServe(c)"
+              >{{ c }}</button>
+            </div>
           </div>
-        </div>
-      </section>
-    </main>
-  </div>
+  
+          <div class="tp-acoes">
+            <button class="k-btn k-btn-ghost k-btn-sm" :disabled="posicao === 0" @click="irPara(tilesDoPack[posicao - 1].i)">
+              ← voltar
+            </button>
+            <button class="k-btn k-btn-ghost k-btn-sm" :class="{ 'k-active': duvidas.has(atual.i) }" @click="marcarDuvida">
+              dúvida (d)
+            </button>
+            <button class="k-btn k-btn-primary k-btn-sm tp-confirmar" :disabled="salvando" @click="confirmar">
+              {{ salvando ? 'salvando…' : 'confirmar e avançar · enter' }}
+            </button>
+          </div>
+  
+          <div v-if="duvidas.size" class="tp-duvidas">
+            <span class="k-label">fila de dúvidas ({{ duvidas.size }})</span>
+            <div class="tp-cats">
+              <button
+                v-for="i in [...duvidas]" :key="i"
+                class="k-btn k-btn-ghost k-btn-xs" @click="irPara(i)"
+              >#{{ i }}</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+  </SoSudo>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import PixelIcon from '@/components/PixelIcon.vue'
+import SoSudo from '@/components/SoSudo.vue'
 import TileThumb from '@/components/TileThumb.vue'
 import { listarRevisoes, salvarRevisao, type TileRevisao } from '@/services/tiles.api'
 import tinyTown from '@/game/furniture/indice-tiny-town.json'
