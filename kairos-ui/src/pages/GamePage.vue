@@ -581,7 +581,6 @@ const look = computed<AvatarLook>(() => ({
   skin: characterStore.skin,
   topColor: characterStore.topColor,
   pantsColor: characterStore.pantsColor,
-  accessory: characterStore.accessory,
 }))
 // URL pública da foto (mesma pra todo mundo) — vai junto no avatar broadcast pro resto da sala
 const myPhotoUrl = computed(() => (characterStore.photoFile ? photoUrl(characterStore.photoFile) : null))

@@ -110,7 +110,6 @@ export interface AvatarLook {
   skin: string
   topColor: string
   pantsColor: string
-  accessory?: 'none' | 'glasses' | 'hat'
 }
 
 export type Facing = 'down' | 'up' | 'left' | 'right'
@@ -121,7 +120,6 @@ const UNIT = 6
 
 const BODY_SIZE = 16 * UNIT
 
-const ACCESSORIES: NonNullable<AvatarLook['accessory']>[] = ['none', 'glasses', 'hat']
 const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/
 
 export function sanitizeLook(raw: unknown): AvatarLook {
@@ -134,9 +132,6 @@ export function sanitizeLook(raw: unknown): AvatarLook {
     skin: color(a.skin, '#e8b894'),
     topColor: color(a.topColor, '#2c7441'),
     pantsColor: color(a.pantsColor, '#1f2937'),
-    accessory: ACCESSORIES.includes(a.accessory as NonNullable<AvatarLook['accessory']>)
-      ? (a.accessory as AvatarLook['accessory'])
-      : 'none',
   }
 }
 

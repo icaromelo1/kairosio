@@ -151,7 +151,6 @@ const POSE_VALUES: Pose[] = ['idle', 'walk', 'dance', 'wave', 'sit', 'giro', 'pu
 // só ela mesma se via direito. Terceira cópia da mesma lista morta (as outras
 // duas eram o DTO e o índice de tiles): validar FORMATO, não enumerar valores.
 const PRESET_ID = /^[a-z0-9-]{1,40}$/
-const ACCESSORIES = new Set(['none', 'glasses', 'hat'])
 const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/
 const PHOTO_PATH = /\/kairos-api\/character\/photo\/([a-f0-9-]+\.(?:jpg|png|webp))$/
 
@@ -184,7 +183,6 @@ function sanitizeAvatar(raw: unknown): Record<string, string | number | null> {
     out.escala = Math.min(ESCALA_MAX, Math.max(ESCALA_MIN, a.escala))
   }
   if (typeof a.hairStyle === 'string' && PRESET_ID.test(a.hairStyle)) out.hairStyle = a.hairStyle
-  if (ACCESSORIES.has(String(a.accessory))) out.accessory = String(a.accessory)
   for (const key of ['hairColor', 'skin', 'topColor', 'pantsColor'] as const) {
     if (typeof a[key] === 'string' && HEX_COLOR.test(a[key] as string)) out[key] = a[key] as string
   }

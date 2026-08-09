@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { AccessToken } from 'livekit-server-sdk'
-import { Character } from '../character/character.entity'
+import { User } from '../user/user.entity'
 import { MapService } from '../map/map.service'
 import { livekitConfig } from './livekit-config'
 
@@ -22,7 +22,7 @@ export interface MediaToken {
 export class MediaService {
   constructor(
     private readonly maps: MapService,
-    @InjectRepository(Character) private readonly characters: Repository<Character>,
+    @InjectRepository(User) private readonly usuarios: Repository<User>,
   ) {}
 
   async issueToken(user: MediaUser, mapId: string): Promise<MediaToken> {
@@ -52,8 +52,10 @@ export class MediaService {
     return `${serverId || 'public'}:${mapId}`
   }
 
+  // vem do @nome, que é o nome único da pessoa. Antes vinha de characters.name, uma
+  // cópia do mesmo valor herdada de quando personagem tinha nome próprio
   private async displayName(userId: string): Promise<string> {
-    const character = await this.characters.findOne({ where: { user: { id: userId } } })
-    return character?.name?.trim() || 'Convidado'
+    const usuario = await this.usuarios.findOne({ where: { id: userId } })
+    return usuario?.username?.trim() || 'Convidado'
   }
 }

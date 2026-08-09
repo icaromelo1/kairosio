@@ -109,7 +109,6 @@ export interface AvatarProps {
   skin?: string | null
   topColor?: string | null
   pantsColor?: string | null
-  accessory?: string | null
   // URL pública da foto de perfil — quando presente, o cliente mostra o círculo em vez do sprite
   photoUrl?: string | null
 }

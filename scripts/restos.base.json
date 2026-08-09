@@ -1,6 +1,6 @@
 {
  "kairos-ui": {
-  "arquivo-orfao": 1,
+  "arquivo-orfao": 0,
   "export-morto": 4,
   "export-demais": 65,
   "comentario-vencido": 5,

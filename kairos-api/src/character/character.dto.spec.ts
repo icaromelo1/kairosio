@@ -45,13 +45,11 @@ describe('SaveCharacterDto', () => {
   it('aceita um payload completo do painel de personagem', () => {
     expect(
       erros({
-        name: 'alguem',
         hairStyle: presets[0].id,
         hairColor: '#c0632a',
         skin: '#f0c8a0',
         topColor: '#3aa76d',
         pantsColor: '#4a5568',
-        accessory: 'none',
       }),
     ).toEqual([])
   })
