@@ -34,6 +34,8 @@ import { DmMessage } from './dm/dm-message.entity'
 import { TileModule } from './tile/tile.module'
 import { TileRevisao } from './tile/tile-revisao.entity'
 import { MascaraModule } from './mascara/mascara.module'
+import { AvatarModule } from './avatar/avatar.module'
+import { Avatar } from './avatar/avatar.entity'
 import { MascaraRevisao } from './mascara/mascara-revisao.entity'
 
 @Module({
@@ -43,7 +45,7 @@ import { MascaraRevisao } from './mascara/mascara-revisao.entity'
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL || 'postgres://kairos:kairos@localhost:5432/kairosio',
-      entities: [User, Character, WorldState, GameMap, Feedback, Server, ServerInvite, ServerMembership, Track, Task, Note, Friendship, FriendServerInvite, DmConversation, DmMessage, TileRevisao, MascaraRevisao],
+      entities: [User, Character, WorldState, GameMap, Feedback, Server, ServerInvite, ServerMembership, Track, Task, Note, Friendship, FriendServerInvite, DmConversation, DmMessage, TileRevisao, MascaraRevisao, Avatar],
       synchronize: true,
     }),
     AuthModule,
@@ -61,6 +63,7 @@ import { MascaraRevisao } from './mascara/mascara-revisao.entity'
     DmModule,
     TileModule,
     MascaraModule,
+    AvatarModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
