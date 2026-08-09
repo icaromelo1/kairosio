@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import PixelIcon from '@/components/PixelIcon.vue'
+import SoSudo from '@/components/SoSudo.vue'
 import PreviaMascara from '@/components/PreviaMascara.vue'
 import TelaMascara from '@/components/TelaMascara.vue'
 import { AVATAR_PRESETS } from '@/game/pixi/avatar'
@@ -473,232 +474,234 @@ onUnmounted(() => window.removeEventListener('keydown', aoTeclado))
 </script>
 
 <template>
-  <div class="mp-root" data-captura-teclado>
-    <header class="mp-topo">
-      <button class="k-btn k-btn-ghost k-btn-sm" @click="router.push('/game')">
-        <PixelIcon name="corner-up-left" size="0.75rem" />jogo
-      </button>
-      <span class="k-chip">máscaras do avatar</span>
-
-      <nav class="mp-abas">
-        <button
-          v-for="p in PRESETS" :key="p.id"
-          class="k-btn k-btn-ghost k-btn-xs mp-aba" :class="{ 'k-active': preset === p.id }"
-          :title="p.nome"
-          @click="trocarPreset(p.id)"
-        >
-          {{ p.id }}
-          <span class="mp-n">{{ pendencias(p.id).revisados }}/{{ QUADROS.length }}</span>
-          <span v-if="temAlerta(p.id)" class="mp-alerta" aria-label="tem região ausente sem decisão">!</span>
+  <SoSudo>
+    <div class="mp-root" data-captura-teclado>
+      <header class="mp-topo">
+        <button class="k-btn k-btn-ghost k-btn-sm" @click="router.push('/game')">
+          <PixelIcon name="corner-up-left" size="0.75rem" />jogo
         </button>
-      </nav>
-
-      <div class="mp-progresso">
-        <span class="mp-barra"><i :style="{ width: pctRevisado }"></i></span>
-        <span class="mp-n">{{ totalRevisado }}/{{ TOTAL }}</span>
-        <span class="mp-salvo">salvo {{ salvoEm || '--:--' }}</span>
-      </div>
-    </header>
-
-    <p v-if="erro" class="mp-erro">{{ erro }}</p>
-
-    <main v-if="carregando" class="mp-vazio">lendo as 72 máscaras e as correções já feitas…</main>
-
-    <main v-else class="mp-foco">
-      <section class="mp-palco">
-        <span class="k-label">{{ preset }} · {{ quadro }} — {{ posicao + 1 }}º da fila</span>
-
-        <TelaMascara
-          :pixels="pixelsAtuais"
-          :base="baseAtual"
-          :confianca="confiancaAtual"
-          :sprite="spriteAtual"
-          :overlay="overlay"
-          @pintar="aoPintar"
-          @fim-traco="aoFimTraco"
-        />
-
-        <div class="mp-ciclo">
+        <span class="k-chip">máscaras do avatar</span>
+  
+        <nav class="mp-abas">
           <button
-            v-for="q in miniaturas" :key="q"
-            class="mp-mini" :class="{ 'mp-mini-atual': q === quadro }"
-            :title="`quadro ${q} do ciclo`"
-            @click="irPara(preset, q)"
+            v-for="p in PRESETS" :key="p.id"
+            class="k-btn k-btn-ghost k-btn-xs mp-aba" :class="{ 'k-active': preset === p.id }"
+            :title="p.nome"
+            @click="trocarPreset(p.id)"
           >
-            <img class="mp-mini-img" :src="urlDoSprite(preset, q)" :alt="q" />
+            {{ p.id }}
+            <span class="mp-n">{{ pendencias(p.id).revisados }}/{{ QUADROS.length }}</span>
+            <span v-if="temAlerta(p.id)" class="mp-alerta" aria-label="tem região ausente sem decisão">!</span>
           </button>
-          <span class="mp-ciclo-nota">ciclo de {{ direcaoDe(quadro) }}</span>
+        </nav>
+  
+        <div class="mp-progresso">
+          <span class="mp-barra"><i :style="{ width: pctRevisado }"></i></span>
+          <span class="mp-n">{{ totalRevisado }}/{{ TOTAL }}</span>
+          <span class="mp-salvo">salvo {{ salvoEm || '--:--' }}</span>
         </div>
-
-        <div class="mp-ferramentas">
-          <span class="k-label">região</span>
-          <div class="mp-linha">
+      </header>
+  
+      <p v-if="erro" class="mp-erro">{{ erro }}</p>
+  
+      <main v-if="carregando" class="mp-vazio">lendo as 72 máscaras e as correções já feitas…</main>
+  
+      <main v-else class="mp-foco">
+        <section class="mp-palco">
+          <span class="k-label">{{ preset }} · {{ quadro }} — {{ posicao + 1 }}º da fila</span>
+  
+          <TelaMascara
+            :pixels="pixelsAtuais"
+            :base="baseAtual"
+            :confianca="confiancaAtual"
+            :sprite="spriteAtual"
+            :overlay="overlay"
+            @pintar="aoPintar"
+            @fim-traco="aoFimTraco"
+          />
+  
+          <div class="mp-ciclo">
             <button
-              v-for="(r, i) in REGIOES" :key="r"
-              class="k-btn k-btn-ghost k-btn-xs mp-regiao"
-              :class="{ 'k-active': regiao === r }"
-              @click="regiao = r"
+              v-for="q in miniaturas" :key="q"
+              class="mp-mini" :class="{ 'mp-mini-atual': q === quadro }"
+              :title="`quadro ${q} do ciclo`"
+              @click="irPara(preset, q)"
             >
-              <span class="mp-tecla">{{ i + 1 }}</span>
-              <span class="mp-amostra" :style="{ background: COR_REGIAO[r] }"></span>
-              {{ r }}<template v-if="r === 'contorno'"> 🔒</template>
+              <img class="mp-mini-img" :src="urlDoSprite(preset, q)" :alt="q" />
+            </button>
+            <span class="mp-ciclo-nota">ciclo de {{ direcaoDe(quadro) }}</span>
+          </div>
+  
+          <div class="mp-ferramentas">
+            <span class="k-label">região</span>
+            <div class="mp-linha">
+              <button
+                v-for="(r, i) in REGIOES" :key="r"
+                class="k-btn k-btn-ghost k-btn-xs mp-regiao"
+                :class="{ 'k-active': regiao === r }"
+                @click="regiao = r"
+              >
+                <span class="mp-tecla">{{ i + 1 }}</span>
+                <span class="mp-amostra" :style="{ background: COR_REGIAO[r] }"></span>
+                {{ r }}<template v-if="r === 'contorno'"> 🔒</template>
+              </button>
+              <button
+                class="k-btn k-btn-ghost k-btn-xs mp-regiao" :class="{ 'k-active': regiao === null }"
+                @click="regiao = null"
+              ><span class="mp-tecla">0</span>nenhuma</button>
+            </div>
+  
+            <p v-if="regiao === 'contorno'" class="mp-nota">
+              Contorno é travado: ele existe para o overlay dizer «isto nunca recolore».
+              <button
+                class="k-btn k-btn-ghost k-btn-xs" :class="{ 'k-active': contornoDestravado }"
+                @click="contornoDestravado = !contornoDestravado"
+              >{{ contornoDestravado ? 'destravado' : 'destravar' }}</button>
+            </p>
+  
+            <span class="k-label">ferramenta</span>
+            <div class="mp-linha">
+              <button
+                class="k-btn k-btn-ghost k-btn-xs mp-regiao" :class="{ 'k-active': ferramenta === 'pincel' }"
+                @click="ferramenta = 'pincel'"
+              ><span class="mp-tecla">B</span>pincel</button>
+              <button
+                class="k-btn k-btn-ghost k-btn-xs mp-regiao" :class="{ 'k-active': ferramenta === 'balde' }"
+                @click="ferramenta = 'balde'"
+              ><span class="mp-tecla">F</span>balde</button>
+              <button
+                class="k-btn k-btn-ghost k-btn-xs mp-regiao" :class="{ 'k-active': overlay }"
+                @click="overlay = !overlay"
+              ><span class="mp-tecla">T</span>confiança</button>
+              <button
+                class="k-btn k-btn-ghost k-btn-xs mp-regiao" :disabled="!podeDesfazer"
+                @click="desfazerUltimo"
+              ><span class="mp-tecla">Z</span>desfazer</button>
+            </div>
+  
+            <div class="mp-legenda">
+              <span class="mp-legenda-item"><i class="mp-chave mp-chave-solido"></i>decidido pela cor</span>
+              <span class="mp-legenda-item"><i class="mp-chave mp-chave-hachura"></i>vizinhança — palpite</span>
+              <span class="mp-legenda-item"><i class="mp-chave mp-chave-mao"></i>corrigido à mão</span>
+            </div>
+          </div>
+        </section>
+  
+        <section class="mp-trabalho">
+          <div v-if="ausentesAtuais.length" class="mp-decisao">
+            <div class="mp-decisao-faixa"></div>
+            <p class="mp-decisao-texto">
+              Este quadro não tem nenhum pixel de
+              <strong>{{ ausentesAtuais.join(', ') }}</strong>. O swatch dessa cor não muda nada aqui:
+              ou é defeito do bootstrap e falta pintar, ou é legítimo — costas não mostram rosto.
+            </p>
+            <div v-for="r in ausentesAtuais" :key="r" class="mp-decisao-linha">
+              <span class="mp-decisao-nome">{{ r }}</span>
+              <button class="k-btn k-btn-primary k-btn-sm" @click="pintarAgora(r)">pintar agora</button>
+              <button class="k-btn k-btn-ghost k-btn-sm" @click="marcarIntencional(r)">
+                <span class="mp-tecla">X</span>intencional
+              </button>
+            </div>
+          </div>
+  
+          <div v-if="intencionalAtual.length" class="mp-marcadas">
+            <span class="k-label">ausência intencional neste quadro</span>
+            <div class="mp-linha">
+              <button
+                v-for="r in intencionalAtual" :key="r"
+                class="k-btn k-btn-ghost k-btn-xs" @click="marcarIntencional(r)"
+              >{{ r }} · desmarcar</button>
+            </div>
+          </div>
+  
+          <div class="mp-previa">
+            <span class="k-label">como fica no mapa</span>
+            <div class="mp-vistas">
+              <PreviaMascara
+                v-for="v in VISTAS" :key="v.quadro"
+                :class="{ 'mp-vista-atual': v.quadro === quadro }"
+                :preset="preset"
+                :quadro="v.quadro"
+                :pixels="pixelsDe(v.quadro)"
+                :cores="cores"
+                :rotulo="v.rotulo"
+              />
+            </div>
+            <div v-for="grupo in PALETA" :key="grupo.chave" class="mp-cor-linha">
+              <span class="mp-cor-nome">{{ grupo.nome }}</span>
+              <button
+                v-for="cor in grupo.cores" :key="cor"
+                class="mp-swatch" :class="{ 'mp-swatch-on': cores[grupo.chave] === cor }"
+                :style="{ background: cor }"
+                :aria-label="`${grupo.nome}: ${cor}`"
+                :title="`${grupo.nome}: ${cor}`"
+                @click="definirCor(grupo.chave, cor)"
+              ></button>
+            </div>
+            <p class="mp-nota">
+              Escolha uma cor e veja se muda alguma coisa. Swatch que não muda nada é máscara furada.
+            </p>
+          </div>
+  
+          <div class="mp-acoes">
+            <button class="k-btn k-btn-ghost k-btn-sm" :disabled="posicao <= 0" @click="passoNaFila(-1)">
+              ← anterior
             </button>
             <button
-              class="k-btn k-btn-ghost k-btn-xs mp-regiao" :class="{ 'k-active': regiao === null }"
-              @click="regiao = null"
-            ><span class="mp-tecla">0</span>nenhuma</button>
-          </div>
-
-          <p v-if="regiao === 'contorno'" class="mp-nota">
-            Contorno é travado: ele existe para o overlay dizer «isto nunca recolore».
-            <button
-              class="k-btn k-btn-ghost k-btn-xs" :class="{ 'k-active': contornoDestravado }"
-              @click="contornoDestravado = !contornoDestravado"
-            >{{ contornoDestravado ? 'destravado' : 'destravar' }}</button>
-          </p>
-
-          <span class="k-label">ferramenta</span>
-          <div class="mp-linha">
-            <button
-              class="k-btn k-btn-ghost k-btn-xs mp-regiao" :class="{ 'k-active': ferramenta === 'pincel' }"
-              @click="ferramenta = 'pincel'"
-            ><span class="mp-tecla">B</span>pincel</button>
-            <button
-              class="k-btn k-btn-ghost k-btn-xs mp-regiao" :class="{ 'k-active': ferramenta === 'balde' }"
-              @click="ferramenta = 'balde'"
-            ><span class="mp-tecla">F</span>balde</button>
-            <button
-              class="k-btn k-btn-ghost k-btn-xs mp-regiao" :class="{ 'k-active': overlay }"
-              @click="overlay = !overlay"
-            ><span class="mp-tecla">T</span>confiança</button>
-            <button
-              class="k-btn k-btn-ghost k-btn-xs mp-regiao" :disabled="!podeDesfazer"
-              @click="desfazerUltimo"
-            ><span class="mp-tecla">Z</span>desfazer</button>
-          </div>
-
-          <div class="mp-legenda">
-            <span class="mp-legenda-item"><i class="mp-chave mp-chave-solido"></i>decidido pela cor</span>
-            <span class="mp-legenda-item"><i class="mp-chave mp-chave-hachura"></i>vizinhança — palpite</span>
-            <span class="mp-legenda-item"><i class="mp-chave mp-chave-mao"></i>corrigido à mão</span>
-          </div>
-        </div>
-      </section>
-
-      <section class="mp-trabalho">
-        <div v-if="ausentesAtuais.length" class="mp-decisao">
-          <div class="mp-decisao-faixa"></div>
-          <p class="mp-decisao-texto">
-            Este quadro não tem nenhum pixel de
-            <strong>{{ ausentesAtuais.join(', ') }}</strong>. O swatch dessa cor não muda nada aqui:
-            ou é defeito do bootstrap e falta pintar, ou é legítimo — costas não mostram rosto.
-          </p>
-          <div v-for="r in ausentesAtuais" :key="r" class="mp-decisao-linha">
-            <span class="mp-decisao-nome">{{ r }}</span>
-            <button class="k-btn k-btn-primary k-btn-sm" @click="pintarAgora(r)">pintar agora</button>
-            <button class="k-btn k-btn-ghost k-btn-sm" @click="marcarIntencional(r)">
-              <span class="mp-tecla">X</span>intencional
+              class="k-btn k-btn-ghost k-btn-sm" :class="{ 'k-active': duvidas.has(chaveAtual) }"
+              @click="alternarDuvida"
+            ><span class="mp-tecla">D</span>dúvida</button>
+            <button class="k-btn k-btn-ghost k-btn-sm" :disabled="!regiao" @click="propagar">
+              <span class="mp-tecla">P</span>propagar no ciclo
+            </button>
+            <button class="k-btn k-btn-primary k-btn-sm mp-confirmar" :disabled="salvando" @click="confirmar">
+              {{ salvando ? 'salvando…' : 'confirmar e avançar · enter' }}
             </button>
           </div>
-        </div>
-
-        <div v-if="intencionalAtual.length" class="mp-marcadas">
-          <span class="k-label">ausência intencional neste quadro</span>
-          <div class="mp-linha">
-            <button
-              v-for="r in intencionalAtual" :key="r"
-              class="k-btn k-btn-ghost k-btn-xs" @click="marcarIntencional(r)"
-            >{{ r }} · desmarcar</button>
-          </div>
-        </div>
-
-        <div class="mp-previa">
-          <span class="k-label">como fica no mapa</span>
-          <div class="mp-vistas">
-            <PreviaMascara
-              v-for="v in VISTAS" :key="v.quadro"
-              :class="{ 'mp-vista-atual': v.quadro === quadro }"
-              :preset="preset"
-              :quadro="v.quadro"
-              :pixels="pixelsDe(v.quadro)"
-              :cores="cores"
-              :rotulo="v.rotulo"
-            />
-          </div>
-          <div v-for="grupo in PALETA" :key="grupo.chave" class="mp-cor-linha">
-            <span class="mp-cor-nome">{{ grupo.nome }}</span>
-            <button
-              v-for="cor in grupo.cores" :key="cor"
-              class="mp-swatch" :class="{ 'mp-swatch-on': cores[grupo.chave] === cor }"
-              :style="{ background: cor }"
-              :aria-label="`${grupo.nome}: ${cor}`"
-              :title="`${grupo.nome}: ${cor}`"
-              @click="definirCor(grupo.chave, cor)"
-            ></button>
-          </div>
+  
           <p class="mp-nota">
-            Escolha uma cor e veja se muda alguma coisa. Swatch que não muda nada é máscara furada.
+            ←/→ anda na fila deste preset · ↑/↓ troca a vista mantendo o passo ·
+            {{ Math.round(vizinhancaAtual) }}% deste quadro veio de vizinhança.
           </p>
-        </div>
-
-        <div class="mp-acoes">
-          <button class="k-btn k-btn-ghost k-btn-sm" :disabled="posicao <= 0" @click="passoNaFila(-1)">
-            ← anterior
-          </button>
-          <button
-            class="k-btn k-btn-ghost k-btn-sm" :class="{ 'k-active': duvidas.has(chaveAtual) }"
-            @click="alternarDuvida"
-          ><span class="mp-tecla">D</span>dúvida</button>
-          <button class="k-btn k-btn-ghost k-btn-sm" :disabled="!regiao" @click="propagar">
-            <span class="mp-tecla">P</span>propagar no ciclo
-          </button>
-          <button class="k-btn k-btn-primary k-btn-sm mp-confirmar" :disabled="salvando" @click="confirmar">
-            {{ salvando ? 'salvando…' : 'confirmar e avançar · enter' }}
-          </button>
-        </div>
-
-        <p class="mp-nota">
-          ←/→ anda na fila deste preset · ↑/↓ troca a vista mantendo o passo ·
-          {{ Math.round(vizinhancaAtual) }}% deste quadro veio de vizinhança.
-        </p>
-      </section>
-
-      <aside class="mp-pendencias">
-        <span class="k-label">pendências de {{ preset }}</span>
-        <ul class="mp-contas">
-          <li><span class="mp-n">{{ pendenciasDoPreset.ausencias }}</span> quadros com região ausente sem decisão</li>
-          <li><span class="mp-n">{{ pendenciasDoPreset.vizinhanca }}</span> quadros acima de {{ LIMITE_VIZINHANCA }}% de vizinhança</li>
-          <li><span class="mp-n">{{ pendenciasDoPreset.intencionais }}</span> ausências marcadas como intencionais</li>
-        </ul>
-
-        <span class="k-label">fila deste preset</span>
-        <ol class="mp-fila">
-          <li v-for="item in filaDoPreset" :key="item.chave">
-            <button
-              class="mp-fila-item" :class="{ 'mp-fila-on': item.quadro === quadro }"
-              @click="irPara(item.preset, item.quadro)"
-            >
-              <span class="mp-fila-nome">{{ item.quadro }}</span>
-              <span v-if="item.ausentes.length" class="mp-alerta">!</span>
-              <span v-if="item.duvida" class="mp-marca">?</span>
-              <span v-if="item.revisado" class="mp-marca mp-marca-ok">ok</span>
-              <span class="mp-n">{{ Math.round(item.vizinhanca) }}%</span>
-            </button>
-          </li>
-        </ol>
-
-        <template v-if="filaDeDuvidas.length">
-          <span class="k-label">dúvidas ({{ filaDeDuvidas.length }})</span>
-          <div class="mp-linha">
-            <button
-              v-for="item in filaDeDuvidas" :key="item.chave"
-              class="k-btn k-btn-ghost k-btn-xs" @click="irPara(item.preset, item.quadro)"
-            >{{ item.chave }}</button>
-          </div>
-        </template>
-      </aside>
-    </main>
-  </div>
+        </section>
+  
+        <aside class="mp-pendencias">
+          <span class="k-label">pendências de {{ preset }}</span>
+          <ul class="mp-contas">
+            <li><span class="mp-n">{{ pendenciasDoPreset.ausencias }}</span> quadros com região ausente sem decisão</li>
+            <li><span class="mp-n">{{ pendenciasDoPreset.vizinhanca }}</span> quadros acima de {{ LIMITE_VIZINHANCA }}% de vizinhança</li>
+            <li><span class="mp-n">{{ pendenciasDoPreset.intencionais }}</span> ausências marcadas como intencionais</li>
+          </ul>
+  
+          <span class="k-label">fila deste preset</span>
+          <ol class="mp-fila">
+            <li v-for="item in filaDoPreset" :key="item.chave">
+              <button
+                class="mp-fila-item" :class="{ 'mp-fila-on': item.quadro === quadro }"
+                @click="irPara(item.preset, item.quadro)"
+              >
+                <span class="mp-fila-nome">{{ item.quadro }}</span>
+                <span v-if="item.ausentes.length" class="mp-alerta">!</span>
+                <span v-if="item.duvida" class="mp-marca">?</span>
+                <span v-if="item.revisado" class="mp-marca mp-marca-ok">ok</span>
+                <span class="mp-n">{{ Math.round(item.vizinhanca) }}%</span>
+              </button>
+            </li>
+          </ol>
+  
+          <template v-if="filaDeDuvidas.length">
+            <span class="k-label">dúvidas ({{ filaDeDuvidas.length }})</span>
+            <div class="mp-linha">
+              <button
+                v-for="item in filaDeDuvidas" :key="item.chave"
+                class="k-btn k-btn-ghost k-btn-xs" @click="irPara(item.preset, item.quadro)"
+              >{{ item.chave }}</button>
+            </div>
+          </template>
+        </aside>
+      </main>
+    </div>
+  </SoSudo>
 </template>
 
 <style scoped>
