@@ -48,6 +48,7 @@ SEBE_ESQ, SEBE_MEIO_ABERTO, SEBE_DIR = 21, 22, 23
 CERCA_CANTO = 82
 PORTAO = 22          # sebe com passagem: é o vão por onde se entra no pátio
 PORTA_CASA = 85
+PISO_PEDRA = 43       # piso de pedra circular no gramado: marca a entrada
 
 # cada material de casa: parede, janela, porta. Vem em conjunto porque misturar
 # janela de pedra em parede de madeira é o tipo de coisa que só se vê depois
@@ -65,6 +66,9 @@ for c in CASAS:
     SOLIDOS.add(c['borda'])
     SOLIDOS.add(c['janela'])
 SOLIDOS.update(ARVORES + ARBUSTOS + POCOS + BARRIS + [CERCA_H, CERCA_V])
+# muro e sebe: sem isto o recinto é só desenho e a pessoa atravessa. Ficaram de fora
+# na primeira versão porque o conjunto foi montado antes destas constantes existirem
+SOLIDOS.update([PEDRA_LISA, SEBE_ESQ, SEBE_MEIO_ABERTO, SEBE_DIR])
 
 rnd = random.Random(20260809)
 
@@ -152,7 +156,11 @@ class Vila:
             for dy in (0, alt - 1):
                 cx, cy = x + dx, y + dy
                 if cy == y + alt - 1 and cx == portao_x:
-                    self.por(cx, cy, PORTAO, solido=False)
+                    # vão de verdade: pedra no chão e nada de sebe por cima, senão a
+                    # entrada fica igual ao resto do muro e ninguém acha
+                    # peça, não chão: o objeto 'door' é emitido a partir de coisas,
+                    # e sem entrada aqui a sala fica sem porta para o espacial.ts
+                    self.por(cx, cy, PISO_PEDRA, solido=False)
                     self.portas.append((cx, cy))
                 else:
                     self.por(cx, cy, SEBE_MEIO_ABERTO if dx % 3 == 1 else
@@ -185,9 +193,17 @@ class Vila:
                     # de frente, e repetida nos quatro lados o cômodo fica errado
                     self.por(cx, cy, PEDRA_LISA)
                 else:
-                    self.chao[cy][cx] = rnd.choice(PISO_INTERNO)
+                    # autotile: borda só na borda. Sortear entre os três espalhava
+                    # emenda no meio do cômodo e parecia grade preta
+                    if dx == 1:
+                        piso = PISO_INTERNO[0]
+                    elif dx == larg - 2:
+                        piso = PISO_INTERNO[2]
+                    else:
+                        piso = PISO_INTERNO[1]
+                    self.chao[cy][cx] = piso
                     self.livre[cy][cx] = False
-        self.chao[min(A - 1, y + alt)][porta_x] = PISO_INTERNO[1]
+        self.chao[min(A - 1, y + alt)][porta_x] = PISO_PEDRA
         self.salas.append({'x': x + 1, 'y': y + 1, 'w': larg - 2, 'h': alt - 2,
                            'nome': nome, 'aberta': False})
 
