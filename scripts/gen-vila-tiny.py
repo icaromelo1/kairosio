@@ -43,6 +43,11 @@ POCOS = [57, 104]
 BARRIS = [130, 131]
 CERCA_H, CERCA_V = 81, 47
 PISO_INTERNO = [108, 109, 110]
+PEDRA_LISA = 126
+SEBE_ESQ, SEBE_MEIO_ABERTO, SEBE_DIR = 21, 22, 23
+CERCA_CANTO = 82
+PORTAO = 22          # sebe com passagem: é o vão por onde se entra no pátio
+PORTA_CASA = 85
 
 # cada material de casa: parede, janela, porta. Vem em conjunto porque misturar
 # janela de pedra em parede de madeira é o tipo de coisa que só se vê depois
@@ -73,6 +78,8 @@ class Vila:
         self.chao = [[rnd.choice(GRAMA) if rnd.random() > 0.82 else 0 for _ in range(L)] for _ in range(A)]
         self.coisas = {}
         self.livre = [[True] * L for _ in range(A)]
+        self.salas = []
+        self.portas = []
 
     def por(self, x, y, i, solido=None):
         if not (0 <= x < L and 0 <= y < A):
@@ -134,41 +141,96 @@ class Vila:
             else:
                 self.por(x, y, rnd.choice(POCOS))
 
+    # ── recintos ────────────────────────────────────────────────────────────
+    # A área é derivada AQUI, do mesmo retângulo que desenhou o muro. Calcular a
+    # área num passo separado é como gente parada do lado de fora passa a contar
+    # como dentro: o áudio vaza ao contrário e nada na tela denuncia.
+    def patio(self, x, y, larg, alt, nome):
+        """Recinto ao ar livre cercado de sebe, com um vão de passagem."""
+        portao_x = x + larg // 2
+        for dx in range(larg):
+            for dy in (0, alt - 1):
+                cx, cy = x + dx, y + dy
+                if cy == y + alt - 1 and cx == portao_x:
+                    self.por(cx, cy, PORTAO, solido=False)
+                    self.portas.append((cx, cy))
+                else:
+                    self.por(cx, cy, SEBE_MEIO_ABERTO if dx % 3 == 1 else
+                             (SEBE_ESQ if dx == 0 else SEBE_DIR if dx == larg - 1 else SEBE_MEIO_ABERTO))
+        for dy in range(1, alt - 1):
+            self.por(x, y + dy, SEBE_ESQ)
+            self.por(x + larg - 1, y + dy, SEBE_DIR)
+        self.enfeitar(x + 1, y + 1, x + larg - 1, y + alt - 1, max(3, (larg * alt) // 6))
+        self.salas.append({'x': x + 1, 'y': y + 1, 'w': larg - 2, 'h': alt - 2,
+                           'nome': nome, 'aberta': True})
+
+    def casa(self, x, y, larg, alt, nome):
+        """Cômodo fechado: fachada na frente, pedra lisa nos outros lados."""
+        m = rnd.choice(CASAS)
+        porta_x = x + larg // 2
+        for dy in range(alt):
+            for dx in range(larg):
+                cx, cy = x + dx, y + dy
+                borda = dx in (0, larg - 1)
+                if dy == alt - 1:
+                    if cx == porta_x:
+                        self.por(cx, cy, m['porta'], solido=False)
+                        self.portas.append((cx, cy))
+                    elif not borda and dx % 2 == 0:
+                        self.por(cx, cy, m['janela'])
+                    else:
+                        self.por(cx, cy, rnd.choice(m['parede']))
+                elif dy == 0 or borda:
+                    # pedra lisa nos lados e no fundo: a fachada do Tiny é desenhada
+                    # de frente, e repetida nos quatro lados o cômodo fica errado
+                    self.por(cx, cy, PEDRA_LISA)
+                else:
+                    self.chao[cy][cx] = rnd.choice(PISO_INTERNO)
+                    self.livre[cy][cx] = False
+        self.chao[min(A - 1, y + alt)][porta_x] = PISO_INTERNO[1]
+        self.salas.append({'x': x + 1, 'y': y + 1, 'w': larg - 2, 'h': alt - 2,
+                           'nome': nome, 'aberta': False})
+
+
+NOMES_PATIO = ['Praça do Poço', 'Horta Comunitária', 'Pátio da Feira', 'Jardim de Cima',
+               'Quintal do Moinho', 'Pomar', 'Largo da Cerca', 'Roda de Conversa']
+NOMES_CASA = ['Casa de Pedra', 'Oficina', 'Armazém', 'Casa do Forno']
+
 
 def gerar():
     v = Vila()
-    # avenidas: duas horizontais e duas verticais, largura 2, deixando 9 quarteirões
     for y in (11, 24):
         v.rua(1, y, L - 2, y + 1)
     for x in (11, 24):
         v.rua(x, 1, x + 1, A - 2)
 
-    limites_x = [(2, 10), (13, 23), (26, L - 3)]
-    limites_y = [(2, 10), (13, 23), (26, A - 3)]
-    for (qx0, qx1) in limites_x:
-        for (qy0, qy1) in limites_y:
-            larg_q, alt_q = qx1 - qx0, qy1 - qy0
-            if larg_q < 5 or alt_q < 4:
-                continue
-            for _ in range(1 if larg_q < 10 else 2):
-                cl = rnd.randrange(4, max(5, min(7, larg_q)))
-                ca = rnd.randrange(3, max(4, min(5, alt_q)))
-                if qx1 - cl <= qx0 or qy1 - ca - 1 <= qy0:
-                    continue
-                cx = rnd.randrange(qx0, qx1 - cl)
-                cy = rnd.randrange(qy0, qy1 - ca - 1)
-                if all(v.livre[yy][xx] for yy in range(cy, cy + ca + 1) for xx in range(cx, cx + cl)):
-                    v.casa(cx, cy, cl, ca)
-            v.enfeitar(qx0, qy0, qx1, qy1, max(8, (larg_q * alt_q) // 9))
+    blocos = [(a, b) for a in [(2, 10), (13, 23), (26, L - 3)]
+              for b in [(2, 10), (13, 23), (26, A - 3)]]
+    rnd.shuffle(blocos)
 
-    # bosque na moldura: a vila fica cercada de mata em vez de grama vazia
+    npat, ncasa = 0, 0
+    for (qx0, qx1), (qy0, qy1) in blocos:
+        larg_q, alt_q = qx1 - qx0, qy1 - qy0
+        if larg_q < 6 or alt_q < 5:
+            continue
+        # uma casa a cada três recintos: interior custa arte cuidadosa e o espírito
+        # da vila é o encontro ao ar livre
+        vira_casa = ncasa < len(NOMES_CASA) and (npat + ncasa) % 3 == 2
+        cl = min(larg_q - 1, rnd.randrange(6, 9))
+        ca = min(alt_q - 1, rnd.randrange(5, 7))
+        cx = qx0 + (larg_q - cl) // 2
+        cy = qy0 + (alt_q - ca) // 2
+        if vira_casa:
+            v.casa(cx, cy, cl, ca, NOMES_CASA[ncasa]); ncasa += 1
+        elif npat < len(NOMES_PATIO):
+            v.patio(cx, cy, cl, ca, NOMES_PATIO[npat]); npat += 1
+        v.enfeitar(qx0, qy0, qx1, qy1, max(5, (larg_q * alt_q) // 14))
+
     for _ in range(160):
         x, y = rnd.randrange(1, L - 1), rnd.randrange(1, A - 1)
-        na_borda = x < 3 or y < 3 or x > L - 4 or y > A - 4
-        if na_borda and v.livre[y][x]:
+        if (x < 3 or y < 3 or x > L - 4 or y > A - 4) and v.livre[y][x]:
             v.por(x, y, rnd.choice(ARVORES))
 
-    # cerca contornando a vila inteira
     for x in range(1, L - 1):
         v.por(x, 0, CERCA_H)
         v.por(x, A - 1, CERCA_H)
@@ -196,11 +258,23 @@ def para_objetos(v):
                 'id': f'p{n}', 'kind': 'tile', 'x': x * ESCALA, 'y': y * ESCALA,
                 'w': ESCALA, 'h': ESCALA, 'solid': False, 'tileRef': ref(piso),
             })
+    portas = set(v.portas)
     for (x, y), (i, solido) in sorted(v.coisas.items()):
         n += 1
         objetos.append({
-            'id': f't{n}', 'kind': 'tile', 'x': x * ESCALA, 'y': y * ESCALA,
+            # kind 'door' nas passagens: é assim que espacial.ts associa a porta à
+            # sala e devolve OCLUSAO_PORTA em vez de OCLUSAO_PAREDE para quem passa
+            'id': f't{n}', 'kind': 'door' if (x, y) in portas else 'tile',
+            'x': x * ESCALA, 'y': y * ESCALA,
             'w': ESCALA, 'h': ESCALA, 'solid': solido, 'tileRef': ref(i),
+        })
+
+    for k, s in enumerate(v.salas):
+        objetos.append({
+            'id': f'sala-{k}', 'kind': 'area', 'name': s['nome'],
+            'x': s['x'] * ESCALA, 'y': s['y'] * ESCALA,
+            'w': s['w'] * ESCALA, 'h': s['h'] * ESCALA,
+            'solid': False, 'aberta': s['aberta'],
         })
     return objetos
 
