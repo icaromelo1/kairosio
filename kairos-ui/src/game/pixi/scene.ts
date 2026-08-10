@@ -369,7 +369,9 @@ export class MapScene {
       return
     }
 
-    if (o.kind === 'door') {
+    // porta COM sprite cai no caminho de tileRef lá embaixo: este desvio desenha a
+    // porta procedural da Cidade e retorna antes, então a arte do Tiny sumiria
+    if (o.kind === 'door' && !o.tileRef) {
       const porta = new Graphics()
       porta.rect(x, y, w, h).fill({ color: 0x3a2f1e })
       porta.rect(x, y, w, Math.max(3, h * 0.18)).fill({ color: 0x6b5636 })
