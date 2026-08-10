@@ -45,4 +45,10 @@ export class GameMap {
 
   @Column({ default: false })
   isTemplate: boolean
+
+  // marcado quando um sudo edita o mapa pelo jogo. O seed do boot pula o que tem
+  // isto preenchido: sem essa marca, a primeira correção feita à mão seria
+  // sobrescrita pelo código no deploy seguinte, sem aviso.
+  @Column({ type: 'timestamp', nullable: true, default: null })
+  editadoEm: Date | null
 }

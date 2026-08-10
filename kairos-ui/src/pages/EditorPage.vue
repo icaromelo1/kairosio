@@ -263,6 +263,7 @@
 
 <script setup lang="ts">
 import { ref, reactive, computed, onMounted, onUnmounted, watch, useId } from 'vue'
+import { me } from '@/services/auth.api'
 import { useRoute, useRouter } from 'vue-router'
 import { Container, Graphics } from 'pixi.js'
 import { MapScene, TILE_PX } from '@/game/pixi/scene'
@@ -434,7 +435,14 @@ function useCustom() {
   tool.value = 'place'
 }
 
-const canEdit = computed(() => isNew.value || (!!map.ownerId && map.ownerId === auth.userId))
+// sudo edita qualquer mundo, inclusive os oficiais — quem confere de novo é o
+// PUT /map/:id, que refaz a checagem no servidor
+const ehSudo = ref(false)
+void me().then((p) => { ehSudo.value = !!p.isAdmin }).catch(() => { ehSudo.value = false })
+
+const canEdit = computed(
+  () => isNew.value || ehSudo.value || (!!map.ownerId && map.ownerId === auth.userId),
+)
 
 let scene: MapScene | null = null
 

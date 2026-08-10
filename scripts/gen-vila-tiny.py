@@ -41,7 +41,11 @@ ARBUSTOS = [27, 28]
 COGUMELO = 29
 POCOS = [57, 104]
 BARRIS = [130, 131]
-CERCA_H, CERCA_V = 81, 47
+# 81 = segmento reto horizontal; 56 = segmento reto VERTICAL. Eu usava 47, que é
+# poste isolado e curto: repetido na lateral virava fileira de postes soltos em vez
+# de cerca contínua. 44/46/68/70 são canto e T — não servem para trecho reto.
+CERCA_H, CERCA_V = 81, 56
+CERCA_CANTO_SE, CERCA_CANTO_SD = 68, 70
 PISO_INTERNO = [108, 109, 110]
 PEDRA_LISA = 126
 SEBE_ESQ, SEBE_MEIO_ABERTO, SEBE_DIR = 21, 22, 23
@@ -250,9 +254,14 @@ def gerar():
     for x in range(1, L - 1):
         v.por(x, 0, CERCA_H)
         v.por(x, A - 1, CERCA_H)
-    for y in range(A):
+    for y in range(1, A - 1):
         v.por(0, y, CERCA_V)
         v.por(L - 1, y, CERCA_V)
+    # as quatro quinas: com segmento reto elas ficariam com a ponta solta
+    v.por(0, 0, CERCA_CANTO_SE)
+    v.por(L - 1, 0, CERCA_CANTO_SD)
+    v.por(0, A - 1, CERCA_V)
+    v.por(L - 1, A - 1, CERCA_V)
     return v
 
 
