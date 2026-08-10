@@ -39,6 +39,10 @@ export class MapService implements OnModuleInit {
     // sobrescrever a partir do seed não descarta trabalho de ninguém — e é o
     // que faz correção de mundo oficial chegar em produção
     for (const m of SEED_MAPS) {
+      // mundo oficial já corrigido à mão por um sudo não volta ao que está no
+      // código: sobrescrever aqui apagaria o trabalho no deploy seguinte
+      const atual = await this.repo.findOne({ where: { id: m.id } })
+      if (atual?.editadoEm) continue
       await this.repo.save({ ...m, ownerId: null })
     }
     // mundos oficiais (sem dono) = templates
@@ -96,9 +100,21 @@ export class MapService implements OnModuleInit {
     return this.repo.save(map)
   }
 
-  // edição — só o dono; templates protegidos
-  async update(id: string, patch: UpdateMapDto, userId: string): Promise<GameMap> {
+  // edição — o dono do mundo, ou um sudo em QUALQUER mundo, inclusive os oficiais
+  async update(id: string, patch: UpdateMapDto, userId: string, ehSudo = false): Promise<GameMap> {
     const map = await this.findOne(id)
+    if (ehSudo) {
+      // sudo mexe no mundo oficial sem despromovê-lo: zerar isTemplate aqui o
+      // tiraria da lista de todo mundo até o próximo boot
+      Object.assign(map, patch, {
+        id: map.id,
+        ownerId: map.ownerId,
+        serverId: map.serverId,
+        isTemplate: map.isTemplate,
+        editadoEm: new Date(),
+      })
+      return this.repo.save(map)
+    }
     if (map.isTemplate || map.ownerId === null) throw new ForbiddenException('Mundo oficial não pode ser editado')
     if (map.ownerId !== userId) throw new ForbiddenException('Você só pode editar mundos que criou')
     Object.assign(map, patch, { id: map.id, ownerId: map.ownerId, serverId: map.serverId, isTemplate: false })

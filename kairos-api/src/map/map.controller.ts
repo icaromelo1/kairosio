@@ -43,7 +43,7 @@ export class MapController {
 
   @Put(':id')
   update(@Request() req: any, @Param('id') id: string, @Body() patch: UpdateMapDto) {
-    return this.maps.update(id, patch, req.user.sub)
+    return this.maps.update(id, patch, req.user.sub, !!req.user.isSudo)
   }
 
   @Delete(':id')

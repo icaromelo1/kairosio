@@ -13,7 +13,7 @@
         :player-name="playerName"
         :look="look"
         :voice-on="voiceOn"
-        :can-edit-current-world="!!currentMap && currentMap.ownerId === auth.userId"
+        :can-edit-current-world="!!currentMap && (ehSudo || currentMap.ownerId === auth.userId)"
         :is-guest="auth.isGuest"
         :eh-sudo="ehSudo"
         :hora-mundo="horaMundoLabel"
