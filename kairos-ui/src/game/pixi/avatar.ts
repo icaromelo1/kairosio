@@ -33,9 +33,30 @@ for (const [path, url] of Object.entries(AVATAR_SPRITE_MODULES)) {
   AVATAR_SPRITES[preset][frame] = url
 }
 
-// com catch: sem ele, um asset que o Pixi não saiba ler vira rejeição não
-// tratada no console e manda o próximo a investigar para o lugar errado
-void Assets.load(Object.values(AVATAR_SPRITE_MODULES)).catch(() => null)
+/**
+ * Precisa ser AGUARDADO antes de construir qualquer boneco.
+ *
+ * Enquanto os sprites eram inlinados como data URI, Texture.from resolvia na hora e
+ * disparar a carga sem esperar não fazia diferença. Virando arquivo de verdade
+ * (assetsInlineLimit 0), Texture.from estoura se a textura ainda não está em cache —
+ * e a exceção sobe do construtor do AvatarPuppet, deixando o mundo com sombra e sem
+ * ninguém em cima dela.
+ */
+export async function carregarAvatares(): Promise<void> {
+  try {
+    await Assets.load(Object.values(AVATAR_SPRITE_MODULES))
+  } catch {
+    await Promise.all(
+      Object.values(AVATAR_SPRITE_MODULES).map(async (u) => {
+        try {
+          await Assets.load(u)
+        } catch {
+          /* segue sem este quadro */
+        }
+      }),
+    )
+  }
+}
 
 export function avatarSpriteUrl(preset: string, direcao: Direcao, quadro: 0 | 1 | 2): string {
   const set = AVATAR_SPRITES[preset] || AVATAR_SPRITES[DEFAULT_PRESET]
@@ -92,7 +113,15 @@ function resolveTexture(
   const set = AVATAR_SPRITES[preset] || AVATAR_SPRITES[DEFAULT_PRESET]
   const nome = `${direcao}-${quadro}`
   const url = set?.[nome]
-  const base = url ? Texture.from(url) : Texture.EMPTY
+  let base = Texture.EMPTY
+  if (url) {
+    // sem o try, um quadro fora do cache estoura no construtor e o avatar some
+    try {
+      base = Texture.from(url)
+    } catch {
+      return Texture.EMPTY
+    }
+  }
   if (!cores || !precisaRecolorir(cores) || !temMascara(preset, nome)) return base
 
   const chave = chaveRecolor(preset, nome, cores)
