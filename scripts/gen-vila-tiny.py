@@ -231,7 +231,16 @@ def main():
         mapa = {
             'name': 'Vila', 'width': L, 'height': A,
             'spawn': {'x': L // 2, 'y': 15},
-            'palette': {'ground': '#84c669', 'accent': '#f0b03c', 'wallTop': '#8d6b4a', 'floorTrim': '#b39b74'},
+            'palette': {
+                # forma exigida pelo MapPalette (maps.ts:9): floor é PAR de cores,
+                # não existe 'ground'. Eu tinha inventado essa chave e o chão saía
+                # cinza. #84c669 é a cor medida do tile 0 de grama.
+                'floor': ['#84c669', '#7cbd61'],
+                'floorTrim': '#6aa552',
+                'wall': '#7a6a52',
+                'wallTop': '#a08a68',
+                'accent': '#f0b03c',
+            },
             'objects': objetos,
         }
         with open(args.json, 'w') as f:

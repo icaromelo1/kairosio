@@ -1,6 +1,6 @@
 // Gerado por scripts/gen-vila-tiny.py — não editar à mão.
 // Primeira vila do Kairos feita só de sprites (tiny-town), toda em grade inteira.
-// Grama lisa não vira objeto: o palette.ground pinta #84c669, a cor exata do tile 0.
+// Grama lisa não vira objeto: o palette.floor pinta #84c669, a cor exata do tile 0.
 export const VILA = {
   id: "vila",
   name: "Vila",
@@ -10,7 +10,7 @@ export const VILA = {
   width: 48,
   height: 48,
   spawn: {"x": 24, "y": 15},
-  palette: {"ground": "#84c669", "accent": "#f0b03c", "wallTop": "#8d6b4a", "floorTrim": "#b39b74"},
+  palette: {"floor": ["#84c669", "#7cbd61"], "floorTrim": "#6aa552", "wall": "#7a6a52", "wallTop": "#a08a68", "accent": "#f0b03c"},
   objects: [
     {"id": "p1", "kind": "tile", "x": 13, "y": 0, "w": 1, "h": 1, "solid": false, "tileRef": {"pack": "tiny-town", "i": 1, "cols": 12, "tile": 16}},
     {"id": "p2", "kind": "tile", "x": 27, "y": 0, "w": 1, "h": 1, "solid": false, "tileRef": {"pack": "tiny-town", "i": 1, "cols": 12, "tile": 16}},
