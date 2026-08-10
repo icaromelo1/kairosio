@@ -22,22 +22,28 @@ export async function carregarPacks(): Promise<void> {
   // os tilesheets entram aqui também: criarSpriteDeTile usa Texture.from, que no
   // Pixi 8 só lê o cache — sem carregar, todo objeto com tileRef caía calado no
   // desenho antigo em vez da arte. São 56 KB no total
-  // Um Assets.load com a lista inteira rejeita por completo se UM asset falhar, e
-  // aí nada fica em cache: todo tileRef vira retângulo cinza do DEFAULT_STYLE, calado.
-  // A Cidade não expunha isso porque é quase toda Graphics — a primeira vila feita
-  // de sprite expôs. Carrega em grupos e, se o lote cair, tenta um a um.
-  const grupos = [
-    Object.values(PNG_POR_PACK).flatMap((m) => Object.values(m)),
-    superficieUrls(),
-    tilemapUrls(),
+  // Esta função NÃO PODE rejeitar. Se ela rejeitar, o await dela no init da cena
+  // rejeita junto e o mundo inteiro fica sem textura — foi exatamente o que
+  // aconteceu: um data URI que o Pixi não soube ler estourou o Assets.load, e a
+  // Vila apareceu como um campo cinza sem um único sprite.
+  const urls = [
+    ...Object.values(PNG_POR_PACK).flatMap((m) => Object.values(m)),
+    ...superficieUrls(),
+    ...tilemapUrls(),
   ]
+  if (!urls.length) return
+  try {
+    await Assets.load(urls)
+    return
+  } catch {
+    // caminho tolerante: um asset ruim não pode apagar a arte de todos os outros
+  }
   await Promise.all(
-    grupos.map(async (urls) => {
-      if (!urls.length) return
+    urls.map(async (u) => {
       try {
-        await Assets.load(urls)
+        await Assets.load(u)
       } catch {
-        await Promise.all(urls.map((u) => Assets.load(u).catch(() => null)))
+        /* segue sem este */
       }
     }),
   )
