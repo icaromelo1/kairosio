@@ -5,7 +5,7 @@ import { Application, Container, Graphics, Text } from 'pixi.js'
 import type { MapDef, MapObject } from '../maps'
 import { carregarPacks, criarSpriteDeTile, criarSpriteDoPack } from '../furniture/catalog'
 import { criarSuperficie, temSuperficie } from '../furniture/surfaces'
-import type { AvatarPuppet } from './avatar'
+import { carregarAvatares, type AvatarPuppet } from './avatar'
 import { estadoDeLuz, lerpCor, type EstadoLuz } from '../lighting'
 import { Minimap } from './minimap'
 
@@ -109,7 +109,9 @@ export class MapScene {
   // é argumento de função, não CSS — nenhuma varredura de token o alcançava.
   async init(host: HTMLElement, background = '#e2d5b8') {
     await this.app.init({ background, resizeTo: host, antialias: false })
-    await carregarPacks()
+    // avatares entram no mesmo await: construir um boneco antes da textura existir
+    // deixa a sombra no chão e ninguém em cima dela
+    await Promise.all([carregarPacks(), carregarAvatares()])
     host.appendChild(this.app.canvas)
     this.observarHost(host)
     this.world.addChild(this.floorLayer, this.objectLayer, this.shadowLayer, this.entityLayer, this.roofLayer, this.lightingLayer, this.ghostLayer)
