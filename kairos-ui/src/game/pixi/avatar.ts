@@ -33,7 +33,9 @@ for (const [path, url] of Object.entries(AVATAR_SPRITE_MODULES)) {
   AVATAR_SPRITES[preset][frame] = url
 }
 
-void Assets.load(Object.values(AVATAR_SPRITE_MODULES))
+// com catch: sem ele, um asset que o Pixi não saiba ler vira rejeição não
+// tratada no console e manda o próximo a investigar para o lugar errado
+void Assets.load(Object.values(AVATAR_SPRITE_MODULES)).catch(() => null)
 
 export function avatarSpriteUrl(preset: string, direcao: Direcao, quadro: 0 | 1 | 2): string {
   const set = AVATAR_SPRITES[preset] || AVATAR_SPRITES[DEFAULT_PRESET]
