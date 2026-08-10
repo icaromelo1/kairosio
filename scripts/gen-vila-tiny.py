@@ -24,7 +24,13 @@ AQUI = os.path.dirname(os.path.abspath(__file__))
 FURNITURE = os.path.join(AQUI, '..', 'kairos-ui/src/game/furniture')
 PACK, COLS, TILE = 'tiny-town', 12, 16
 
-L, A = 48, 48
+L, A = 36, 36
+
+# Cada tile ocupa 2x2 células do mapa. TILE_PX é 40 e o boneco mede 16*6*0.8 = 77px,
+# quase duas células: com tile de 1 célula, uma casa de 3 tiles ficava 1,5x a pessoa e
+# uma árvore ficava na metade dela. A 2x o tile vai a 80px, a pessoa mede ~1 tile — a
+# proporção da própria arte do Kenney. Dois é escala INTEIRA, então não borra.
+ESCALA = 2
 
 # ── vocabulário, pelos nomes do índice curado do tiny-town ────────────────────
 GRAMA = [0, 1, 2]
@@ -132,13 +138,13 @@ class Vila:
 def gerar():
     v = Vila()
     # avenidas: duas horizontais e duas verticais, largura 2, deixando 9 quarteirões
-    for y in (11, 25, 39):
+    for y in (11, 24):
         v.rua(1, y, L - 2, y + 1)
-    for x in (11, 25, 39):
+    for x in (11, 24):
         v.rua(x, 1, x + 1, A - 2)
 
-    limites_x = [(2, 10), (13, 24), (27, 38), (41, L - 3)]
-    limites_y = [(2, 10), (13, 24), (27, 38), (41, A - 3)]
+    limites_x = [(2, 10), (13, 23), (26, L - 3)]
+    limites_y = [(2, 10), (13, 23), (26, A - 3)]
     for (qx0, qx1) in limites_x:
         for (qy0, qy1) in limites_y:
             larg_q, alt_q = qx1 - qx0, qy1 - qy0
@@ -187,14 +193,14 @@ def para_objetos(v):
                 continue
             n += 1
             objetos.append({
-                'id': f'p{n}', 'kind': 'tile', 'x': x, 'y': y, 'w': 1, 'h': 1,
-                'solid': False, 'tileRef': ref(piso),
+                'id': f'p{n}', 'kind': 'tile', 'x': x * ESCALA, 'y': y * ESCALA,
+                'w': ESCALA, 'h': ESCALA, 'solid': False, 'tileRef': ref(piso),
             })
     for (x, y), (i, solido) in sorted(v.coisas.items()):
         n += 1
         objetos.append({
-            'id': f't{n}', 'kind': 'tile', 'x': x, 'y': y, 'w': 1, 'h': 1,
-            'solid': solido, 'tileRef': ref(i),
+            'id': f't{n}', 'kind': 'tile', 'x': x * ESCALA, 'y': y * ESCALA,
+            'w': ESCALA, 'h': ESCALA, 'solid': solido, 'tileRef': ref(i),
         })
     return objetos
 
@@ -229,13 +235,13 @@ def main():
     if args.json:
         objetos = para_objetos(v)
         mapa = {
-            'name': 'Vila', 'width': L, 'height': A,
-            'spawn': {'x': L // 2, 'y': 15},
+            'name': 'Vila', 'width': L * ESCALA, 'height': A * ESCALA,
+            'spawn': {'x': (L // 2) * ESCALA, 'y': 11 * ESCALA},
             'palette': {
                 # forma exigida pelo MapPalette (maps.ts:9): floor é PAR de cores,
                 # não existe 'ground'. Eu tinha inventado essa chave e o chão saía
                 # cinza. #84c669 é a cor medida do tile 0 de grama.
-                'floor': ['#84c669', '#7cbd61'],
+                'floor': ['#84c669', '#84c669'],
                 'floorTrim': '#6aa552',
                 'wall': '#7a6a52',
                 'wallTop': '#a08a68',
