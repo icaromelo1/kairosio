@@ -13,7 +13,6 @@ import { Server } from './server.entity'
 import { ServerInvite } from './server-invite.entity'
 import { ServerMembership } from './server-membership.entity'
 import { User } from '../user/user.entity'
-import { Character } from '../character/character.entity'
 import { GameMap } from '../map/game-map.entity'
 
 function slugify(name: string): string {
@@ -74,14 +73,13 @@ export class ServerService implements OnModuleInit {
     if (!server || server.archivedAt) return null
     // a lista sai de server_memberships: users.serverId só diz quem está COM este
     // servidor ativo agora, então membro que está noutro sumiria da administração.
-    // O nome de exibição vive em Character, não em User.
+    // O nome de exibição é o username — character.name foi derrubada.
     const members = await this.memberships
       .createQueryBuilder('m')
       .innerJoin(User, 'u', 'u.id = m.userId')
-      .leftJoin(Character, 'c', 'c."userId" = m.userId')
       .select('u.id', 'id')
       .addSelect('u.email', 'email')
-      .addSelect('c.name', 'name')
+      .addSelect('u.username', 'name')
       .addSelect('m.role', 'serverRole')
       .addSelect('m.joinedAt', 'joinedAt')
       .where('m.serverId = :serverId', { serverId })

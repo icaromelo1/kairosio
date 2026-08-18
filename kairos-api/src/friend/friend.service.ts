@@ -9,7 +9,6 @@ import {
 import { InjectRepository } from '@nestjs/typeorm'
 import { In, Repository } from 'typeorm'
 import { User } from '../user/user.entity'
-import { Character } from '../character/character.entity'
 import { Server } from '../server/server.entity'
 import { ServerMembership } from '../server/server-membership.entity'
 import { normalizeUsername } from '../user/username'
@@ -316,12 +315,13 @@ export class FriendService {
     const unicos = [...new Set(ids)]
     const mapa = new Map<string, Perfil>()
     if (!unicos.length) return mapa
+    // o nome de exibicao e o username: a coluna character.name foi derrubada e,
+    // enquanto existiu, guardava copia literal do username do dono
     const rows = await this.users
       .createQueryBuilder('u')
-      .leftJoin(Character, 'c', 'c."userId" = u.id')
       .select('u.id', 'id')
       .addSelect('u.username', 'username')
-      .addSelect('c.name', 'nome')
+      .addSelect('u.username', 'nome')
       .where('u.id IN (:...ids)', { ids: unicos })
       .getRawMany<Perfil>()
     for (const row of rows) mapa.set(row.id, row)
