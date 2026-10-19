@@ -207,12 +207,13 @@
         </div>
 
         <div class="ss-foot-main">
-          <div class="ss-me">
+          <button class="ss-me" title="Editar personagem" @click="emit('open-panel', 'personagem')">
             <span class="ss-me-avatar">{{ initials(playerName) }}</span>
             <span class="ss-me-info">
               <span class="ss-me-name ellipsis">{{ playerName }}</span>
+              <span class="ss-me-hint">editar personagem</span>
             </span>
-          </div>
+          </button>
 
           <div class="ss-foot-ctrls">
             <button
@@ -1074,7 +1075,9 @@ onUnmounted(() => {
   font-family: inherit;
   text-align: left;
   padding: 0.25rem;
+  cursor: pointer;
 }
+.ss-me:hover { border-color: var(--border-strong); background: var(--bg-2); }
 
 .ss-me-avatar {
   width: 1.75rem;
@@ -1091,6 +1094,13 @@ onUnmounted(() => {
 
 .ss-me-info { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
 .ss-me-name { font-size: 0.75rem; font-weight: 600; }
+.ss-me-hint {
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  color: var(--text-4);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
 
 .ss-foot-ctrls { display: flex; gap: 0.25rem; flex: none; }
 

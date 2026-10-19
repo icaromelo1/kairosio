@@ -2,8 +2,9 @@ import { computed, reactive, ref } from 'vue'
 import { io, type Socket } from 'socket.io-client'
 import type { DmMensagem, DmPerfil } from './dm.api'
 
-export type Facing = 'down' | 'up' | 'left' | 'right'
-export type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit' | 'giro' | 'pulo' | 'robo'
+export type { Pose } from '@/mundo/tipos'
+import type { Pose } from '@/mundo/tipos'
+import type { Aparencia } from '@/mundo/personagem/catalogo'
 
 export interface ChatMessage {
   id: string
@@ -48,9 +49,8 @@ export interface RemotePlayer {
   map: string
   x: number
   y: number
-  facing: Facing
+  direcao: number
   pose: Pose
-  boost?: boolean
 }
 
 // Aviso de transmissão de tela — vem pelo socket, não pelo LiveKit, porque
@@ -103,12 +103,7 @@ export interface DmLeituraAviso {
 
 export interface AvatarProps {
   escala?: number
-  hairStyle?: string | null
-  hairColor?: string | null
-  skin?: string | null
-  topColor?: string | null
-  pantsColor?: string | null
-  // URL pública da foto de perfil — quando presente, o cliente mostra o círculo em vez do sprite
+  aparencia?: Aparencia
   photoUrl?: string | null
 }
 
@@ -167,7 +162,7 @@ export const dmUnreadTotal = computed(() => {
 
 let socket: Socket | null = null
 let lastEmit = 0
-let pending: { x: number; y: number; facing: Facing; pose: Pose; boost: boolean } | null = null
+let pending: { x: number; y: number; direcao: number; pose: Pose } | null = null
 // estado ATUAL do join — atualizado em switchMap/emitMove; a reconexão automática
 // do socket.io re-emite este (re-join com os opts originais devolvia o player
 // pro mapa antigo depois de um blip de rede)
@@ -217,9 +212,9 @@ export function connectPresence(opts: JoinOptions) {
     remotePlayers.set(p.id, p)
   })
 
-  socket.on('playerMoved', ({ id, x, y, facing, pose, boost }: { id: string; x: number; y: number; facing: Facing; pose: Pose; boost?: boolean }) => {
+  socket.on('playerMoved', ({ id, x, y, direcao, pose }: { id: string; x: number; y: number; direcao: number; pose: Pose }) => {
     const p = remotePlayers.get(id)
-    if (p) { p.x = x; p.y = y; if (facing) p.facing = facing; if (pose) p.pose = pose; p.boost = !!boost }
+    if (p) { p.x = x; p.y = y; if (typeof direcao === 'number') p.direcao = direcao; if (pose) p.pose = pose }
   })
 
   socket.on('playerLeft', ({ id }: { id: string }) => {
@@ -478,7 +473,7 @@ export function emitNomeAtualizado() {
   socket?.emit('nomeAtualizado')
 }
 
-export function emitMove(x: number, y: number, facing: Facing, pose: Pose, boost = false) {
+export function emitMove(x: number, y: number, direcao: number, pose: Pose) {
   if (!socket) return
   if (currentJoin) {
     currentJoin.x = x
@@ -487,11 +482,11 @@ export function emitMove(x: number, y: number, facing: Facing, pose: Pose, boost
   const now = Date.now()
   if (now - lastEmit >= MOVE_INTERVAL) {
     lastEmit = now
-    socket.emit('move', { x, y, facing, pose, boost })
+    socket.emit('move', { x, y, direcao, pose })
     pending = null
   } else {
     // garante que o último estado seja enviado mesmo parando de mexer
-    pending = { x, y, facing, pose, boost }
+    pending = { x, y, direcao, pose }
     setTimeout(flushPending, MOVE_INTERVAL)
   }
 }
