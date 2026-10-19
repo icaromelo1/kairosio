@@ -1,5 +1,9 @@
 # Kairos — O que ainda falta
 
+> **Refactor em andamento (branch `main-refactor`, desde 19/10/2026):** o motor PixiJS está
+> sendo trocado por Babylon.js. Estado e próximo passo em `docs/CONTINUAR-REFACTOR.md`;
+> plano completo em `kairos-ui/public/docs/refactor/index.html`.
+
 > Lista enxuta do que está **pendente**. O grosso do roadmap já foi entregue.
 > Atualizado: 2026-07-30. Specs detalhados nos outros `docs/PLANO-*.md`.
 
@@ -43,6 +47,7 @@
 
 ## 💡 4. Backlog / não agendado
 - **NPCs com LLM** — só ideia, fora do plano atual.
+- **Kanban integrado** — futuro distante. Não entra em plano nem documento; só volta quando o Icaro pedir para lembrar.
 - **Economia / dinheiro** — ❌ recusado.
 
 ---

@@ -1,5 +1,9 @@
 # Roadmap do Kairos
 
+> **Refactor em andamento (branch `main-refactor`, desde 19/10/2026):** o motor PixiJS está
+> sendo trocado por Babylon.js. Estado e próximo passo em `docs/CONTINUAR-REFACTOR.md`;
+> plano completo em `kairos-ui/public/docs/refactor/index.html`.
+
 Estado real do projeto. Visão em `KAIROS.md`; **o que falta em `docs/PENDENTE.md`**;
 specs detalhados em `docs/PLANO-*.md`.
 
