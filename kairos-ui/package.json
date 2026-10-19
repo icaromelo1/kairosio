@@ -10,6 +10,8 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@babylonjs/core": "^9.30.0",
+    "@babylonjs/loaders": "^9.30.0",
     "@quasar/extras": "^1.18.0",
     "livekit-client": "^2.21.0",
     "pinia": "^3.0.4",
@@ -20,6 +22,7 @@
     "vue-router": "^5.0.6"
   },
   "devDependencies": {
+    "@gltf-transform/cli": "^4.5.1",
     "@quasar/vite-plugin": "^1.9.0",
     "@vitejs/plugin-vue": "^4.2.3",
     "sass": "^1.99.0",
