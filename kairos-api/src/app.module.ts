@@ -3,43 +3,25 @@ import { APP_GUARD } from '@nestjs/core'
 import { ConfigModule } from '@nestjs/config'
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { TypeOrmModule } from '@nestjs/typeorm'
+import { opcoesDoBanco } from './database/opcoes'
 import { AuthModule } from './auth/auth.module'
 import { CharacterModule } from './character/character.module'
 import { PresenceModule } from './presence/presence.module'
 import { MapModule } from './map/map.module'
 import { FeedbackModule } from './feedback/feedback.module'
-import { User } from './user/user.entity'
-import { Character } from './character/character.entity'
-import { GameMap } from './map/game-map.entity'
-import { Feedback } from './feedback/feedback.entity'
 import { ServerModule } from './server/server.module'
-import { Server } from './server/server.entity'
-import { ServerInvite } from './server/server-invite.entity'
-import { ServerMembership } from './server/server-membership.entity'
 import { JukeboxModule } from './jukebox/jukebox.module'
-import { Track } from './jukebox/track.entity'
 import { TaskModule } from './task/task.module'
-import { Task } from './task/task.entity'
 import { NoteModule } from './note/note.module'
-import { Note } from './note/note.entity'
 import { MediaModule } from './media/media.module'
 import { FriendModule } from './friend/friend.module'
-import { Friendship } from './friend/friendship.entity'
-import { FriendServerInvite } from './friend/friend-server-invite.entity'
 import { DmModule } from './dm/dm.module'
-import { DmConversation } from './dm/dm-conversation.entity'
-import { DmMessage } from './dm/dm-message.entity'
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ThrottlerModule.forRoot([{ ttl: 60000, limit: 120 }]),
-    TypeOrmModule.forRoot({
-      type: 'postgres',
-      url: process.env.DATABASE_URL || 'postgres://kairos:kairos@localhost:5432/kairosio',
-      entities: [User, Character, GameMap, Feedback, Server, ServerInvite, ServerMembership, Track, Task, Note, Friendship, FriendServerInvite, DmConversation, DmMessage],
-      synchronize: true,
-    }),
+    TypeOrmModule.forRoot({ ...opcoesDoBanco, migrationsRun: true }),
     AuthModule,
     CharacterModule,
     PresenceModule,
