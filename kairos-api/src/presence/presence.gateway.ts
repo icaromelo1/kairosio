@@ -898,16 +898,16 @@ export class PresenceGateway
     let areas: AreaRect[] = []
     try {
       const map = await this.mapService.findOne(mapId)
-      areas = (map.objects as any[])
-        .filter((o) => o && o.kind === 'area' && o.id)
+      areas = (map.salas as any[])
+        .filter((o) => o && o.id)
         .map((o) => ({
           id: String(o.id),
-          nome: String(o.name ?? o.nome ?? o.id),
+          nome: String(o.nome ?? o.id),
           aberta: o.aberta === true,
           x: Number(o.x),
           y: Number(o.y),
-          w: Number(o.w),
-          h: Number(o.h),
+          w: Number(o.largura),
+          h: Number(o.profundidade),
         }))
     } catch {
       areas = []
