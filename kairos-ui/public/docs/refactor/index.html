@@ -151,7 +151,7 @@ footer { margin-top: 80px; color: var(--text-3); font-size: 0.85rem; }
   <p class="lead">O Kairos vira um espaço no estilo Gather, com o lado social do Discord, renderizado em Babylon.js. O motor PixiJS sai inteiro. Este documento é revisado ponto a ponto: cada ponto só começa depois de analisado e aprovado aqui.</p>
   <div class="meta">
     <span>Atualizado em 19/10/2026</span>
-    <span>Ponto atual: <strong>1 · Limpeza do motor (em execução)</strong></span>
+    <span>Ponto atual: <strong>2 · Base Babylon.js</strong></span>
   </div>
 
   <nav class="toc" aria-label="Sumário">
@@ -178,8 +178,8 @@ footer { margin-top: 80px; color: var(--text-3); font-size: 0.85rem; }
   <p>Cada ponto ganha uma seção própria neste documento antes de virar código.</p>
   <ul class="pontos">
     <li class="ponto"><span class="n">0</span><span class="t">Documento e branch</span><span class="tag feito">feito</span><span class="d">Branch <code>main-refactor</code> criada a partir da <code>main</code>, e este documento servido pelo próprio jogo em <code>/docs/refactor/</code>.</span></li>
-    <li class="ponto agora"><span class="n">1</span><span class="t">Limpeza do motor</span><span class="tag proximo">em execução</span><span class="d">Apagar PixiJS, tiles, sprites, máscaras, gerador de mapas e as tabelas ligadas a eles, sem deixar vestígio. O inventário completo está <a href="#limpeza">abaixo</a>.</span></li>
-    <li class="ponto"><span class="n">2</span><span class="t">Base Babylon.js</span><span class="tag analisar">a analisar</span><span class="d">Cena, câmera, luz, laço de input, movimento e colisão. Tudo atrás de uma fronteira só (<code>src/mundo/</code>), para que o Vue não importe Babylon direto.</span></li>
+    <li class="ponto"><span class="n">1</span><span class="t">Limpeza do motor</span><span class="tag feito">feito</span><span class="d">Apagar PixiJS, tiles, sprites, máscaras, gerador de mapas e as tabelas ligadas a eles, sem deixar vestígio. O inventário completo está <a href="#limpeza">abaixo</a>.</span></li>
+    <li class="ponto agora"><span class="n">2</span><span class="t">Base Babylon.js</span><span class="tag analisar">a analisar</span><span class="d">Cena, câmera, luz, laço de input, movimento e colisão. Tudo atrás de uma fronteira só (<code>src/mundo/</code>), para que o Vue não importe Babylon direto.</span></li>
     <li class="ponto"><span class="n">3</span><span class="t">Mapa de escritório fixo</span><span class="tag analisar">a analisar</span><span class="d">Um escritório só, descrito em dados: salas, paredes, portas e mobília. As estações atuais (mesa, lousa, jukebox, estante) voltam como objetos do mapa.</span></li>
     <li class="ponto"><span class="n">4</span><span class="t">Presença reconectada</span><span class="tag analisar">a analisar</span><span class="d">O gateway socket.io continua. Os eventos <code>move</code>, <code>avatarUpdate</code> e <code>switchMap</code> passam a carregar a posição e a aparência no formato novo. Salas, áudio espacial e rota são reescritos sobre o mapa novo.</span></li>
     <li class="ponto"><span class="n">5</span><span class="t">Personagem modular</span><span class="tag analisar">a analisar · maior ponto</span><span class="d">Corpo base com esqueleto contratado, peças trocáveis por slot (cabelo, chapéu, parte de cima, parte de baixo, sapato, acessório), cores por material e editor de personagem com prévia ao vivo.</span></li>
