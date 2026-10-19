@@ -145,7 +145,7 @@ export class AuthService {
   }
 
   // convidado nunca fica pra trás no banco: ao sair (botão "Sair"), se for
-  // isGuest, apaga a conta inteira. Character/WorldState vão junto via
+  // isGuest, apaga a conta inteira. Character vai junto via
   // onDelete: CASCADE na FK; server_memberships é coluna solta (sem FK real),
   // então limpa manualmente pra não deixar vínculo órfão.
   async logout(userId: string): Promise<void> {
