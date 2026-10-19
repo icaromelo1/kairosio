@@ -69,7 +69,7 @@
           >
             <span :ref="(el) => setHost(tile.key, el)" class="ms-tile-video" />
 
-            <PixelAvatar v-if="!tile.video" :scale="3" v-bind="tile.look" :shadow="false" />
+            <span v-if="!tile.video" class="ms-tile-iniciais">{{ iniciais(tile.name) }}</span>
 
             <span v-if="tile.far" class="ms-tile-far-hint">aproxime-se</span>
 
@@ -251,13 +251,10 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, reactive, ref, watch } from 'vue'
 import { media, SELF_KEY, type ScreenMode, type ScreenStats } from '@/services/media'
-import { sanitizeLook, type AvatarLook } from '@/game/pixi/avatar'
-import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import PixelIcon from '@/components/PixelIcon.vue'
 
 interface PeerLook {
   name: string
-  look: AvatarLook
 }
 
 interface StageTile {
@@ -266,7 +263,6 @@ interface StageTile {
   // identity do dono (SELF_KEY quando sou eu) — o key ganha prefixo no tile de tela
   owner: string
   name: string
-  look: AvatarLook
   self: boolean
   speaking: boolean
   micOff: boolean
@@ -279,7 +275,6 @@ interface StageTile {
 
 const props = defineProps<{
   selfName: string
-  selfLook: AvatarLook
   peerLooks: Record<string, PeerLook>
   connecting?: boolean
 }>()
@@ -296,7 +291,11 @@ const SCREEN_PREFIX = 'screen:'
 const MIN_W = 260
 const MIN_H = 220
 const EDGE = 8
-const DEFAULT_LOOK = sanitizeLook(null)
+function iniciais(nome: string): string {
+  const partes = nome.trim().split(/\s+/).filter(Boolean)
+  if (!partes.length) return '?'
+  return ((partes[0][0] ?? '') + (partes[1]?.[0] ?? '')).toUpperCase()
+}
 
 const root = ref<HTMLElement | null>(null)
 const screenWrap = ref<HTMLElement | null>(null)
@@ -324,7 +323,7 @@ const screenTitle = computed(() => {
   return screenOn.value ? 'Parar de compartilhar a tela' : 'Compartilhar sua tela'
 })
 
-function personTile(over: Partial<StageTile> & Pick<StageTile, 'key' | 'owner' | 'name' | 'look'>): StageTile {
+function personTile(over: Partial<StageTile> & Pick<StageTile, 'key' | 'owner' | 'name'>): StageTile {
   return {
     kind: 'person',
     self: false,
@@ -346,7 +345,6 @@ function screenTile(owner: string, name: string, self: boolean, far: boolean, wa
     kind: 'screen',
     owner,
     name,
-    look: DEFAULT_LOOK,
     self,
     speaking: false,
     micOff: false,
@@ -363,7 +361,6 @@ const tiles = computed<StageTile[]>(() => {
     key: SELF_KEY,
     owner: SELF_KEY,
     name: props.selfName,
-    look: props.selfLook,
     self: true,
     speaking: media.state.selfSpeaking,
     micOff: micMuted.value || !micAvailable.value,
@@ -380,7 +377,6 @@ const tiles = computed<StageTile[]>(() => {
       key: peer.identity,
       owner: peer.identity,
       name,
-      look: presence?.look || DEFAULT_LOOK,
       speaking: peer.speaking,
       micOff: peer.micOff,
       mutedByMe: peer.mutedByMe,
@@ -1192,5 +1188,10 @@ onBeforeUnmount(() => {
     50% { opacity: 0.35; }
   }
 
+}
+.ms-tile-iniciais {
+  font-family: var(--f-pixel);
+  font-size: 1.5rem;
+  color: var(--text-2);
 }
 </style>

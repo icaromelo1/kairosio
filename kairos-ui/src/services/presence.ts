@@ -1,7 +1,6 @@
 import { computed, reactive, ref } from 'vue'
 import { io, type Socket } from 'socket.io-client'
 import type { DmMensagem, DmPerfil } from './dm.api'
-import { ESCALA_PADRAO } from '@/game/escala-avatar'
 
 export type Facing = 'down' | 'up' | 'left' | 'right'
 export type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit' | 'giro' | 'pulo' | 'robo'
@@ -151,6 +150,7 @@ export const sessionKicked = ref(false)
 export const sudoInvisivel = ref(false)
 export const sudoNoclip = ref(false)
 export const sudoEspectador = ref(false)
+export const ESCALA_PADRAO = 0.8
 export const sudoEscala = ref(ESCALA_PADRAO)
 // Quem está online em cada servidor OBSERVADO: serverId → (socket.id → pessoa).
 // Só aparece aqui servidor de que o usuário é membro — o backend recusa o resto
