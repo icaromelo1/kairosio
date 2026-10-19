@@ -1,19 +1,19 @@
-import { calcularBolhas, type Pessoa } from '@/game/audio/calls'
+import { calcularBolhas, type Pessoa } from '@/mundo/bolhas'
 import { salaDoPonto } from './grade'
 import type { Mapa, Sala } from './tipos'
 
-export const RAIO_CHEIO = 2
-export const RAIO_MAX = 10
-export const RAIO_PORTA = 2
-export const OCLUSAO_PAREDE = 0.25
-export const OCLUSAO_PORTA = 0.7
+const RAIO_CHEIO = 2
+const RAIO_MAX = 10
+const RAIO_PORTA = 2
+const OCLUSAO_PAREDE = 0.25
+const OCLUSAO_PORTA = 0.7
 
 export function salaFechadaDoPonto(mapa: Mapa, x: number, y: number): Sala | null {
   const sala = salaDoPonto(mapa, x, y)
   return sala && !sala.aberta ? sala : null
 }
 
-export function curvaDistancia(d: number): number {
+function curvaDistancia(d: number): number {
   if (d <= RAIO_CHEIO) return 1
   if (d >= RAIO_MAX) return 0
   const t = (d - RAIO_CHEIO) / (RAIO_MAX - RAIO_CHEIO)

@@ -29,7 +29,7 @@ const ALCANCE_INTERACAO = 1.3
 const ZOOM_MIN = 2.8
 const ZOOM_MAX = 10
 
-export interface EstadoLocal {
+interface EstadoLocal {
   x: number
   y: number
   direcao: number
@@ -43,7 +43,7 @@ export interface Interacao {
   sentavel: boolean
 }
 
-export interface OpcoesDoMundo {
+interface OpcoesDoMundo {
   aoMover?: (estado: EstadoLocal) => void
   aoMudarInteracao?: (interacao: Interacao | null) => void
   aoMudarSala?: (sala: Sala | null) => void
@@ -403,11 +403,13 @@ export class Mundo {
     if (!mapa) return
     let melhor: Interacao | null = null
     let melhorDistancia = ALCANCE_INTERACAO
-    if (!this.sentadoEm) {
+    const sentado = !!this.sentadoEm
+    {
       for (const movel of mapa.mobilia) {
         const peca = pecaDe(movel)
         const estacao = estacaoDe(movel)
         if (!peca || (!peca.sentavel && !estacao)) continue
+        if (sentado && !estacao) continue
         const raio = Math.max(peca.largura, peca.profundidade) / 2
         const distancia = Math.hypot(movel.x - this.local.x, movel.y - this.local.y) - raio
         if (distancia < melhorDistancia) {
@@ -421,9 +423,8 @@ export class Mundo {
           }
         }
       }
-    } else {
-      melhor = { movel: this.sentadoEm.movel, estacao: null, sentavel: true, acao: 'levantar' }
     }
+    if (sentado && !melhor) melhor = { movel: this.sentadoEm!.movel, estacao: null, sentavel: true, acao: 'levantar' }
     if (melhor?.movel.id !== this.interacao?.movel.id || melhor?.acao !== this.interacao?.acao) {
       this.interacao = melhor
       this.opcoes.aoMudarInteracao?.(melhor)

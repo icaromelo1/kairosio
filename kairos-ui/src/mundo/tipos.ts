@@ -1,6 +1,6 @@
 export type Estacao = 'tarefas' | 'notas' | 'lousa' | 'jukebox'
 
-export interface Porta {
+interface Porta {
   lado: 'norte' | 'sul' | 'leste' | 'oeste'
   centro: number
   largura: number
@@ -37,11 +37,6 @@ export interface Mapa {
   spawn: { x: number; y: number }
   salas: Sala[]
   mobilia: Movel[]
-}
-
-export interface Ponto {
-  x: number
-  y: number
 }
 
 export type Pose = 'parado' | 'andar' | 'sentar' | 'acenar' | 'dancar'

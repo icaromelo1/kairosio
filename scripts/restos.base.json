@@ -1,15 +1,15 @@
 {
  "kairos-ui": {
-  "arquivo-orfao": 6,
-  "export-morto": 17,
-  "export-demais": 42,
+  "arquivo-orfao": 0,
+  "export-morto": 0,
+  "export-demais": 26,
   "comentario-vencido": 4,
   "vivo-so-pelo-teste": 0
  },
  "kairos-api": {
-  "arquivo-orfao": 1,
+  "arquivo-orfao": 4,
   "export-morto": 0,
-  "export-demais": 13,
+  "export-demais": 18,
   "comentario-vencido": 1,
   "vivo-so-pelo-teste": 2
  }

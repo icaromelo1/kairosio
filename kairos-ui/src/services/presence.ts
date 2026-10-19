@@ -140,13 +140,6 @@ export const horaDoMundo = ref<number | null>(null)
 // true quando esta aba foi derrubada por outra sessão da MESMA conta (login em
 // outro lugar) — a tela mostra um aviso em vez de deixar a conexão travada
 export const sessionKicked = ref(false)
-// poderes do sudo — invisível também vai pro servidor (emitSudoInvisivel); os
-// outros três são puramente locais (escala trafega pelo canal de avatar)
-export const sudoInvisivel = ref(false)
-export const sudoNoclip = ref(false)
-export const sudoEspectador = ref(false)
-export const ESCALA_PADRAO = 0.8
-export const sudoEscala = ref(ESCALA_PADRAO)
 // Quem está online em cada servidor OBSERVADO: serverId → (socket.id → pessoa).
 // Só aparece aqui servidor de que o usuário é membro — o backend recusa o resto
 // em silêncio. A barra lateral lê isto direto; agrupar por mundo é com quem
@@ -182,8 +175,6 @@ const screenShareListeners = new Set<(state: ScreenShareState) => void>()
 const dmListeners = new Set<(entrega: DmEntrega) => void>()
 const dmLeituraListeners = new Set<(leitura: DmLeituraAviso) => void>()
 const volumeTodosListeners = new Set<(volume: number) => void>()
-const puxadoListeners = new Set<(p: { x: number; y: number }) => void>()
-const festaListeners = new Set<() => void>()
 
 export function connectPresence(opts: JoinOptions) {
   if (socket) return
@@ -335,13 +326,6 @@ export function connectPresence(opts: JoinOptions) {
     sessionKicked.value = true
   })
 
-  socket.on('puxado', (p: { x: number; y: number }) => {
-    for (const cb of puxadoListeners) cb(p)
-  })
-  socket.on('festa', () => {
-    for (const cb of festaListeners) cb()
-  })
-
   socket.on('disconnect', () => {
     remotePlayers.clear()
     // a lista some enquanto está fora do ar em vez de mentir; o 'connect'
@@ -430,9 +414,6 @@ export function emitJukeboxAdd(input: string, areaId: string | null, jukeboxId: 
 }
 export function emitJukeboxSkip(jukeboxId: string) {
   socket?.emit('jukeboxSkip', { jukeboxId })
-}
-export function emitDefinirHora(hora: number | null) {
-  socket?.emit('definirHora', { hora })
 }
 
 export function emitJukeboxVolumeTodos(volume: number) {
@@ -546,27 +527,4 @@ export function disconnectPresence() {
 export function onJukeboxVolumeTodos(fn: (volume: number) => void): () => void {
   volumeTodosListeners.add(fn)
   return () => volumeTodosListeners.delete(fn)
-}
-
-// ---- poderes do sudo ----
-export function emitSudoInvisivel(on: boolean): void {
-  socket?.emit('sudoInvisivel', { on })
-}
-export function emitSudoPuxar(alvoId: string): void {
-  socket?.emit('sudoPuxar', { alvoId })
-}
-export function emitSudoFesta(): void {
-  socket?.emit('sudoFesta', {})
-}
-export function emitSudoTeleporte(x: number, y: number): void {
-  socket?.emit('sudoTeleporte', { x, y })
-}
-
-export function onPuxado(fn: (p: { x: number; y: number }) => void): () => void {
-  puxadoListeners.add(fn)
-  return () => puxadoListeners.delete(fn)
-}
-export function onFesta(fn: () => void): () => void {
-  festaListeners.add(fn)
-  return () => festaListeners.delete(fn)
 }

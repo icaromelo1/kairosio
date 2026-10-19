@@ -1,10 +1,10 @@
-export const RAIO_BASE_BOLHA = 5
-export const INCREMENTO_BOLHA = 1.5
-export const RAIO_MAX_BOLHA = 12
-export const MAX_ITERACOES_PONTO_FIXO = 4
+const RAIO_BASE_BOLHA = 5
+const INCREMENTO_BOLHA = 1.5
+const RAIO_MAX_BOLHA = 12
+const MAX_ITERACOES_PONTO_FIXO = 4
 
-export const LIMIAR_ENTRAR_MIDIA = RAIO_BASE_BOLHA
-export const LIMIAR_SAIR_MIDIA = 8
+const LIMIAR_ENTRAR_MIDIA = RAIO_BASE_BOLHA
+const LIMIAR_SAIR_MIDIA = 8
 
 export interface Pessoa {
   id: string
@@ -12,7 +12,7 @@ export interface Pessoa {
   y: number
 }
 
-export function raioBolha(tamanho: number): number {
+function raioBolha(tamanho: number): number {
   if (tamanho <= 1) return RAIO_BASE_BOLHA
   return Math.min(RAIO_MAX_BOLHA, RAIO_BASE_BOLHA + INCREMENTO_BOLHA * (tamanho - 1))
 }

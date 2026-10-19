@@ -106,6 +106,7 @@ import PixelIcon from '@/components/PixelIcon.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { changeUsername, UsernameError } from '@/services/auth.api'
 import { buscarPersonagem, salvarAparencia } from '@/services/personagem.api'
+import { emitNomeAtualizado } from '@/services/presence'
 import {
   APARENCIA_PADRAO, CORES_DE_CABELO, CORES_DE_ROUPA, PRESETS, SLOTS, TONS_DE_PELE,
   aparenciaAleatoria, pecaDe, pecasDo, sanitizarAparencia, type Aparencia, type Slot,
@@ -170,6 +171,7 @@ async function salvar() {
     if (precisaNome.value) {
       const resposta = await changeUsername(nome.value)
       auth.setUsername(resposta.username ?? nome.value)
+      emitNomeAtualizado()
     }
     const final = copiar(aparencia)
     await salvarAparencia(final)
