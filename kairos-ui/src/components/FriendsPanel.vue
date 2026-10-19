@@ -244,7 +244,6 @@ import {
 import { getMyServers, type MyServerSummary } from '@/services/server.api'
 import { dmUnreadTotal, friendLocation, isFriendOnline, unwatchFriendPresence, watchFriendPresence } from '@/services/presence'
 import { useAuthStore } from '@/stores/useAuthStore'
-import type { MapDef } from '@/game/maps'
 import PanelShell from '@/components/PanelShell.vue'
 import PixelIcon from '@/components/PixelIcon.vue'
 
@@ -260,7 +259,7 @@ interface FriendRow {
   lugar: string
 }
 
-const props = defineProps<{ maps: MapDef[] }>()
+const props = defineProps<{ maps: { id: string; name: string }[] }>()
 
 const emit = defineEmits<{
   close: []

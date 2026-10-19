@@ -1,6 +1,3 @@
-import type { MapDef } from '../maps'
-import { salaDoPonto } from './espacial'
-
 export const RAIO_BASE_BOLHA = 5
 export const INCREMENTO_BOLHA = 1.5
 export const RAIO_MAX_BOLHA = 12
@@ -100,33 +97,6 @@ export function calcularBolhas(pessoas: Pessoa[]): Map<string, string[]> {
     for (const id of membros) porPessoa.set(id, membros)
   }
   return porPessoa
-}
-
-export function callsDoMapa(map: MapDef, pessoas: Pessoa[]): Map<string, string> {
-  const porSala = new Map<string, Pessoa[]>()
-  const semSala: Pessoa[] = []
-  for (const pessoa of pessoas) {
-    const sala = salaDoPonto(map, pessoa.x, pessoa.y)
-    if (sala) {
-      const lista = porSala.get(sala)
-      if (lista) lista.push(pessoa)
-      else porSala.set(sala, [pessoa])
-    } else {
-      semSala.push(pessoa)
-    }
-  }
-
-  const calls = new Map<string, string>()
-  for (const [salaId, membros] of porSala) {
-    for (const pessoa of membros) calls.set(pessoa.id, `sala:${salaId}`)
-  }
-
-  const bolhas = calcularBolhas(semSala)
-  for (const [id, membros] of bolhas) {
-    calls.set(id, `bolha:${[...membros].sort()[0]}`)
-  }
-
-  return calls
 }
 
 export function historeseMidia(estavaDentro: boolean, distancia: number): boolean {

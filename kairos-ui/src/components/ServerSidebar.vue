@@ -82,8 +82,6 @@
       <template v-else>
       <header class="ss-head">
         <span class="ss-head-name ellipsis">{{ shownServer?.name || 'Mundos abertos' }}</span>
-        <span class="ss-head-hora">{{ horaMundo }}</span>
-        <span class="k-badge k-badge-info ss-head-periodo">{{ periodoDoDia }}</span>
       </header>
 
       <div v-if="!showingHere" class="ss-away">
@@ -115,46 +113,7 @@
               <span class="ss-world-count" :class="{ 'ss-world-count-zero': !w.people.length }">{{ w.people.length }}</span>
             </div>
 
-            <!-- servidor > mundo > SALA > pessoas. só vale pro mundo em que estou:
-                 posição de quem está em outro mundo não chega até aqui, então lá
-                 continua a lista simples em vez de um agrupamento inventado -->
-            <template v-if="!w.collapsed && w.current">
-              <div v-if="salasDoMundoAtual.length" class="ss-label ss-label-sub">Salas com gente</div>
-              <div v-for="sala in salasDoMundoAtual" :key="sala.id" class="ss-sala">
-                <div
-                  class="ss-sala-cab ss-sala-alvo"
-                  :class="{ 'ss-sala-aqui': sala.id === minhaSalaId }"
-                  :title="`Dois cliques para ir até ${sala.nome}`"
-                  @dblclick="emit('ir-para-sala', sala.id)"
-                >
-                  <PixelIcon v-if="sala.trancada" name="lock" size="0.625rem" class="ss-sala-lock" />
-                  <span class="ellipsis ss-sala-nome">{{ sala.nome }}</span>
-                  <span class="ss-world-count" :class="{ 'ss-world-count-zero': !sala.gente.length }">{{ sala.gente.length }}</span>
-                </div>
-                <ul v-if="sala.gente.length" class="ss-people ss-people-sala">
-                  <li v-for="p in sala.gente" :key="p.id" class="ss-person">
-                    <span class="ss-person-dot">●</span>
-                    <span class="ellipsis">{{ p.nome }}</span>
-                    <span v-if="p.eu" class="ss-person-you">você</span>
-                  </li>
-                </ul>
-              </div>
-              <div v-if="genteNoAberto.length" class="ss-sala">
-                <div class="ss-sala-cab" :class="{ 'ss-sala-aqui': !minhaSalaId }">
-                  <span class="ellipsis ss-sala-nome">mundo aberto</span>
-                  <span class="ss-world-count">{{ genteNoAberto.length }}</span>
-                </div>
-                <ul class="ss-people ss-people-sala">
-                  <li v-for="p in genteNoAberto" :key="p.id" class="ss-person">
-                    <span class="ss-person-dot">●</span>
-                    <span class="ellipsis">{{ p.nome }}</span>
-                    <span v-if="p.eu" class="ss-person-you">você</span>
-                  </li>
-                </ul>
-              </div>
-            </template>
-
-            <ul v-else-if="!w.collapsed && w.people.length" class="ss-people">
+            <ul v-if="!w.collapsed && w.people.length" class="ss-people">
               <li v-for="p in w.people" :key="p.id" class="ss-person">
                 <span class="ss-person-dot">●</span>
                 <span class="ellipsis">{{ p.name }}</span>
@@ -198,29 +157,6 @@
         <div class="ss-scroll-edge" aria-hidden="true" />
 
         <div class="ss-acts-wrap">
-          <template v-if="ehSudo">
-            <div class="ss-label">Ferramentas de revisão</div>
-            <div class="ss-tools">
-              <button
-                v-for="ferramenta in ferramentasRevisao"
-                :key="ferramenta.rota"
-                class="ss-tool"
-                :title="`${ferramenta.nome} — abrir a ferramenta`"
-                @click="router.push(ferramenta.rota)"
-              >
-                <PixelIcon :name="ferramenta.icone" size="0.875rem" />
-                <span class="ss-tool-info">
-                  <span class="ss-tool-linha">
-                    <span class="ss-tool-nome">{{ ferramenta.nome }}</span>
-                    <span class="ss-tool-sep">·</span>
-                    <span class="ss-tool-count">{{ ferramenta.total.toLocaleString('pt-BR') }}</span>
-                  </span>
-                  <span class="ss-tool-hint">abrir a ferramenta</span>
-                </span>
-              </button>
-            </div>
-          </template>
-
           <div class="ss-label">Ações</div>
           <div class="ss-acts">
             <button class="k-btn k-btn-ghost ss-act ss-act-dm" :title="dmTitle" @click="aoClicarDm">
@@ -230,12 +166,6 @@
             <button class="k-btn k-btn-ghost ss-act" :title="friendsTitle" @click="emit('open-friends')">
               <PixelIcon name="users" size="0.75rem" /><span>Amigos</span>
               <span v-if="friendRequests" class="ss-act-badge">{{ friendRequests }}</span>
-            </button>
-            <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="router.push('/editor/new')">
-              <PixelIcon name="plus-box" size="0.75rem" /><span>Criar mundo</span>
-            </button>
-            <button v-if="canEditCurrentWorld" class="k-btn k-btn-ghost ss-act" @click="router.push(`/editor/${currentMapId}`)">
-              <PixelIcon name="pen-square" size="0.75rem" /><span>Editar este mundo</span>
             </button>
             <button v-if="!isGuest" class="k-btn k-btn-ghost ss-act" @click="emit('open-panel', 'admin')">
               <PixelIcon name="shield" size="0.75rem" /><span>Administração</span>
@@ -277,13 +207,12 @@
         </div>
 
         <div class="ss-foot-main">
-          <button class="ss-me" title="Editar avatar" @click="emit('open-panel', 'personagem')">
-            <span class="ss-me-avatar"><PixelAvatar :scale="1.4" v-bind="look" :shadow="false" /></span>
+          <div class="ss-me">
+            <span class="ss-me-avatar">{{ initials(playerName) }}</span>
             <span class="ss-me-info">
               <span class="ss-me-name ellipsis">{{ playerName }}</span>
-              <span class="ss-me-hint">editar avatar</span>
             </span>
-          </button>
+          </div>
 
           <div class="ss-foot-ctrls">
             <button
@@ -320,15 +249,11 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
 import { explicarErro } from '@/services/avisos'
-import { useRouter } from 'vue-router'
 import { getMyServers, switchServer, type MyServerSummary } from '@/services/server.api'
-import { agruparPorSala, salaFechadaDoPonto, type PessoaNaSala } from '@/game/salas'
 import {
   dmUnreadTotal,
   emitMicState,
   peopleInWorld,
-  remotePlayers,
-  salasTrancadas,
   presenceByServer,
   serverOnlineCount,
   watchServerPresence,
@@ -338,9 +263,6 @@ import { media } from '@/services/media'
 import { pendingFriends } from '@/services/friend.api'
 import type { GamePanel } from '@/services/postAuth'
 import { useAuthStore } from '@/stores/useAuthStore'
-import type { MapDef } from '@/game/maps'
-import type { AvatarLook } from '@/game/pixi/avatar'
-import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import PixelIcon from '@/components/PixelIcon.vue'
 import PixelK from '@/components/pixel/PixelK.vue'
 import DmSidebar from '@/components/DmSidebar.vue'
@@ -348,30 +270,6 @@ import {
   abrirConversaDe, abrirNaoLidaMaisRecente, assinarDm, desassinarDm, recarregarConversas,
   voltarParaLista,
 } from '@/services/dm.state'
-import { totalDeTiles } from '@/game/furniture/busca'
-
-// contagens do acervo pras Ferramentas de revisão: do catálogo real e do glob dos
-// arquivos de máscara, nunca escritas à mão nem remontadas aqui — repetir a lista de
-// índices foi o que fez este número contar pack aposentado e ignorar pack novo
-const TOTAL_TILES = totalDeTiles()
-
-// os 72 quadros de máscara, que são do CORPO (6 x 12) e não do avatar: é a
-// contagem do que a curadoria de avatar tem por baixo
-const MASCARAS_GLOB = import.meta.glob('../game/furniture/avatar-mascaras/*/*.png')
-const TOTAL_MASCARAS = Object.keys(MASCARAS_GLOB).length
-
-interface FerramentaRevisao {
-  rota: string
-  nome: string
-  total: number
-  icone: string
-}
-
-const ferramentasRevisao: FerramentaRevisao[] = [
-  { rota: '/admin/tiles', nome: 'Tiles', total: TOTAL_TILES, icone: 'grid' },
-  { rota: '/admin/avatares', nome: 'Avatares', total: TOTAL_MASCARAS, icone: 'user' },
-]
-
 interface WorldRow {
   id: string
   name: string
@@ -382,23 +280,16 @@ interface WorldRow {
 
 const props = defineProps<{
   open: boolean
-  maps: MapDef[]
+  maps: { id: string; name: string }[]
   currentMapId: string
   playerName: string
-  look: AvatarLook
   voiceOn: boolean
-  canEditCurrentWorld: boolean
   isGuest: boolean
-  ehSudo: boolean
-  minhaPosicao: { x: number; y: number }
-  horaMundo: string
-  periodoDoDia: string
 }>()
 
 const emit = defineEmits<{
   'update:open': [open: boolean]
   'select-world': [mapId: string]
-  'ir-para-sala': [salaId: string]
   'server-changed': [serverId: string, mapId?: string]
   'open-media': []
   'open-panel': [panel: GamePanel]
@@ -430,7 +321,6 @@ async function aoClicarDm(e: MouseEvent) {
   else voltarParaLista()
 }
 
-const router = useRouter()
 const auth = useAuthStore()
 
 const servers = ref<MyServerSummary[]>([])
@@ -444,45 +334,6 @@ const error = ref('')
 const shownServer = computed(() => servers.value.find((s) => s.id === shownServerId.value) || null)
 const activeServer = computed(() => servers.value.find((s) => s.id === activeServerId.value) || null)
 const showingHere = computed(() => shownServerId.value === activeServerId.value)
-
-const mapaAtual = computed(() => props.maps.find((m) => m.id === props.currentMapId) ?? null)
-
-// eu + quem mais está neste mundo, com posição — é o que permite dizer em que
-// sala cada um está. remotePlayers só cobre a sala de socket em que estou.
-const gentePosicionada = computed<PessoaNaSala[]>(() => {
-  const lista: PessoaNaSala[] = [
-    { id: '@eu', nome: props.playerName, x: props.minhaPosicao.x, y: props.minhaPosicao.y, eu: true },
-  ]
-  for (const p of remotePlayers.values()) {
-    if (p.map && p.map !== props.currentMapId) continue
-    lista.push({ id: p.id, nome: p.name, x: p.x, y: p.y })
-  }
-  return lista
-})
-
-const salasDoMundoAtual = computed(() => {
-  const map = mapaAtual.value
-  if (!map) return []
-  // sala vazia não entra: com 24 salas na Cidade, listar todas afoga a
-  // informação que importa, que é onde as pessoas estão
-  return agruparPorSala(map, gentePosicionada.value)
-    .filter((s) => !s.aberta && s.gente.length > 0)
-    .map((s) => ({ ...s, trancada: salasTrancadas.value.has(s.id) }))
-    .sort((a, b) => b.gente.length - a.gente.length || a.nome.localeCompare(b.nome))
-})
-
-// praça é área aberta: quem está nela conversa no mundo, então aparece aqui
-const genteNoAberto = computed(() => {
-  const map = mapaAtual.value
-  if (!map) return []
-  const emSalaFechada = new Set(salasDoMundoAtual.value.flatMap((s) => s.gente.map((p) => p.id)))
-  return gentePosicionada.value.filter((p) => !emSalaFechada.has(p.id))
-})
-
-const minhaSalaId = computed(() => {
-  const map = mapaAtual.value
-  return map ? salaFechadaDoPonto(map, props.minhaPosicao.x, props.minhaPosicao.y) : null
-})
 
 const worlds = computed<WorldRow[]>(() =>
   props.maps.map((m) => {
@@ -915,18 +766,6 @@ onUnmounted(() => {
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
-/* relógio do mundo: número lido de relance, então --f-num como o contador de
-   sala — pelo menos 1rem pra não repetir o achado de auditoria da barra */
-.ss-head-hora {
-  flex: none;
-  font-family: var(--f-num);
-  font-size: 1rem;
-  color: var(--text-2);
-  letter-spacing: 0.02em;
-}
-
-.ss-head-periodo { flex: none; }
-
 .ss-away {
   display: flex;
   flex-direction: column;
@@ -1000,11 +839,6 @@ onUnmounted(() => {
   font-weight: 700;
   padding: 0.5rem 0.375rem 0.25rem;
 }
-
-/* sub-rótulo da lista de salas: mesma tinta do .ss-label, indentado até a
-   coluna onde o traço esquerdo das salas (.ss-sala, margin-left 0.5rem +
-   .ss-sala-cab, padding-left 0.375rem) começa */
-.ss-label-sub { padding: 0.25rem 0.375rem 0.25rem 1rem; }
 
 .ss-world { display: flex; flex-direction: column; }
 
@@ -1126,62 +960,6 @@ onUnmounted(() => {
   color: var(--err);
 }
 
-/* ---- ferramentas de revisão (sudo): tiles + máscaras, com contagem real do
-   acervo — o defeito de origem era o editor de máscara não ter entrada
-   nenhuma, então as duas ficam juntas aqui, nunca uma solta ---- */
-.ss-tools { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.5rem; }
-
-.ss-tool {
-  appearance: none;
-  width: 100%;
-  min-height: 2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: transparent;
-  border: 0.0625rem solid var(--border);
-  color: var(--text-2);
-  font-family: inherit;
-  text-align: left;
-  padding: 0.375rem 0.5rem;
-  cursor: pointer;
-}
-.ss-tool:hover { border-color: var(--primary-hi); background: var(--bg-1); color: var(--text); }
-
-.ss-tool-info {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  gap: 0.0625rem;
-  line-height: 1.2;
-}
-
-.ss-tool-linha { display: flex; align-items: baseline; gap: 0.25rem; }
-
-.ss-tool-nome {
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text);
-}
-
-.ss-tool-sep { color: var(--text-4); }
-
-.ss-tool-count {
-  font-family: var(--f-num);
-  font-size: 0.75rem;
-  color: var(--accent-texto);
-}
-
-.ss-tool-hint {
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--text-4);
-}
-
 .ss-acts { display: flex; flex-direction: column; gap: 0.25rem; }
 
 .ss-act-badge {
@@ -1296,9 +1074,7 @@ onUnmounted(() => {
   font-family: inherit;
   text-align: left;
   padding: 0.25rem;
-  cursor: pointer;
 }
-.ss-me:hover { border-color: var(--border-strong); background: var(--bg-2); }
 
 .ss-me-avatar {
   width: 1.75rem;
@@ -1308,17 +1084,13 @@ onUnmounted(() => {
   place-items: center;
   background: var(--bg-3);
   overflow: hidden;
+  font-family: var(--f-pixel);
+  font-size: 0.5rem;
+  color: var(--text-2);
 }
 
 .ss-me-info { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
 .ss-me-name { font-size: 0.75rem; font-weight: 600; }
-.ss-me-hint {
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  color: var(--text-4);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
 
 .ss-foot-ctrls { display: flex; gap: 0.25rem; flex: none; }
 
@@ -1356,26 +1128,4 @@ onUnmounted(() => {
     50% { opacity: 0.25; }
   }
 }
-.ss-sala { margin: 0.25rem 0 0 0.5rem; }
-.ss-sala-cab {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.1875rem 0.375rem;
-  border-left: 0.125rem solid var(--border);
-}
-.ss-sala-alvo { cursor: pointer; user-select: none; }
-.ss-sala-alvo:hover { background: var(--bg-2); }
-.ss-sala-aqui { border-left-color: var(--primary); background: rgba(44, 116, 65, 0.12); }
-.ss-sala-nome {
-  flex: 1;
-  min-width: 0;
-  font-family: var(--f-sans);
-  font-size: 0.8125rem;
-  font-weight: 600;
-  color: var(--text-3);
-}
-.ss-sala-aqui .ss-sala-nome { color: var(--text); }
-.ss-sala-lock { color: var(--err); }
-.ss-people-sala { margin-left: 0.5rem; }
 </style>

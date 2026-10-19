@@ -85,30 +85,6 @@
         <p v-if="err.invite" class="ap-error">{{ err.invite }}</p>
       </section>
 
-      <section v-if="tab === 'Mundos'" class="ap-section">
-        <h3 class="ap-title">Mundos do servidor ({{ serverMaps.length }})</h3>
-        <button class="k-btn k-btn-primary k-btn-xs" @click="router.push('/editor/new')">
-          <PixelIcon name="plus-box" size="0.875rem" />Criar mundo no editor
-        </button>
-        <ul class="ap-list">
-          <li v-for="w in serverMaps" :key="w.id" class="ap-item">
-            <span>{{ w.name }} <span class="ap-dim">· {{ w.width }}×{{ w.height }}</span></span>
-            <div class="k-perigo ap-perigo-chip">
-              <div class="k-perigo-faixa" />
-              <p class="ap-perigo-titulo">Excluir este mundo apaga para todos</p>
-              <p class="ap-perigo-explicacao">Não dá para desfazer. Segure para confirmar.</p>
-              <HoldButton
-                rotulo="apagar" rotulo-carregando="apagando…"
-                :disabled="busy" :carregando="deletingMapId === w.id"
-                @confirmar="del(w)"
-              />
-            </div>
-          </li>
-          <li v-if="!serverMaps.length" class="ap-empty">Nenhum mundo criado ainda.</li>
-        </ul>
-        <p v-if="err.maps" class="ap-error">{{ err.maps }}</p>
-      </section>
-
       <section v-if="tab === 'Servidor'" class="ap-section">
         <h3 class="ap-title">Configurações</h3>
 
@@ -173,7 +149,6 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
 import { explicarErro } from '@/services/avisos'
 import { useAuthStore } from '@/stores/useAuthStore'
 import {
@@ -182,24 +157,19 @@ import {
   setMemberRole, removeMember, updateServer,
   type Server, type ServerMember, type ServerInvite, type MyServerSummary,
 } from '@/services/server.api'
-import { fetchMaps, deleteMap } from '@/services/maps.api'
-import type { MapDef } from '@/game/maps'
 import PanelShell from '@/components/PanelShell.vue'
 import PixelIcon from '@/components/PixelIcon.vue'
-import HoldButton from '@/components/pixel/HoldButton.vue'
 
-type Tab = 'Membros' | 'Convite' | 'Mundos' | 'Servidor'
+type Tab = 'Membros' | 'Convite' | 'Servidor'
 
-const emit = defineEmits<{ close: []; 'server-changed': []; 'mundos-alterados': []; 'open-servers': [] }>()
+const emit = defineEmits<{ close: []; 'server-changed': []; 'open-servers': [] }>()
 
 const auth = useAuthStore()
-const router = useRouter()
 const tab = ref<Tab>('Membros')
 
 const server = ref<Server | null>(null)
 const members = ref<ServerMember[]>([])
 const archivedServers = ref<MyServerSummary[]>([])
-const serverMaps = ref<MapDef[]>([])
 const invite = ref<ServerInvite | null>(null)
 const serverNameEdit = ref('')
 const archiveConfirm = ref('')
@@ -207,7 +177,6 @@ const archiving = ref(false)
 const copied = ref(false)
 const saved = ref(false)
 const restored = ref('')
-const deletingMapId = ref<string | null>(null)
 const busy = ref(false)
 const err = ref<Record<string, string>>({})
 
@@ -220,7 +189,7 @@ const archiveMatches = computed(() => archiveConfirm.value.trim() === server.val
 
 const visibleTabs = computed<Tab[]>(() => {
   if (!server.value) return ['Servidor']
-  return isAdmin.value ? ['Membros', 'Convite', 'Mundos', 'Servidor'] : ['Membros', 'Servidor']
+  return isAdmin.value ? ['Membros', 'Convite', 'Servidor'] : ['Membros', 'Servidor']
 })
 
 function fail(key: string, e: unknown) {
@@ -257,7 +226,6 @@ async function load() {
   if (!server.value || !isAdmin.value) return
 
   try { invite.value = await getInvite(server.value.id) } catch (e) { fail('invite', e) }
-  try { serverMaps.value = (await fetchMaps()).filter((m) => !m.isTemplate) } catch (e) { fail('load', e) }
 }
 
 async function run(key: string, action: () => Promise<void>) {
@@ -351,17 +319,6 @@ function saveName() {
     setTimeout(() => (saved.value = false), 2000)
     await load()
   })
-}
-
-// segurar o HoldButton por 600ms é a confirmação — não dá pra desfazer, então
-// não usa mais o confirm() do navegador: soltar antes do fim já cancela sozinho.
-function del(w: MapDef) {
-  deletingMapId.value = w.id
-  void run('maps', async () => {
-    await deleteMap(w.id)
-    serverMaps.value = serverMaps.value.filter((m) => m.id !== w.id)
-    emit('mundos-alterados')
-  }).finally(() => { deletingMapId.value = null })
 }
 
 onMounted(() => run('load', load))
@@ -462,32 +419,6 @@ onMounted(() => run('load', load))
 
 .ap-danger { color: var(--err); border-color: color-mix(in srgb, var(--err) 40%, transparent); }
 .ap-danger:hover:not(:disabled) { border-color: var(--err); color: var(--err); }
-
-/* apagar mundo escreve/desfaz permanentemente no servidor de todos: sai da
-   caixa creme, ganha a faixa hachurada de ação sem volta e troca o clique
-   simples pelo HoldButton (600ms, soltar antes cancela). */
-.ap-perigo-chip {
-  width: 15rem;
-  flex-shrink: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-.ap-perigo-titulo {
-  margin: 0;
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--err-hi);
-}
-.ap-perigo-explicacao {
-  margin: 0;
-  font-family: var(--f-sans);
-  font-size: 0.75rem;
-  color: var(--err-hi);
-}
 
 .ap-invite-row {
   display: flex;
