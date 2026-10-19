@@ -1,9 +1,8 @@
-import { BadRequestException, Controller, Delete, Get, Param, Post, Put, Body, Request, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common'
+import { BadRequestException, Controller, Delete, Get, Param, Post, Request, Res, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common'
 import { AuthGuard } from '@nestjs/passport'
 import { FileInterceptor } from '@nestjs/platform-express'
 import { Response } from 'express'
 import { CharacterService } from './character.service'
-import { SaveCharacterDto } from './character.dto'
 
 // evita depender de @types/multer só por causa deste tipo (conflito de peer-deps no lockfile atual)
 interface UploadedPhoto {
@@ -20,12 +19,6 @@ export class CharacterController {
   @Get()
   get(@Request() req: any) {
     return this.characterService.get(req.user.sub)
-  }
-
-  @UseGuards(AuthGuard('jwt'))
-  @Put()
-  save(@Request() req: any, @Body() body: SaveCharacterDto) {
-    return this.characterService.save(req.user.sub, body)
   }
 
   @UseGuards(AuthGuard('jwt'))

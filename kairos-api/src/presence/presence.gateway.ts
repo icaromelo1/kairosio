@@ -144,14 +144,6 @@ const JUKEBOX_ADD_COOLDOWN_MS = 5000
 const JUKEBOX_MAX_QUEUE = 50
 const FACING_VALUES: Facing[] = ['down', 'up', 'left', 'right']
 const POSE_VALUES: Pose[] = ['idle', 'walk', 'dance', 'wave', 'sit', 'giro', 'pulo', 'robo']
-// id de preset de avatar — MESMO formato que o SaveCharacterDto valida. A lista
-// fechada que existia aqui era dos cabelos do avatar procedural, extinto quando
-// o avatar virou sprite: o front passava a mandar 'ruivo-verde', isto derrubava
-// o campo, e cada pessoa aparecia como o preset PADRÃO para todas as outras —
-// só ela mesma se via direito. Terceira cópia da mesma lista morta (as outras
-// duas eram o DTO e o índice de tiles): validar FORMATO, não enumerar valores.
-const PRESET_ID = /^[a-z0-9-]{1,40}$/
-const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/
 const PHOTO_PATH = /\/kairos-api\/character\/photo\/([a-f0-9-]+\.(?:jpg|png|webp))$/
 
 function sameSet(a: Set<string> | undefined, b: Set<string>): boolean {
@@ -172,7 +164,7 @@ function sanitizeCoord(raw: unknown, fallback: number): number {
   return Number.isFinite(n) && Math.abs(n) <= COORD_LIMIT ? n : fallback
 }
 
-// só os campos conhecidos do look, cada um validado — e a foto vira o caminho
+// só os campos conhecidos, cada um validado — e a foto vira o caminho
 // CANÔNICO relativo (/kairos-api/character/photo/<arquivo>), nunca uma URL
 // externa arbitrária repassada pra todo mundo carregar
 function sanitizeAvatar(raw: unknown): Record<string, string | number | null> {
@@ -181,10 +173,6 @@ function sanitizeAvatar(raw: unknown): Record<string, string | number | null> {
   const out: Record<string, string | number | null> = {}
   if (typeof a.escala === 'number' && Number.isFinite(a.escala)) {
     out.escala = Math.min(ESCALA_MAX, Math.max(ESCALA_MIN, a.escala))
-  }
-  if (typeof a.hairStyle === 'string' && PRESET_ID.test(a.hairStyle)) out.hairStyle = a.hairStyle
-  for (const key of ['hairColor', 'skin', 'topColor', 'pantsColor'] as const) {
-    if (typeof a[key] === 'string' && HEX_COLOR.test(a[key] as string)) out[key] = a[key] as string
   }
   if (typeof a.photoUrl === 'string' && a.photoUrl.length <= 300) {
     const m = PHOTO_PATH.exec(a.photoUrl)

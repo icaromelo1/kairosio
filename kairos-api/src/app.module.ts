@@ -5,13 +5,11 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler'
 import { TypeOrmModule } from '@nestjs/typeorm'
 import { AuthModule } from './auth/auth.module'
 import { CharacterModule } from './character/character.module'
-import { WorldModule } from './world/world.module'
 import { PresenceModule } from './presence/presence.module'
 import { MapModule } from './map/map.module'
 import { FeedbackModule } from './feedback/feedback.module'
 import { User } from './user/user.entity'
 import { Character } from './character/character.entity'
-import { WorldState } from './world/world-state.entity'
 import { GameMap } from './map/game-map.entity'
 import { Feedback } from './feedback/feedback.entity'
 import { ServerModule } from './server/server.module'
@@ -31,12 +29,6 @@ import { FriendServerInvite } from './friend/friend-server-invite.entity'
 import { DmModule } from './dm/dm.module'
 import { DmConversation } from './dm/dm-conversation.entity'
 import { DmMessage } from './dm/dm-message.entity'
-import { TileModule } from './tile/tile.module'
-import { TileRevisao } from './tile/tile-revisao.entity'
-import { MascaraModule } from './mascara/mascara.module'
-import { AvatarModule } from './avatar/avatar.module'
-import { Avatar } from './avatar/avatar.entity'
-import { MascaraRevisao } from './mascara/mascara-revisao.entity'
 
 @Module({
   imports: [
@@ -45,12 +37,11 @@ import { MascaraRevisao } from './mascara/mascara-revisao.entity'
     TypeOrmModule.forRoot({
       type: 'postgres',
       url: process.env.DATABASE_URL || 'postgres://kairos:kairos@localhost:5432/kairosio',
-      entities: [User, Character, WorldState, GameMap, Feedback, Server, ServerInvite, ServerMembership, Track, Task, Note, Friendship, FriendServerInvite, DmConversation, DmMessage, TileRevisao, MascaraRevisao, Avatar],
+      entities: [User, Character, GameMap, Feedback, Server, ServerInvite, ServerMembership, Track, Task, Note, Friendship, FriendServerInvite, DmConversation, DmMessage],
       synchronize: true,
     }),
     AuthModule,
     CharacterModule,
-    WorldModule,
     PresenceModule,
     MapModule,
     FeedbackModule,
@@ -61,9 +52,6 @@ import { MascaraRevisao } from './mascara/mascara-revisao.entity'
     MediaModule,
     FriendModule,
     DmModule,
-    TileModule,
-    MascaraModule,
-    AvatarModule,
   ],
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
