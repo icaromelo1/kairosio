@@ -47,9 +47,8 @@ function entra(
     serverId,
     x: 0,
     y: 0,
-    facing: 'down',
-    pose: 'idle',
-    boost: false,
+    direcao: 0,
+    pose: 'parado',
   })
 }
 

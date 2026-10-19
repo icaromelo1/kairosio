@@ -20,14 +20,14 @@ import { CatalogoDeMobilia } from './modelosMobilia'
 import type { AvatarVisual } from './avatar'
 import type { Estacao, Mapa, Movel, Pose, Sala } from './tipos'
 
-const ELEVACAO = (55 * Math.PI) / 180
+const ELEVACAO = (48 * Math.PI) / 180
 const DISTANCIA_CAMERA = 40
 const ALTURA_PAREDE = 1.1
 const VELOCIDADE = 3.2
 const TURBO = 1.8
 const ALCANCE_INTERACAO = 1.3
-const ZOOM_MIN = 3.5
-const ZOOM_MAX = 12
+const ZOOM_MIN = 2.8
+const ZOOM_MAX = 10
 
 export interface EstadoLocal {
   x: number
@@ -47,6 +47,7 @@ export interface OpcoesDoMundo {
   aoMover?: (estado: EstadoLocal) => void
   aoMudarInteracao?: (interacao: Interacao | null) => void
   aoMudarSala?: (sala: Sala | null) => void
+  aoQuadro?: (dt: number) => void
 }
 
 interface Pessoa {
@@ -83,7 +84,7 @@ export class Mundo {
   private readonly catalogo: CatalogoDeMobilia
   private grade: Grade | null = null
   mapa: Mapa | null = null
-  private zoom = 6.5
+  private zoom = 4.4
   private interacao: Interacao | null = null
   private salaAtual: Sala | null = null
   private sentadoEm: { movel: Movel; antes: { x: number; y: number } } | null = null
@@ -91,6 +92,7 @@ export class Mundo {
   dancando = false
   noclip = false
   controlavel = true
+  trancadas = new Set<string>()
   readonly local: EstadoLocal = { x: 0, y: 0, direcao: 0, pose: 'parado' }
   private ultimoEnviado = ''
   private redimensionar = () => this.motor.resize()
@@ -330,6 +332,7 @@ export class Mundo {
   private quadro() {
     const dt = Math.min(this.motor.getDeltaTime() / 1000, 0.05)
     this.moverLocal(dt)
+    this.opcoes.aoQuadro?.(dt)
     for (const [id, pessoa] of this.pessoas) {
       if (id === 'eu') {
         pessoa.x = pessoa.alvoX = this.local.x
@@ -367,8 +370,9 @@ export class Mundo {
       const nx = this.local.x + dx
       const ny = this.local.y + dy
       const preso = this.grade.ocupado(this.local.x, this.local.y)
-      if (this.noclip || preso || !this.grade.ocupado(nx, this.local.y)) this.local.x = Math.min(this.mapa.largura - 0.3, Math.max(0.3, nx))
-      if (this.noclip || preso || !this.grade.ocupado(this.local.x, ny)) this.local.y = Math.min(this.mapa.profundidade - 0.3, Math.max(0.3, ny))
+      const livre = (x: number, y: number) => this.noclip || preso || (!this.grade!.ocupado(x, y) && !this.bloqueadoPorTranca(x, y))
+      if (livre(nx, this.local.y)) this.local.x = Math.min(this.mapa.largura - 0.3, Math.max(0.3, nx))
+      if (livre(this.local.x, ny)) this.local.y = Math.min(this.mapa.profundidade - 0.3, Math.max(0.3, ny))
       this.local.direcao = Math.atan2(dx, dy)
       movendo = true
       this.dancando = false
@@ -383,6 +387,13 @@ export class Mundo {
       this.ultimoEnviado = assinatura
       this.opcoes.aoMover?.({ ...this.local })
     }
+  }
+
+  private bloqueadoPorTranca(x: number, y: number): boolean {
+    if (!this.mapa || !this.trancadas.size) return false
+    const destino = salaDoPonto(this.mapa, x, y)
+    if (!destino || destino.aberta || !this.trancadas.has(destino.id)) return false
+    return salaDoPonto(this.mapa, this.local.x, this.local.y)?.id !== destino.id
   }
 
   direcaoDesejada: () => { x: number; y: number; correndo: boolean } = () => ({ x: 0, y: 0, correndo: false })
