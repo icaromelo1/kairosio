@@ -1,5 +1,9 @@
 # Kairos IO
 
+> **Refactor em andamento (branch `main-refactor`, desde 19/10/2026):** o motor PixiJS está
+> sendo trocado por Babylon.js. Estado e próximo passo em `docs/CONTINUAR-REFACTOR.md`;
+> plano completo em `kairos-ui/public/docs/refactor/index.html`.
+
 > Um **Gather.town pixel art**: um espaço virtual **compartilhado** onde vários usuários
 > coexistem no mesmo mapa, se veem pelos avatares e interagem **por proximidade**.
 
