@@ -1,3 +1,4 @@
+import 'dotenv/config'
 import { join } from 'path';
 import type { DataSourceOptions } from 'typeorm';
 import { User } from '../user/user.entity';
