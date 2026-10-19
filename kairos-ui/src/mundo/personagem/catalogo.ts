@@ -8,7 +8,7 @@ export interface Peca {
   somemComChapeu?: boolean
 }
 
-export interface DefinicaoSlot {
+interface DefinicaoSlot {
   slot: Slot
   nome: string
   material: string

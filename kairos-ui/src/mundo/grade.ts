@@ -1,11 +1,11 @@
 import { pecaDe, pegadaDe } from './mobilia'
 import type { Mapa, Sala } from './tipos'
 
-export const CELULA = 0.25
+const CELULA = 0.25
 export const ESPESSURA_PAREDE = 0.2
-export const RAIO_PESSOA = 0.22
+const RAIO_PESSOA = 0.22
 
-export interface Parede {
+interface Parede {
   horizontal: boolean
   linha: number
   inicio: number
