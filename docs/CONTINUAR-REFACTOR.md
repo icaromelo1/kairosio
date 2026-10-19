@@ -30,7 +30,7 @@ acessórios). A edição de sala vem depois.
 | # | Ponto | Estado |
 |---|---|---|
 | 0 | Documento e branch | feito |
-| 1 | Limpeza do motor | quase pronto: falta a migration inicial |
+| 1 | Limpeza do motor | feito (falta só o smoke num ambiente de teste) |
 | 2 | Base Babylon.js | a analisar |
 | 3 | Escritório fixo | a analisar |
 | 4 | Presença reconectada | a analisar |
@@ -76,12 +76,16 @@ Feito e commitado na `main-refactor`:
   `map` ficou só leitura; `character` ficou só com a foto de perfil.
 - Scripts, docs e e2e do motor antigo apagados; `pixi.js` removido.
 
-Pendente neste ponto:
-- **Migration inicial.** `kairos-api/src/database/` (data source + `opcoes.ts`) e os
-  scripts `migration:*` estão prontos e **não commitados**: com `synchronize: false` e
-  `migrationsRun: true`, a API só sobe depois que existir a migration inicial. Gerar com
-  `npm run migration:generate -- src/database/migrations/Inicial` contra um banco vazio
-  (`kairos_refactor` na VM, aprovação do Icaro pendente) e commitar tudo junto.
+Banco:
+- `synchronize` desligado; a API roda as migrations no boot (`migrationsRun: true`).
+  Configuração em `kairos-api/src/database/opcoes.ts`, CLI pelo `data-source.ts`.
+- Banco de teste do refactor: **`kairos_refactor`** no container `postgres` da VM
+  (o mesmo que tem o `appdb` de produção, dono `kairos`). A migration `Inicial` já foi
+  aplicada nele, e um `migration:generate` em seguida não acusou diferença.
+- Para rodar a CLI do Mac: `ssh -f -N -L 25432:127.0.0.1:5432 oracle-vm` e
+  `DATABASE_URL=postgres://kairos:<senha do .env da VM>@127.0.0.1:25432/kairos_refactor`.
+
+Pendente:
 - **Corte para produção (só no fim do refactor):** uma migration à parte que derruba
   `avatars`, `mascara_revisao`, `tile_revisao`, `world_state`, as colunas antigas de
   `characters` e limpa `game_maps` no banco de produção.
@@ -97,6 +101,5 @@ O E2E de smoke ainda não rodou contra a branch.
 
 ## Próximo passo
 
-1. Gerar e commitar a migration inicial (acima).
-2. Subir a branch num ambiente de teste e rodar o smoke.
-3. Detalhar o ponto 2 (base Babylon.js) no `index.html` e executar.
+1. Subir a branch num ambiente de teste apontando para `kairos_refactor` e rodar o smoke.
+2. Detalhar o ponto 2 (base Babylon.js) no `index.html` e executar.
