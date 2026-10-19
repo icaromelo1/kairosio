@@ -3,7 +3,7 @@
 Ponto de partida de qualquer sessão nova sobre o refactor. Atualize este arquivo
 ao fim de cada sessão: estado, decisões tomadas e próximo passo.
 
-> Atualizado: 2026-10-19.
+> Atualizado: 2026-10-19 (fim da sessão do ponto 1).
 
 ## Onde está cada coisa
 
@@ -30,7 +30,7 @@ acessórios). A edição de sala vem depois.
 | # | Ponto | Estado |
 |---|---|---|
 | 0 | Documento e branch | feito |
-| 1 | Limpeza do motor | em execução |
+| 1 | Limpeza do motor | quase pronto: falta a migration inicial |
 | 2 | Base Babylon.js | a analisar |
 | 3 | Escritório fixo | a analisar |
 | 4 | Presença reconectada | a analisar |
@@ -65,7 +65,38 @@ virar código, e só começa depois de o Icaro aprovar.
   nem documento de refactor. Só volta quando o Icaro pedir para lembrar.
 - NPCs com LLM: backlog. Economia/dinheiro: recusado.
 
+## Estado do ponto 1
+
+Feito e commitado na `main-refactor`:
+- Front: PixiJS, tiles, sprites, máscaras, editor, páginas de curadoria, `CharacterPanel`
+  e a HUD do mundo apagados. `GamePage.vue` virou uma página enxuta: barra lateral,
+  `ChatHud.vue` (chat extraído), painéis de servidores/admin/feedback/amigos e o aviso
+  de sessão única. A presença entra num mapa fixo `escritorio` só para chat e online.
+- API: módulos `avatar`, `mascara`, `tile` e `world`, mapas gerados e seed apagados.
+  `map` ficou só leitura; `character` ficou só com a foto de perfil.
+- Scripts, docs e e2e do motor antigo apagados; `pixi.js` removido.
+
+Pendente neste ponto:
+- **Migration inicial.** `kairos-api/src/database/` (data source + `opcoes.ts`) e os
+  scripts `migration:*` estão prontos e **não commitados**: com `synchronize: false` e
+  `migrationsRun: true`, a API só sobe depois que existir a migration inicial. Gerar com
+  `npm run migration:generate -- src/database/migrations/Inicial` contra um banco vazio
+  (`kairos_refactor` na VM, aprovação do Icaro pendente) e commitar tudo junto.
+- **Corte para produção (só no fim do refactor):** uma migration à parte que derruba
+  `avatars`, `mascara_revisao`, `tile_revisao`, `world_state`, as colunas antigas de
+  `characters` e limpa `game_maps` no banco de produção.
+
+Órfãos de propósito (religados depois): `JukeboxPanel`, `TaskPanel`, `NotePanel`,
+`WhiteboardPanel` (ponto 3); `MediaStage`, `game/audio/calls.ts` e os emissores de
+sudo/tela/avatar do `presence.ts` (ponto 4); `changeUsername` (ponto 5). A linha de base
+do `scripts/restos.mjs` já conta com eles.
+
+Gate: typecheck e build do front verdes; `tsc` e os 111 testes da API verdes. O lint da
+API já reprovava antes do refactor (prettier em quase todos os arquivos) e não é gate.
+O E2E de smoke ainda não rodou contra a branch.
+
 ## Próximo passo
 
-Obter as respostas das decisões 1 a 6. Depois, detalhar e executar o ponto 1
-na branch `main-refactor`.
+1. Gerar e commitar a migration inicial (acima).
+2. Subir a branch num ambiente de teste e rodar o smoke.
+3. Detalhar o ponto 2 (base Babylon.js) no `index.html` e executar.
