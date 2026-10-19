@@ -1,14 +1,21 @@
-import { Injectable, NotFoundException } from '@nestjs/common'
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Repository } from 'typeorm'
 import { GameMap } from './game-map.entity'
+import { ESCRITORIO } from './escritorio'
 
 @Injectable()
-export class MapService {
+export class MapService implements OnModuleInit {
   constructor(
     @InjectRepository(GameMap)
     private readonly repo: Repository<GameMap>,
   ) {}
+
+  async onModuleInit() {
+    const atual = await this.repo.findOne({ where: { id: ESCRITORIO.id } })
+    if (atual?.editadoEm) return
+    await this.repo.save({ ...ESCRITORIO, ownerId: null, serverId: null, isTemplate: true })
+  }
 
   findAllForUser(serverId: string | null): Promise<GameMap[]> {
     const where: any[] = [{ isTemplate: true }]
