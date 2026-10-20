@@ -143,16 +143,11 @@ function join() {
   if (!code.value) { error.value = 'Informe o código do convite.'; return }
   void run(async () => {
     const before = activeId.value
-    await joinServer(code.value)
-    const entered = code.value
+    const { entrouEm } = await joinServer(code.value)
     code.value = ''
     await load()
-    if (activeId.value !== before) {
-      emit('server-changed')
-      emit('close')
-      return
-    }
-    notice.value = `Convite ${entered} aceito. Escolha o servidor na lista acima pra entrar nele.`
+    if (entrouEm !== before) emit('server-changed')
+    emit('close')
   })
 }
 

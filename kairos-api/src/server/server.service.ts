@@ -138,19 +138,17 @@ export class ServerService implements OnModuleInit {
     if (!server) throw new NotFoundException('Servidor não encontrado')
     if (server.archivedAt) throw new ForbiddenException('Este servidor está arquivado e não aceita novos membros')
 
+    // o link é o pedido de ir para aquele servidor: quem já é membro só troca para ele,
+    // e quem estava em outro servidor passa a estar neste
     const already = await this.memberships.findOne({ where: { userId, serverId: invite.serverId } })
-    if (already) throw new ConflictException('Você já é membro deste servidor')
-
-    await this.memberships.save(
-      this.memberships.create({ userId, serverId: invite.serverId, role: 'member' }),
-    )
-    await this.invites.increment({ code }, 'uses', 1)
-
-    const hasActive = await this.userServer(userId)
-    if (!hasActive) {
-      await this.users.update(userId, { serverId: invite.serverId, serverRole: 'member' })
+    if (!already) {
+      await this.memberships.save(
+        this.memberships.create({ userId, serverId: invite.serverId, role: 'member' }),
+      )
+      await this.invites.increment({ code }, 'uses', 1)
     }
-    return this.me(userId)
+    await this.users.update(userId, { serverId: invite.serverId, serverRole: already?.role ?? 'member' })
+    return { ...(await this.me(userId)), entrouEm: invite.serverId, jaEraMembro: !!already }
   }
 
   async joinFromFriendInvite(userId: string, serverId: string) {
