@@ -1,6 +1,5 @@
 import '@babylonjs/loaders/glTF'
 import { LoadAssetContainerAsync } from '@babylonjs/core/Loading/sceneLoader'
-import { Color3 } from '@babylonjs/core/Maths/math.color'
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode'
 import type { AssetContainer } from '@babylonjs/core/assetContainer'
 import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh'
@@ -11,6 +10,7 @@ import type { Scene } from '@babylonjs/core/scene'
 import type { AvatarVisual } from '../avatar'
 import type { Pose } from '../tipos'
 import { PECAS, SLOTS, pecaDe, type Aparencia } from './catalogo'
+import { converterMalhas, pintarMaterial } from '../materiais'
 
 const URL_PERSONAGEM = `${import.meta.env.BASE_URL}modelos/personagem.glb`
 const conteineres = new WeakMap<Scene, Promise<AssetContainer>>()
@@ -23,13 +23,6 @@ export function carregarPersonagem(cena: Scene): Promise<AssetContainer> {
     conteineres.set(cena, pedido)
   }
   return pedido
-}
-
-function pintar(material: Material, hex: string) {
-  const alvo = material as Material & { albedoColor?: Color3; diffuseColor?: Color3 }
-  const cor = Color3.FromHexString(hex)
-  if (alvo.albedoColor) alvo.albedoColor = cor.toLinearSpace()
-  else if (alvo.diffuseColor) alvo.diffuseColor = cor
 }
 
 export class AvatarModelo implements AvatarVisual {
@@ -54,6 +47,7 @@ export class AvatarModelo implements AvatarVisual {
       this.animacoes.set(grupo.name, grupo)
     }
     this.malhas = this.raiz.getChildMeshes(false)
+    converterMalhas(cena, this.malhas)
     for (const no of this.raiz.getDescendants(false)) {
       if (MALHAS.has(no.name)) this.pecas.set(no.name, [...(this.pecas.get(no.name) ?? []), no])
     }
@@ -80,13 +74,13 @@ export class AvatarModelo implements AvatarVisual {
     }
     for (const [nome, nos] of this.pecas) for (const no of nos) no.setEnabled(visiveis.has(nome))
     const pele = this.materiais.get('pele')
-    if (pele) pintar(pele, aparencia.pele)
+    if (pele) pintarMaterial(pele, aparencia.pele)
     const cabelo = this.materiais.get('tinta_cabelo')
-    if (cabelo) pintar(cabelo, aparencia.corCabelo)
+    if (cabelo) pintarMaterial(cabelo, aparencia.corCabelo)
     for (const definicao of SLOTS) {
       if (!definicao.colorivel) continue
       const material = this.materiais.get(definicao.material)
-      if (material) pintar(material, aparencia.pecas[definicao.slot].cor)
+      if (material) pintarMaterial(material, aparencia.pecas[definicao.slot].cor)
     }
   }
 

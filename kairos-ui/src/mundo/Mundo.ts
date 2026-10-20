@@ -5,6 +5,7 @@ import { Scene } from '@babylonjs/core/scene'
 import { FreeCamera } from '@babylonjs/core/Cameras/freeCamera'
 import { Camera } from '@babylonjs/core/Cameras/camera'
 import { HemisphericLight } from '@babylonjs/core/Lights/hemisphericLight'
+import { PointLight } from '@babylonjs/core/Lights/pointLight'
 import { DirectionalLight } from '@babylonjs/core/Lights/directionalLight'
 import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator'
 import { Color3, Color4 } from '@babylonjs/core/Maths/math.color'
@@ -12,18 +13,25 @@ import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector'
 import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder'
 import { CreateDisc } from '@babylonjs/core/Meshes/Builders/discBuilder'
 import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder'
+import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder'
+import { CreateTorus } from '@babylonjs/core/Meshes/Builders/torusBuilder'
+import { Mesh } from '@babylonjs/core/Meshes/mesh'
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode'
+import { ImageProcessingConfiguration } from '@babylonjs/core/Materials/imageProcessingConfiguration'
+import { DefaultRenderingPipeline } from '@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline'
+import type { Texture } from '@babylonjs/core/Materials/Textures/texture'
 import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh'
 import { ESPESSURA_PAREDE, Grade, areaDoPonto, paredesDe, salaDoPonto } from './grade'
 import { estacaoDe, nomeDe, pecaDe } from './mobilia'
 import { CatalogoDeMobilia } from './modelosMobilia'
 import { calcularRota } from './rota'
 import { luzDaHora } from './luz'
+import { materialDePiso, textura } from './materiais'
 import type { AvatarVisual } from './avatar'
 import type { Area, Estacao, Mapa, Movel, Pose, Sala } from './tipos'
 
-const ELEVACAO = (48 * Math.PI) / 180
+const ELEVACAO = (36 * Math.PI) / 180
 const DISTANCIA_CAMERA = 40
 const ALTURA_PAREDE = 1.1
 const ALTURA_CERCA = 0.9
@@ -36,12 +44,30 @@ const ZOOM_MIN = 2.8
 const ZOOM_MAX = 12
 
 const CORES_DE_AREA: Record<Area['tipo'], string> = {
-  caminho: '#d9c49a',
-  pedra: '#cfc6b4',
-  deck: '#b98c5e',
-  agua: '#6fb6dc',
-  terra: '#a07a52',
-  grama: '#7fb35c',
+  caminho: '#e2cfa3',
+  pedra: '#d6cdbb',
+  deck: '#c4935f',
+  agua: '#4f9fcc',
+  terra: '#8a6a48',
+  grama: '#7fb85c',
+}
+
+const TEXTURAS_DE_AREA: Record<Area['tipo'], { nome: string; tamanho: number }> = {
+  caminho: { nome: 'cascalho', tamanho: 2.5 },
+  pedra: { nome: 'pavimento', tamanho: 3 },
+  deck: { nome: 'deck', tamanho: 3 },
+  agua: { nome: 'variacao', tamanho: 4 },
+  terra: { nome: 'cascalho', tamanho: 2 },
+  grama: { nome: 'grama', tamanho: 3 },
+}
+
+const TAMANHO_DE_TEXTURA: Record<string, number> = { madeira: 3, carpete: 2, ladrilho: 2.4, pavimento: 3, cascalho: 2.5, deck: 3, grama: 3 }
+const ALCANCE_DA_SOMBRA = 18
+const COR_CONTORNO = new Color3(0.16, 0.12, 0.09)
+
+const LUZ_DAS_SALAS: Record<string, string> = {
+  salao: '#fff1dc', reuniao: '#f4f6ff', copa: '#ffd8a0', foco: '#ffe9c8', ideias: '#ffe2f2', reuniao2: '#f4f6ff',
+  servidores: '#9fc4ff', jogos: '#d6b6ff', recepcao: '#fff0d2', cabine1: '#ffe2b0', cabine2: '#ffe2b0', descompressao: '#ffd2a8',
 }
 
 interface EstadoLocal {
@@ -104,6 +130,13 @@ export class Mundo {
   private readonly ceu: HemisphericLight
   private readonly sol: DirectionalLight
   private readonly sombra: ShadowGenerator
+  private readonly teto: DirectionalLight
+  private readonly ambienteInterno: HemisphericLight
+  private readonly sombraInterna: ShadowGenerator
+  private luzesDeSala: PointLight[] = []
+  private readonly internas = new Set<AbstractMesh>()
+  private readonly dentro = new Map<string, boolean>()
+  private aguaTexturas: Texture[] = []
   private readonly raizMapa: TransformNode
   private readonly pessoas = new Map<string, Pessoa>()
   private readonly catalogo: CatalogoDeMobilia
@@ -133,6 +166,11 @@ export class Mundo {
     this.cena = new Scene(this.motor)
     this.cena.useRightHandedSystem = true
     this.cena.clearColor = Color4.FromHexString('#7fb35cff')
+    const processamento = this.cena.imageProcessingConfiguration
+    processamento.toneMappingEnabled = true
+    processamento.toneMappingType = ImageProcessingConfiguration.TONEMAPPING_ACES
+    processamento.exposure = 1.35
+    processamento.contrast = 1.12
 
     this.camera = new FreeCamera('camera', new Vector3(0, 20, 20), this.cena)
     this.camera.mode = Camera.ORTHOGRAPHIC_CAMERA
@@ -144,13 +182,48 @@ export class Mundo {
     this.ceu.specular = Color3.Black()
     this.sol = new DirectionalLight('sol', new Vector3(-0.45, -1, -0.6).normalize(), this.cena)
     this.sol.specular = Color3.Black()
-    this.sol.autoUpdateExtends = true
-    this.sombra = new ShadowGenerator(2048, this.sol)
+    this.sol.autoUpdateExtends = false
+    this.sol.autoCalcShadowZBounds = false
+    this.sol.orthoLeft = -ALCANCE_DA_SOMBRA
+    this.sol.orthoRight = ALCANCE_DA_SOMBRA
+    this.sol.orthoTop = ALCANCE_DA_SOMBRA
+    this.sol.orthoBottom = -ALCANCE_DA_SOMBRA
+    this.sol.shadowMinZ = 1
+    this.sol.shadowMaxZ = 80
+    this.sombra = new ShadowGenerator(4096, this.sol)
     this.sombra.usePercentageCloserFiltering = true
-    this.sombra.filteringQuality = ShadowGenerator.QUALITY_MEDIUM
-    this.sombra.bias = 0.0008
-    this.sombra.normalBias = 0.02
-    this.sombra.darkness = 0.35
+    this.sombra.filteringQuality = ShadowGenerator.QUALITY_HIGH
+    this.sombra.bias = 0.0005
+    this.sombra.normalBias = 0.015
+    this.sombra.darkness = 0.25
+    this.teto = new DirectionalLight('teto', new Vector3(0.15, -1, -0.55).normalize(), this.cena)
+    this.teto.diffuse = cor('#fff3df')
+    this.teto.specular = Color3.Black()
+    this.teto.intensity = 0.7
+    this.teto.position = new Vector3(32, 30, 20)
+    this.ambienteInterno = new HemisphericLight('ambienteInterno', new Vector3(0, 1, 0.6), this.cena)
+    this.ambienteInterno.diffuse = cor('#fff6ea')
+    this.ambienteInterno.groundColor = cor('#9a8a74')
+    this.ambienteInterno.specular = Color3.Black()
+    this.ambienteInterno.intensity = 0.68
+    this.sombraInterna = new ShadowGenerator(2048, this.teto)
+    this.sombraInterna.usePercentageCloserFiltering = true
+    this.sombraInterna.filteringQuality = ShadowGenerator.QUALITY_HIGH
+    this.sombraInterna.bias = 0.0006
+    this.sombraInterna.normalBias = 0.015
+    this.sombraInterna.darkness = 0.45
+    this.teto.includedOnlyMeshes = []
+    this.ambienteInterno.includedOnlyMeshes = []
+    const pipeline = new DefaultRenderingPipeline('pos', true, this.cena, [this.camera])
+    pipeline.fxaaEnabled = true
+    pipeline.samples = 4
+    pipeline.bloomEnabled = true
+    pipeline.bloomThreshold = 0.82
+    pipeline.bloomWeight = 0.28
+    pipeline.bloomKernel = 48
+    pipeline.bloomScale = 0.5
+    pipeline.sharpenEnabled = true
+    pipeline.sharpen.edgeAmount = 0.18
     this.definirHora(12)
 
     this.raizMapa = new TransformNode('mapa', this.cena)
@@ -174,37 +247,57 @@ export class Mundo {
     this.mapa = mapa
     this.grade = new Grade(mapa)
     for (const filho of this.raizMapa.getChildren()) filho.dispose(false, true)
+    for (const luz of this.luzesDeSala) luz.dispose()
+    this.luzesDeSala = []
+    this.internas.clear()
     this.construirPiso(mapa)
     this.construirParedes(mapa)
     await this.catalogo.carregar()
     for (const movel of mapa.mobilia) {
-      const no = this.catalogo.instanciar(movel)
+      const interna = !!salaDoPonto(mapa, movel.x, movel.y)
+      const no = this.catalogo.instanciar(movel, interna)
       if (!no) continue
       no.parent = this.raizMapa
       for (const malha of no.getChildMeshes()) {
-        this.sombra.addShadowCaster(malha)
         malha.receiveShadows = true
         malha.isPickable = false
+        if (malha.name.startsWith('movel-')) {
+          if (interna) this.internas.add(malha)
+          ;(interna ? this.sombraInterna : this.sombra).addShadowCaster(malha)
+        }
       }
     }
+    this.contornar([...this.catalogo.todasAsFontes(false), ...this.catalogo.todasAsFontes(true)], 0.012)
+    for (const fonte of this.catalogo.todasAsFontes(false)) this.sombra.addShadowCaster(fonte)
+    for (const fonte of this.catalogo.todasAsFontes(true)) {
+      this.internas.add(fonte)
+      this.sombraInterna.addShadowCaster(fonte)
+    }
+    this.criarLuzesDeSala(mapa)
+    this.aplicarLuzes()
     this.sentadoEm = null
     this.cancelarRota()
     this.teleportar(mapa.spawn.x, mapa.spawn.y)
   }
 
   private construirPiso(mapa: Mapa) {
+    this.aguaTexturas = []
     const base = CreateGround('piso', { width: mapa.largura, height: mapa.profundidade }, this.cena)
     base.position.set(mapa.largura / 2, 0, mapa.profundidade / 2)
-    base.material = this.materialFosco('piso', mapa.piso)
+    base.material = materialDePiso(this.cena, 'piso', mapa.piso, 'gramado', mapa.largura, mapa.profundidade, 4)
     base.receiveShadows = true
     base.parent = this.raizMapa
     base.isPickable = false
     const areas = mapa.areas ?? []
     areas.forEach((area, i) => {
-      const altura = 0.002 + i * 0.0004
+      const altura = 0.004 + i * 0.0006
       const circulo = area.forma === 'circulo'
+      if (area.tipo === 'agua') {
+        this.construirLago(area)
+        return
+      }
       const malha = circulo
-        ? CreateDisc(`area-${area.id}`, { radius: 0.5, tessellation: 40 }, this.cena)
+        ? CreateDisc(`area-${area.id}`, { radius: 0.5, tessellation: 48 }, this.cena)
         : CreateGround(`area-${area.id}`, { width: 1, height: 1 }, this.cena)
       if (circulo) {
         malha.rotation.x = Math.PI / 2
@@ -213,11 +306,8 @@ export class Mundo {
         malha.scaling.set(area.largura, 1, area.profundidade)
       }
       malha.position.set(area.x, altura, area.y)
-      const material = this.materialFosco(`area-${area.tipo}`, CORES_DE_AREA[area.tipo])
-      if (area.tipo === 'agua') {
-        material.specularColor = new Color3(0.5, 0.55, 0.6)
-        material.specularPower = 48
-      }
+      const tex = TEXTURAS_DE_AREA[area.tipo]
+      const material = materialDePiso(this.cena, `area-${area.id}`, CORES_DE_AREA[area.tipo], tex.nome, area.largura, area.profundidade, tex.tamanho)
       malha.material = material
       malha.receiveShadows = true
       malha.parent = this.raizMapa
@@ -225,41 +315,132 @@ export class Mundo {
     })
     for (const sala of mapa.salas) {
       const piso = CreateGround(`piso-${sala.id}`, { width: sala.largura, height: sala.profundidade }, this.cena)
-      piso.position.set(sala.x + sala.largura / 2, sala.murada ? 0.008 : 0.01, sala.y + sala.profundidade / 2)
-      piso.material = this.materialFosco(`piso-${sala.id}`, sala.piso)
+      piso.position.set(sala.x + sala.largura / 2, sala.murada ? 0.012 : 0.014, sala.y + sala.profundidade / 2)
+      const nomeTextura = sala.textura ?? 'madeira'
+      const materialPiso = materialDePiso(this.cena, `piso-${sala.id}`, sala.piso, nomeTextura, sala.largura, sala.profundidade, TAMANHO_DE_TEXTURA[nomeTextura] ?? 3)
+      materialPiso.maxSimultaneousLights = 6
+      piso.material = materialPiso
       piso.receiveShadows = true
+      this.internas.add(piso)
       piso.parent = this.raizMapa
       piso.isPickable = false
     }
   }
 
+  private construirLago(area: Area) {
+    const rx = area.largura / 2
+    const rz = area.profundidade / 2
+    const pedra = materialDePiso(this.cena, `borda-${area.id}`, '#c9c0ad', 'pavimento', area.largura, area.profundidade, 1.2)
+    const parteDe = (malha: Mesh) => {
+      malha.parent = this.raizMapa
+      malha.isPickable = false
+      malha.receiveShadows = true
+      return malha
+    }
+    const externa = parteDe(CreateCylinder(`lagoFora-${area.id}`, { diameter: 2, height: 0.24, tessellation: 56, cap: Mesh.NO_CAP }, this.cena))
+    externa.scaling.set(rx + 0.32, 1, rz + 0.32)
+    externa.position.set(area.x, 0.12, area.y)
+    externa.material = pedra
+    this.sombra.addShadowCaster(externa)
+    const aro = parteDe(CreateTorus(`lagoAro-${area.id}`, { diameter: 2, thickness: 0.6, tessellation: 56 }, this.cena))
+    aro.scaling.set(rx + 0.02, 0.4, rz + 0.02)
+    aro.position.set(area.x, 0.22, area.y)
+    aro.material = pedra
+    const interna = parteDe(CreateCylinder(`lagoDentro-${area.id}`, { diameter: 2, height: 0.24, tessellation: 56, cap: Mesh.NO_CAP, sideOrientation: Mesh.BACKSIDE }, this.cena))
+    interna.scaling.set(rx - 0.2, 1, rz - 0.2)
+    interna.position.set(area.x, 0.08, area.y)
+    interna.material = this.materialFosco('lagoParede', '#4f7f8c')
+    const fundo = parteDe(CreateDisc(`lagoFundo-${area.id}`, { radius: 1, tessellation: 56 }, this.cena))
+    fundo.rotation.x = Math.PI / 2
+    fundo.scaling.set(rx - 0.2, rz - 0.2, 1)
+    fundo.position.set(area.x, 0.005, area.y)
+    fundo.material = this.materialFosco('lagoFundo', '#2f6f86')
+    const agua = parteDe(CreateDisc(`lagoAgua-${area.id}`, { radius: 1, tessellation: 56 }, this.cena))
+    agua.rotation.x = Math.PI / 2
+    agua.scaling.set(rx - 0.2, rz - 0.2, 1)
+    agua.position.set(area.x, 0.15, area.y)
+    const material = materialDePiso(this.cena, `agua-${area.id}`, CORES_DE_AREA.agua, 'variacao', area.largura, area.profundidade, 4)
+    material.specularColor = new Color3(0.9, 0.95, 1)
+    material.specularPower = 64
+    material.alpha = 0.82
+    if (material.diffuseTexture) this.aguaTexturas.push(material.diffuseTexture as Texture)
+    agua.material = material
+  }
+
+  private criarLuzesDeSala(mapa: Mapa) {
+    for (const sala of mapa.salas) {
+      const piso = this.cena.getMeshByName(`piso-${sala.id}`)
+      if (!piso) continue
+      const luz = new PointLight(`luz-${sala.id}`, new Vector3(sala.x + sala.largura / 2, 3.2, sala.y + sala.profundidade / 2), this.cena)
+      luz.diffuse = cor(sala.luz ?? LUZ_DAS_SALAS[sala.id] ?? '#fff1dc')
+      luz.specular = Color3.Black()
+      luz.intensity = sala.murada ? 0.35 : 0.55
+      luz.range = Math.max(sala.largura, sala.profundidade) * (sala.murada ? 0.75 : 1.1)
+      luz.includedOnlyMeshes = [piso]
+      this.luzesDeSala.push(luz)
+    }
+  }
+
+  private aplicarLuzes() {
+    const internas = [...this.internas]
+    this.sol.excludedMeshes = internas
+    this.ceu.excludedMeshes = internas
+    this.teto.includedOnlyMeshes = internas
+    this.ambienteInterno.includedOnlyMeshes = internas
+  }
+
+  private ehParedeDoPredio(mapa: Mapa, p: { horizontal: boolean; linha: number; inicio: number; fim: number }): boolean {
+    return mapa.salas.some((sala) => {
+      if (!sala.murada) return false
+      if (p.horizontal) return (Math.abs(p.linha - sala.y) < 0.01 || Math.abs(p.linha - sala.y - sala.profundidade) < 0.01) && p.inicio >= sala.x - 0.01 && p.fim <= sala.x + sala.largura + 0.01
+      return (Math.abs(p.linha - sala.x) < 0.01 || Math.abs(p.linha - sala.x - sala.largura) < 0.01) && p.inicio >= sala.y - 0.01 && p.fim <= sala.y + sala.profundidade + 0.01
+    })
+  }
+
   private construirParedes(mapa: Mapa) {
-    const parede = this.materialFosco('parede', '#d8c7a2')
-    const topo = this.materialFosco('paredeTopo', '#7a6a52')
-    const cerca = this.materialFosco('cerca', '#4f8a43')
-    const cercaTopo = this.materialFosco('cercaTopo', '#6aa65a')
+    const parede = this.materialFosco('parede', '#efe4cc')
+    parede.diffuseTexture = textura(this.cena, 'reboco')
+    const rodape = this.materialFosco('rodape', '#6b5a44')
+    const topo = this.materialFosco('paredeTopo', '#8a7558')
+    const cerca = this.materialFosco('cerca', '#5c9a4c')
+    cerca.diffuseTexture = textura(this.cena, 'grama')
+    const cercaTopo = this.materialFosco('cercaTopo', '#76b45f')
+    cercaTopo.diffuseTexture = textura(this.cena, 'grama')
+    let interna = false
+    const bloco = (nome: string, largura: number, profundidade: number, altura: number, x: number, y: number, z: number, material: StandardMaterial, sombra: boolean) => {
+      const malha = CreateBox(nome, { width: largura, depth: profundidade, height: altura }, this.cena)
+      malha.position.set(x, y, z)
+      malha.material = material
+      malha.parent = this.raizMapa
+      malha.receiveShadows = true
+      malha.isPickable = false
+      if (interna) this.internas.add(malha)
+      if (sombra) {
+        this.sombra.addShadowCaster(malha)
+        if (interna) this.sombraInterna.addShadowCaster(malha)
+      }
+    }
     for (const p of paredesDe(mapa)) {
+      interna = !p.externa && !this.ehParedeDoPredio(mapa, p)
       const altura = p.externa ? ALTURA_CERCA : ALTURA_PAREDE
-      const espessura = p.externa ? 0.5 : ESPESSURA_PAREDE
+      const espessura = p.externa ? 0.6 : ESPESSURA_PAREDE
       const comprimento = p.fim - p.inicio + espessura
       const meio = (p.inicio + p.fim) / 2
       const largura = p.horizontal ? comprimento : espessura
       const profundidade = p.horizontal ? espessura : comprimento
       const x = p.horizontal ? meio : p.linha
-      const y = p.horizontal ? p.linha : meio
-      const bloco = CreateBox('parede', { width: largura, depth: profundidade, height: altura }, this.cena)
-      bloco.position.set(x, altura / 2, y)
-      bloco.material = p.externa ? cerca : parede
-      bloco.parent = this.raizMapa
-      bloco.receiveShadows = true
-      bloco.isPickable = false
-      this.sombra.addShadowCaster(bloco)
-      const tampa = CreateBox('paredeTopo', { width: largura + 0.01, depth: profundidade + 0.01, height: 0.04 }, this.cena)
-      tampa.position.set(x, altura + 0.02, y)
-      tampa.material = p.externa ? cercaTopo : topo
-      tampa.parent = this.raizMapa
-      tampa.isPickable = false
+      const z = p.horizontal ? p.linha : meio
+      bloco('parede', largura, profundidade, altura, x, altura / 2, z, p.externa ? cerca : parede, true)
+      bloco('paredeTopo', largura + 0.02, profundidade + 0.02, 0.05, x, altura + 0.025, z, p.externa ? cercaTopo : topo, false)
+      if (!p.externa) {
+        bloco('rodape', p.horizontal ? largura : espessura + 0.04, p.horizontal ? espessura + 0.04 : profundidade, 0.12, x, 0.06, z, rodape, false)
+      }
     }
+  }
+
+  private posicionarSombra() {
+    const alvo = new Vector3(this.local.x + this.deslocamento.x, 0, this.local.y + this.deslocamento.y)
+    this.sol.position = alvo.subtract(this.sol.direction.scale(40))
   }
 
   private materialFosco(nome: string, hex: string): StandardMaterial {
@@ -271,7 +452,17 @@ export class Mundo {
     return material
   }
 
+  private contornar(malhas: AbstractMesh[], espessura: number) {
+    for (const malha of malhas) {
+      if (malha.getTotalVertices() === 0) continue
+      malha.renderOutline = true
+      malha.outlineColor = COR_CONTORNO
+      malha.outlineWidth = espessura
+    }
+  }
+
   adicionarPessoa(id: string, visual: AvatarVisual, nome: string, x: number, y: number) {
+    this.contornar(visual.malhas, 0.014)
     this.removerPessoa(id)
     const rotulo = document.createElement('div')
     rotulo.className = 'mundo-nome'
@@ -283,6 +474,28 @@ export class Mundo {
     }
     visual.raiz.position.set(x, 0, y)
     this.pessoas.set(id, { visual, rotulo, x, y, alvoX: x, alvoY: y, direcao: 0, alvoDirecao: 0, pose: 'parado', nomeVisivel: true, visivel: true, escala: 1 })
+    this.dentro.delete(id)
+    this.atualizarZona(id)
+  }
+
+  private atualizarZona(id: string) {
+    const pessoa = this.pessoas.get(id)
+    if (!pessoa || !this.mapa) return
+    const agora = !!salaDoPonto(this.mapa, pessoa.x, pessoa.y)
+    if (this.dentro.get(id) === agora) return
+    this.dentro.set(id, agora)
+    for (const malha of pessoa.visual.malhas) {
+      if (agora) {
+        this.internas.add(malha)
+        this.sombra.removeShadowCaster(malha)
+        this.sombraInterna.addShadowCaster(malha)
+      } else {
+        this.internas.delete(malha)
+        this.sombraInterna.removeShadowCaster(malha)
+        this.sombra.addShadowCaster(malha)
+      }
+    }
+    this.aplicarLuzes()
   }
 
   trocarVisual(id: string, visual: AvatarVisual) {
@@ -294,6 +507,9 @@ export class Mundo {
       malha.isPickable = false
     }
     pessoa.visual = visual
+    this.contornar(visual.malhas, 0.014)
+    this.dentro.delete(id)
+    this.atualizarZona(id)
     visual.raiz.position.set(pessoa.x, 0, pessoa.y)
     visual.raiz.rotation.y = pessoa.direcao
     visual.raiz.scaling.setAll(pessoa.escala)
@@ -304,9 +520,11 @@ export class Mundo {
   removerPessoa(id: string) {
     const pessoa = this.pessoas.get(id)
     if (!pessoa) return
+    for (const malha of pessoa.visual.malhas) this.internas.delete(malha)
     pessoa.visual.destruir()
     pessoa.rotulo.remove()
     this.pessoas.delete(id)
+    this.dentro.delete(id)
   }
 
   temPessoa(id: string): boolean {
@@ -476,8 +694,14 @@ export class Mundo {
       pessoa.visual.raiz.position.set(pessoa.x, 0, pessoa.y)
       pessoa.visual.raiz.rotation.y = pessoa.direcao
       pessoa.visual.atualizar(dt)
+      this.atualizarZona(id)
     }
     this.posicionarCamera()
+    this.posicionarSombra()
+    for (const tex of this.aguaTexturas) {
+      tex.uOffset += decorrido * 0.02
+      tex.vOffset += decorrido * 0.012
+    }
     this.cena.render()
     this.posicionarNomes()
   }

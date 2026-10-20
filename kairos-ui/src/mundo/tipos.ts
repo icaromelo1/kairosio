@@ -16,6 +16,8 @@ export interface Sala {
   piso: string
   aberta?: boolean
   murada?: boolean
+  textura?: string
+  luz?: string
   portas: Porta[]
 }
 

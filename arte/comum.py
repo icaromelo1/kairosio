@@ -61,14 +61,14 @@ class Modelo:
         if chanfro:
             mod = obj.modifiers.new('chanfro', 'BEVEL')
             mod.width = chanfro
-            mod.segments = 1
+            mod.segments = 2
             mod.limit_method = 'ANGLE'
         for p in obj.data.polygons:
             p.use_smooth = False
         self.partes.append((obj, osso))
         return obj
 
-    def caixa(self, nome, centro, tamanho, mat, osso=None, chanfro=0.01, rot=(0, 0, 0)):
+    def caixa(self, nome, centro, tamanho, mat, osso=None, chanfro=0.014, rot=(0, 0, 0)):
         bpy.ops.mesh.primitive_cube_add(size=1, location=centro, rotation=rot)
         obj = bpy.context.active_object
         obj.name = nome
@@ -158,15 +158,111 @@ def triangulos(obj):
     return sum(len(p.vertices) - 2 for p in obj.data.polygons)
 
 
+def _hexa_de(cor):
+    return '#' + ''.join(f'{round(max(0.0, min(1.0, c ** (1 / 2.2))) * 255):02x}' for c in cor[:3])
+
+
+def _emissivo(material):
+    bsdf = next((n for n in material.node_tree.nodes if n.type == 'BSDF_PRINCIPLED'), None)
+    return bsdf is None or bsdf.inputs['Emission Strength'].default_value > 0.0
+
+
+def pintar(tamanho=256):
+    cena = bpy.context.scene
+    malhas = [o for o in bpy.data.objects if o.type == 'MESH' and o.data.materials]
+    if not malhas:
+        return
+    cena.render.engine = 'CYCLES'
+    cena.cycles.device = 'CPU'
+    cena.cycles.samples = 16
+    cena.render.bake.margin = 4
+    for obj in malhas:
+        materiais = [m for m in obj.data.materials if m and not _emissivo(m)]
+        if not materiais:
+            continue
+        bpy.ops.object.select_all(action='DESELECT')
+        obj.select_set(True)
+        bpy.context.view_layer.objects.active = obj
+        if not obj.data.uv_layers:
+            obj.data.uv_layers.new(name='UV')
+        bpy.ops.object.mode_set(mode='EDIT')
+        bpy.ops.mesh.select_all(action='SELECT')
+        bpy.ops.uv.smart_project(angle_limit=1.15, island_margin=0.015)
+        bpy.ops.object.mode_set(mode='OBJECT')
+        imagem = bpy.data.images.new(f'detalhe_{obj.name}', tamanho, tamanho)
+        imagem.colorspace_settings.name = 'Non-Color'
+        restaurar = []
+        for m in materiais:
+            nos = m.node_tree.nodes
+            ligacoes = m.node_tree.links
+            saida = next(n for n in nos if n.type == 'OUTPUT_MATERIAL')
+            bsdf = next(n for n in nos if n.type == 'BSDF_PRINCIPLED')
+            m['cor'] = _hexa_de(bsdf.inputs['Base Color'].default_value)
+            geometria = nos.new('ShaderNodeNewGeometry')
+            separar = nos.new('ShaderNodeSeparateXYZ')
+            ligacoes.new(geometria.outputs['Position'], separar.inputs['Vector'])
+            pincel = nos.new('ShaderNodeMapRange')
+            pincel.inputs['From Min'].default_value = 0.0
+            pincel.inputs['From Max'].default_value = 2.0
+            pincel.inputs['To Min'].default_value = 0.9
+            pincel.inputs['To Max'].default_value = 1.04
+            ligacoes.new(separar.outputs['Z'], pincel.inputs['Value'])
+            oclusao = nos.new('ShaderNodeAmbientOcclusion')
+            oclusao.inputs['Distance'].default_value = 0.05
+            sombra = nos.new('ShaderNodeMapRange')
+            sombra.inputs['To Min'].default_value = 0.82
+            sombra.inputs['To Max'].default_value = 1.0
+            ligacoes.new(oclusao.outputs['AO'], sombra.inputs['Value'])
+            quina = nos.new('ShaderNodeMapRange')
+            quina.inputs['From Min'].default_value = 0.52
+            quina.inputs['From Max'].default_value = 0.62
+            quina.inputs['To Min'].default_value = 1.0
+            quina.inputs['To Max'].default_value = 1.12
+            ligacoes.new(geometria.outputs['Pointiness'], quina.inputs['Value'])
+            vezes = nos.new('ShaderNodeMath')
+            vezes.operation = 'MULTIPLY'
+            ligacoes.new(pincel.outputs['Result'], vezes.inputs[0])
+            ligacoes.new(sombra.outputs['Result'], vezes.inputs[1])
+            total = nos.new('ShaderNodeMath')
+            total.operation = 'MULTIPLY'
+            total.use_clamp = True
+            ligacoes.new(vezes.outputs['Value'], total.inputs[0])
+            ligacoes.new(quina.outputs['Result'], total.inputs[1])
+            emissao = nos.new('ShaderNodeEmission')
+            ligacoes.new(total.outputs['Value'], emissao.inputs['Color'])
+            ligacoes.new(emissao.outputs['Emission'], saida.inputs['Surface'])
+            textura = nos.new('ShaderNodeTexImage')
+            textura.image = imagem
+            nos.active = textura
+            restaurar.append((m, bsdf, saida, textura, [separar, pincel, oclusao, sombra, geometria, quina, vezes, total, emissao]))
+        bpy.ops.object.bake(type='EMIT', margin=4)
+        imagem.pack()
+        for m, bsdf, saida, textura, temporarios in restaurar:
+            for n in temporarios:
+                m.node_tree.nodes.remove(n)
+            m.node_tree.links.new(bsdf.outputs['BSDF'], saida.inputs['Surface'])
+            mistura = m.node_tree.nodes.new('ShaderNodeMix')
+            mistura.data_type = 'RGBA'
+            mistura.blend_type = 'MULTIPLY'
+            mistura.inputs['Factor'].default_value = 1.0
+            mistura.inputs[7].default_value = bsdf.inputs['Base Color'].default_value
+            m.node_tree.links.new(textura.outputs['Color'], mistura.inputs[6])
+            m.node_tree.links.new(mistura.outputs[2], bsdf.inputs['Base Color'])
+
+
 def exportar(caminho, animado=False):
     if bpy.context.object and bpy.context.object.mode != 'OBJECT':
         bpy.ops.object.mode_set(mode='OBJECT')
     os.makedirs(os.path.dirname(caminho), exist_ok=True)
+    pintado = os.environ.get('PINTAR') == '1'
+    if pintado:
+        pintar()
     bpy.ops.object.select_all(action='SELECT')
     bpy.ops.export_scene.gltf(
         filepath=caminho, export_format='GLB', use_selection=False, export_apply=False,
         export_animations=animado, export_animation_mode='NLA_TRACKS', export_force_sampling=True,
         export_def_bones=False, export_yup=True, export_cameras=False, export_lights=False,
+        export_image_format='JPEG' if pintado else 'AUTO',
     )
 
 
@@ -229,6 +325,17 @@ def curvas(a):
     if hasattr(a, 'fcurves'):
         return list(a.fcurves)
     return [c for camada in a.layers for faixa in camada.strips for cb in faixa.channelbags for c in cb.fcurves]
+
+
+def acao_com_escala(armacao, nome, duracao, quadros_chave, ciclo=True):
+    escalas = sys.modules['__main__'].__dict__.get('ESCALAS', {})
+    ajustados = []
+    for t, poses in quadros_chave:
+        novas = {k: dict(v) for k, v in poses.items()}
+        for osso, escala in escalas.items():
+            novas.setdefault(osso, {}).setdefault('s', escala)
+        ajustados.append((t, novas))
+    return acao(armacao, nome, duracao, ajustados, ciclo)
 
 
 def acao(armacao, nome, duracao, quadros_chave, ciclo=True):
