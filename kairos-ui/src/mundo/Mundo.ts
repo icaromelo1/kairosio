@@ -17,6 +17,9 @@ import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode'
 import { ImageProcessingConfiguration } from '@babylonjs/core/Materials/imageProcessingConfiguration'
 import { DefaultRenderingPipeline } from '@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline'
+import { PostProcess } from '@babylonjs/core/PostProcesses/postProcess'
+import { Effect } from '@babylonjs/core/Materials/effect'
+import { Constants } from '@babylonjs/core/Engines/constants'
 import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh'
 import { ESPESSURA_PAREDE, Grade, areaDoPonto, paredesDe, salaDoPonto } from './grade'
 import { estacaoDe, nomeDe, pecaDe } from './mobilia'
@@ -33,6 +36,17 @@ import { VertexBuffer } from '@babylonjs/core/Buffers/buffer'
 
 const ELEVACAO = (36 * Math.PI) / 180
 const MARGEM_EXTERNA = 40
+const NIVEIS_DE_COR = 18
+
+Effect.ShadersStore.pixelPaletaFragmentShader = `
+precision highp float;
+varying vec2 vUV;
+uniform sampler2D textureSampler;
+uniform float niveis;
+void main() {
+  vec4 c = texture2D(textureSampler, vUV);
+  gl_FragColor = vec4(floor(c.rgb * niveis + 0.5) / niveis, c.a);
+}`
 const RAIO_DE_LUZ: Record<string, number> = { poste: 3.6, jukebox: 2.4, luminaria: 2.2 }
 const DISTANCIA_CAMERA = 40
 const ALTURA_PAREDE = 1.1
@@ -141,6 +155,8 @@ export class Mundo {
   private lagos: Lago[] = []
   private luzDaAgua = Color3.White()
   private ambiente!: EstadoDoAmbiente
+  private pipeline!: DefaultRenderingPipeline
+  private paleta: PostProcess | null = null
   private recortes: { id: string; recorte: Recorte }[] = []
   private recorteAtual: string | null = null
   private recorteDesejado: string | null = null
@@ -225,6 +241,7 @@ export class Mundo {
     this.teto.includedOnlyMeshes = []
     this.ambienteInterno.includedOnlyMeshes = []
     const pipeline = new DefaultRenderingPipeline('pos', true, this.cena, [this.camera])
+    this.pipeline = pipeline
     pipeline.fxaaEnabled = true
     pipeline.samples = 4
     pipeline.bloomEnabled = true
@@ -707,6 +724,23 @@ export class Mundo {
     for (const lago of this.lagos) lago.atualizar(decorrido)
     this.cena.render()
     this.posicionarNomes()
+  }
+
+  definirPixel(tamanho: number) {
+    const ligado = tamanho > 1
+    this.motor.setHardwareScalingLevel(ligado ? tamanho : 1 / (window.devicePixelRatio || 1))
+    this.pipeline.fxaaEnabled = !ligado
+    this.pipeline.sharpenEnabled = !ligado
+    this.pipeline.samples = ligado ? 1 : 4
+    if (ligado && !this.paleta) {
+      const paleta = new PostProcess('paleta', 'pixelPaleta', ['niveis'], null, 1, this.camera, Constants.TEXTURE_NEAREST_SAMPLINGMODE, this.motor)
+      paleta.onApply = (efeito) => efeito.setFloat('niveis', NIVEIS_DE_COR)
+      this.paleta = paleta
+    } else if (!ligado && this.paleta) {
+      this.paleta.dispose(this.camera)
+      this.paleta = null
+    }
+    this.motor.resize()
   }
 
   private montarAmbiente(mapa: Mapa) {
