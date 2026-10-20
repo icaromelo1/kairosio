@@ -55,4 +55,4 @@ export interface Mapa {
   areas?: Area[]
 }
 
-export type Pose = 'parado' | 'andar' | 'sentar' | 'acenar' | 'dancar'
+export type Pose = 'parado' | 'andar' | 'correr' | 'sentar' | 'acenar' | 'dancar'
