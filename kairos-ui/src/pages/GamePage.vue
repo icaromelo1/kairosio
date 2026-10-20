@@ -9,6 +9,9 @@
         :player-name="playerName"
         :voice-on="voiceOn"
         :is-guest="auth.isGuest"
+        :salas="salasComGente"
+        @ir-para-sala="irParaSala"
+        @andar-ate="(x: number, y: number) => irPara(x, y, 'a conversa')"
         @server-changed="onServerChanged"
         @open-panel="openPanel"
         @open-friends="openFriends"
@@ -20,7 +23,10 @@
     </aside>
 
     <div class="gp-stage">
-      <canvas ref="tela" class="gp-tela" />
+      <canvas
+        ref="tela" class="gp-tela" :class="{ 'gp-arrastando': arrastando, 'gp-pode-arrastar': podeArrastar }"
+        @pointerdown="aoApertarTela" @pointermove="aoMoverTela" @pointerup="aoSoltarTela" @pointerleave="aoSoltarTela"
+      />
       <div ref="camadaNomes" class="gp-nomes" />
 
       <div v-if="carregando" class="gp-aviso-centro k-card">
@@ -54,6 +60,93 @@
       </div>
 
       <div v-if="pertoDe && !interacao" class="gp-hud gp-perto">perto de <strong>{{ pertoDe }}</strong></div>
+
+      <div v-if="rota || avisoRota" class="gp-hud gp-rota">
+        <span v-if="rota">indo para <b>{{ rota.nome }}</b> · qualquer tecla cancela</span>
+        <span v-else>{{ avisoRota }}</span>
+      </div>
+
+      <div class="gp-canto-dir">
+        <div v-if="minimapaVisivel && mapaAtual" class="gp-minimapa">
+          <Minimapa
+            :mapa="mapaAtual" :lado-maximo="minimapaGrande ? 360 : 200" :posicoes="posicoesParaMapa"
+            :trancadas="salasTrancadas" :sudo="ehSudo" @ir="irPara" @teleportar="teleportarSudo"
+          />
+        </div>
+        <div class="gp-controles">
+          <span class="gp-hora" :title="horaTravada !== null ? 'hora travada por um sudo' : 'hora de São Paulo'">
+            <PixelIcon :name="periodo === 'noite' || periodo === 'madrugada' ? 'cloud-moon' : 'cloud-sun'" size="0.75rem" />{{ horaTexto }}
+          </span>
+          <button class="gp-botao" :class="{ 'gp-botao-on': minimapaVisivel }" title="minimapa (M)" @click="minimapaVisivel = !minimapaVisivel"><PixelIcon name="map-pin" size="0.875rem" /></button>
+          <button v-if="minimapaVisivel" class="gp-botao" :title="minimapaGrande ? 'diminuir o minimapa' : 'aumentar o minimapa'" @click="minimapaGrande = !minimapaGrande"><PixelIcon :name="minimapaGrande ? 'zoom-out' : 'zoom-in'" size="0.875rem" /></button>
+          <button class="gp-botao" title="mapa grande (N)" @click="mapaExpandido = true"><PixelIcon name="globe" size="0.875rem" /></button>
+          <button class="gp-botao" :class="{ 'gp-botao-on': atalhosAbertos }" title="atalhos (?)" @click="atalhosAbertos = !atalhosAbertos">?</button>
+          <button v-if="ehSudo" class="gp-botao" :class="{ 'gp-botao-on': sudoAberto }" title="poderes de sudo" @click="sudoAberto = !sudoAberto"><PixelIcon name="crown" size="0.875rem" /></button>
+        </div>
+      </div>
+
+      <div v-if="atalhosAbertos" class="k-card gp-cartao gp-atalhos">
+        <div class="gp-cartao-topo">
+          <span class="k-chip">atalhos</span>
+          <button class="k-btn k-btn-ghost k-btn-sm" @click="atalhosAbertos = false">esc<PixelIcon name="close" size="0.75rem" /></button>
+        </div>
+        <ul class="gp-atalhos-lista">
+          <li v-for="a in ATALHOS" :key="a.tecla"><span class="k-key">{{ a.tecla }}</span>{{ a.oque }}</li>
+        </ul>
+      </div>
+
+      <div v-if="ehSudo && sudoAberto" class="k-card gp-cartao gp-sudo">
+        <div class="gp-cartao-topo">
+          <span class="k-chip"><PixelIcon name="crown" size="0.6875rem" />poderes</span>
+          <button class="k-btn k-btn-ghost k-btn-sm" @click="sudoAberto = false">esc<PixelIcon name="close" size="0.75rem" /></button>
+        </div>
+        <label class="gp-sudo-linha"><input v-model="sudoNoclip" type="checkbox" /> noclip <small>atravessa paredes</small></label>
+        <label class="gp-sudo-linha"><input :checked="sudoInvisivel" type="checkbox" @change="alternarInvisivel(($event.target as HTMLInputElement).checked)" /> invisível <small>some para os outros</small></label>
+        <label class="gp-sudo-linha"><input v-model="sudoEspectador" type="checkbox" /> espectador <small>sem avatar, câmera livre</small></label>
+        <label class="gp-sudo-linha gp-sudo-faixa">escala {{ sudoEscala.toFixed(1) }}×
+          <input v-model.number="sudoEscala" type="range" min="0.5" max="3" step="0.1" data-captura-teclado />
+        </label>
+        <label class="gp-sudo-linha gp-sudo-faixa">hora do mundo {{ horaTravada === null ? 'automática' : horaTexto }}
+          <input :value="horaTravada ?? horaAtual" type="range" min="0" max="23.5" step="0.5" data-captura-teclado @change="emitDefinirHora(Number(($event.target as HTMLInputElement).value))" />
+        </label>
+        <div class="gp-sudo-acoes">
+          <button v-if="horaTravada !== null" class="k-btn k-btn-ghost k-btn-xs" @click="emitDefinirHora(null)">voltar à hora real</button>
+          <button class="k-btn k-btn-accent k-btn-xs" @click="emitSudoFesta()">festa</button>
+        </div>
+        <div v-if="pessoasNaSala.length" class="gp-sudo-pessoas">
+          <span class="k-label">pessoas aqui</span>
+          <div v-for="p in pessoasNaSala" :key="p.id" class="gp-sudo-pessoa">
+            <span class="ellipsis">{{ p.name }}</span>
+            <button class="k-btn k-btn-ghost k-btn-xs" @click="emitSudoPuxar(p.id)">puxar</button>
+            <button class="k-btn k-btn-ghost k-btn-xs" @click="irPara(p.x, p.y, p.name)">ir até</button>
+          </div>
+        </div>
+      </div>
+
+      <div v-if="mapaExpandido && mapaAtual" class="gp-modal-overlay" @click="mapaExpandido = false">
+        <div class="k-card gp-mapa-grande" @click.stop>
+          <div class="gp-cartao-topo">
+            <span class="k-chip"><PixelIcon name="globe" size="0.6875rem" />{{ mapaAtual.name }}</span>
+            <button class="k-btn k-btn-ghost k-btn-sm" @click="mapaExpandido = false">esc<PixelIcon name="close" size="0.75rem" /></button>
+          </div>
+          <div class="gp-mapa-grande-corpo">
+            <Minimapa
+              :mapa="mapaAtual" :lado-maximo="ladoDoMapaGrande" :posicoes="posicoesParaMapa" :trancadas="salasTrancadas"
+              :sudo="ehSudo" @ir="(x: number, y: number) => { mapaExpandido = false; irPara(x, y) }"
+              @teleportar="(x: number, y: number) => { mapaExpandido = false; teleportarSudo(x, y) }"
+            />
+            <ul class="gp-mapa-salas">
+              <li v-for="sala in salasDoMapa" :key="sala.id">
+                <button class="gp-mapa-sala" @click="mapaExpandido = false; irParaSala(sala.id)">
+                  <PixelIcon v-if="salasTrancadas.has(sala.id)" name="lock" size="0.625rem" />
+                  <span class="ellipsis">{{ sala.nome }}</span>
+                  <span class="gp-mapa-sala-gente">{{ genteNaSala(sala.id) }}</span>
+                </button>
+              </li>
+            </ul>
+          </div>
+        </div>
+      </div>
 
       <div class="gp-canto-esq">
         <ChatHud />
@@ -129,8 +222,9 @@ import { useGameStore } from '@/stores/useGameStore'
 import { useAuthStore } from '@/stores/useAuthStore'
 import { logoutApi, me } from '@/services/auth.api'
 import {
-  chatMundo, chatSala, connectPresence, disconnectPresence, emitAvatarUpdate, emitMove, emitSalaTrancar,
-  emitScreenShare, estadoDoJukebox, onScreenShare, remotePlayers, salasTrancadas, sessionKicked, syncDmUnread,
+  chatMundo, chatSala, connectPresence, disconnectPresence, emitAvatarUpdate, emitDefinirHora, emitMove, emitSalaTrancar,
+  emitScreenShare, emitSudoFesta, emitSudoInvisivel, emitSudoPuxar, emitSudoTeleporte, estadoDoJukebox, horaDoMundo,
+  onFesta, onPuxado, onScreenShare, remotePlayers, salasTrancadas, sessionKicked, syncDmUnread,
   type ScreenShareState,
 } from '@/services/presence'
 import { media } from '@/services/media'
@@ -143,9 +237,11 @@ import { panelFromQuery, precisaCriarPersonagem, type GamePanel } from '@/servic
 import { historeseMidia } from '@/mundo/bolhas'
 import { APARENCIA_PADRAO, sanitizarAparencia, type Aparencia } from '@/mundo/personagem/catalogo'
 import { callsDoMapa, ganhoDoPeer, salaFechadaDoPonto } from '@/mundo/audio'
-import type { Mundo, Interacao } from '@/mundo/Mundo'
+import { horaDeSaoPaulo, periodoDaHora } from '@/mundo/luz'
+import { salaDoPonto } from '@/mundo/grade'
+import type { Mundo, Interacao, Rota } from '@/mundo/Mundo'
 import type { Entrada } from '@/mundo/entrada'
-import type { Estacao, Movel } from '@/mundo/tipos'
+import type { Estacao, Mapa, Movel } from '@/mundo/tipos'
 import type { AssetContainer } from '@babylonjs/core/assetContainer'
 import ServerSidebar from '@/components/ServerSidebar.vue'
 import ChatHud from '@/components/ChatHud.vue'
@@ -159,6 +255,7 @@ import TaskPanel from '@/components/TaskPanel.vue'
 import NotePanel from '@/components/NotePanel.vue'
 import WhiteboardPanel from '@/components/WhiteboardPanel.vue'
 import MediaStage from '@/components/MediaStage.vue'
+import Minimapa from '@/components/Minimapa.vue'
 
 const PersonagemPanel = defineAsyncComponent(() => import('@/components/PersonagemPanel.vue'))
 
@@ -277,7 +374,7 @@ function soltar(tecla: string) {
 }
 
 function payloadDoAvatar() {
-  return { aparencia: minhaAparencia.value }
+  return { aparencia: minhaAparencia.value, ...(sudoEscala.value !== 1 ? { escala: sudoEscala.value } : {}) }
 }
 
 function entrarNaPresenca() {
@@ -368,7 +465,11 @@ watch(() => media.state.screenOn, (on) => emitScreenShare(on))
 watch(salasTrancadas, (trancadas) => { if (mundo.value) mundo.value.trancadas = trancadas }, { deep: true })
 
 function onKeyDown(e: KeyboardEvent) {
-  if (e.key === 'Escape') closeModal()
+  if (e.key !== 'Escape') return
+  if (mapaExpandido.value) mapaExpandido.value = false
+  else if (atalhosAbertos.value) atalhosAbertos.value = false
+  else if (sudoAberto.value) sudoAberto.value = false
+  else closeModal()
 }
 
 function sincronizarRemotos() {
@@ -388,6 +489,8 @@ function sincronizarRemotos() {
       aparenciasRemotas.set(peer.id, assinatura)
     }
     instancia.atualizarRemoto(peer.id, peer.x, peer.y, peer.direcao ?? 0, peer.pose ?? 'parado', peer.name)
+    const escala = peer.avatar?.escala
+    instancia.definirEscala(peer.id, typeof escala === 'number' && escala > 0 ? escala : 1)
   }
   for (const id of [...aparenciasRemotas.keys()]) {
     if (vistos.has(id)) continue
@@ -458,6 +561,195 @@ function aoQuadro() {
   }
 }
 
+const ATALHOS = [
+  { tecla: 'WASD', oque: 'andar (Shift corre)' },
+  { tecla: 'E', oque: 'interagir: sentar ou abrir a estação' },
+  { tecla: 'G', oque: 'acenar' },
+  { tecla: 'B', oque: 'dançar' },
+  { tecla: 'L', oque: 'trancar ou destrancar a sala em que você está' },
+  { tecla: 'V', oque: 'abrir a sala de voz' },
+  { tecla: 'M', oque: 'mostrar ou esconder o minimapa' },
+  { tecla: 'N', oque: 'abrir o mapa grande' },
+  { tecla: 'Espaço', oque: 'segurar e arrastar para olhar em volta' },
+  { tecla: 'roda', oque: 'aproximar ou afastar a câmera' },
+  { tecla: '?', oque: 'mostrar estes atalhos' },
+]
+
+function lerPreferencia(chave: string, padrao: boolean): boolean {
+  try {
+    const valor = localStorage.getItem(chave)
+    return valor === null ? padrao : valor === 'on'
+  } catch {
+    return padrao
+  }
+}
+
+function gravarPreferencia(chave: string, valor: boolean) {
+  try {
+    localStorage.setItem(chave, valor ? 'on' : 'off')
+  } catch {
+    return
+  }
+}
+
+const ehSudo = ref(false)
+const mapaAtual = shallowRef<Mapa | null>(null)
+const minimapaVisivel = ref(lerPreferencia('kairos_minimapa', true))
+const minimapaGrande = ref(lerPreferencia('kairos_minimapa_grande', false))
+const mapaExpandido = ref(false)
+const atalhosAbertos = ref(false)
+const sudoAberto = ref(false)
+const sudoNoclip = ref(false)
+const sudoInvisivel = ref(false)
+const sudoEspectador = ref(false)
+const sudoEscala = ref(1)
+const rota = ref<Rota | null>(null)
+const avisoRota = ref('')
+const horaAtual = ref(horaDeSaoPaulo())
+const horaTravada = computed(() => horaDoMundo.value)
+const horaEfetiva = computed(() => horaTravada.value ?? horaAtual.value)
+const periodo = computed(() => periodoDaHora(horaEfetiva.value))
+const horaTexto = computed(() => {
+  const h = horaEfetiva.value
+  return `${String(Math.floor(h)).padStart(2, '0')}:${String(Math.round((h % 1) * 60)).padStart(2, '0')}`
+})
+const salasComGente = ref<{ id: string; nome: string; trancada: boolean; aqui: boolean; gente: { id: string; nome: string; eu: boolean }[] }[]>([])
+const salasDoMapa = computed(() => (mapaAtual.value?.salas ?? []).filter((s) => !s.aberta))
+const pessoasNaSala = computed(() => [...remotePlayers.values()].filter((p) => !p.map || p.map === MAPA_ATUAL))
+const ladoDoMapaGrande = computed(() => Math.min(window.innerWidth - 360, window.innerHeight - 160, 760))
+const arrastando = ref(false)
+const podeArrastar = ref(false)
+let ultimoPonteiro = { x: 0, y: 0 }
+let avisoTimer = 0
+let relogio = 0
+let salasTimer = 0
+let posicaoTimer = 0
+let offPuxado: (() => void) | null = null
+let offFesta: (() => void) | null = null
+
+watch(minimapaVisivel, (v) => gravarPreferencia('kairos_minimapa', v))
+watch(minimapaGrande, (v) => gravarPreferencia('kairos_minimapa_grande', v))
+watch(horaEfetiva, (h) => mundo.value?.definirHora(h))
+watch(sudoNoclip, (v) => { if (mundo.value) mundo.value.noclip = v || sudoEspectador.value })
+watch(sudoEspectador, (v) => {
+  if (!mundo.value) return
+  mundo.value.noclip = v || sudoNoclip.value
+  mundo.value.definirVisivel(EU, !v)
+  if (v !== sudoInvisivel.value) alternarInvisivel(v)
+})
+watch(sudoEscala, (v) => {
+  mundo.value?.definirEscala(EU, v)
+  emitAvatarUpdate(payloadDoAvatar())
+})
+
+function chavePosicao(): string {
+  return `kairos_posicao_${auth.userId ?? 'anonimo'}_${MAPA_ATUAL}`
+}
+
+function salvarPosicao() {
+  const local = mundo.value?.local
+  if (!local) return
+  try {
+    localStorage.setItem(chavePosicao(), JSON.stringify({ x: local.x, y: local.y }))
+  } catch {
+    return
+  }
+}
+
+function posicaoSalva(): { x: number; y: number } | null {
+  try {
+    const bruta = JSON.parse(localStorage.getItem(chavePosicao()) ?? 'null')
+    return bruta && Number.isFinite(bruta.x) && Number.isFinite(bruta.y) ? bruta : null
+  } catch {
+    return null
+  }
+}
+
+function mostrarAvisoRota(texto: string) {
+  avisoRota.value = texto
+  window.clearTimeout(avisoTimer)
+  avisoTimer = window.setTimeout(() => { if (!rota.value) avisoRota.value = '' }, 3000)
+}
+
+function irPara(x: number, y: number, nome?: string) {
+  const mapa = mapaAtual.value
+  const sala = mapa ? salaDoPonto(mapa, x, y) : null
+  mundo.value?.irPara(x, y, nome ?? (sala && !sala.aberta ? sala.nome : 'lá'))
+}
+
+function irParaSala(salaId: string) {
+  mundo.value?.irParaSala(salaId)
+}
+
+function teleportarSudo(x: number, y: number) {
+  if (!ehSudo.value || !mundo.value) return
+  mundo.value.cancelarRota()
+  mundo.value.teleportar(x, y)
+  emitSudoTeleporte(x, y)
+}
+
+function alternarInvisivel(valor: boolean) {
+  sudoInvisivel.value = valor
+  emitSudoInvisivel(valor)
+}
+
+function posicoesParaMapa() {
+  const local = mundo.value?.local ?? { x: 0, y: 0 }
+  const outros = [...remotePlayers.values()]
+    .filter((p) => !p.map || p.map === MAPA_ATUAL)
+    .map((p) => ({ x: p.x, y: p.y, falando: !!media.peers.get(p.userId)?.speaking }))
+  return { eu: { x: local.x, y: local.y }, outros }
+}
+
+function genteNaSala(salaId: string): number {
+  return salasComGente.value.find((s) => s.id === salaId)?.gente.length ?? 0
+}
+
+function atualizarSalasComGente() {
+  const mapa = mapaAtual.value
+  const local = mundo.value?.local
+  if (!mapa || !local) return
+  const grupos = new Map<string, { id: string; nome: string; eu: boolean }[]>()
+  const colocar = (id: string, nome: string, x: number, y: number, eu: boolean) => {
+    const sala = salaDoPonto(mapa, x, y)
+    if (!sala || sala.aberta) return
+    grupos.set(sala.id, [...(grupos.get(sala.id) ?? []), { id, nome, eu }])
+  }
+  colocar(EU, playerName.value, local.x, local.y, true)
+  for (const p of remotePlayers.values()) if (!p.map || p.map === MAPA_ATUAL) colocar(p.id, p.name, p.x, p.y, false)
+  const minha = salaDoPonto(mapa, local.x, local.y)?.id
+  salasComGente.value = mapa.salas
+    .filter((s) => grupos.has(s.id))
+    .map((s) => ({ id: s.id, nome: s.nome, trancada: salasTrancadas.value.has(s.id), aqui: s.id === minha, gente: grupos.get(s.id)! }))
+    .sort((a, b) => b.gente.length - a.gente.length || a.nome.localeCompare(b.nome))
+}
+
+function aoApertarTela(e: PointerEvent) {
+  if (!entrada?.segurando(' ') || e.button !== 0) return
+  arrastando.value = true
+  ultimoPonteiro = { x: e.clientX, y: e.clientY }
+  ;(e.target as HTMLElement).setPointerCapture?.(e.pointerId)
+}
+
+function aoMoverTela(e: PointerEvent) {
+  podeArrastar.value = !!entrada?.segurando(' ')
+  if (!arrastando.value) return
+  mundo.value?.arrastarCamera(e.clientX - ultimoPonteiro.x, e.clientY - ultimoPonteiro.y)
+  ultimoPonteiro = { x: e.clientX, y: e.clientY }
+}
+
+function aoSoltarTela() {
+  arrastando.value = false
+}
+
+function aoSoltarTecla(e: KeyboardEvent) {
+  if (e.key === ' ') {
+    arrastando.value = false
+    podeArrastar.value = false
+    mundo.value?.recentrarCamera()
+  }
+}
+
 async function montarMundo() {
   if (!tela.value || !camadaNomes.value) return
   try {
@@ -479,6 +771,11 @@ async function montarMundo() {
         salaFechadaId.value = sala && !sala.aberta ? sala.id : null
       },
       aoMover: (estado) => emitMove(estado.x, estado.y, estado.direcao, estado.pose),
+      aoMudarRota: (nova, aviso) => {
+        rota.value = nova
+        if (aviso) mostrarAvisoRota(aviso)
+        else if (nova) avisoRota.value = ''
+      },
       aoQuadro,
     })
     instancia.direcaoDesejada = () => entrada!.direcao()
@@ -488,8 +785,15 @@ async function montarMundo() {
     entrada.aoTeclar('b', () => instancia.gesto('dancar'))
     entrada.aoTeclar('l', alternarTranca)
     entrada.aoTeclar('v', alternarMediaStage)
+    entrada.aoTeclar('m', () => { minimapaVisivel.value = !minimapaVisivel.value })
+    entrada.aoTeclar('n', () => { mapaExpandido.value = !mapaExpandido.value })
+    entrada.aoTeclar('?', () => { atalhosAbertos.value = !atalhosAbertos.value })
     mundo.value = instancia
     await instancia.definirMapa(mapa)
+    mapaAtual.value = mapa
+    instancia.definirHora(horaEfetiva.value)
+    const salva = posicaoSalva()
+    if (salva && instancia.estaLivre(salva.x, salva.y)) instancia.teleportar(salva.x, salva.y)
     conteinerPersonagem = await carregarPersonagem(instancia.cena)
     criarAvatar = (aparencia) => new AvatarModelo(instancia.cena, conteinerPersonagem!, aparencia)
     if (!personagemObrigatorio.value) {
@@ -520,6 +824,7 @@ onMounted(async () => {
 
   const perfil = await me().catch(() => null)
   auth.setUsername(perfil?.username ?? null)
+  ehSudo.value = !!perfil?.isAdmin
   if (await precisaCriarPersonagem().catch(() => false)) {
     personagemObrigatorio.value = true
     panel.value = 'personagem'
@@ -535,12 +840,31 @@ onMounted(async () => {
   await montarMundo()
   pausarMundo(gameStore.isModalOpen)
   offScreenShare = onScreenShare(onScreenShareState)
+  offPuxado = onPuxado(({ x, y }) => {
+    mundo.value?.cancelarRota()
+    mundo.value?.teleportar(x, y)
+  })
+  offFesta = onFesta(() => mundo.value?.festa())
+  relogio = window.setInterval(() => { horaAtual.value = horaDeSaoPaulo() }, 30_000)
+  salasTimer = window.setInterval(atualizarSalasComGente, 500)
+  posicaoTimer = window.setInterval(salvarPosicao, 5000)
   window.addEventListener('keydown', onKeyDown)
+  window.addEventListener('keyup', aoSoltarTecla)
+  window.addEventListener('beforeunload', salvarPosicao)
 })
 
 onUnmounted(() => {
   window.removeEventListener('keydown', onKeyDown)
+  window.removeEventListener('keyup', aoSoltarTecla)
+  window.removeEventListener('beforeunload', salvarPosicao)
+  salvarPosicao()
   offScreenShare?.()
+  offPuxado?.()
+  offFesta?.()
+  window.clearInterval(relogio)
+  window.clearInterval(salasTimer)
+  window.clearInterval(posicaoTimer)
+  window.clearTimeout(avisoTimer)
   for (const timer of screenNoticeTimers) clearTimeout(timer)
   entrada?.destruir()
   entrada = null
@@ -793,6 +1117,135 @@ onUnmounted(() => {
   font-size: 0.875rem;
 }
 
+.gp-arrastando { cursor: grabbing; }
+.gp-pode-arrastar { cursor: grab; }
+
+.gp-rota {
+  top: 3.5rem;
+  left: calc(50% + var(--barra-larg) / 2);
+  transform: translateX(-50%);
+  padding: 0.4375rem 0.75rem;
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
+  box-shadow: var(--ui-shadow);
+  font-size: 0.8125rem;
+  color: var(--text-2);
+  z-index: 20;
+}
+
+.gp-rota b { color: var(--text); }
+
+.gp-canto-dir {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.gp-minimapa {
+  padding: 0.25rem;
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
+  box-shadow: var(--ui-shadow);
+}
+
+.gp-controles {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
+  box-shadow: var(--ui-shadow);
+}
+
+.gp-hora {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0 0.625rem;
+  font-family: var(--f-num);
+  font-size: 0.8125rem;
+  color: var(--text-2);
+  border-right: 0.0625rem solid var(--border);
+}
+
+.gp-botao {
+  appearance: none;
+  cursor: pointer;
+  min-width: 2rem;
+  min-height: 2rem;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  border-right: 0.0625rem solid var(--border);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.gp-botao:last-child { border-right: none; }
+.gp-botao:hover { background: var(--bg-2); }
+.gp-botao-on { background: var(--accent); }
+
+.gp-cartao {
+  position: absolute;
+  right: 0.875rem;
+  top: 4rem;
+  z-index: 25;
+  width: min(20rem, calc(100% - 2rem));
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.gp-cartao-topo { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+
+.gp-atalhos-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4375rem; }
+.gp-atalhos-lista li { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: var(--text-2); }
+
+.gp-sudo-linha { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; font-weight: 600; }
+.gp-sudo-linha small { color: var(--text-3); font-weight: 400; }
+.gp-sudo-faixa { flex-direction: column; align-items: stretch; gap: 0.25rem; }
+.gp-sudo-acoes { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+.gp-sudo-pessoas { display: flex; flex-direction: column; gap: 0.25rem; max-height: 10rem; overflow-y: auto; }
+.gp-sudo-pessoa { display: flex; align-items: center; gap: 0.375rem; font-size: 0.8125rem; }
+.gp-sudo-pessoa .ellipsis { flex: 1; min-width: 0; }
+
+.gp-mapa-grande {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: calc(100vw - 2rem);
+}
+
+.gp-mapa-grande-corpo { display: flex; gap: 1rem; align-items: flex-start; }
+
+.gp-mapa-salas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; width: 13rem; max-height: 70vh; overflow-y: auto; }
+
+.gp-mapa-sala {
+  appearance: none;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.5rem;
+  background: var(--bg-2);
+  border: 0.0625rem solid var(--border);
+  color: var(--text);
+  font-size: 0.8125rem;
+  text-align: left;
+}
+
+.gp-mapa-sala:hover { border-color: var(--border-strong); background: var(--bg-3); }
+.gp-mapa-sala .ellipsis { flex: 1; min-width: 0; }
+.gp-mapa-sala-gente { font-family: var(--f-num); color: var(--text-3); }
+
 @media (max-width: 48rem) {
   .gp-sidebar.gp-sidebar-open {
     left: 0;
@@ -803,6 +1256,8 @@ onUnmounted(() => {
     box-shadow: 0.5rem 0 1.5rem rgba(0, 0, 0, 0.5);
   }
 
-  .gp-aviso-centro, .gp-sala, .gp-agir, .gp-perto, .gp-avisos-tela { left: 50%; }
+  .gp-aviso-centro, .gp-sala, .gp-agir, .gp-perto, .gp-avisos-tela, .gp-rota { left: 50%; }
+  .gp-minimapa { display: none; }
+  .gp-mapa-grande-corpo { flex-direction: column; }
 }
 </style>

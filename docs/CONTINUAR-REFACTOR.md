@@ -3,7 +3,7 @@
 Ponto de partida de qualquer sessão nova sobre o refactor. Atualize este arquivo
 ao fim de cada sessão: estado, decisões tomadas e próximo passo.
 
-> Atualizado: 2026-10-19 (pontos 1 a 5 feitos).
+> Atualizado: 2026-10-20 (pontos 1 a 5 feitos; mapa com jardim e funcionalidades do mapa antigo religadas).
 
 ## Onde está cada coisa
 
@@ -84,6 +84,38 @@ semeado no boot (pulado se `editadoEm` preenchido); `characters.aparencia` (json
 `character/aparencia.ts` e reaproveitada pela presença; presença com `direcao` (ângulo) e
 poses `parado|andar|sentar|acenar|dancar`.
 
+## Mapa atual (20/10)
+
+`kairos-api/src/map/escritorio.ts`, 64 × 48 m. Prédio murado (`salao`, `aberta` + `murada`)
+com 12 salas: duas de reunião, copa com jukebox, foco (estante de notas), ideias (lousa),
+servidores, jogos (pingue-pongue, sinuca, fliperama), recepção com entrada pelo sul, duas
+cabines e descompressão. No salão, 4 ilhas de 6 mesas e uma área de estar com TV. Em volta,
+o jardim (`areas` do mapa: caminhos, praça de pedra, lago, deck, horta) com fonte, bancos,
+postes, canteiros, árvores, mesas de piquenique, e cerca viva no limite do mapa. Spawn na
+porta da recepção, do lado de fora. A mobília tem 37 peças (`arte/mobilia.py`).
+
+Formato: `Sala.murada` desenha paredes numa sala aberta (o salão continua "área aberta" para
+chat e voz); `Mapa.areas` são pisos externos (`agua` deixa lento); paredes no limite do mapa
+viram cerca viva.
+
+## Funcionalidades do mapa antigo (conferidas em 20/10)
+
+Religadas e testadas no navegador contra a VM:
+- minimapa (M) com clique para ir até lá e duplo clique de sudo para teleportar;
+- mapa grande (N) com a lista de salas e quantas pessoas há em cada uma;
+- rota automática (A* em `mundo/rota.ts`) com cancelamento por tecla e replanejamento;
+- salas com gente na barra lateral (duplo clique leva até a sala) e "andar até" da DM;
+- tranca de sala (L) refletida na pílula da sala, na barra e no minimapa;
+- luz pela hora de São Paulo (`mundo/luz.ts`) e hora travada por sudo;
+- poderes de sudo: noclip, invisível, espectador, escala, festa, puxar, ir até, teleporte;
+- última posição salva por usuário e mapa (localStorage), retomada se o ponto estiver livre;
+- sentar em banco do jardim; estações, chat de sala e jukebox (já testados antes).
+Implementadas sem teste visual: água deixa lento, colisão entre pessoas, arrastar a câmera
+com Espaço, painel de atalhos (?).
+Não voltou: spawnar item de sudo (escreve no mapa; entra com o ponto 6, edição de sala).
+
+A conta `teste1` é sudo **só no banco de teste** (`kairos_refactor`).
+
 ## Testar na VM
 
 - `scripts/vm-refactor.sh` sincroniza a branch para `~/projects/kairos-refactor` na VM,
@@ -108,6 +140,8 @@ poses `parado|andar|sentar|acenar|dancar`.
 - **Corte para produção**: migration à parte que derruba `avatars`, `mascara_revisao`,
   `tile_revisao`, `world_state` e as colunas antigas de `characters`/`game_maps` no `appdb`.
 - **Ponto 6** (edição de sala) é o próximo, quando o Icaro pedir.
+- O painel do navegador oculto roda a ~1 quadro por segundo; o movimento já se divide em
+  passos de 0,05 s para não ficar lento nesse caso.
 
 ## Fora do plano
 

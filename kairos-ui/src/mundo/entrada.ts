@@ -28,9 +28,14 @@ export class Entrada {
     this.teclas.delete(tecla)
   }
 
+  segurando(tecla: string): boolean {
+    return this.teclas.has(tecla)
+  }
+
   direcao(): { x: number; y: number; correndo: boolean } {
     if (this.pausada) return { x: 0, y: 0, correndo: false }
     const t = this.teclas
+    if (t.has(' ')) return { x: 0, y: 0, correndo: false }
     const x = (t.has('d') || t.has('arrowright') ? 1 : 0) - (t.has('a') || t.has('arrowleft') ? 1 : 0)
     const y = (t.has('s') || t.has('arrowdown') ? 1 : 0) - (t.has('w') || t.has('arrowup') ? 1 : 0)
     return { x, y, correndo: t.has('shift') }
@@ -49,7 +54,7 @@ export class Entrada {
     const tecla = e.key.toLowerCase()
     if (e.ctrlKey || e.metaKey || e.altKey) return
     if (MOVIMENTO.includes(tecla) || tecla === ' ') e.preventDefault()
-    if (tecla === 'shift' || MOVIMENTO.includes(tecla)) {
+    if (tecla === 'shift' || tecla === ' ' || MOVIMENTO.includes(tecla)) {
       this.teclas.add(tecla)
       return
     }

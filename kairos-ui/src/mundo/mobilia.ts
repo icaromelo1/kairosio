@@ -31,6 +31,22 @@ export const PECAS: Record<string, Peca> = {
   luminaria: { largura: 0.4, profundidade: 0.4, solida: true, nome: 'luminária' },
   tapete: { largura: 3.0, profundidade: 2.0, solida: false, nome: 'tapete' },
   tapete_redondo: { largura: 2.2, profundidade: 2.2, solida: false, nome: 'tapete' },
+  arvore: { largura: 1.0, profundidade: 1.0, solida: true, nome: 'árvore' },
+  arvore_pinheiro: { largura: 1.0, profundidade: 1.0, solida: true, nome: 'pinheiro' },
+  arbusto: { largura: 0.8, profundidade: 0.8, solida: true, nome: 'arbusto' },
+  canteiro: { largura: 1.8, profundidade: 0.8, solida: true, nome: 'canteiro' },
+  banco_jardim: { largura: 1.6, profundidade: 0.5, solida: true, sentavel: true, nome: 'banco' },
+  mesa_picnic: { largura: 1.8, profundidade: 1.7, solida: true, sentavel: true, nome: 'mesa de piquenique' },
+  fonte: { largura: 2.5, profundidade: 2.5, solida: true, nome: 'fonte' },
+  poste: { largura: 0.3, profundidade: 0.3, solida: true, nome: 'poste' },
+  pedra: { largura: 0.8, profundidade: 0.6, solida: true, nome: 'pedra' },
+  tv: { largura: 1.6, profundidade: 0.45, solida: true, nome: 'TV' },
+  mesa_pingpong: { largura: 2.6, profundidade: 1.5, solida: true, nome: 'pingue-pongue' },
+  arcade: { largura: 0.7, profundidade: 0.7, solida: true, nome: 'fliperama' },
+  sinuca: { largura: 2.3, profundidade: 1.3, solida: true, nome: 'sinuca' },
+  impressora: { largura: 0.7, profundidade: 0.55, solida: true, nome: 'impressora' },
+  armario: { largura: 1.6, profundidade: 0.5, solida: true, nome: 'armário' },
+  divisoria: { largura: 1.8, profundidade: 0.1, solida: true, nome: 'divisória' },
 }
 
 export function pecaDe(movel: Movel): Peca | null {

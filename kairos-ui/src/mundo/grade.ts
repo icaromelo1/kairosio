@@ -1,7 +1,7 @@
 import { pecaDe, pegadaDe } from './mobilia'
-import type { Mapa, Sala } from './tipos'
+import type { Area, Mapa, Sala } from './tipos'
 
-const CELULA = 0.25
+export const CELULA = 0.25
 export const ESPESSURA_PAREDE = 0.2
 const RAIO_PESSOA = 0.22
 
@@ -10,6 +10,7 @@ interface Parede {
   linha: number
   inicio: number
   fim: number
+  externa: boolean
 }
 
 type Intervalo = [number, number]
@@ -69,7 +70,7 @@ export function paredesDe(mapa: Mapa): Parede[] {
   }
   for (const borda of bordasDe(contorno)) pegar(borda.horizontal, borda.linha).trechos.push([borda.inicio, borda.fim])
   for (const sala of mapa.salas) {
-    if (sala.aberta) continue
+    if (sala.aberta && !sala.murada) continue
     for (const borda of bordasDe(sala)) {
       pegar(borda.horizontal, borda.linha).trechos.push([borda.inicio, borda.fim])
     }
@@ -87,7 +88,8 @@ export function paredesDe(mapa: Mapa): Parede[] {
   for (const item of linhas.values()) {
     if (!item.trechos.length) continue
     for (const [inicio, fim] of subtrair(unir(item.trechos), item.buracos)) {
-      saida.push({ horizontal: item.horizontal, linha: item.linha, inicio, fim })
+      const externa = item.linha < 0.01 || Math.abs(item.linha - (item.horizontal ? mapa.profundidade : mapa.largura)) < 0.01
+      saida.push({ horizontal: item.horizontal, linha: item.linha, inicio, fim, externa })
     }
   }
   return saida
@@ -125,6 +127,21 @@ export class Grade {
     }
   }
 
+  private andavel: Uint8Array | null = null
+
+  celulaAndavel(c: number, l: number): boolean {
+    if (c < 0 || l < 0 || c >= this.colunas || l >= this.linhas) return false
+    if (!this.andavel) {
+      this.andavel = new Uint8Array(this.colunas * this.linhas)
+      for (let ll = 0; ll < this.linhas; ll++) {
+        for (let cc = 0; cc < this.colunas; cc++) {
+          this.andavel[ll * this.colunas + cc] = this.ocupado((cc + 0.5) * CELULA, (ll + 0.5) * CELULA) ? 0 : 1
+        }
+      }
+    }
+    return this.andavel[l * this.colunas + c] === 1
+  }
+
   ocupado(x: number, y: number, raio = RAIO_PESSOA): boolean {
     if (x - raio < 0 || y - raio < 0 || x + raio > this.mapa.largura || y + raio > this.mapa.profundidade) return true
     const c1 = Math.floor((x - raio) / CELULA)
@@ -138,6 +155,21 @@ export class Grade {
     }
     return false
   }
+}
+
+export function areaDoPonto(mapa: Mapa, x: number, y: number): Area | null {
+  for (const area of mapa.areas ?? []) {
+    if (area.forma === 'circulo') {
+      const rx = area.largura / 2
+      const ry = area.profundidade / 2
+      const dx = (x - area.x) / rx
+      const dy = (y - area.y) / ry
+      if (dx * dx + dy * dy <= 1) return area
+    } else if (Math.abs(x - area.x) <= area.largura / 2 && Math.abs(y - area.y) <= area.profundidade / 2) {
+      return area
+    }
+  }
+  return null
 }
 
 export function salaDoPonto(mapa: Mapa, x: number, y: number): Sala | null {

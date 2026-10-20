@@ -34,6 +34,19 @@ PALETA = {
     'livroB': {'cor': '#c9483c'},
     'livroC': {'cor': '#e0b54a'},
     'livroD': {'cor': '#5a9b6a'},
+    'tronco': {'cor': '#6e4a2c'},
+    'pinheiro': {'cor': '#2f6b3f'},
+    'pedra': {'cor': '#9a958a'},
+    'pedraClara': {'cor': '#c9c2b2'},
+    'florRosa': {'cor': '#e9789a'},
+    'florAmarela': {'cor': '#f2c94c'},
+    'florRoxa': {'cor': '#8e6bd1'},
+    'terra': {'cor': '#7b5a3c'},
+    'aguaFonte': {'cor': '#7fc4e8', 'aspereza': 0.15},
+    'verdeMesa': {'cor': '#2f7d55'},
+    'azulMesa': {'cor': '#2c5d8f'},
+    'arcade': {'cor': '#6b4fa8'},
+    'telaJogo': {'cor': '#ff7ac8', 'emissao': '#ff6ab8', 'forca': 1.0},
 }
 
 m = Modelo(PALETA)
@@ -256,12 +269,156 @@ def tapete_redondo():
     return m.agrupar('tapete_redondo')
 
 
+
+def arvore():
+    m.cilindro('tronco', (0, 0, 0.6), 0.12, 1.2, 'tronco', lados=8)
+    folhagem((0, 0, 1.55), 0.75, 6)
+    folhagem((0.15, -0.1, 2.05), 0.5, 4)
+    return m.agrupar('arvore')
+
+
+def arvore_pinheiro():
+    m.cilindro('tronco', (0, 0, 0.3), 0.1, 0.6, 'tronco', lados=8)
+    for i, (z, r) in enumerate(((0.9, 0.7), (1.45, 0.55), (1.95, 0.38))):
+        m.cilindro(f'copa{i}', (0, 0, z), r, 0.75, 'pinheiro', lados=9, raio_topo=0.02)
+    return m.agrupar('arvore_pinheiro')
+
+
+def arbusto():
+    folhagem((0, 0, 0.32), 0.38, 5)
+    return m.agrupar('arbusto')
+
+
+def canteiro():
+    m.caixa('borda', (0, 0, 0.1), (1.8, 0.8, 0.2), 'madeiraEscura')
+    m.caixa('terra', (0, 0, 0.21), (1.7, 0.7, 0.03), 'terra', chanfro=0)
+    cores = ['florRosa', 'florAmarela', 'florRoxa']
+    for i in range(10):
+        x = -0.72 + (i % 5) * 0.36
+        y = -0.17 if i < 5 else 0.17
+        m.cilindro(f'caule{i}', (x, y, 0.32), 0.012, 0.2, 'folha', lados=5)
+        m.icosfera(f'flor{i}', (x, y, 0.44), 0.07, cores[i % 3])
+    return m.agrupar('canteiro')
+
+
+def banco_jardim():
+    m.caixa('assento', (0, 0, 0.45), (1.6, 0.45, 0.06), 'madeira', chanfro=0.01)
+    m.caixa('encosto', (0, 0.2, 0.75), (1.6, 0.06, 0.35), 'madeira', chanfro=0.01)
+    for sx in (-1, 1):
+        m.caixa('pe', (sx * 0.7, 0, 0.22), (0.06, 0.42, 0.44), 'metal')
+        m.caixa('apoio', (sx * 0.7, 0.18, 0.6), (0.06, 0.06, 0.3), 'metal')
+    return m.agrupar('banco_jardim')
+
+
+def mesa_picnic():
+    m.caixa('tampo', (0, 0, 0.74), (1.8, 0.8, 0.06), 'madeira', chanfro=0.01)
+    for sy in (-1, 1):
+        m.caixa('banco', (0, sy * 0.68, 0.44), (1.8, 0.3, 0.05), 'madeira', chanfro=0.01)
+    for sx in (-1, 1):
+        m.caixa('cavalete', (sx * 0.7, 0, 0.37), (0.08, 1.5, 0.06), 'madeiraEscura', rot=(0.0, 0, 0))
+        m.caixa('perna', (sx * 0.7, 0, 0.37), (0.08, 0.08, 0.74), 'madeiraEscura')
+    return m.agrupar('mesa_picnic')
+
+
+def fonte():
+    m.torno('bacia', [(1.2, 0), (1.25, 0.35), (1.1, 0.4), (1.05, 0.12), (0, 0.12)], 'pedraClara', lados=24)
+    m.cilindro('agua', (0, 0, 0.3), 1.05, 0.02, 'aguaFonte', lados=24)
+    m.cilindro('coluna', (0, 0, 0.75), 0.15, 0.9, 'pedraClara', lados=12)
+    m.cilindro('pratoAlto', (0, 0, 1.2), 0.5, 0.1, 'pedraClara', lados=16, raio_topo=0.35)
+    m.cilindro('aguaAlta', (0, 0, 1.26), 0.33, 0.02, 'aguaFonte', lados=16)
+    m.icosfera('jato', (0, 0, 1.45), 0.12, 'aguaFonte')
+    return m.agrupar('fonte')
+
+
+def poste():
+    m.cilindro('base', (0, 0, 0.1), 0.12, 0.2, 'preto', lados=8)
+    m.cilindro('haste', (0, 0, 1.3), 0.04, 2.4, 'preto', lados=8)
+    m.caixa('lanterna', (0, 0, 2.55), (0.22, 0.22, 0.3), 'luz', chanfro=0.02)
+    m.cilindro('chapeu', (0, 0, 2.75), 0.2, 0.12, 'preto', lados=4, raio_topo=0.02, rot=(0, 0, math.pi / 4))
+    return m.agrupar('poste')
+
+
+def pedra():
+    m.icosfera('pedra1', (0, 0, 0.18), 0.32, 'pedra', escala=(1.2, 1, 0.65))
+    m.icosfera('pedra2', (0.3, 0.15, 0.1), 0.18, 'pedraClara', escala=(1, 1, 0.7))
+    return m.agrupar('pedra')
+
+
+def tv():
+    m.caixa('rack', (0, 0.05, 0.25), (1.6, 0.4, 0.5), 'madeiraEscura', chanfro=0.02)
+    m.caixa('pe', (0, 0.1, 0.6), (0.3, 0.15, 0.2), 'preto')
+    m.caixa('tv', (0, 0.12, 1.15), (1.5, 0.06, 0.88), 'preto', chanfro=0.01)
+    m.caixa('tela', (0, 0.088, 1.15), (1.4, 0.006, 0.78), 'tela', chanfro=0)
+    m.caixa('console', (0.5, -0.05, 0.52), (0.3, 0.2, 0.05), 'branco')
+    return m.agrupar('tv')
+
+
+def mesa_pingpong():
+    m.caixa('tampo', (0, 0, 0.74), (2.6, 1.45, 0.05), 'azulMesa', chanfro=0.01)
+    m.caixa('linha', (0, 0, 0.768), (2.6, 0.02, 0.004), 'branco', chanfro=0)
+    m.caixa('rede', (0, 0, 0.85), (0.02, 1.55, 0.16), 'branco', chanfro=0)
+    pernas(1.1, 0.6, 0.72, raio=0.035)
+    m.caixa('raquete', (0.6, -0.3, 0.78), (0.15, 0.12, 0.015), 'vermelho', chanfro=0)
+    m.esfera('bola', (-0.4, 0.2, 0.79), 0.025, 'branco', segmentos=6, aneis=4)
+    return m.agrupar('mesa_pingpong')
+
+
+def arcade():
+    m.caixa('corpo', (0, 0, 0.85), (0.7, 0.7, 1.7), 'arcade', chanfro=0.02)
+    m.caixa('tela', (0, -0.33, 1.25), (0.52, 0.04, 0.42), 'telaJogo', chanfro=0, rot=(0.25, 0, 0))
+    m.caixa('painel', (0, -0.42, 0.95), (0.62, 0.22, 0.06), 'preto', rot=(-0.3, 0, 0))
+    m.cilindro('alavanca', (-0.15, -0.44, 1.02), 0.02, 0.1, 'vermelho', lados=6)
+    for i in range(3):
+        m.cilindro(f'botao{i}', (0.05 + i * 0.08, -0.44, 0.99), 0.025, 0.03, 'florAmarela', lados=8)
+    m.caixa('letreiro', (0, -0.31, 1.62), (0.66, 0.04, 0.12), 'luz', chanfro=0)
+    return m.agrupar('arcade')
+
+
+def sinuca():
+    m.caixa('mesa', (0, 0, 0.7), (2.3, 1.3, 0.12), 'madeiraEscura', chanfro=0.03)
+    m.caixa('feltro', (0, 0, 0.765), (2.1, 1.1, 0.01), 'verdeMesa', chanfro=0)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            m.caixa('pe', (sx * 1.0, sy * 0.5, 0.32), (0.14, 0.14, 0.64), 'madeiraEscura')
+    for i, cor in enumerate(('vermelho', 'florAmarela', 'azul', 'branco', 'preto')):
+        m.esfera(f'bola{i}', (-0.4 + i * 0.12, (i % 2) * 0.1, 0.79), 0.03, cor, segmentos=6, aneis=4)
+    m.cilindro('taco', (0.2, -0.45, 0.8), 0.012, 1.4, 'madeira', rot=(0, math.pi / 2, 0.2), lados=6)
+    return m.agrupar('sinuca')
+
+
+def impressora():
+    m.caixa('movel', (0, 0, 0.35), (0.7, 0.55, 0.7), 'madeira', chanfro=0.02)
+    m.caixa('impressora', (0, 0, 0.85), (0.6, 0.48, 0.3), 'branco', chanfro=0.02)
+    m.caixa('bandeja', (0, -0.28, 0.78), (0.4, 0.1, 0.02), 'metalClaro', chanfro=0)
+    m.caixa('papel', (0, -0.27, 0.8), (0.3, 0.08, 0.01), 'creme', chanfro=0)
+    m.caixa('painel', (0.2, -0.2, 1.0), (0.12, 0.08, 0.02), 'tela', chanfro=0)
+    return m.agrupar('impressora')
+
+
+def armario():
+    m.caixa('corpo', (0, 0, 0.95), (1.6, 0.5, 1.9), 'metalClaro', chanfro=0.02)
+    for i in range(4):
+        x = -0.6 + i * 0.4
+        m.caixa(f'porta{i}', (x, -0.255, 0.95), (0.36, 0.01, 1.8), 'azul' if i % 2 else 'mostarda', chanfro=0)
+        m.caixa(f'puxador{i}', (x + 0.12, -0.265, 1.0), (0.02, 0.02, 0.12), 'metal', chanfro=0)
+    return m.agrupar('armario')
+
+
+def divisoria():
+    m.caixa('painel', (0, 0, 0.6), (1.8, 0.08, 1.2), 'verde', chanfro=0.02)
+    m.caixa('borda', (0, 0, 1.21), (1.82, 0.1, 0.04), 'madeira', chanfro=0.005)
+    for sx in (-1, 1):
+        m.caixa('pe', (sx * 0.8, 0, 0.03), (0.08, 0.35, 0.06), 'metal')
+    return m.agrupar('divisoria')
+
 PECAS = [
     mesa_trabalho, cadeira, mesa_reuniao,
     lambda: estofado(2.0, 0.85, 'verde', 'sofa', 2),
     lambda: estofado(0.9, 0.9, 'mostarda', 'poltrona', 1),
     mesa_centro, mesa_redonda, banqueta, puff, planta, planta_grande, estante, lousa, jukebox,
     balcao, geladeira, bebedouro, rack_servidor, luminaria, tapete, tapete_redondo,
+    arvore, arvore_pinheiro, arbusto, canteiro, banco_jardim, mesa_picnic, fonte, poste, pedra,
+    tv, mesa_pingpong, arcade, sinuca, impressora, armario, divisoria,
 ]
 
 if __name__ == '__main__':
