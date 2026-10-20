@@ -7,8 +7,8 @@ ao fim de cada sessão: estado, decisões tomadas e próximo passo.
 
 ## Onde está cada coisa
 
-- **Branch:** `main-refactor`, criada a partir da `main` em 19/10/2026. A `main`
-  continua sendo a produção, com o motor PixiJS, até o refactor terminar.
+- **Branch:** o refactor foi feito na `main-refactor` (criada da `main` em 19/10/2026) e
+  entrou na `main` pela PR #1 em 20/10/2026. A `main` é a produção, já com Babylon.js.
 - **Plano completo (fonte de verdade):** `kairos-ui/public/docs/refactor/index.html`,
   servido pelo jogo em `/docs/refactor/`. Tem a visão, os pontos em ordem, o
   inventário do que sai e do que fica, o que herdamos do Icarus Journey e as
@@ -193,8 +193,6 @@ A conta `teste1` é sudo **só no banco de teste** (`kairos_refactor`).
 - **E2E**: `e2e/tests/smoke.spec.ts` ainda não roda contra a branch.
 - **Bundle**: o Babylon sai em chunks separados, mas o loader de glTF puxa bastante código
   (cerca de 1,2 MB entre `transformNode` e `Mundo`). Vale revisar os imports do loader.
-- **Corte para produção**: migration à parte que derruba `avatars`, `mascara_revisao`,
-  `tile_revisao`, `world_state` e as colunas antigas de `characters`/`game_maps` no `appdb`.
 - **Ponto 6** (edição de sala) é o próximo, quando o Icaro pedir.
 - O painel do navegador oculto roda a ~1 quadro por segundo; o movimento já se divide em
   passos de 0,05 s para não ficar lento nesse caso.
@@ -210,8 +208,11 @@ A conta `teste1` é sudo **só no banco de teste** (`kairos_refactor`).
 - `synchronize` desligado; a API roda as migrations no boot (`migrationsRun: true`).
   Configuração em `kairos-api/src/database/opcoes.ts`, CLI pelo `data-source.ts`
   (`npm run migration:generate|run|revert`).
-- Banco de teste do refactor: **`kairos_refactor`** no container `postgres` da VM (o mesmo
-  do `appdb` de produção, dono `kairos`). Migrations aplicadas: `Inicial`,
+- Produção: schema **`kairos`** do `appdb` (container `postgres` da VM). O `appdb` é
+  compartilhado com `discord_dj`, `icarus` e `wildpie`: nunca derrubar o banco, só o schema.
+  Em 20/10/2026 o schema antigo (teste do motor PixiJS) foi apagado e recriado vazio pelas
+  migrations; backup em `~/backups/appdb-kairos-antes-refactor-20261020.sql.gz` na VM.
+- Banco de teste do refactor: **`kairos_refactor`** no mesmo container, dono `kairos`. Migrations aplicadas: `Inicial`,
   `MapaPorSalasEMobilia`, `AparenciaDoPersonagem`, `AreasDoMapa`.
 - Para rodar a CLI do Mac: `ssh -f -N -L 25432:127.0.0.1:5432 oracle-vm` e
   `DATABASE_URL=postgres://kairos:<senha do .env da VM>@127.0.0.1:25432/kairos_refactor`.
@@ -223,5 +224,4 @@ Gate usado: typecheck e build do front verdes; `tsc` e os 115 testes da API verd
 ## Próximo passo
 
 1. Testar voz e vídeo com duas pessoas reais na VM.
-2. Decidir com o Icaro quando levar a branch para produção (exige a migration de corte).
-3. Ponto 6, edição de sala, quando pedido.
+2. Ponto 6, edição de sala, quando pedido.
