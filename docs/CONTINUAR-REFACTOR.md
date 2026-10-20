@@ -168,7 +168,9 @@ viram cerca viva.
   solida mais proximo; sem parede a 3 m, nao aparecem.
 - **Sentar**: `alturaAssento` por peca e `assentos` (lugares) em sofa, poltrona e mesa de
   piquenique; teleportar levanta.
-- **Filtro pixel art**: botao ao lado do minimapa (desligado, 2x, 3x, 4x; padrao 2x).
+- **Graficos**: em Configuracoes (engrenagem no rodape da barra), quatro niveis em
+  `services/graficos.ts`: Nitido (padrao, resolucao cheia), Pixel leve (2x), Pixel art (3x com
+  paleta reduzida) e Retro (4x com paleta). Guardado em `kairos_grafico`.
 - **Barra lateral**: perto de voce (mesma chamada), salas com gente, areas abertas, offline,
   convidar (admin). Dados em `atualizarPainelDePessoas` do GamePage.
 - **Audio e video**: engrenagem no rodape da barra; escolha por navegador

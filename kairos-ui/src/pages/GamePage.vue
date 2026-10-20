@@ -24,7 +24,7 @@
 
     <div class="gp-stage">
       <canvas
-        ref="tela" class="gp-tela" :class="{ 'gp-arrastando': arrastando, 'gp-pode-arrastar': podeArrastar, 'gp-pixel': pixel > 1 }"
+        ref="tela" class="gp-tela" :class="{ 'gp-arrastando': arrastando, 'gp-pode-arrastar': podeArrastar, 'gp-pixel': grafico.pixel > 1 }"
         @pointerdown="aoApertarTela" @pointermove="aoMoverTela" @pointerup="aoSoltarTela" @pointerleave="aoSoltarTela"
       />
       <div ref="camadaNomes" class="gp-nomes" />
@@ -80,7 +80,6 @@
           <button class="gp-botao" :class="{ 'gp-botao-on': minimapaVisivel }" title="minimapa (M)" @click="minimapaVisivel = !minimapaVisivel"><PixelIcon name="map-pin" size="0.875rem" /></button>
           <button v-if="minimapaVisivel" class="gp-botao" :title="minimapaGrande ? 'diminuir o minimapa' : 'aumentar o minimapa'" @click="minimapaGrande = !minimapaGrande"><PixelIcon :name="minimapaGrande ? 'zoom-out' : 'zoom-in'" size="0.875rem" /></button>
           <button class="gp-botao" title="mapa grande (N)" @click="mapaExpandido = true"><PixelIcon name="globe" size="0.875rem" /></button>
-          <button class="gp-botao" :class="{ 'gp-botao-on': pixel > 1 }" :title="pixel > 1 ? `pixel art: ${pixel}× (clique para mudar)` : 'pixel art: desligado (clique para ligar)'" @click="trocarPixel"><PixelIcon name="grid-3x3" size="0.875rem" /></button>
           <button class="gp-botao" :class="{ 'gp-botao-on': atalhosAbertos }" title="atalhos (?)" @click="atalhosAbertos = !atalhosAbertos">?</button>
           <button v-if="ehSudo" class="gp-botao" :class="{ 'gp-botao-on': sudoAberto }" title="poderes de sudo" @click="sudoAberto = !sudoAberto"><PixelIcon name="crown" size="0.875rem" /></button>
         </div>
@@ -231,6 +230,7 @@ import {
 } from '@/services/presence'
 import { media } from '@/services/media'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
+import { configuracaoDe, qualidade } from '@/services/graficos'
 import { consumePendingInvite, getMyServers, setPendingInvite } from '@/services/server.api'
 import { mostrarAviso } from '@/services/avisos'
 import { MAPA_ATUAL, buscarMapa } from '@/services/mapa.api'
@@ -605,26 +605,7 @@ const minimapaVisivel = ref(lerPreferencia('kairos_minimapa', true))
 const minimapaGrande = ref(lerPreferencia('kairos_minimapa_grande', false))
 const mapaExpandido = ref(false)
 const atalhosAbertos = ref(false)
-const TAMANHOS_DE_PIXEL = [1, 2, 3, 4]
-const pixel = ref(lerPixel())
-
-function lerPixel(): number {
-  try {
-    const valor = Number(localStorage.getItem('kairos_pixel') ?? 2)
-    return TAMANHOS_DE_PIXEL.includes(valor) ? valor : 2
-  } catch {
-    return 2
-  }
-}
-
-function trocarPixel() {
-  pixel.value = TAMANHOS_DE_PIXEL[(TAMANHOS_DE_PIXEL.indexOf(pixel.value) + 1) % TAMANHOS_DE_PIXEL.length]
-  try {
-    localStorage.setItem('kairos_pixel', String(pixel.value))
-  } catch {
-    return
-  }
-}
+const grafico = computed(() => configuracaoDe(qualidade.value))
 const sudoAberto = ref(false)
 const sudoNoclip = ref(false)
 const sudoInvisivel = ref(false)
@@ -656,7 +637,7 @@ let offPuxado: (() => void) | null = null
 let offFesta: (() => void) | null = null
 
 watch(minimapaVisivel, (v) => gravarPreferencia('kairos_minimapa', v))
-watch(pixel, (v) => mundo.value?.definirPixel(v))
+watch(grafico, (g) => mundo.value?.definirPixel(g.pixel, g.paleta))
 watch(minimapaGrande, (v) => gravarPreferencia('kairos_minimapa_grande', v))
 watch(horaEfetiva, (h) => mundo.value?.definirHora(h))
 watch(sudoNoclip, (v) => { if (mundo.value) mundo.value.noclip = v || sudoEspectador.value })
@@ -851,7 +832,7 @@ async function montarMundo() {
     entrada.aoTeclar('n', () => { mapaExpandido.value = !mapaExpandido.value })
     entrada.aoTeclar('?', () => { atalhosAbertos.value = !atalhosAbertos.value })
     mundo.value = instancia
-    instancia.definirPixel(pixel.value)
+    instancia.definirPixel(grafico.value.pixel, grafico.value.paleta)
     await instancia.definirMapa(mapa)
     mapaAtual.value = mapa
     instancia.definirHora(horaEfetiva.value)

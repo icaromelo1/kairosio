@@ -283,8 +283,8 @@
 
             <button
               class="ss-ctrl"
-              title="Escolher microfone, câmera e alto-falante"
-              aria-label="Escolher microfone, câmera e alto-falante"
+              title="Configurações: gráficos, microfone, câmera e alto-falante"
+              aria-label="Configurações"
               @click="emit('open-panel', 'dispositivos')"
             ><PixelIcon name="settings-cog" size="0.875rem" /></button>
 
