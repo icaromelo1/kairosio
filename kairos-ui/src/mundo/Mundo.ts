@@ -49,6 +49,11 @@ void main() {
   vec4 c = texture2D(textureSampler, vUV);
   gl_FragColor = vec4(floor(c.rgb * niveis + 0.5) / niveis, c.a);
 }`
+const ESCURO_DE_OUTRA_SALA = 0.45
+const ALTURA_VERGA = 1.42
+const ALTURA_FOLHA = 1.3
+const TEMPO_DA_PORTA = 0.55
+const TEMPO_DA_TRANSICAO = 0.16
 const RAIO_DE_LUZ: Record<string, number> = { poste: 3.6, jukebox: 2.4, luminaria: 2.2 }
 const DISTANCIA_CAMERA = 40
 const ALTURA_PAREDE = 1.1
@@ -161,8 +166,6 @@ export class Mundo {
   private pipeline!: DefaultRenderingPipeline
   private paleta: PostProcess | null = null
   private recortes: { id: string; recorte: Recorte }[] = []
-  private recorteAtual: string | null = null
-  private recorteDesejado: string | null = null
   private escuroFora = 0.42
   private readonly raizMapa: TransformNode
   private readonly pessoas = new Map<string, Pessoa>()
@@ -421,43 +424,60 @@ export class Mundo {
 
   private construirPortas(mapa: Mapa) {
     this.portas = []
-    const madeira = this.materialFosco('portaMadeira', '#a0703f')
+    const madeira = this.materialFosco('portaMadeira', '#8a5a34')
     madeira.diffuseTexture = textura(this.cena, 'madeira')
-    const painel = this.materialFosco('portaPainel', '#b98552')
-    const metal = this.materialFosco('portaMacaneta', '#3b3a40')
+    const painel = this.materialFosco('portaPainel', '#a8754a')
+    const batente = this.materialFosco('portaBatente', '#f2ead8')
+    const metal = this.materialFosco('portaMacaneta', '#c9a54a')
+    metal.specularColor = new Color3(0.6, 0.55, 0.4)
+    const vidro = new StandardMaterial('portaVidro', this.cena)
+    vidro.diffuseColor = cor('#bfe3f0')
+    vidro.specularColor = new Color3(0.8, 0.8, 0.8)
+    vidro.alpha = 0.55
     for (const porta of portasDe(mapa)) {
-      const folha = porta.largura - 0.06
-      const dobradica = new TransformNode(`porta-${porta.chave}`, this.cena)
-      dobradica.parent = this.raizMapa
-      const inicio = porta.centro - porta.largura / 2 + 0.03
-      dobradica.position = porta.horizontal ? new Vector3(inicio, 0, porta.linha) : new Vector3(porta.linha, 0, inicio)
-      const base = porta.horizontal ? 0 : -Math.PI / 2
-      const giro = (porta.horizontal ? -porta.dentro : porta.dentro) * (Math.PI / 2)
-      dobradica.rotation.y = base
+      const sala = mapa.salas.find((s) => s.id === porta.salaId)
+      const interna = !sala?.murada
       const partes: Mesh[] = []
-      const parte = (nome: string, largura: number, altura: number, profundidade: number, x: number, y: number, z: number, material: StandardMaterial) => {
+      const caixa = (nome: string, pai: TransformNode, largura: number, altura: number, profundidade: number, x: number, y: number, z: number, material: StandardMaterial) => {
         const malha = CreateBox(`${nome}-${porta.chave}`, { width: largura, height: altura, depth: profundidade }, this.cena)
         malha.position.set(x, y, z)
         malha.material = material
-        malha.parent = dobradica
+        malha.parent = pai
         malha.isPickable = false
         malha.receiveShadows = true
         partes.push(malha)
         return malha
       }
-      parte('folha', folha, 1.0, 0.05, folha / 2, 0.52, 0, madeira)
-      for (const lado of [-1, 1]) {
-        parte('painelAlto', folha - 0.18, 0.36, 0.012, folha / 2, 0.76, lado * 0.03, painel)
-        parte('painelBaixo', folha - 0.18, 0.36, 0.012, folha / 2, 0.3, lado * 0.03, painel)
-        const macaneta = CreateSphere(`macaneta-${porta.chave}-${lado}`, { diameter: 0.07, segments: 6 }, this.cena)
-        macaneta.position.set(folha - 0.1, 0.52, lado * 0.055)
-        macaneta.material = metal
-        macaneta.parent = dobradica
-        macaneta.isPickable = false
-        partes.push(macaneta)
+      const moldura = new TransformNode(`moldura-${porta.chave}`, this.cena)
+      moldura.parent = this.raizMapa
+      moldura.position = porta.horizontal ? new Vector3(porta.centro, 0, porta.linha) : new Vector3(porta.linha, 0, porta.centro)
+      moldura.rotation.y = porta.horizontal ? 0 : -Math.PI / 2
+      const meia = porta.largura / 2
+      for (const lado of [-1, 1]) caixa('batente', moldura, 0.09, ALTURA_VERGA, ESPESSURA_PAREDE + 0.06, lado * (meia + 0.045), ALTURA_VERGA / 2, 0, batente)
+      caixa('verga', moldura, porta.largura + 0.18, 0.1, ESPESSURA_PAREDE + 0.06, 0, ALTURA_VERGA - 0.05, 0, batente)
+      caixa('soleira', moldura, porta.largura, 0.012, ESPESSURA_PAREDE + 0.04, 0, 0.006, 0, batente)
+      const folhas = porta.largura >= 1.3 ? [-1, 1] : [-1]
+      const largura = porta.largura / folhas.length - 0.03
+      for (const lado of folhas) {
+        const dobradica = new TransformNode(`porta-${porta.chave}-${lado}`, this.cena)
+        dobradica.parent = moldura
+        dobradica.position.x = lado * (meia - 0.015)
+        const sentido = -lado
+        const folha = (x: number) => sentido * x
+        caixa('folha', dobradica, largura, ALTURA_FOLHA, 0.045, folha(largura / 2), ALTURA_FOLHA / 2 + 0.015, 0, madeira)
+        for (const face of [-1, 1]) {
+          caixa('vidro', dobradica, largura - 0.2, 0.42, 0.006, folha(largura / 2), ALTURA_FOLHA - 0.3, face * 0.025, vidro)
+          caixa('painel', dobradica, largura - 0.2, 0.46, 0.012, folha(largura / 2), 0.36, face * 0.027, painel)
+          const macaneta = CreateSphere(`macaneta-${porta.chave}-${lado}-${face}`, { diameter: 0.06, segments: 6 }, this.cena)
+          macaneta.position.set(folha(largura - 0.09), 0.62, face * 0.05)
+          macaneta.material = metal
+          macaneta.parent = dobradica
+          macaneta.isPickable = false
+          partes.push(macaneta)
+        }
+        const abre = (porta.horizontal ? -porta.dentro : porta.dentro) * sentido * (Math.PI / 2)
+        this.portas.push({ porta, dobradica, base: 0, giro: abre, angulo: 0 })
       }
-      const sala = mapa.salas.find((s) => s.id === porta.salaId)
-      const interna = !sala?.murada
       for (const malha of partes) {
         if (interna) {
           this.internas.add(malha)
@@ -466,13 +486,12 @@ export class Mundo {
           this.sombra.addShadowCaster(malha)
         }
       }
-      this.contornar(partes, 0.012)
-      this.portas.push({ porta, dobradica, base, giro, angulo: 0 })
+      this.contornar(partes.filter((m) => m.material !== vidro), 0.012)
     }
   }
 
   private animarPortas(decorrido: number) {
-    const t = 1 - Math.exp(-decorrido * 7)
+    const passo = decorrido / TEMPO_DA_PORTA
     for (const p of this.portas) {
       const { porta } = p
       const cx = porta.horizontal ? porta.centro : porta.linha
@@ -485,8 +504,9 @@ export class Mundo {
         }
       }
       const alvo = perto && !this.trancadas.has(porta.salaId) ? 1 : 0
-      p.angulo += (alvo - p.angulo) * t
-      p.dobradica.rotation.y = p.base + p.giro * p.angulo
+      p.angulo = alvo > p.angulo ? Math.min(alvo, p.angulo + passo) : Math.max(alvo, p.angulo - passo * 0.8)
+      const suave = p.angulo * p.angulo * (3 - 2 * p.angulo)
+      p.dobradica.rotation.y = p.base + p.giro * suave
     }
   }
 
@@ -827,51 +847,42 @@ export class Mundo {
     this.recortes = mapa.salas
       .filter((s) => !s.aberta || s.murada)
       .map((s) => ({ id: s.id, recorte: { x0: s.x, y0: s.y, x1: s.x + s.largura, y1: s.y + s.profundidade } }))
+      .sort((a, b) => area(b.recorte) - area(a.recorte))
+    this.ambiente.recortes = this.recortes.map((r) => ({ recorte: r.recorte, escuro: ESCURO_DE_OUTRA_SALA, calor: 0 }))
     this.ambiente.luzes = mapa.mobilia
       .filter((m) => RAIO_DE_LUZ[m.peca])
       .map((m) => ({ x: m.x, y: m.y, raio: RAIO_DE_LUZ[m.peca] }))
-    this.recorteAtual = this.recorteDesejado = null
-    this.aplicarRecorte(null)
-    this.ambiente.forca = 1
+    this.ambiente.escuroFora = 0
   }
 
   private recorteDoPonto(x: number, y: number): string | null {
     let melhor: { id: string; area: number } | null = null
     for (const { id, recorte: r } of this.recortes) {
       if (x < r.x0 || x > r.x1 || y < r.y0 || y > r.y1) continue
-      const area = (r.x1 - r.x0) * (r.y1 - r.y0)
-      if (!melhor || area < melhor.area) melhor = { id, area }
+      if (!melhor || area(r) < melhor.area) melhor = { id, area: area(r) }
     }
     return melhor?.id ?? null
-  }
-
-  private aplicarRecorte(id: string | null) {
-    const atual = this.recortes.find((r) => r.id === id)?.recorte ?? null
-    const contem = (a: Recorte, b: Recorte) => a.x0 <= b.x0 && a.y0 <= b.y0 && a.x1 >= b.x1 && a.y1 >= b.y1
-    this.ambiente.sala = atual
-    this.ambiente.outras = this.recortes
-      .filter((r) => r.id !== id && !(atual && contem(r.recorte, atual)))
-      .map((r) => r.recorte)
   }
 
   private atualizarAmbiente(decorrido: number) {
     const a = this.ambiente
     a.tempo += decorrido
-    a.escuroFora = this.escuroFora
-    a.calor = 1
     a.jogador = { x: this.local.x, y: this.local.y, raio: 3.2 }
-    this.recorteDesejado = this.recorteDoPonto(this.local.x, this.local.y)
-    if (this.recorteDesejado !== this.recorteAtual) {
-      a.forca = Math.max(0, a.forca - decorrido / 0.15)
-      if (a.forca === 0) {
-        this.recorteAtual = this.recorteDesejado
-        this.aplicarRecorte(this.recorteAtual)
-      }
-    } else if (a.forca < 1) {
-      a.forca = Math.min(1, a.forca + decorrido / 0.2)
-    }
-    const escuroNoLago = a.sala ? a.escuroFora * a.forca : 0
-    for (const lago of this.lagos) lago.definirLuz(this.luzDaAgua.scale(1 - escuroNoLago))
+    const atualId = this.recorteDoPonto(this.local.x, this.local.y)
+    const atual = this.recortes.find((r) => r.id === atualId)?.recorte ?? null
+    const contem = (fora: Recorte, dentro: Recorte) => fora.x0 <= dentro.x0 && fora.y0 <= dentro.y0 && fora.x1 >= dentro.x1 && fora.y1 >= dentro.y1
+    const t = 1 - Math.exp(-decorrido / TEMPO_DA_TRANSICAO)
+    const aproximar = (de: number, para: number) => de + (para - de) * t
+    a.escuroFora = aproximar(a.escuroFora, atual ? this.escuroFora : 0)
+    this.recortes.forEach((r, i) => {
+      const valor = a.recortes[i]
+      const aqui = r.id === atualId
+      const envolve = !!atual && !aqui && contem(r.recorte, atual)
+      const escuro = aqui ? 0 : envolve ? this.escuroFora : ESCURO_DE_OUTRA_SALA
+      valor.escuro = aproximar(valor.escuro, escuro)
+      valor.calor = aproximar(valor.calor, aqui ? 1 : 0)
+    })
+    for (const lago of this.lagos) lago.definirLuz(this.luzDaAgua.scale(1 - a.escuroFora))
   }
 
   private alturaDoAssento(id: string, x: number, y: number): number {
@@ -1118,4 +1129,8 @@ function trechosLivres(inicio: number, fim: number, ocupados: [number, number][]
     })
   }
   return trechos
+}
+
+function area(r: Recorte): number {
+  return (r.x1 - r.x0) * (r.y1 - r.y0)
 }
