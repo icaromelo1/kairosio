@@ -154,6 +154,36 @@ viram cerca viva.
   sites). Não foi instalado: o setup altera a config do agente e o Gather é 2D em pixel art,
   então o ganho para a arte 3D é pequeno. Instalar só com OK do Icaro.
 
+## Rodada de 20/10 (tarde)
+
+- **Luz entre ambientes** (`mundo/ambiente.ts`): plugin de material no shader de todo
+  StandardMaterial. Dentro de sala fechada (ou murada) o lado de fora escurece e a sala ganha luz
+  quente; as outras salas ficam a meia luz; a noite postes, jukebox e luminarias acendem pocas de
+  luz e o personagem leva uma luz fria. Troca de ambiente com fade de 0,35 s. O lago recebe o
+  mesmo escurecimento pelo `definirLuz`.
+- **Portas** (`construirPortas`/`animarPortas` no Mundo, `portasDe` na grade): folha com
+  dobradica em cada vao, abre para dentro da sala com alguem a 1,4 m e fecha devagar; sala
+  trancada mantem fechada.
+- **Pecas de parede** (quadro, mural, relogio, janela: `deParede`) encaixam no trecho de parede
+  solida mais proximo; sem parede a 3 m, nao aparecem.
+- **Sentar**: `alturaAssento` por peca e `assentos` (lugares) em sofa, poltrona e mesa de
+  piquenique; teleportar levanta.
+- **Filtro pixel art**: botao ao lado do minimapa (desligado, 2x, 3x, 4x; padrao 2x).
+- **Barra lateral**: perto de voce (mesma chamada), salas com gente, areas abertas, offline,
+  convidar (admin). Dados em `atualizarPainelDePessoas` do GamePage.
+- **Audio e video**: engrenagem no rodape da barra; escolha por navegador
+  (`kairos_dispositivos`), troca ao vivo via `room.switchActiveDevice`.
+- **Varredura de interacoes**: `node e2e/varredura.mjs <pasta> [regex de peca]` (POR_PECA=3)
+  tira print de cada peca sentavel/estacao; usa o gancho `window.kairosVarredura`, que so existe
+  para conta sudo com `?varredura` na URL.
+- **Legal**: paginas publicas `/termos`, `/privacidade`, `/suporte`, `/excluir-conta`
+  (`src/pages/legal/`); cadastro exige `aceitouTermos` e grava `users.termosAceitosEm`;
+  `POST /auth/excluir-conta` (`ContaService`) apaga tudo numa transacao e repassa servidores ao
+  membro mais antigo (admins primeiro) ou apaga o servidor vazio. Contato e idade minima em
+  `pages/legal/legal.ts`.
+- **LiveKit** estava parado desde 25/09 (junto com o nginx `kairos`); religado com `docker start
+  livekit`. O erro de CORS que viamos em localhost era o LiveKit fora do ar, nao a origem.
+
 ## Funcionalidades do mapa antigo (conferidas em 20/10)
 
 Religadas e testadas no navegador contra a VM:
