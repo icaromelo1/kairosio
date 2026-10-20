@@ -27,8 +27,11 @@ import { materialDePiso, textura } from './materiais'
 import { construirLago, type Lago } from './lago'
 import type { AvatarVisual } from './avatar'
 import type { Area, Estacao, Mapa, Movel, Pose, Sala } from './tipos'
+import type { Mesh } from '@babylonjs/core/Meshes/mesh'
+import { VertexBuffer } from '@babylonjs/core/Buffers/buffer'
 
 const ELEVACAO = (36 * Math.PI) / 180
+const MARGEM_EXTERNA = 40
 const DISTANCIA_CAMERA = 40
 const ALTURA_PAREDE = 1.1
 const ALTURA_CERCA = 0.9
@@ -267,6 +270,12 @@ export class Mundo {
         }
       }
     }
+    for (const movel of arvoresDeFora(mapa)) {
+      const no = this.catalogo.instanciar(movel)
+      if (!no) continue
+      no.parent = this.raizMapa
+      for (const malha of no.getChildMeshes()) malha.isPickable = false
+    }
     this.contornar([...this.catalogo.todasAsFontes(false), ...this.catalogo.todasAsFontes(true)], 0.012)
     for (const fonte of this.catalogo.todasAsFontes(false)) this.sombra.addShadowCaster(fonte)
     for (const fonte of this.catalogo.todasAsFontes(true)) {
@@ -288,6 +297,14 @@ export class Mundo {
     base.receiveShadows = true
     base.parent = this.raizMapa
     base.isPickable = false
+    const larguraFora = mapa.largura + MARGEM_EXTERNA * 2
+    const profundidadeFora = mapa.profundidade + MARGEM_EXTERNA * 2
+    const fora = CreateGround('pisoExterno', { width: larguraFora, height: profundidadeFora }, this.cena)
+    fora.position.set(mapa.largura / 2, -0.02, mapa.profundidade / 2)
+    fora.material = materialDePiso(this.cena, 'pisoExterno', '#7fae5c', 'gramado', larguraFora, profundidadeFora, 4)
+    fora.receiveShadows = true
+    fora.parent = this.raizMapa
+    fora.isPickable = false
     const areas = mapa.areas ?? []
     areas.forEach((area, i) => {
       const altura = 0.004 + i * 0.0006
@@ -306,6 +323,7 @@ export class Mundo {
         malha.scaling.set(area.largura, 1, area.profundidade)
       }
       malha.position.set(area.x, altura, area.y)
+      recortarAoMapa(malha, mapa)
       const tex = TEXTURAS_DE_AREA[area.tipo]
       const material = materialDePiso(this.cena, `area-${area.id}`, CORES_DE_AREA[area.tipo], tex.nome, area.largura, area.profundidade, tex.tamanho)
       malha.material = material
@@ -573,9 +591,16 @@ export class Mundo {
   private sentar(movel: Movel) {
     this.cancelarRota()
     this.sentadoEm = { movel, antes: { x: this.local.x, y: this.local.y } }
-    this.local.x = movel.x
-    this.local.y = movel.y
-    this.local.direcao = (movel.giro * Math.PI) / 180
+    const giro = (movel.giro * Math.PI) / 180
+    const lugares = (pecaDe(movel)?.assentos ?? [{ x: 0, y: 0, giro: 0 }]).map((a) => {
+      const deslocamento = Vector3.TransformCoordinates(new Vector3(a.x, 0, a.y), Matrix.RotationY(giro))
+      return { x: movel.x + deslocamento.x, y: movel.y + deslocamento.z, direcao: giro + (a.giro * Math.PI) / 180 }
+    })
+    const lugar = lugares.reduce((melhor, l) =>
+      Math.hypot(l.x - this.local.x, l.y - this.local.y) < Math.hypot(melhor.x - this.local.x, melhor.y - this.local.y) ? l : melhor)
+    this.local.x = lugar.x
+    this.local.y = lugar.y
+    this.local.direcao = lugar.direcao
     this.dancando = false
   }
 
@@ -829,4 +854,35 @@ export class Mundo {
     this.cena.dispose()
     this.motor.dispose()
   }
+}
+
+function recortarAoMapa(malha: Mesh, mapa: Mapa) {
+  malha.bakeCurrentTransformIntoVertices()
+  const posicoes = malha.getVerticesData(VertexBuffer.PositionKind)
+  if (!posicoes) return
+  for (let i = 0; i < posicoes.length; i += 3) {
+    posicoes[i] = Math.min(mapa.largura, Math.max(0, posicoes[i]))
+    posicoes[i + 2] = Math.min(mapa.profundidade, Math.max(0, posicoes[i + 2]))
+  }
+  malha.setVerticesData(VertexBuffer.PositionKind, posicoes)
+}
+
+function arvoresDeFora(mapa: Mapa): Movel[] {
+  let semente = 1
+  const sorte = () => {
+    semente = (semente * 16807) % 2147483647
+    return semente / 2147483647
+  }
+  const arvores: Movel[] = []
+  const passo = 2.6
+  for (let x = -MARGEM_EXTERNA + 1; x < mapa.largura + MARGEM_EXTERNA; x += passo) {
+    for (let y = -MARGEM_EXTERNA + 1; y < mapa.profundidade + MARGEM_EXTERNA; y += passo) {
+      const px = x + (sorte() - 0.5) * passo
+      const py = y + (sorte() - 0.5) * passo
+      const distancia = Math.max(-px, px - mapa.largura, -py, py - mapa.profundidade)
+      if (distancia < 1.2 || sorte() > Math.min(0.85, 0.25 + distancia * 0.06)) continue
+      arvores.push({ id: `fora-${arvores.length}`, peca: sorte() < 0.45 ? 'arvore_pinheiro' : sorte() < 0.8 ? 'arvore' : 'arbusto', x: px, y: py, giro: ([0, 90, 180, 270] as const)[Math.floor(sorte() * 4)] })
+    }
+  }
+  return arvores
 }
