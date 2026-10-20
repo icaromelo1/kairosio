@@ -16,4 +16,13 @@ for nome in mobilia personagem; do
   "$GT" dedup "$TEMP/$nome.1.glb" "$TEMP/$nome.2.glb" > /dev/null
   "$GT" quantize "$TEMP/$nome.2.glb" "$DESTINO/$nome.glb" > /dev/null
 done
+MINIATURAS="$RAIZ/kairos-ui/public/personagem/miniaturas"
+"$BLENDER" -b --factory-startup --python "$RAIZ/arte/miniaturas.py" -- "$TEMP/miniaturas" > "$TEMP/miniaturas.log" 2>&1
+grep -E 'MINIATURAS|Error|Traceback' "$TEMP/miniaturas.log" || true
+mkdir -p "$MINIATURAS"
+python3 -c "import os, sys
+from PIL import Image
+o, d = sys.argv[1:]
+for f in os.listdir(o):
+    Image.open(os.path.join(o, f)).save(os.path.join(d, f[:-4] + '.webp'), 'WEBP', quality=88, method=6)" "$TEMP/miniaturas" "$MINIATURAS"
 ls -la "$DESTINO"
