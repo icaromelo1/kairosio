@@ -20,6 +20,12 @@ export class User {
   @Column({ type: 'timestamptz', nullable: true })
   usernameChangedAt: Date | null
 
+  @Column({ type: 'varchar', nullable: true, unique: true })
+  googleId: string | null
+
+  @Column({ type: 'varchar', nullable: true, unique: true })
+  githubId: string | null
+
   @Column({ default: false })
   isGuest: boolean
 

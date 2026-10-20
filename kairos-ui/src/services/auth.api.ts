@@ -103,3 +103,15 @@ export async function logoutApi(): Promise<void> {
     // ignora — o logout local (limpar token) acontece de qualquer forma
   }
 }
+
+export type Provedor = 'google' | 'github'
+
+export async function buscarProvedores(): Promise<Record<Provedor, boolean>> {
+  const res = await apiFetch('/auth/provedores')
+  if (!res.ok) return { google: false, github: false }
+  return res.json()
+}
+
+export function urlDoProvedor(provedor: Provedor): string {
+  return `${import.meta.env.VITE_API_URL || window.location.origin}/kairos-api/auth/${provedor}`
+}
