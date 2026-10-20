@@ -60,6 +60,7 @@ export class AuthService {
       password: hashed,
       username: name,
       usernameLower: nameLower,
+      termosAceitosEm: new Date(),
     })
     await this.saveUnique(user)
     return { token: this.jwtService.sign({ sub: user.id, email: user.email }) }
@@ -77,7 +78,7 @@ export class AuthService {
       }
     }
     if (!user) {
-      user = this.userRepo.create({ email, [coluna]: perfil.id })
+      user = this.userRepo.create({ email, [coluna]: perfil.id, termosAceitosEm: new Date() })
       await this.userRepo.save(user)
     }
     return { token: this.jwtService.sign({ sub: user.id, email: user.email }) }

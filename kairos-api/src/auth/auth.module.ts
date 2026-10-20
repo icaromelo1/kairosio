@@ -3,6 +3,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import { JwtModule } from '@nestjs/jwt'
 import { PassportModule } from '@nestjs/passport'
 import { AuthService } from './auth.service'
+import { ContaService } from './conta.service'
 import { AuthController } from './auth.controller'
 import { JwtStrategy } from './jwt.strategy'
 import { GoogleStrategy } from './google.strategy'
@@ -34,7 +35,7 @@ const oauthStrategies = [...(ativos.google ? [GoogleStrategy] : []), ...(ativos.
       }),
     }),
   ],
-  providers: [AuthService, JwtStrategy, ...oauthStrategies],
+  providers: [AuthService, ContaService, JwtStrategy, ...oauthStrategies],
   controllers: [AuthController],
 })
 export class AuthModule {}
