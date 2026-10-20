@@ -29,9 +29,9 @@ const router = createRouter({
       path: '/join/:code',
       redirect: (to) => {
         const code = String(to.params.code || '')
+        if (useAuthStore().isAuthenticated) return gameWithPanel('servidores', code)
         setPendingInvite(code)
-        if (!useAuthStore().isAuthenticated) return { path: '/login' }
-        return gameWithPanel('servidores', code)
+        return { path: '/login' }
       },
     },
     {

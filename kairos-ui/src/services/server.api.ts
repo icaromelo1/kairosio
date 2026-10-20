@@ -79,9 +79,10 @@ export async function createServer(name: string): Promise<Server> {
   return res.json()
 }
 
-export async function joinServer(code: string): Promise<void> {
+export async function joinServer(code: string): Promise<{ entrouEm: string; jaEraMembro: boolean }> {
   const res = await apiFetch('/server/join', { method: 'POST', body: JSON.stringify({ code }) })
   if (!res.ok) throw await apiError(res, 'Convite inválido')
+  return res.json()
 }
 
 // ---- convite: link fixo, um por servidor ----

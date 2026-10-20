@@ -231,7 +231,7 @@ import {
 } from '@/services/presence'
 import { media } from '@/services/media'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
-import { getMyServers } from '@/services/server.api'
+import { consumePendingInvite, getMyServers, setPendingInvite } from '@/services/server.api'
 import { mostrarAviso } from '@/services/avisos'
 import { MAPA_ATUAL, buscarMapa } from '@/services/mapa.api'
 import { buscarPersonagem } from '@/services/personagem.api'
@@ -407,6 +407,9 @@ function aoSalvarPersonagem(aparencia: Aparencia) {
   emitAvatarUpdate(payloadDoAvatar())
   closeModal()
   void enterVoice()
+  const convite = consumePendingInvite()
+  if (convite) openPanel('servidores', convite)
+  else void getMyServers().then((lista) => { if (lista.length === 0) openPanel('servidores') }).catch(() => undefined)
 }
 
 async function enterVoice(trocouServidor = false) {
@@ -896,6 +899,7 @@ onMounted(async () => {
     })
   }
   if (await precisaCriarPersonagem().catch(() => false)) {
+    if (typeof invite === 'string' && invite) setPendingInvite(invite)
     personagemObrigatorio.value = true
     panel.value = 'personagem'
     gameStore.isModalOpen = true
