@@ -5,6 +5,7 @@ export interface Peca {
   profundidade: number
   solida: boolean
   sentavel?: boolean
+  assentos?: { x: number; y: number; giro: number }[]
   estacao?: Estacao
   nome: string
 }
@@ -36,7 +37,7 @@ export const PECAS: Record<string, Peca> = {
   arbusto: { largura: 0.8, profundidade: 0.8, solida: true, nome: 'arbusto' },
   canteiro: { largura: 1.8, profundidade: 0.8, solida: true, nome: 'canteiro' },
   banco_jardim: { largura: 1.6, profundidade: 0.5, solida: true, sentavel: true, nome: 'banco' },
-  mesa_picnic: { largura: 1.8, profundidade: 1.7, solida: true, sentavel: true, nome: 'mesa de piquenique' },
+  mesa_picnic: { largura: 1.8, profundidade: 1.7, solida: true, sentavel: true, assentos: [{ x: -0.45, y: -0.68, giro: 0 }, { x: 0.45, y: -0.68, giro: 0 }, { x: -0.45, y: 0.68, giro: 180 }, { x: 0.45, y: 0.68, giro: 180 }], nome: 'mesa de piquenique' },
   fonte: { largura: 2.5, profundidade: 2.5, solida: true, nome: 'fonte' },
   poste: { largura: 0.3, profundidade: 0.3, solida: true, nome: 'poste' },
   pedra: { largura: 0.8, profundidade: 0.6, solida: true, nome: 'pedra' },
