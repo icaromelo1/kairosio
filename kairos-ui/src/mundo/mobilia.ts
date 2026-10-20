@@ -5,6 +5,7 @@ export interface Peca {
   profundidade: number
   solida: boolean
   sentavel?: boolean
+  deParede?: boolean
   assentos?: { x: number; y: number; giro: number }[]
   estacao?: Estacao
   nome: string
@@ -51,11 +52,11 @@ export const PECAS: Record<string, Peca> = {
   notebook: { largura: 0.35, profundidade: 0.3, solida: false, nome: 'notebook' },
   planta_mesa: { largura: 0.2, profundidade: 0.2, solida: false, nome: 'planta' },
   pilha_livros: { largura: 0.25, profundidade: 0.2, solida: false, nome: 'livros' },
-  quadro_a: { largura: 0.7, profundidade: 0.05, solida: false, nome: 'quadro' },
-  quadro_b: { largura: 0.7, profundidade: 0.05, solida: false, nome: 'quadro' },
-  relogio: { largura: 0.35, profundidade: 0.05, solida: false, nome: 'relógio' },
-  janela: { largura: 1.3, profundidade: 0.15, solida: false, nome: 'janela' },
-  quadro_avisos: { largura: 1.1, profundidade: 0.05, solida: false, nome: 'quadro de avisos' },
+  quadro_a: { largura: 0.7, profundidade: 0.05, solida: false, deParede: true, nome: 'quadro' },
+  quadro_b: { largura: 0.7, profundidade: 0.05, solida: false, deParede: true, nome: 'quadro' },
+  relogio: { largura: 0.35, profundidade: 0.05, solida: false, deParede: true, nome: 'relógio' },
+  janela: { largura: 1.3, profundidade: 0.15, solida: false, deParede: true, nome: 'janela' },
+  quadro_avisos: { largura: 1.1, profundidade: 0.05, solida: false, deParede: true, nome: 'quadro de avisos' },
   lixeira: { largura: 0.32, profundidade: 0.32, solida: true, nome: 'lixeira' },
   cabideiro: { largura: 0.4, profundidade: 0.4, solida: true, nome: 'cabideiro' },
   vaso_alto: { largura: 0.4, profundidade: 0.4, solida: true, nome: 'cacto' },
