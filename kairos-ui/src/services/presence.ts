@@ -1,10 +1,10 @@
 import { computed, reactive, ref } from 'vue'
 import { io, type Socket } from 'socket.io-client'
 import type { DmMensagem, DmPerfil } from './dm.api'
-import { ESCALA_PADRAO } from '@/game/escala-avatar'
 
-export type Facing = 'down' | 'up' | 'left' | 'right'
-export type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit' | 'giro' | 'pulo' | 'robo'
+export type { Pose } from '@/mundo/tipos'
+import type { Pose } from '@/mundo/tipos'
+import type { Aparencia } from '@/mundo/personagem/catalogo'
 
 export interface ChatMessage {
   id: string
@@ -49,9 +49,8 @@ export interface RemotePlayer {
   map: string
   x: number
   y: number
-  facing: Facing
+  direcao: number
   pose: Pose
-  boost?: boolean
 }
 
 // Aviso de transmissão de tela — vem pelo socket, não pelo LiveKit, porque
@@ -104,12 +103,7 @@ export interface DmLeituraAviso {
 
 export interface AvatarProps {
   escala?: number
-  hairStyle?: string | null
-  hairColor?: string | null
-  skin?: string | null
-  topColor?: string | null
-  pantsColor?: string | null
-  // URL pública da foto de perfil — quando presente, o cliente mostra o círculo em vez do sprite
+  aparencia?: Aparencia
   photoUrl?: string | null
 }
 
@@ -146,12 +140,8 @@ export const horaDoMundo = ref<number | null>(null)
 // true quando esta aba foi derrubada por outra sessão da MESMA conta (login em
 // outro lugar) — a tela mostra um aviso em vez de deixar a conexão travada
 export const sessionKicked = ref(false)
-// poderes do sudo — invisível também vai pro servidor (emitSudoInvisivel); os
-// outros três são puramente locais (escala trafega pelo canal de avatar)
-export const sudoInvisivel = ref(false)
-export const sudoNoclip = ref(false)
-export const sudoEspectador = ref(false)
-export const sudoEscala = ref(ESCALA_PADRAO)
+const puxadoListeners = new Set<(p: { x: number; y: number }) => void>()
+const festaListeners = new Set<() => void>()
 // Quem está online em cada servidor OBSERVADO: serverId → (socket.id → pessoa).
 // Só aparece aqui servidor de que o usuário é membro — o backend recusa o resto
 // em silêncio. A barra lateral lê isto direto; agrupar por mundo é com quem
@@ -167,7 +157,7 @@ export const dmUnreadTotal = computed(() => {
 
 let socket: Socket | null = null
 let lastEmit = 0
-let pending: { x: number; y: number; facing: Facing; pose: Pose; boost: boolean } | null = null
+let pending: { x: number; y: number; direcao: number; pose: Pose } | null = null
 // estado ATUAL do join — atualizado em switchMap/emitMove; a reconexão automática
 // do socket.io re-emite este (re-join com os opts originais devolvia o player
 // pro mapa antigo depois de um blip de rede)
@@ -187,8 +177,6 @@ const screenShareListeners = new Set<(state: ScreenShareState) => void>()
 const dmListeners = new Set<(entrega: DmEntrega) => void>()
 const dmLeituraListeners = new Set<(leitura: DmLeituraAviso) => void>()
 const volumeTodosListeners = new Set<(volume: number) => void>()
-const puxadoListeners = new Set<(p: { x: number; y: number }) => void>()
-const festaListeners = new Set<() => void>()
 
 export function connectPresence(opts: JoinOptions) {
   if (socket) return
@@ -217,9 +205,9 @@ export function connectPresence(opts: JoinOptions) {
     remotePlayers.set(p.id, p)
   })
 
-  socket.on('playerMoved', ({ id, x, y, facing, pose, boost }: { id: string; x: number; y: number; facing: Facing; pose: Pose; boost?: boolean }) => {
+  socket.on('playerMoved', ({ id, x, y, direcao, pose }: { id: string; x: number; y: number; direcao: number; pose: Pose }) => {
     const p = remotePlayers.get(id)
-    if (p) { p.x = x; p.y = y; if (facing) p.facing = facing; if (pose) p.pose = pose; p.boost = !!boost }
+    if (p) { p.x = x; p.y = y; if (typeof direcao === 'number') p.direcao = direcao; if (pose) p.pose = pose }
   })
 
   socket.on('playerLeft', ({ id }: { id: string }) => {
@@ -436,9 +424,6 @@ export function emitJukeboxAdd(input: string, areaId: string | null, jukeboxId: 
 export function emitJukeboxSkip(jukeboxId: string) {
   socket?.emit('jukeboxSkip', { jukeboxId })
 }
-export function emitDefinirHora(hora: number | null) {
-  socket?.emit('definirHora', { hora })
-}
 
 export function emitJukeboxVolumeTodos(volume: number) {
   socket?.emit('jukeboxVolumeTodos', { volume })
@@ -478,7 +463,7 @@ export function emitNomeAtualizado() {
   socket?.emit('nomeAtualizado')
 }
 
-export function emitMove(x: number, y: number, facing: Facing, pose: Pose, boost = false) {
+export function emitMove(x: number, y: number, direcao: number, pose: Pose) {
   if (!socket) return
   if (currentJoin) {
     currentJoin.x = x
@@ -487,11 +472,11 @@ export function emitMove(x: number, y: number, facing: Facing, pose: Pose, boost
   const now = Date.now()
   if (now - lastEmit >= MOVE_INTERVAL) {
     lastEmit = now
-    socket.emit('move', { x, y, facing, pose, boost })
+    socket.emit('move', { x, y, direcao, pose })
     pending = null
   } else {
     // garante que o último estado seja enviado mesmo parando de mexer
-    pending = { x, y, facing, pose, boost }
+    pending = { x, y, direcao, pose }
     setTimeout(flushPending, MOVE_INTERVAL)
   }
 }
@@ -553,17 +538,23 @@ export function onJukeboxVolumeTodos(fn: (volume: number) => void): () => void {
   return () => volumeTodosListeners.delete(fn)
 }
 
-// ---- poderes do sudo ----
-export function emitSudoInvisivel(on: boolean): void {
+export function emitDefinirHora(hora: number | null) {
+  socket?.emit('definirHora', { hora })
+}
+
+export function emitSudoInvisivel(on: boolean) {
   socket?.emit('sudoInvisivel', { on })
 }
-export function emitSudoPuxar(alvoId: string): void {
+
+export function emitSudoPuxar(alvoId: string) {
   socket?.emit('sudoPuxar', { alvoId })
 }
-export function emitSudoFesta(): void {
+
+export function emitSudoFesta() {
   socket?.emit('sudoFesta', {})
 }
-export function emitSudoTeleporte(x: number, y: number): void {
+
+export function emitSudoTeleporte(x: number, y: number) {
   socket?.emit('sudoTeleporte', { x, y })
 }
 
@@ -571,6 +562,7 @@ export function onPuxado(fn: (p: { x: number; y: number }) => void): () => void 
   puxadoListeners.add(fn)
   return () => puxadoListeners.delete(fn)
 }
+
 export function onFesta(fn: () => void): () => void {
   festaListeners.add(fn)
   return () => festaListeners.delete(fn)

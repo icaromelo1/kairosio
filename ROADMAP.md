@@ -1,5 +1,9 @@
 # Roadmap do Kairos
 
+> **Refactor em andamento (branch `main-refactor`, desde 19/10/2026):** o motor PixiJS está
+> sendo trocado por Babylon.js. Estado e próximo passo em `docs/CONTINUAR-REFACTOR.md`;
+> plano completo em `kairos-ui/public/docs/refactor/index.html`.
+
 Estado real do projeto. Visão em `KAIROS.md`; **o que falta em `docs/PENDENTE.md`**;
 specs detalhados em `docs/PLANO-*.md`.
 
@@ -10,9 +14,9 @@ specs detalhados em `docs/PLANO-*.md`.
 ## 🔜 O QUE FALTA → `docs/PENDENTE.md`
 
 Resumo (detalhe no PENDENTE.md):
-1. **Spritesheets do avatar** — única peça grande de arte que falta (destrava o virar de perfil no A/D). — `PLANO-arte-2.5d.md`
+1. **Arte, mapa e personagem**: refeitos em Babylon.js na branch `main-refactor` (ver `docs/CONTINUAR-REFACTOR.md`).
 2. **OAuth Google/GitHub**: código pronto, falta o Icaro criar os apps + creds.
-3. **Débitos técnicos**: `synchronize: true` em prod, estado do jogo em memória (não escala pra 2+ instâncias), bundle único grande.
+3. **Débitos técnicos**: estado do jogo em memória (não escala pra 2+ instâncias), bundle único grande.
 4. **Backlog (não agendado):** NPCs-LLM. **Recusado:** economia/dinheiro.
 
 ---
@@ -75,8 +79,7 @@ Resumo (detalhe no PENDENTE.md):
 ---
 
 ## 📂 Specs (`docs/`)
-`PENDENTE.md` · `PLANO-arte-2.5d.md` · `PLANO-editor-melhorias.md` · `PLANO-interacoes-objetos.md`
-· `PLANO-camera-e-estilo.md` · `PLANO-feedback-status.md` · `PLANO-hardening-e-login.md`
+`PENDENTE.md` · `CONTINUAR-REFACTOR.md` · `PLANO-feedback-status.md` · `PLANO-hardening-e-login.md`
 · `PLANO-jukebox.md` · `REVIEW-2026-07-30.md`
 · `PLANO-landing-page.md` · `PLANO-multi-tenancy.md` · `PLANO-admin-panel.md`
 

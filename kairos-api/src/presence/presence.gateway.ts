@@ -16,11 +16,11 @@ import { JukeboxService } from '../jukebox/jukebox.service'
 import { FriendService } from '../friend/friend.service'
 import { DmDelivery } from '../dm/dm-delivery'
 import { MapService } from '../map/map.service'
+import { validarAparencia } from '../character/aparencia'
 import { jwtSecret } from '../auth/jwt-secret'
 
 type MapId = string
-type Facing = 'down' | 'up' | 'left' | 'right'
-type Pose = 'idle' | 'walk' | 'dance' | 'wave' | 'sit' | 'giro' | 'pulo' | 'robo'
+type Pose = 'parado' | 'andar' | 'correr' | 'sentar' | 'acenar' | 'dancar'
 
 interface JukeboxQueueItem {
   trackId: string
@@ -52,9 +52,8 @@ interface Player {
   serverId: string | null // servidor derivado do TOKEN (não do cliente) — isola as salas
   x: number
   y: number
-  facing: Facing
+  direcao: number
   pose: Pose
-  boost: boolean
 }
 
 interface JoinPayload {
@@ -142,16 +141,7 @@ const ESCALA_MAX = 3
 const COORD_LIMIT = 100000
 const JUKEBOX_ADD_COOLDOWN_MS = 5000
 const JUKEBOX_MAX_QUEUE = 50
-const FACING_VALUES: Facing[] = ['down', 'up', 'left', 'right']
-const POSE_VALUES: Pose[] = ['idle', 'walk', 'dance', 'wave', 'sit', 'giro', 'pulo', 'robo']
-// id de preset de avatar — MESMO formato que o SaveCharacterDto valida. A lista
-// fechada que existia aqui era dos cabelos do avatar procedural, extinto quando
-// o avatar virou sprite: o front passava a mandar 'ruivo-verde', isto derrubava
-// o campo, e cada pessoa aparecia como o preset PADRÃO para todas as outras —
-// só ela mesma se via direito. Terceira cópia da mesma lista morta (as outras
-// duas eram o DTO e o índice de tiles): validar FORMATO, não enumerar valores.
-const PRESET_ID = /^[a-z0-9-]{1,40}$/
-const HEX_COLOR = /^#[0-9a-fA-F]{3,8}$/
+const POSE_VALUES: Pose[] = ['parado', 'andar', 'correr', 'sentar', 'acenar', 'dancar']
 const PHOTO_PATH = /\/kairos-api\/character\/photo\/([a-f0-9-]+\.(?:jpg|png|webp))$/
 
 function sameSet(a: Set<string> | undefined, b: Set<string>): boolean {
@@ -172,20 +162,18 @@ function sanitizeCoord(raw: unknown, fallback: number): number {
   return Number.isFinite(n) && Math.abs(n) <= COORD_LIMIT ? n : fallback
 }
 
-// só os campos conhecidos do look, cada um validado — e a foto vira o caminho
+// só os campos conhecidos, cada um validado — e a foto vira o caminho
 // CANÔNICO relativo (/kairos-api/character/photo/<arquivo>), nunca uma URL
 // externa arbitrária repassada pra todo mundo carregar
-function sanitizeAvatar(raw: unknown): Record<string, string | number | null> {
+function sanitizeAvatar(raw: unknown): Record<string, unknown> {
   if (!raw || typeof raw !== 'object' || JSON.stringify(raw).length > AVATAR_MAX_JSON) return {}
   const a = raw as Record<string, unknown>
-  const out: Record<string, string | number | null> = {}
+  const out: Record<string, unknown> = {}
   if (typeof a.escala === 'number' && Number.isFinite(a.escala)) {
     out.escala = Math.min(ESCALA_MAX, Math.max(ESCALA_MIN, a.escala))
   }
-  if (typeof a.hairStyle === 'string' && PRESET_ID.test(a.hairStyle)) out.hairStyle = a.hairStyle
-  for (const key of ['hairColor', 'skin', 'topColor', 'pantsColor'] as const) {
-    if (typeof a[key] === 'string' && HEX_COLOR.test(a[key] as string)) out[key] = a[key] as string
-  }
+  const aparencia = validarAparencia(a.aparencia)
+  if (aparencia) out.aparencia = aparencia
   if (typeof a.photoUrl === 'string' && a.photoUrl.length <= 300) {
     const m = PHOTO_PATH.exec(a.photoUrl)
     if (m) out.photoUrl = `/kairos-api/character/photo/${m[1]}`
@@ -433,9 +421,8 @@ export class PresenceGateway
       serverId,
       x: sanitizeCoord(payload?.x, 0),
       y: sanitizeCoord(payload?.y, 0),
-      facing: 'down',
-      pose: 'idle',
-      boost: false,
+      direcao: 0,
+      pose: 'parado',
     }
     this.players.set(socket.id, player)
     this.areaAtualDoSocket.set(socket.id, this.areaDoPonto(player.map, player.x, player.y))
@@ -454,7 +441,7 @@ export class PresenceGateway
   }
 
   @SubscribeMessage('move')
-  handleMove(socket: Socket, payload: { x: number; y: number; facing?: Facing; pose?: Pose; boost?: boolean }) {
+  handleMove(socket: Socket, payload: { x: number; y: number; direcao?: number; pose?: Pose }) {
     const player = this.players.get(socket.id)
     if (!player) return
     const now = Date.now()
@@ -462,13 +449,11 @@ export class PresenceGateway
     this.lastMoveAt.set(socket.id, now)
     if (typeof payload?.x !== 'number' || !Number.isFinite(payload.x) || Math.abs(payload.x) > COORD_LIMIT) return
     if (typeof payload?.y !== 'number' || !Number.isFinite(payload.y) || Math.abs(payload.y) > COORD_LIMIT) return
-    const facing = FACING_VALUES.includes(payload.facing as Facing) ? (payload.facing as Facing) : undefined
     const pose = POSE_VALUES.includes(payload.pose as Pose) ? (payload.pose as Pose) : undefined
     player.x = payload.x
     player.y = payload.y
-    if (facing) player.facing = facing
+    if (typeof payload.direcao === 'number' && Number.isFinite(payload.direcao)) player.direcao = Math.max(-7, Math.min(7, payload.direcao))
     if (pose) player.pose = pose
-    player.boost = !!payload.boost
     this.aplicarNovaPosicao(player)
     this.emitPlayerMoved(socket, player, this.room(player.serverId, player.map))
   }
@@ -910,16 +895,16 @@ export class PresenceGateway
     let areas: AreaRect[] = []
     try {
       const map = await this.mapService.findOne(mapId)
-      areas = (map.objects as any[])
-        .filter((o) => o && o.kind === 'area' && o.id)
+      areas = (map.salas as any[])
+        .filter((o) => o && o.id)
         .map((o) => ({
           id: String(o.id),
-          nome: String(o.name ?? o.nome ?? o.id),
+          nome: String(o.nome ?? o.id),
           aberta: o.aberta === true,
           x: Number(o.x),
           y: Number(o.y),
-          w: Number(o.w),
-          h: Number(o.h),
+          w: Number(o.largura),
+          h: Number(o.profundidade),
         }))
     } catch {
       areas = []
@@ -1068,9 +1053,8 @@ export class PresenceGateway
       id: player.id,
       x: player.x,
       y: player.y,
-      facing: player.facing,
+      direcao: player.direcao,
       pose: player.pose,
-      boost: player.boost,
     })
   }
 

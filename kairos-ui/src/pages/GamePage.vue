@@ -1,302 +1,92 @@
 <template>
   <div class="gp-root" :class="{ 'gp-sidebar-open': gameStore.sidebarOpen }">
-    <!-- Sidebar: servidores + mundos + pessoas (navegar não conecta) -->
     <aside class="gp-sidebar" :class="{ 'gp-sidebar-open': gameStore.sidebarOpen }">
       <ServerSidebar
         ref="sidebar"
         v-model:open="gameStore.sidebarOpen"
-        :maps="maps"
-        :minha-posicao="pos"
-        @ir-para-sala="irParaSala"
-        @andar-ate="irParaPonto"
-        :current-map-id="currentId"
+        :maps="mundos"
+        :current-map-id="MAPA_ATUAL"
         :player-name="playerName"
-        :look="look"
         :voice-on="voiceOn"
-        :can-edit-current-world="!!currentMap && (ehSudo || currentMap.ownerId === auth.userId)"
         :is-guest="auth.isGuest"
-        :eh-sudo="ehSudo"
-        :hora-mundo="horaMundoLabel"
-        :periodo-do-dia="horario"
-        @select-world="selectMap"
+        :salas="salasComGente"
+        @ir-para-sala="irParaSala"
+        @andar-ate="(x: number, y: number) => irPara(x, y, 'a conversa')"
         @server-changed="onServerChanged"
-        @open-media="openMediaStage"
         @open-panel="openPanel"
         @open-friends="openFriends"
         @open-dm="openDm()"
+        @open-media="openMediaStage"
         @join-voice="joinVoice"
         @leave="leave"
       />
     </aside>
 
-    <!-- Stage (PixiJS) -->
     <div class="gp-stage">
-      <div
-        ref="host" class="gp-canvas-host"
-        :class="espectadorOuPan ? (panDragging ? 'gp-cursor-grabbing' : 'gp-cursor-grab') : 'gp-cursor-default'"
-        @wheel.prevent="onWheel"
-        @pointerdown="onPanDown" @pointermove="onPanMove" @pointerup="onPanUp" @pointerleave="onPanUp"
-        @contextmenu.prevent
+      <canvas
+        ref="tela" class="gp-tela" :class="{ 'gp-arrastando': arrastando, 'gp-pode-arrastar': podeArrastar }"
+        @pointerdown="aoApertarTela" @pointermove="aoMoverTela" @pointerup="aoSoltarTela" @pointerleave="aoSoltarTela"
       />
-      <!-- HUD top-left -->
-      <div v-if="hudVisible" class="gp-hud gp-hud-topleft row items-center q-gutter-sm">
-        <div class="gp-avatar-box">
-          <PixelAvatar :scale="1.6" v-bind="look" :shadow="false" />
-        </div>
-        <div class="column gp-hud-tight">
-          <span class="gp-hud-name">{{ playerName }}</span>
-          <span v-if="nomeDaSala" class="gp-hud-sala">{{ nomeDaSala }}</span>
-          <span class="gp-hud-mapname">● {{ currentMap?.name || '…' }}</span>
-        </div>
+      <div ref="camadaNomes" class="gp-nomes" />
+
+      <div v-if="carregando" class="gp-aviso-centro k-card">
+        <span class="k-chip">carregando</span>
+        <p class="gp-aviso-texto">Montando o escritório…</p>
+      </div>
+      <div v-else-if="erroMundo" class="gp-aviso-centro k-card">
+        <span class="k-chip">erro</span>
+        <p class="gp-aviso-texto">{{ erroMundo }}</p>
       </div>
 
-      <!-- Proximidade + voz -->
-      <div v-if="nearby" class="gp-hud gp-nearby">
-        perto de <strong>{{ nearby }}</strong>
+      <div v-if="salaAtual" class="gp-hud gp-sala">
+        <PixelIcon v-if="salaTrancada" name="lock" size="0.625rem" />
+        {{ salaAtual }}
+        <button class="gp-sala-tranca" :title="`${salaTrancada ? 'destrancar' : 'trancar'} a sala (L)`" @click="alternarTranca">
+          {{ salaTrancada ? 'destrancar' : 'trancar' }}
+        </button>
       </div>
 
-      <!-- Aviso de transmissão: vive AQUI e não no MediaStage porque alcança
-           todo mundo do mapa, inclusive quem nunca abriu a janela de voz. Sem
-           pointer-events e sem nada focável — o WASD segue respondendo. -->
-      <div v-if="screenNotices.length" class="gp-screen-notices" aria-live="polite">
-        <span v-for="notice in screenNotices" :key="notice.id" class="gp-screen-notice">
+      <div v-if="screenNotices.length" class="gp-avisos-tela" aria-live="polite">
+        <span v-for="aviso in screenNotices" :key="aviso.id" class="gp-aviso-tela">
           <PixelIcon name="monitor" size="0.75rem" />
-          <b>{{ notice.name }}</b> começou a compartilhar a tela
+          <b>{{ aviso.name }}</b> começou a compartilhar a tela
         </span>
       </div>
 
+      <div v-if="interacao" class="gp-hud gp-agir">
+        <span class="gp-agir-txt">aperte</span>
+        <span class="k-key">E</span>
+        <span class="gp-agir-txt gp-agir-acao">para {{ interacao.acao }}</span>
+      </div>
 
-      <!-- HUD bottom -->
-      <!-- só o aviso contextual: a lista de atalhos saiu daqui porque o painel do
-           "?" já a tem por completo, e duas listas do mesmo teclado divergem. o que
-           não dá pra tirar é o que E faz AGORA, que muda conforme o objeto. -->
-      <div v-if="rotaAtiva || avisoRota" class="gp-hud gp-rota">
-        <span v-if="rotaAtiva">indo para <b>{{ rotaAtiva.nome }}</b> · qualquer tecla cancela</span>
+      <div v-if="pertoDe && !interacao" class="gp-hud gp-perto">perto de <strong>{{ pertoDe }}</strong></div>
+
+      <div v-if="rota || avisoRota" class="gp-hud gp-rota">
+        <span v-if="rota">indo para <b>{{ rota.nome }}</b> · qualquer tecla cancela</span>
         <span v-else>{{ avisoRota }}</span>
       </div>
 
-      <!-- ancorado no avatar, não no rodapé: o aviso fala do que está ao lado do
-           corpo, e no rodapé ele disputava espaço com a HUD centralizada -->
-      <div v-if="acaoDoE" class="gp-hud gp-hud-agir">
-        <span class="gp-hud-agir-txt">aperte</span>
-        <span class="k-key">E</span>
-        <span class="gp-hud-agir-txt gp-hud-action">para {{ acaoDoE }}</span>
-      </div>
-
-      <!-- HUD separada por escopo: MUNDO (azul, sudo, escreve pra todos) em cima,
-           EU (verde, só o meu avatar) embaixo. Largura travada e slot condicional
-           com fantasma, senão a barra muda de tamanho sozinha. -->
-      <!-- Chat e controles dividem a coluna esquerda: o centro da tela é
-           do avatar e do aviso de interação, e nada persistente entra lá -->
-      <div class="gp-canto-esq">
-        <div class="gp-chat">
-          <!-- duas conversas convivendo: por padrão você fala no Mundo mesmo estando
-               dentro de uma sala — falar na sala é uma escolha, não um efeito de onde
-               o corpo está -->
-          <div class="gp-chat-abas">
-            <button
-              class="gp-chat-aba" :class="{ 'gp-chat-aba-on': abaChat === 'mundo' }"
-              @click="abaChat = 'mundo'"
-            >mundo</button>
-            <button
-              v-if="salaDoChat"
-              class="gp-chat-aba" :class="{ 'gp-chat-aba-on': abaChat === 'sala' }"
-              @click="abaChat = 'sala'"
-            >
-              <span class="ellipsis">{{ salaDoChat.nome }}</span>
-              <span v-if="naoLidasSala" class="gp-chat-bolha">{{ naoLidasSala }}</span>
-            </button>
-            <span v-else class="gp-chat-aba gp-chat-aba-vazia">sem sala</span>
-            <!-- terceira aba: a conversa privada ATIVA. não substitui a barra
-                 lateral (que segue sendo a lista inteira) — é o atalho pra não
-                 sair do mapa pra responder uma mensagem. as duas leem dm.state. -->
-            <button
-              v-if="abaDmDisponivel && alvoDm"
-              class="gp-chat-aba gp-chat-aba-dm" :class="{ 'gp-chat-aba-on': abaChat === 'dm' }"
-              :title="`conversa com ${alvoDm.nome}`"
-              @click="abrirAbaDm"
-            >
-              <span class="ellipsis">{{ alvoDm.nome }}</span>
-              <span v-if="alvoDm.naoLidas" class="gp-chat-bolha">{{ alvoDm.naoLidas }}</span>
-            </button>
-            <button
-              class="gp-chat-chip" :class="{ 'gp-chat-chip-on': dmComoAba }"
-              title="Mostrar conversas de amigos como abas aqui"
-              @click="dmComoAba = !dmComoAba"
-            >DMs {{ dmComoAba ? 'on' : 'off' }}</button>
-          </div>
-          <div v-if="abaChat === 'dm'" ref="dmLog" class="gp-chat-log">
-            <p v-if="!itensDm.length" class="gp-dm-nota">nada por aqui ainda</p>
-            <template v-for="item in itensDm" :key="item.chave">
-              <div
-                v-if="item.tipo === 'msg'"
-                class="gp-dm-msg" :class="{ 'gp-dm-msg-minha': item.minha }"
-              >
-                <span class="gp-dm-texto">{{ item.texto }}</span>
-                <span v-if="item.hora" class="gp-dm-hora">{{ item.hora }}</span>
-              </div>
-              <p v-else class="gp-dm-nota">{{ item.texto }}</p>
-            </template>
-          </div>
-          <div v-else-if="messages.length" ref="chatLog" class="gp-chat-log" @scroll="onChatScroll">
-            <div v-for="(m, i) in messages" :key="i" class="gp-chat-msg">
-              <span class="gp-chat-name" :style="{ color: chatColor(m) }">{{ m.name }}:</span>
-              <span class="gp-chat-text"> {{ m.text }}</span>
-            </div>
-            <button
-              v-if="chatUnread"
-              class="k-btn k-btn-primary k-btn-sm gp-chat-jump"
-              @click="scrollChatToEnd"
-            >novas mensagens ↓</button>
-          </div>
-          <div class="gp-chat-field">
-            <div class="gp-chat-foot">
-              <span
-                v-if="textoDoCampo.length > contarAPartir"
-                class="gp-chat-count"
-                :class="{ 'gp-chat-count-max': textoDoCampo.length >= limiteDoCampo }"
-              >{{ textoDoCampo.length }}/{{ limiteDoCampo }}</span>
-            </div>
-            <div class="gp-chat-input-wrap">
-              <span class="gp-chat-prefixo ellipsis">{{ prefixoChat }}</span>
-              <input
-                v-model="textoDoCampo" :maxlength="limiteDoCampo" placeholder="mensagem… (Enter)"
-                class="gp-chat-input"
-                @keydown.enter="sendChat"
-              />
-            </div>
-            <span v-if="chatCooldown" class="gp-chat-cooldown" />
-          </div>
-          <!-- o contrato do teclado é escrito, não adivinhado: o mapa responde a
-               WASD até um campo pegar o foco, e ESC é sempre o caminho de volta -->
-          <p class="k-label gp-chat-contrato">esc volta · campo focado sequestra o teclado</p>
+      <div class="gp-canto-dir">
+        <div v-if="minimapaVisivel && mapaAtual" class="gp-minimapa">
+          <Minimapa
+            :mapa="mapaAtual" :lado-maximo="minimapaGrande ? 360 : 200" :posicoes="posicoesParaMapa"
+            :trancadas="salasTrancadas" :sudo="ehSudo" @ir="irPara" @teleportar="teleportarSudo"
+          />
         </div>
-        <div class="gp-hud gp-hud-ctl" :class="{ 'gp-hud-ctl-mini': !hudVisible }">
-          <ClusterCard v-if="hudVisible && ehSudo" titulo="mundo · afeta todos" nota="sudo" escopo="mundo">
-            <div class="gp-hud-linha">
-              <div class="gp-hud-campo">
-                <div class="gp-hud-topo">
-                  <span class="k-label gp-hud-cap">☀ hora do mundo</span>
-                  <span class="k-num">{{ horaLabel }}</span>
-                </div>
-                <NotchStepper
-                  v-model="horaEditavel" :min="0" :max="23.5" :step="0.5" :entalhes="24"
-                  rotulo="hora do mundo" :disabled="horaDoMundo === null && false"
-                  @commit="definirHora"
-                />
-              </div>
-              <div class="gp-hud-campo gp-hud-slot">
-                <span class="k-label gp-hud-cap">trava</span>
-                <button
-                  class="k-btn k-btn-sm gp-hud-full"
-                  :class="{ 'k-active': horaDoMundo !== null }"
-                  :title="horaDoMundo !== null ? 'voltar a seguir a hora real' : 'travar a hora atual para todos'"
-                  @click="definirHora(horaDoMundo !== null ? null : horaEditavel)"
-                >{{ horaDoMundo !== null ? 'auto' : 'travar' }}</button>
-              </div>
-            </div>
-          </ClusterCard>
-
-          <ClusterCard v-if="hudVisible" titulo="eu · só meu avatar" nota="h recolhe" escopo="eu">
-            <div class="gp-hud-linha">
-              <div class="gp-hud-campo">
-                <div class="gp-hud-topo">
-                  <span class="k-label gp-hud-cap">⇧ turbo</span>
-                  <span class="k-num">{{ turboMult.toFixed(1) }}×</span>
-                </div>
-                <NotchStepper
-                  v-model="turboMult" :min="TURBO_MIN" :max="TURBO_MAX" :step="0.1" :entalhes="9"
-                  rotulo="velocidade turbo"
-                />
-              </div>
-              <div class="gp-hud-campo gp-hud-slot">
-                <span class="k-label gp-hud-cap">sala</span>
-                <button
-                  v-if="salaFechavelId"
-                  class="k-btn k-btn-sm gp-hud-full"
-                  :class="{ 'k-active': salaTrancada }"
-                  :title="`${salaTrancada ? 'destrancar' : 'trancar'} ${nomeDaSala || 'a sala'} (L)`"
-                  @click="toggleSalaTrancada"
-                ><PixelIcon :name="salaTrancada ? 'lock' : 'unlock'" size="0.6875rem" />{{ salaTrancada ? 'destrancar' : 'trancar' }}</button>
-                <GhostSlot v-else label="sem sala" />
-              </div>
-            </div>
-
-            <template #rodape>
-              <button class="gp-hud-rodape" title="esconder as dicas (H)" @click="hudVisible = false">
-                <PixelIcon name="chevron-up" size="0.75rem" />dicas
-              </button>
-              <button
-                class="gp-hud-rodape" :class="{ 'gp-hud-rodape-on': minimapaVisivel }"
-                :title="minimapaVisivel ? 'esconder o minimapa (M)' : 'mostrar o minimapa (M)'"
-                @click="minimapaVisivel = !minimapaVisivel"
-              ><PixelIcon name="map-pin" size="0.75rem" />mini</button>
-              <button
-                v-if="minimapaVisivel"
-                class="gp-hud-rodape gp-hud-icone" :class="{ 'gp-hud-rodape-on': minimapaGrande }"
-                :title="minimapaGrande ? 'diminuir o minimapa' : 'aumentar o minimapa'"
-                @click="minimapaGrande = !minimapaGrande"
-              ><PixelIcon :name="minimapaGrande ? 'zoom-out' : 'zoom-in'" size="0.75rem" /></button>
-              <button class="gp-hud-rodape" title="abrir o mapa grande" @click="mapaExpandido = true">
-                <span class="gp-hud-glifo" aria-hidden="true">⌖</span>mapa
-              </button>
-              <button class="gp-hud-rodape gp-hud-icone" title="atalhos do teclado" @click="atalhosAbertos = !atalhosAbertos">?</button>
-              <button
-                v-if="ehSudo"
-                class="gp-hud-rodape gp-hud-icone" :class="{ 'gp-hud-rodape-on': sudoPanelOpen }"
-                title="poderes de sudo" @click="sudoPanelOpen = !sudoPanelOpen"
-              ><PixelIcon name="crown" size="0.75rem" /></button>
-            </template>
-          </ClusterCard>
-
-          <!-- recolhido: só as AÇÕES, em ícone. os valores de hora e turbo eram
-               leitura pura e viviam aqui sem poder sumir — a hora já está no
-               cartão do canto esquerdo e o turbo só importa com o controle à mão.
-               a tira fica porque é o único caminho de volta pra quem usa o mouse. -->
-          <div v-else class="gp-hud-mini">
-            <button class="gp-hud-mini-btn" title="mostrar as dicas (H)" @click="hudVisible = true">
-              <PixelIcon name="chevron-down" size="0.875rem" />
-            </button>
-            <button
-              class="gp-hud-mini-btn" :class="{ 'gp-hud-rodape-on': minimapaVisivel }"
-              :title="minimapaVisivel ? 'esconder o minimapa (M)' : 'mostrar o minimapa (M)'"
-              @click="minimapaVisivel = !minimapaVisivel"
-            ><PixelIcon name="map-pin" size="0.875rem" /></button>
-            <button class="gp-hud-mini-btn" title="abrir o mapa grande" @click="mapaExpandido = true">
-              <PixelIcon name="expand" size="0.875rem" />
-            </button>
-            <button
-              v-if="salaFechavelId"
-              class="gp-hud-mini-btn" :class="{ 'gp-hud-rodape-on': salaTrancada }"
-              :title="`${salaTrancada ? 'destrancar' : 'trancar'} ${nomeDaSala || 'a sala'} (L)`"
-              @click="toggleSalaTrancada"
-            ><PixelIcon :name="salaTrancada ? 'lock' : 'unlock'" size="0.875rem" /></button>
-            <button class="gp-hud-mini-btn" title="atalhos do teclado" @click="atalhosAbertos = !atalhosAbertos">?</button>
-            <button
-              v-if="ehSudo"
-              class="gp-hud-mini-btn" :class="{ 'gp-hud-rodape-on': sudoPanelOpen }"
-              title="poderes de sudo" @click="sudoPanelOpen = !sudoPanelOpen"
-            ><PixelIcon name="crown" size="0.875rem" /></button>
-          </div>
-
-          <AtivosBar v-if="ehSudo" :itens="poderesAtivos" @desligar="desligarPoder" />
+        <div class="gp-controles">
+          <span class="gp-hora" :title="horaTravada !== null ? 'hora travada por um sudo' : 'hora de São Paulo'">
+            <PixelIcon :name="periodo === 'noite' || periodo === 'madrugada' ? 'cloud-moon' : 'cloud-sun'" size="0.75rem" />{{ horaTexto }}
+          </span>
+          <button class="gp-botao" :class="{ 'gp-botao-on': minimapaVisivel }" title="minimapa (M)" @click="minimapaVisivel = !minimapaVisivel"><PixelIcon name="map-pin" size="0.875rem" /></button>
+          <button v-if="minimapaVisivel" class="gp-botao" :title="minimapaGrande ? 'diminuir o minimapa' : 'aumentar o minimapa'" @click="minimapaGrande = !minimapaGrande"><PixelIcon :name="minimapaGrande ? 'zoom-out' : 'zoom-in'" size="0.875rem" /></button>
+          <button class="gp-botao" title="mapa grande (N)" @click="mapaExpandido = true"><PixelIcon name="globe" size="0.875rem" /></button>
+          <button class="gp-botao" :class="{ 'gp-botao-on': atalhosAbertos }" title="atalhos (?)" @click="atalhosAbertos = !atalhosAbertos">?</button>
+          <button v-if="ehSudo" class="gp-botao" :class="{ 'gp-botao-on': sudoAberto }" title="poderes de sudo" @click="sudoAberto = !sudoAberto"><PixelIcon name="crown" size="0.875rem" /></button>
         </div>
       </div>
 
-      <MapaExpandido
-        v-if="mapaExpandido && currentMap"
-        :map="currentMap"
-        :eu="{ id: 'eu', nome: playerName, x: pos.x, y: pos.y }"
-        :outros="pessoasNoMapa"
-        :trancadas="salasTrancadas"
-        :sala-atual-id="salaAtualId"
-        @fechar="mapaExpandido = false"
-        @ir-para-sala="(id: string) => { mapaExpandido = false; irParaSala(id) }"
-        @ir-para-ponto="(x: number, y: number) => { mapaExpandido = false; irParaPonto(x, y) }"
-      />
-
-      <div v-if="atalhosAbertos" class="k-card gp-atalhos">
-        <div class="row items-center justify-between">
+      <div v-if="atalhosAbertos" class="k-card gp-cartao gp-atalhos">
+        <div class="gp-cartao-topo">
           <span class="k-chip">atalhos</span>
           <button class="k-btn k-btn-ghost k-btn-sm" @click="atalhosAbertos = false">esc<PixelIcon name="close" size="0.75rem" /></button>
         </div>
@@ -305,94 +95,67 @@
         </ul>
       </div>
 
-      <div v-if="ehSudo && sudoPanelOpen" class="k-card gp-sudo-panel">
-        <div class="row items-center justify-between">
+      <div v-if="ehSudo && sudoAberto" class="k-card gp-cartao gp-sudo">
+        <div class="gp-cartao-topo">
           <span class="k-chip"><PixelIcon name="crown" size="0.6875rem" />poderes</span>
-          <button class="k-btn k-btn-ghost k-btn-sm" @click="sudoPanelOpen = false">esc<PixelIcon name="close" size="0.75rem" /></button>
+          <button class="k-btn k-btn-ghost k-btn-sm" @click="sudoAberto = false">esc<PixelIcon name="close" size="0.75rem" /></button>
         </div>
-
-        <!-- 1 · reversível: liga e desliga, sem consequência que sobreviva -->
-        <span class="k-label gp-sudo-grupo">1 · reversível</span>
-        <ToggleRow v-model="sudoNoclip" label="noclip" hint="atravessa paredes" />
-        <ToggleRow :model-value="sudoInvisivel" label="invisível" hint="some do mapa, do minimapa e da lista" @update:model-value="alternarInvisivel" />
-        <ToggleRow v-model="sudoEspectador" label="espectador" hint="câmera livre, sem avatar no mapa" />
-
-        <div class="gp-hud-topo">
-          <span class="k-label gp-hud-cap">escala</span>
-          <span class="k-num">{{ sudoEscala.toFixed(1) }}×</span>
+        <label class="gp-sudo-linha"><input v-model="sudoNoclip" type="checkbox" /> noclip <small>atravessa paredes</small></label>
+        <label class="gp-sudo-linha"><input :checked="sudoInvisivel" type="checkbox" @change="alternarInvisivel(($event.target as HTMLInputElement).checked)" /> invisível <small>some para os outros</small></label>
+        <label class="gp-sudo-linha"><input v-model="sudoEspectador" type="checkbox" /> espectador <small>sem avatar, câmera livre</small></label>
+        <label class="gp-sudo-linha gp-sudo-faixa">escala {{ sudoEscala.toFixed(1) }}×
+          <input v-model.number="sudoEscala" type="range" min="0.5" max="3" step="0.1" data-captura-teclado />
+        </label>
+        <label class="gp-sudo-linha gp-sudo-faixa">hora do mundo {{ horaTravada === null ? 'automática' : horaTexto }}
+          <input :value="horaTravada ?? horaAtual" type="range" min="0" max="23.5" step="0.5" data-captura-teclado @change="emitDefinirHora(Number(($event.target as HTMLInputElement).value))" />
+        </label>
+        <div class="gp-sudo-acoes">
+          <button v-if="horaTravada !== null" class="k-btn k-btn-ghost k-btn-xs" @click="emitDefinirHora(null)">voltar à hora real</button>
+          <button class="k-btn k-btn-accent k-btn-xs" @click="emitSudoFesta()">festa</button>
         </div>
-        <NotchStepper v-model="sudoEscala" :min="0.4" :max="3" :step="0.1" :entalhes="14" rotulo="escala do avatar" />
-
-        <div class="k-divider" />
-
-        <!-- 2 · efêmero: roda uma animação e acaba -->
-        <span class="k-label gp-sudo-grupo">2 · efêmero</span>
-        <button class="k-btn k-btn-accent k-btn-sm gp-hud-full" @click="dispararFesta">
-          <PixelIcon name="sparkles" size="0.75rem" />festa
-        </button>
-        <div class="gp-sudo-row">
-          <button class="k-btn k-btn-ghost k-btn-sm" @click="dancarComo('giro')">girar</button>
-          <button class="k-btn k-btn-ghost k-btn-sm" @click="dancarComo('pulo')">pular</button>
-          <button class="k-btn k-btn-ghost k-btn-sm" @click="dancarComo('robo')">robô</button>
+        <div v-if="pessoasNaSala.length" class="gp-sudo-pessoas">
+          <span class="k-label">pessoas aqui</span>
+          <div v-for="p in pessoasNaSala" :key="p.id" class="gp-sudo-pessoa">
+            <span class="ellipsis">{{ p.name }}</span>
+            <button class="k-btn k-btn-ghost k-btn-xs" @click="emitSudoPuxar(p.id)">puxar</button>
+            <button class="k-btn k-btn-ghost k-btn-xs" @click="irPara(p.x, p.y, p.name)">ir até</button>
+          </div>
         </div>
+      </div>
 
-        <!-- 3 · permanente: escreve no mapa pra todos e não desfaz. sai da caixa
-             creme de propósito — não pode parecer igual a ligar noclip -->
-        <div class="k-perigo">
-          <div class="k-perigo-faixa" />
-          <span class="k-label gp-sudo-perigo-tit">3 · permanente · sem desfazer</span>
-          <p class="gp-sudo-perigo-txt">Aparece no mapa para todos e fica. Segure para confirmar.</p>
-          <div class="gp-sudo-row gp-sudo-spawn">
-            <select v-model="itemParaSpawnar" class="k-input gp-sudo-select" :disabled="spawnando">
-              <option v-for="i in ITENS_SPAWN" :key="i.kind" :value="i.kind">{{ i.label }}</option>
-            </select>
-            <HoldButton
-              rotulo="spawnar ▸ segure" :carregando="spawnando"
-              @confirmar="spawnarItem"
+      <div v-if="mapaExpandido && mapaAtual" class="gp-modal-overlay" @click="mapaExpandido = false">
+        <div class="k-card gp-mapa-grande" @click.stop>
+          <div class="gp-cartao-topo">
+            <span class="k-chip"><PixelIcon name="globe" size="0.6875rem" />{{ mapaAtual.name }}</span>
+            <button class="k-btn k-btn-ghost k-btn-sm" @click="mapaExpandido = false">esc<PixelIcon name="close" size="0.75rem" /></button>
+          </div>
+          <div class="gp-mapa-grande-corpo">
+            <Minimapa
+              :mapa="mapaAtual" :lado-maximo="ladoDoMapaGrande" :posicoes="posicoesParaMapa" :trancadas="salasTrancadas"
+              :sudo="ehSudo" @ir="(x: number, y: number) => { mapaExpandido = false; irPara(x, y) }"
+              @teleportar="(x: number, y: number) => { mapaExpandido = false; teleportarSudo(x, y) }"
             />
-          </div>
-          <p v-if="spawnErro" class="gp-sudo-erro">✕ {{ spawnErro }}</p>
-        </div>
-
-        <!-- 4 · sobre outras pessoas -->
-        <div v-if="roomPeers.length" class="gp-sudo-pessoas">
-          <div class="gp-hud-topo">
-            <span class="k-label gp-sudo-grupo">4 · pessoas aqui</span>
-            <span class="k-label gp-sudo-grupo">{{ roomPeers.length }} · rola</span>
-          </div>
-          <div class="gp-sudo-lista">
-            <div v-for="p in roomPeers" :key="p.id" class="gp-sudo-pessoa">
-              <span class="gp-sudo-pessoa-nome ellipsis">{{ p.name }}</span>
-              <button class="k-btn k-btn-ghost k-btn-xs" @click="puxarPara(p.id)">puxar</button>
-              <button class="k-btn k-btn-ghost k-btn-xs" @click="irAte(p.x, p.y)">ir até</button>
-            </div>
+            <ul class="gp-mapa-salas">
+              <li v-for="sala in salasDoMapa" :key="sala.id">
+                <button class="gp-mapa-sala" @click="mapaExpandido = false; irParaSala(sala.id)">
+                  <PixelIcon v-if="salasTrancadas.has(sala.id)" name="lock" size="0.625rem" />
+                  <span class="ellipsis">{{ sala.nome }}</span>
+                  <span class="gp-mapa-sala-gente">{{ genteNaSala(sala.id) }}</span>
+                </button>
+              </li>
+            </ul>
           </div>
         </div>
       </div>
 
-      <!-- Modal de interação -->
-      <div v-if="gameStore.isModalOpen && activeModal" class="gp-modal-overlay" @click="closeModal">
-        <div class="k-card gp-modal-card column q-gutter-md" @click.stop>
-          <div class="row items-center justify-between">
-            <span class="k-chip">interação</span>
-            <button class="k-btn k-btn-ghost gp-modal-close" @click="closeModal">esc<PixelIcon name="close" size="0.75rem" /></button>
-          </div>
-          <div>
-            <h2 class="gp-modal-title">{{ activeModal.name }}</h2>
-            <p class="gp-modal-subtitle">{{ activeModal.action }}</p>
-          </div>
-          <div class="gp-modal-body">
-            Em breve. Esta estação será conectada à sua ferramenta ({{ activeModal.kind }}).
-          </div>
-        </div>
+      <div class="gp-canto-esq">
+        <ChatHud />
       </div>
 
-      <!-- Sala de voz/vídeo (janela flutuante sobre o mapa) -->
       <MediaStage
         v-if="mediaStageOpen"
         ref="mediaStage"
         :self-name="playerName"
-        :self-look="look"
         :peer-looks="peerLooks"
         :connecting="voiceConnecting"
         @close="mediaStageOpen = false"
@@ -401,46 +164,41 @@
         @reconnect="reconnectVoice"
       />
 
-      <!-- Painel do jukebox -->
-      <JukeboxPanel v-if="jukeboxOpen" :area-atual="salaAtualId" :jukebox-id="jukeboxObjectId" @close="closeModal" />
+      <JukeboxPanel v-if="estacaoAberta?.estacao === 'jukebox'" :area-atual="salaAtualId" :jukebox-id="estacaoAberta.id" @close="closeModal" />
+      <TaskPanel v-if="estacaoAberta?.estacao === 'tarefas'" :map-id="MAPA_ATUAL" :object-id="estacaoAberta.id" @close="closeModal" />
+      <NotePanel v-if="estacaoAberta?.estacao === 'notas'" :map-id="MAPA_ATUAL" :object-id="estacaoAberta.id" @close="closeModal" />
+      <WhiteboardPanel v-if="estacaoAberta?.estacao === 'lousa'" :object-id="estacaoAberta.id" @close="closeModal" />
 
-      <TaskPanel v-if="taskOpen" :map-id="currentId" :object-id="taskObjectId" @close="closeModal" />
-      <NotePanel v-if="noteOpen" :map-id="currentId" :object-id="noteObjectId" @close="closeModal" />
-      <WhiteboardPanel v-if="boardOpen" :object-id="boardObjectId" @close="closeModal" />
-
+      <PersonagemPanel v-if="panel === 'personagem'" :obrigatorio="personagemObrigatorio" @close="closeModal" @salvo="aoSalvarPersonagem" />
       <ServersPanel v-if="panel === 'servidores'" :invite="panelInvite" @close="closeModal" @server-changed="onServerChanged" />
-      <CharacterPanel v-if="panel === 'personagem'" :obrigatorio="precisaPersonagem" @close="aoFecharPersonagem" />
       <AdminPanel
         v-if="panel === 'admin'"
         @close="closeModal"
         @server-changed="onServerChanged"
-        @mundos-alterados="onMundosAlterados"
         @open-servers="openPanel('servidores')"
       />
       <FeedbackPanel v-if="panel === 'feedback'" @close="closeModal" />
       <FriendsPanel
         v-if="friendsOpen"
-        :maps="maps"
+        :maps="mundos"
         @close="closeModal"
         @jump="jumpToFriend"
         @changed="sidebar?.reloadFriendRequests()"
         @dm="openDm"
       />
 
-      <!-- Controles touch (mobile) -->
-      <div class="touch-ctl gp-touch-ctl">
-        <span></span>
-        <button class="tbtn" aria-label="andar para cima" @pointerdown.prevent="pressKey('w')" @pointerup="releaseKey('w')" @pointerleave="releaseKey('w')"><PixelIcon name="chevron-up" size="1.25rem" /></button>
-        <span></span>
-        <button class="tbtn" aria-label="andar para a esquerda" @pointerdown.prevent="pressKey('a')" @pointerup="releaseKey('a')" @pointerleave="releaseKey('a')"><PixelIcon name="chevron-left" size="1.25rem" /></button>
-        <button class="tbtn" aria-label="dançar" @pointerdown.prevent="dancing = !dancing"><PixelIcon name="music" size="1.25rem" /></button>
-        <button class="tbtn" aria-label="andar para a direita" @pointerdown.prevent="pressKey('d')" @pointerup="releaseKey('d')" @pointerleave="releaseKey('d')"><PixelIcon name="chevron-right" size="1.25rem" /></button>
-        <span></span>
-        <button class="tbtn" aria-label="andar para baixo" @pointerdown.prevent="pressKey('s')" @pointerup="releaseKey('s')" @pointerleave="releaseKey('s')"><PixelIcon name="chevron-down" size="1.25rem" /></button>
-        <button class="tbtn" aria-label="acenar" @pointerdown.prevent="emote()"><PixelIcon name="hand" size="1.25rem" /></button>
+      <div class="touch-ctl gp-touch">
+        <span />
+        <button class="tbtn" aria-label="andar para cima" @pointerdown.prevent="tocar('w')" @pointerup="soltar('w')" @pointerleave="soltar('w')"><PixelIcon name="chevron-up" size="1.25rem" /></button>
+        <button class="tbtn" aria-label="interagir" @pointerdown.prevent="interagir">E</button>
+        <button class="tbtn" aria-label="andar para a esquerda" @pointerdown.prevent="tocar('a')" @pointerup="soltar('a')" @pointerleave="soltar('a')"><PixelIcon name="chevron-left" size="1.25rem" /></button>
+        <button class="tbtn" aria-label="acenar" @pointerdown.prevent="mundo?.gesto('acenar')"><PixelIcon name="hand" size="1.25rem" /></button>
+        <button class="tbtn" aria-label="andar para a direita" @pointerdown.prevent="tocar('d')" @pointerup="soltar('d')" @pointerleave="soltar('d')"><PixelIcon name="chevron-right" size="1.25rem" /></button>
+        <span />
+        <button class="tbtn" aria-label="andar para baixo" @pointerdown.prevent="tocar('s')" @pointerup="soltar('s')" @pointerleave="soltar('s')"><PixelIcon name="chevron-down" size="1.25rem" /></button>
+        <button class="tbtn" aria-label="dançar" @pointerdown.prevent="mundo?.gesto('dancar')"><PixelIcon name="music" size="1.25rem" /></button>
       </div>
 
-      <!-- Sessão aberta em outra aba/dispositivo -->
       <div v-if="sessionKicked" class="gp-modal-overlay">
         <div class="k-card gp-modal-card column q-gutter-md">
           <div class="row items-center justify-between">
@@ -458,820 +216,127 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, computed, onMounted, onUnmounted, nextTick, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed, defineAsyncComponent, nextTick, onMounted, onUnmounted, ref, shallowRef, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useGameStore } from '@/stores/useGameStore'
-import { useCharacterStore } from '@/stores/useCharacterStore'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { logoutApi } from '@/services/auth.api'
-import { MapScene } from '@/game/pixi/scene'
-import { AvatarPuppet, sanitizeLook, type AvatarLook, type Facing, type Pose as AvatarPose } from '@/game/pixi/avatar'
-import type { Minimap } from '@/game/pixi/minimap'
-import { isSolid, interactableObjects, type MapDef, type MapObject } from '@/game/maps'
-import { fetchMaps, saveMap } from '@/services/maps.api'
-import { getWorldState, saveWorldState } from '@/services/world.api'
+import { logoutApi, me } from '@/services/auth.api'
 import {
-  connectPresence, disconnectPresence, emitMove, switchMap, remotePlayers, emitChat,
-  estadoDoJukebox, salasTrancadas, emitSalaTrancar, horaDoMundo, emitDefinirHora, emitScreenShare,
-  chatMundo, chatSala, salaDoChat,
-  onScreenShare, sessionKicked, syncDmUnread, emitAvatarUpdate,
-  sudoInvisivel, sudoNoclip, sudoEspectador, sudoEscala,
-  emitSudoInvisivel, emitSudoFesta, emitSudoTeleporte, emitSudoPuxar, onPuxado, onFesta,
-  type AvatarProps, type ChatMessage, type ScreenShareState,
+  chatMundo, chatSala, connectPresence, disconnectPresence, emitAvatarUpdate, emitDefinirHora, emitMove, emitSalaTrancar,
+  emitScreenShare, emitSudoFesta, emitSudoInvisivel, emitSudoPuxar, emitSudoTeleporte, estadoDoJukebox, horaDoMundo,
+  onFesta, onPuxado, onScreenShare, remotePlayers, salasTrancadas, sessionKicked, syncDmUnread,
+  type ScreenShareState,
 } from '@/services/presence'
-import {
-  abertaId as dmAbertaId, alvo as alvoDm, enviar as enviarDm, itens as itensDm,
-  marcarLida as marcarDmLida, rascunho as rascunhoDm,
-} from '@/services/dm.state'
-import { DM_TEXTO_MAX } from '@/services/dm.api'
 import { media } from '@/services/media'
-import { ganhoDoPeer, salaDoPonto } from '@/game/audio/espacial'
-import { callsDoMapa, historeseMidia } from '@/game/audio/calls'
 import { jukeboxAudio } from '@/services/jukeboxAudio'
-import { photoUrl } from '@/services/character.api'
-import { precisaCriarPersonagem, panelFromQuery, type GamePanel } from '@/services/postAuth'
-import { estadoDeLuz, horaCanonica } from '@/game/lighting'
-import { mostrarAviso } from '@/services/avisos'
-import { me } from '@/services/auth.api'
-import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
-import MapaExpandido from '@/components/MapaExpandido.vue'
-import { ESCALA_PADRAO } from '@/game/escala-avatar'
-import { calcularRota, rotaParaSala, type Ponto } from '@/game/rota'
-import NotchStepper from '@/components/pixel/NotchStepper.vue'
-import ToggleRow from '@/components/pixel/ToggleRow.vue'
-import ClusterCard from '@/components/pixel/ClusterCard.vue'
-import GhostSlot from '@/components/pixel/GhostSlot.vue'
-import AtivosBar, { type PoderAtivo } from '@/components/pixel/AtivosBar.vue'
-import HoldButton from '@/components/pixel/HoldButton.vue'
-import JukeboxPanel from '@/components/JukeboxPanel.vue'
-import MediaStage from '@/components/MediaStage.vue'
-import ServerSidebar from '@/components/ServerSidebar.vue'
-import PixelIcon from '@/components/PixelIcon.vue'
-import TaskPanel from '@/components/TaskPanel.vue'
-import NotePanel from '@/components/NotePanel.vue'
-import WhiteboardPanel from '@/components/WhiteboardPanel.vue'
-import ServersPanel from '@/components/ServersPanel.vue'
 import { getMyServers } from '@/services/server.api'
-import CharacterPanel from '@/components/CharacterPanel.vue'
+import { mostrarAviso } from '@/services/avisos'
+import { MAPA_ATUAL, buscarMapa } from '@/services/mapa.api'
+import { buscarPersonagem } from '@/services/personagem.api'
+import { panelFromQuery, precisaCriarPersonagem, type GamePanel } from '@/services/postAuth'
+import { historeseMidia } from '@/mundo/bolhas'
+import { APARENCIA_PADRAO, sanitizarAparencia, type Aparencia } from '@/mundo/personagem/catalogo'
+import { callsDoMapa, ganhoDoPeer, salaFechadaDoPonto } from '@/mundo/audio'
+import { horaDeSaoPaulo, periodoDaHora } from '@/mundo/luz'
+import { salaDoPonto } from '@/mundo/grade'
+import type { Mundo, Interacao, Rota } from '@/mundo/Mundo'
+import type { Entrada } from '@/mundo/entrada'
+import type { Estacao, Mapa, Movel } from '@/mundo/tipos'
+import type { AssetContainer } from '@babylonjs/core/assetContainer'
+import ServerSidebar from '@/components/ServerSidebar.vue'
+import ChatHud from '@/components/ChatHud.vue'
+import PixelIcon from '@/components/PixelIcon.vue'
+import ServersPanel from '@/components/ServersPanel.vue'
 import AdminPanel from '@/components/AdminPanel.vue'
 import FeedbackPanel from '@/components/FeedbackPanel.vue'
 import FriendsPanel from '@/components/FriendsPanel.vue'
+import JukeboxPanel from '@/components/JukeboxPanel.vue'
+import TaskPanel from '@/components/TaskPanel.vue'
+import NotePanel from '@/components/NotePanel.vue'
+import WhiteboardPanel from '@/components/WhiteboardPanel.vue'
+import MediaStage from '@/components/MediaStage.vue'
+import Minimapa from '@/components/Minimapa.vue'
+
+const PersonagemPanel = defineAsyncComponent(() => import('@/components/PersonagemPanel.vue'))
+
+const EU = 'eu'
+const SELF_CALL_ID = '@eu'
+const ALCANCE_JUKEBOX = 6
+const SCREEN_NOTICE_MS = 6000
 
 const router = useRouter()
 const route = useRoute()
 const gameStore = useGameStore()
-const characterStore = useCharacterStore()
 const auth = useAuthStore()
-// antes de qualquer filho montar: o rodapé da barra lateral desenha o estado do
-// microfone já na primeira pintura, e o da conta anterior não vale pra esta
 media.loadPrefs(auth.userId)
-let stateTimer = 0
 
-function persistState() {
-  if (auth.isAuthenticated && currentId.value) {
-    saveWorldState({ activeMap: currentId.value, playerX: pos.x, playerY: pos.y })
-  }
-}
-
-const host = ref<HTMLElement | null>(null)
+const tela = ref<HTMLCanvasElement | null>(null)
+const camadaNomes = ref<HTMLElement | null>(null)
 const sidebar = ref<InstanceType<typeof ServerSidebar> | null>(null)
-const maps = ref<MapDef[]>([])
-const currentId = ref('')
-const activeZone = ref<MapObject | null>(null)
+const mediaStage = ref<InstanceType<typeof MediaStage> | null>(null)
+const mundo = shallowRef<Mundo | null>(null)
+let entrada: Entrada | null = null
+let conteinerPersonagem: AssetContainer | null = null
+let criarAvatar: ((aparencia: Aparencia) => import('@/mundo/avatar').AvatarVisual) | null = null
 
-// o que E faz AGORA. banco e cadeira entram em interactableObjects por serem
-// sentáveis, sem name nem action — antes isso rendia uma caixa com "E" e nada
-// escrito, porque o aviso só checava se havia objeto perto.
-const acaoDoE = computed(() => {
-  const z = activeZone.value
-  if (!z) return ''
-  if (z.action) return z.action
-  if (z.sittable || z.kind === 'chair' || z.kind === 'sofa' || z.kind === 'bench') {
-    return sentado.value ? 'levantar' : 'sentar'
-  }
-  // sem nome, o rótulo vem do que o E realmente abre. 60 das 70 estantes da
-  // Cidade não têm nome: derivar do kind é o que torna o painel descobrível,
-  // em vez de deixar a tecla funcionando sem nada anunciando.
-  const porKind: Partial<Record<MapObject['kind'], string>> = {
-    desk: 'abrir tarefas',
-    shelf: 'abrir notas',
-    board: 'abrir a lousa',
-    jukebox: 'abrir a jukebox',
-  }
-  return porKind[z.kind] ?? (z.name ? `abrir ${z.name}` : '')
-})
-const activeModal = ref<MapObject | null>(null)
-const jukeboxOpen = ref(false)
-const jukeboxObjectId = ref('')
-const taskOpen = ref(false)
-const taskObjectId = ref('')
-const noteOpen = ref(false)
-const noteObjectId = ref('')
-const boardOpen = ref(false)
-const boardObjectId = ref('')
 const panel = ref<GamePanel | null>(null)
 const panelInvite = ref('')
 const friendsOpen = ref(false)
-const JUKEBOX_RADIUS = 6 // tiles — alcance do modo "proximidade"
-const SELF_CALL_ID = '@me'
-
-const look = computed<AvatarLook>(() => ({
-  hairStyle: characterStore.hairStyle,
-  hairColor: characterStore.hairColor,
-  skin: characterStore.skin,
-  topColor: characterStore.topColor,
-  pantsColor: characterStore.pantsColor,
-}))
-// URL pública da foto (mesma pra todo mundo) — vai junto no avatar broadcast pro resto da sala
-const myPhotoUrl = computed(() => (characterStore.photoFile ? photoUrl(characterStore.photoFile) : null))
-const joinAvatarPayload = computed(() => ({ ...look.value, photoUrl: myPhotoUrl.value }))
+const carregando = ref(true)
+const erroMundo = ref('')
+const mundos = ref<{ id: string; name: string }[]>([])
+const interacao = ref<Interacao | null>(null)
+const salaAtual = ref('')
+const salaAtualId = ref<string | null>(null)
+const salaFechadaId = ref<string | null>(null)
+const pertoDe = ref<string | null>(null)
+const estacaoAberta = ref<{ id: string; estacao: Estacao } | null>(null)
+const personagemObrigatorio = ref(false)
+const minhaAparencia = ref<Aparencia>(structuredClone(APARENCIA_PADRAO))
+const mediaStageOpen = ref(false)
 const playerName = computed(() => auth.username || 'Sem nome')
-const precisaPersonagem = ref(false)
-const nomeDaSala = ref('')
-
-const ITENS_SPAWN = [
-  { kind: 'plant', label: 'planta', w: 1, h: 1, solid: true },
-  { kind: 'flower', label: 'flor', w: 1, h: 1, solid: false },
-  { kind: 'tree', label: 'árvore', w: 2, h: 2, solid: true },
-  { kind: 'bench', label: 'banco', w: 2, h: 1, solid: true },
-  { kind: 'desk', label: 'mesa', w: 2, h: 1, solid: true },
-  { kind: 'rug', label: 'tapete', w: 2, h: 2, solid: false },
-] as const
-
-const itemParaSpawnar = ref<(typeof ITENS_SPAWN)[number]['kind']>('plant')
-const spawnando = ref(false)
-const spawnErro = ref('')
-
-async function spawnarItem() {
-  const map = currentMap.value
-  const modelo = ITENS_SPAWN.find((i) => i.kind === itemParaSpawnar.value)
-  if (!map || !modelo || spawnando.value) return
-  spawnando.value = true
-  spawnErro.value = ''
-  try {
-    const objeto = {
-      id: crypto.randomUUID(),
-      kind: modelo.kind,
-      x: Math.round(pos.x),
-      y: Math.round(pos.y),
-      w: modelo.w,
-      h: modelo.h,
-      solid: modelo.solid,
-    }
-    const salvo = await saveMap(map.id, { objects: [...map.objects, objeto] })
-    const i = maps.value.findIndex((m) => m.id === map.id)
-    if (i >= 0) maps.value[i] = salvo
-    scene?.setMap(salvo)
-  } catch {
-    spawnErro.value = 'Não deu pra criar o item aqui.'
-  } finally {
-    spawnando.value = false
-  }
-}
-
-function aoFecharPersonagem() {
-  precisaPersonagem.value = false
-  closeModal()
-}
-const currentMap = computed(() => maps.value.find((m) => m.id === currentId.value))
-const roomPeers = computed(() => [...remotePlayers.values()].filter((p) => !p.map || p.map === currentId.value))
-const pessoasNoMapa = computed(() => roomPeers.value.map((p) => ({ id: p.id, nome: p.name, x: p.x, y: p.y })))
-
-let scene: MapScene | null = null
-const pos = reactive({ x: 11, y: 9 })
-let facing: Facing = 'down'
-let dancing = false as boolean
-// reativo porque o aviso do E precisa alternar entre sentar e levantar
-const sentado = ref(false)
-let preSit: { x: number; y: number } | null = null
-const keys = new Set<string>()
-const chatInput = ref('')
-const TURBO_MIN = 1.5
-const TURBO_MAX = 5
-const turboMult = ref(parseFloat(localStorage.getItem('kairos_turbo') || '') || 2.8)
-const hudVisible = ref(localStorage.getItem('kairos_hud') !== 'off')
-const horario = ref(estadoDeLuz().estagio)
-// relógio numérico do cabeçalho da barra: segue horaDoMundo quando travada pelo
-// sudo, senão a hora real — o texto (horario, acima) já cobre isso pro período,
-// este ref cobre a leitura em números
-const horaMundoAtual = ref(horaDoMundo.value ?? horaCanonica())
-const ehSudo = ref(false)
-const horaEditavel = ref(12)
-const sudoPanelOpen = ref(false)
-const atalhosAbertos = ref(false)
-
-const minimapaVisivel = ref(localStorage.getItem('kairos_minimapa') !== 'off')
-// dois tamanhos: o pequeno é referência de canto, o grande serve pra mirar um
-// ponto e mandar o boneco até lá sem abrir o mapa inteiro
-const MINIMAPA_LADOS = { pequeno: 200, grande: 380 } as const
-const minimapaGrande = ref(localStorage.getItem('kairos_minimapa_grande') === 'on')
-watch(minimapaGrande, (v) => {
-  localStorage.setItem('kairos_minimapa_grande', v ? 'on' : 'off')
-  minimapDoScene()?.setLadoMax(v ? MINIMAPA_LADOS.grande : MINIMAPA_LADOS.pequeno)
-  scene?.redimensionar()
-})
-const mapaExpandido = ref(false)
-const danceStyle = ref<AvatarPose>('dance')
-
-const ATALHOS = [
-  { tecla: 'WASD', oque: 'andar' },
-  { tecla: 'E', oque: 'interagir com o que estiver perto' },
-  { tecla: 'espaço', oque: 'olhar em volta sem sair do lugar' },
-  { tecla: 'B', oque: 'dançar' },
-  { tecla: 'G', oque: 'emote' },
-  { tecla: 'V', oque: 'abrir a sala de voz' },
-  { tecla: 'H', oque: 'recolher a HUD' },
-  { tecla: 'M', oque: 'ligar e desligar o minimapa' },
-  { tecla: 'L', oque: 'trancar e destrancar a sala em que você está' },
-]
-
-const horaLabel = computed(() => {
-  const h = Math.floor(horaEditavel.value)
-  return `${String(h).padStart(2, '0')}h${horaEditavel.value % 1 ? '30' : '00'}`
-})
-
-const horaMundoLabel = computed(() => {
-  const h = horaMundoAtual.value
-  const hh = Math.floor(h)
-  const mm = Math.round((h % 1) * 60)
-  return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
-})
-
-// espelha o que está ligado quando o painel está fechado — dá pra sair andando
-// invisível e esquecer, e o chip é o caminho de volta em um clique
-const poderesAtivos = computed<PoderAtivo[]>(() => {
-  const itens: PoderAtivo[] = []
-  if (sudoNoclip.value) itens.push({ id: 'noclip', label: 'noclip' })
-  if (sudoInvisivel.value) itens.push({ id: 'invisivel', label: 'invisível' })
-  if (sudoEspectador.value) itens.push({ id: 'espectador', label: 'espectador' })
-  if (sudoEscala.value !== ESCALA_PADRAO) itens.push({ id: 'escala', label: `escala ${sudoEscala.value.toFixed(1)}×` })
-  if (horaDoMundo.value !== null) itens.push({ id: 'hora', label: 'hora travada', escopo: 'mundo' })
-  return itens
-})
-
-function desligarPoder(id: string) {
-  if (id === 'noclip') sudoNoclip.value = false
-  else if (id === 'invisivel') alternarInvisivel(false)
-  else if (id === 'espectador') sudoEspectador.value = false
-  else if (id === 'escala') sudoEscala.value = ESCALA_PADRAO
-  else if (id === 'hora') definirHora(null)
-}
-
-function aplicarLuzDoMundo() {
-  const h = horaDoMundo.value ?? undefined
-  scene?.atualizarLuz(h)
-  horario.value = estadoDeLuz(h).estagio
-  horaMundoAtual.value = h ?? horaCanonica()
-}
-
-function definirHora(h: number | null) {
-  emitDefinirHora(h)
-}
-
-watch(horaDoMundo, (h) => {
-  if (h !== null) horaEditavel.value = h
-  aplicarLuzDoMundo()
-})
-let relogioLuz = 0
-const salaAtualId = computed(() => {
-  const map = currentMap.value
-  return map ? salaDoPonto(map, pos.x, pos.y) : null
-})
-// praça é área ABERTA: entra na conta do áudio e da jukebox, mas ninguém pode
-// trancar a praça central do mundo. só sala fechada é trancável.
-const salaFechavelId = computed(() => {
-  const map = currentMap.value
-  const id = salaAtualId.value
-  if (!map || !id) return null
-  const area = map.objects.find((o) => o.kind === 'area' && o.id === id)
-  return area && !(area as { aberta?: boolean }).aberta ? id : null
-})
-const salaTrancada = computed(() => !!salaFechavelId.value && salasTrancadas.value.has(salaFechavelId.value))
-function toggleSalaTrancada() {
-  const id = salaFechavelId.value
-  if (!id) return
-  emitSalaTrancar(id, !salasTrancadas.value.has(id))
-}
-
-watch(turboMult, (v) => localStorage.setItem('kairos_turbo', String(v)))
-watch(hudVisible, (v) => localStorage.setItem('kairos_hud', v ? 'on' : 'off'))
-watch(minimapaVisivel, (v) => {
-  localStorage.setItem('kairos_minimapa', v ? 'on' : 'off')
-  scene?.mostrarMinimapa(v)
-}, { immediate: false })
-const nearby = ref<string | null>(null)
-let emoteUntil = 0
-// ---- auto-walk ----
-// a rota é uma SEGUNDA fonte de dx/dy; a física não muda. o cancelamento é a
-// parte que importa: rota que não solta o controle vira um bug que a pessoa
-// não sabe desfazer.
-const rotaAtiva = ref<{ pontos: Ponto[]; indice: number; salaId: string; nome: string } | null>(null)
-let paradoDesde = 0
-let ultimaDistancia = Infinity
-let replanos = 0
-
-function replanejar(): boolean {
-  const r = rotaAtiva.value
-  const map = currentMap.value
-  if (!r || !map) return false
-  const pontos = rotaParaSala(map, pos, r.salaId, {
-    trancadas: salasTrancadas.value,
-    salaDoMovedor: salaDoPonto(map, pos.x, pos.y),
-  })
-  if (!pontos || !pontos.length) return false
-  r.pontos = pontos
-  r.indice = 0
-  paradoDesde = 0
-  ultimaDistancia = Infinity
-  return true
-}
-
-function cancelarRota(motivo?: string) {
-  if (!rotaAtiva.value) return
-  rotaAtiva.value = null
-  paradoDesde = 0
-  ultimaDistancia = Infinity
-  replanos = 0
-  if (motivo) avisoRota.value = motivo
-}
-
-const avisoRota = ref('')
-
-// o minimapa devolve coordenada, não sala. O destino ganha nome quando cai
-// dentro de uma: "indo para Sala de Reunião" vale mais que "indo até lá".
-function irParaPonto(x: number, y: number) {
-  const map = currentMap.value
-  if (!map) return
-  cancelarRota()
-  avisoRota.value = ''
-  const salaId = salaDoPonto(map, x, y)
-  const area = salaId ? map.objects.find((o) => o.kind === 'area' && o.id === salaId) : null
-  const nome = area ? ((area as { name?: string }).name ?? salaId!) : 'lá'
-  const pontos = calcularRota(map, pos, { x, y }, {
-    trancadas: salasTrancadas.value,
-    salaDoMovedor: salaDoPonto(map, pos.x, pos.y),
-  })
-  if (!pontos || !pontos.length) {
-    avisoRota.value = 'Não dá pra chegar nesse ponto.'
-    window.setTimeout(() => { if (!rotaAtiva.value) avisoRota.value = '' }, 3000)
-    return
-  }
-  if (sentado.value) {
-    sentado.value = false
-    if (preSit) { pos.x = preSit.x; pos.y = preSit.y; preSit = null }
-  }
-  rotaAtiva.value = { pontos, indice: 0, salaId: salaId ?? '', nome }
-  replanos = 0
-  paradoDesde = 0
-  ultimaDistancia = Infinity
-}
-
-function irParaSala(salaId: string) {
-  const map = currentMap.value
-  if (!map) return
-  cancelarRota()
-  avisoRota.value = ''
-  const area = map.objects.find((o) => o.kind === 'area' && o.id === salaId)
-  if (!area) return
-  const nome = (area as { name?: string }).name ?? salaId
-  // clicar na sala em que já estou dava rota vazia e a mensagem de "não dá pra
-  // chegar", que é o contrário do que aconteceu
-  if (salaDoPonto(map, pos.x, pos.y) === salaId) {
-    avisoRota.value = `Você já está em ${nome}.`
-    window.setTimeout(() => { if (!rotaAtiva.value) avisoRota.value = '' }, 2500)
-    return
-  }
-  const pontos = rotaParaSala(map, pos, salaId, {
-    trancadas: salasTrancadas.value,
-    salaDoMovedor: salaDoPonto(map, pos.x, pos.y),
-  })
-  if (!pontos || !pontos.length) {
-    avisoRota.value = `Não dá pra chegar em ${nome} agora.`
-    window.setTimeout(() => { if (!rotaAtiva.value) avisoRota.value = '' }, 3000)
-    return
-  }
-  if (sentado.value) {
-    sentado.value = false
-    if (preSit) { pos.x = preSit.x; pos.y = preSit.y; preSit = null }
-  }
-  rotaAtiva.value = { pontos, indice: 0, salaId, nome }
-  replanos = 0
-  paradoDesde = 0
-  ultimaDistancia = Infinity
-}
-
-// a sala pode ser trancada no meio do trajeto
-watch(salasTrancadas, (t) => {
-  const r = rotaAtiva.value
-  if (r && t.has(r.salaId)) cancelarRota(`${r.nome} foi trancada.`)
-}, { deep: true })
-
-// 'dm' é a conversa privada ativa. O tipo entra aqui de propósito: emitChat só
-// aceita 'mundo' | 'sala', então qualquer caminho que tente empurrar a aba de
-// conversa pro socket para de compilar em vez de vazar mensagem privada.
-const abaChat = ref<'mundo' | 'sala' | 'dm'>('mundo')
-const naoLidasSala = ref(0)
-const messages = computed(() => (abaChat.value === 'sala' ? chatSala : chatMundo))
-
-// preferência do chip, no mesmo padrão de kairos_hud/kairos_minimapa/kairos_turbo
-const dmComoAba = ref(localStorage.getItem('kairos_dm_aba') !== 'off')
-watch(dmComoAba, (v) => localStorage.setItem('kairos_dm_aba', v ? 'on' : 'off'))
-// a aba só existe com conversa ativa E o chip ligado — sem as duas coisas ela
-// não tem o que mostrar nem pra onde mandar
-const abaDmDisponivel = computed(() => dmComoAba.value && !!alvoDm.value)
-
-// prefixo persistente dentro do campo: repete o escopo da aba ativa mesmo
-// depois que a pessoa começa a digitar, quando o placeholder já sumiu — é o
-// que evita escrever na aba errada com duas conversas abertas ao mesmo tempo
-const prefixoChat = computed(() => {
-  if (abaChat.value === 'dm') return alvoDm.value?.nome ?? 'conversa'
-  return abaChat.value === 'sala' && salaDoChat.value ? salaDoChat.value.nome : 'mundo'
-})
-
-// um campo só, dois rascunhos: na aba de conversa ele É o rascunho do dm.state,
-// o mesmo que a barra lateral edita. Guardar uma cópia local aqui faria o texto
-// digitado na HUD sumir ao abrir a barra — e, pior, deixaria enviar() mandando
-// um rascunho velho enquanto a tela mostra outro.
-const textoDoCampo = computed({
-  get: () => (abaChat.value === 'dm' ? rascunhoDm.value : chatInput.value),
-  set: (v: string) => {
-    if (abaChat.value === 'dm') rascunhoDm.value = v
-    else chatInput.value = v
-  },
-})
-
-// entrar numa sala não muda a aba: quem estava falando no mundo continua no
-// mundo. o contador avisa que tem conversa acontecendo do outro lado.
-watch(() => chatSala.length, (agora, antes) => {
-  if (abaChat.value !== 'sala' && agora > (antes ?? 0)) naoLidasSala.value += agora - (antes ?? 0)
-})
-watch(abaChat, (v) => { if (v === 'sala') naoLidasSala.value = 0 })
-// saiu da sala: a aba some, então volta pro mundo em vez de ficar num log morto
-watch(salaDoChat, (v) => {
-  if (!v) { abaChat.value = 'mundo'; naoLidasSala.value = 0 }
-})
-// mesma regra pra conversa: desligou o chip ou a conversa fechou, a aba some e o
-// campo NÃO pode continuar apontando pra ela — senão o próximo Enter cairia num
-// destino que não existe mais
-watch(abaDmDisponivel, (v) => {
-  if (!v && abaChat.value === 'dm') abaChat.value = 'mundo'
-})
-
-function abrirAbaDm() {
-  abaChat.value = 'dm'
-  const id = alvoDm.value?.conversaId || dmAbertaId.value
-  if (id) void marcarDmLida(id)
-}
-
-// com a aba aberta o log está à vista, então deixar o badge contando seria
-// mentira. o guard de n > 0 evita o laço com o marcarLida que zera o contador.
-watch(() => alvoDm.value?.naoLidas ?? 0, (n) => {
-  if (n <= 0 || abaChat.value !== 'dm' || document.visibilityState !== 'visible') return
-  const id = alvoDm.value?.conversaId || dmAbertaId.value
-  if (id) void marcarDmLida(id)
-})
-
-const dmLog = ref<HTMLElement | null>(null)
-watch([itensDm, abaChat], async () => {
-  if (abaChat.value !== 'dm') return
-  await nextTick()
-  const el = dmLog.value
-  if (el) el.scrollTop = el.scrollHeight
-})
-
-const CHAT_NAME_COLORS = 10
-
-function chatColor(m: ChatMessage): string {
-  const key = m.userId || m.name
-  let hash = 0
-  for (let i = 0; i < key.length; i++) hash = (Math.imul(hash, 31) + key.charCodeAt(i)) >>> 0
-  return `var(--chat-name-${hash % CHAT_NAME_COLORS})`
-}
-
-const CHAT_MAX_LEN = 255
-const CHAT_COUNT_FROM = 200
-// o limite do campo é o do destino: a conversa privada aceita muito mais texto
-// que o chat do mundo, e o contador aparece na mesma folga dos 55 caracteres
-const CONTADOR_FOLGA = CHAT_MAX_LEN - CHAT_COUNT_FROM
-const limiteDoCampo = computed(() => (abaChat.value === 'dm' ? DM_TEXTO_MAX : CHAT_MAX_LEN))
-const contarAPartir = computed(() => limiteDoCampo.value - CONTADOR_FOLGA)
-const CHAT_COOLDOWN_MS = 500
-const CHAT_BOTTOM_SLACK = 24
-const chatLog = ref<HTMLElement | null>(null)
-const chatCooldown = ref(false)
-const chatUnread = ref(false)
-let chatCooldownTimer = 0
 const voiceOn = computed(() => media.state.connected)
 const voiceConnecting = computed(() => media.state.connecting)
-// "estou sendo ouvido de verdade" — nem estar na sala nem a preferência bastam
-const mediaStageOpen = ref(false)
-const mediaStage = ref<InstanceType<typeof MediaStage> | null>(null)
-// tudo daqui pra baixo que fala com a mídia é chaveado por userId (identity do
-// LiveKit), nunca por socket.id — este continua sendo a chave de avatar/posição
-// look dos participantes vem da presença (o LiveKit só conhece identity e nome)
-const peerLooks = computed(() => {
-  const out: Record<string, { name: string; look: AvatarLook }> = {}
-  for (const p of roomPeers.value) {
-    if (!p.userId) continue
-    out[p.userId] = { name: p.name, look: sanitizeLook(p.avatar) }
-  }
-  return out
-})
-
-// ---- aviso de transmissão de tela (socket, não LiveKit) ----
-const SCREEN_NOTICE_MS = 6000
-const screenNotices = ref<{ id: number; userId: string; name: string }[]>([])
-const screenNoticeTimers = new Set<number>()
-let screenNoticeSeq = 0
-let offScreenShare: (() => void) | null = null
-
-function dropScreenNotice(id: number) {
-  const index = screenNotices.value.findIndex((n) => n.id === id)
-  if (index >= 0) screenNotices.value.splice(index, 1)
-}
-
-function onScreenShareState(state: ScreenShareState) {
-  // o próprio anúncio volta pelo broadcast da sala: quem compartilhou já sabe
-  if (state.userId && state.userId === auth.userId) return
-  if (!state.on) {
-    // parou antes do aviso expirar — some agora em vez de seguir mentindo
-    for (const notice of screenNotices.value.filter((n) => n.userId === state.userId)) dropScreenNotice(notice.id)
-    return
-  }
-  const id = ++screenNoticeSeq
-  screenNotices.value.push({ id, userId: state.userId, name: state.name || 'alguém' })
-  const timer = window.setTimeout(() => {
-    screenNoticeTimers.delete(timer)
-    dropScreenNotice(id)
-  }, SCREEN_NOTICE_MS)
-  screenNoticeTimers.add(timer)
-}
-
-// uma fonte só pro anúncio: a transição de screenOn cobre parar pela UI, parar
-// pela barra do navegador e cair a conexão
-watch(() => media.state.screenOn, (on) => emitScreenShare(on))
-
-function openMediaStage() {
-  mediaStageOpen.value = true
-  void nextTick(() => mediaStage.value?.restore())
-}
-
-// fechar a janela em chamada esconderia um microfone aberto: com voz ativa o
-// atalho minimiza (a tira segue mostrando quem fala) e só fecha desconectado
-function toggleMediaStage() {
-  if (!mediaStageOpen.value) {
-    openMediaStage()
-    return
-  }
-  if (voiceOn.value) {
-    mediaStage.value?.toggleMinimized()
-    return
-  }
-  mediaStageOpen.value = false
-}
-
-// sair da chamada é uma decisão explícita: vale até a pessoa pedir a voz de
-// volta, senão a próxima troca de mundo a reconectaria sozinha
+const salaTrancada = computed(() => !!salaFechadaId.value && salasTrancadas.value.has(salaFechadaId.value))
+const aparenciasRemotas = new Map<string, string>()
 let voiceOptOut = false
 
-// Mídia NUNCA segura a entrada no mundo: microfone negado, token recusado ou
-// rede fora do ar só mudam o que o rodapé da barra lateral mostra. Por isso
-// nada aqui escreve em `error`, que é o aviso do meio da tela.
-async function enterVoice(mapId: string, serverChanged = false): Promise<void> {
-  if (!mapId || voiceOptOut) return
-  // trocar de servidor sem trocar de mundo mantém o mapId e muda a sala (o nome
-  // dela é `${serverId}:${mapId}`): só o reconnect explícito tira da sala velha
-  // — inclusive quando a conexão com o servidor anterior ainda está subindo
-  if (serverChanged && (media.state.connected || media.state.connecting)) {
-    await media.reconnect(mapId)
-    return
-  }
-  await media.connect(mapId)
-}
-
-function joinVoice() {
-  voiceOptOut = false
-  void enterVoice(currentId.value)
-}
-
-async function leaveVoice() {
-  voiceOptOut = true
-  await media.disconnect()
-}
-
-async function reconnectVoice() {
-  if (voiceConnecting.value) return
-  voiceOptOut = false
-  await media.reconnect(currentId.value)
-}
-
-const lastSent = { facing: 'down' as Facing, pose: 'idle' as AvatarPose, boost: false }
-// ids dos avatares remotos presentes na cena
-const peerIds = new Set<string>()
-
-function onKeyDown(e: KeyboardEvent) {
-  // digitando no chat/inputs → não mexe no jogo
-  if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return
-  // controles que não são input mas capturam o teclado (o stepper é um
-  // div[role=slider]): declaram a intenção pelo atributo em vez de dependerem só
-  // de stopPropagation, que uma refatoração futura silenciaria sem aviso
-  if (e.target instanceof HTMLElement && e.target.closest('[data-captura-teclado]')) return
-  const k = e.key.toLowerCase()
-  if (e.key === ' ' || e.code === 'Space') {
-    // Espaço entra no modo olhar (pan) — não rola a página nem reativa botão
-    e.preventDefault()
-    panMode.value = true
-    return
-  }
-  // atalho da sala de voz não pode engolir Cmd/Ctrl+V (colar) nem Alt+V
-  const voiceKey = k === 'v' && !e.ctrlKey && !e.metaKey && !e.altKey
-  if (voiceKey || ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright', 'e', 'b', 'g', 'h', 'm', 'l', 'escape'].includes(k)) e.preventDefault()
-  if (k === 'e') { tryInteract(); return }
-  if (k === 'b') { dancing = !dancing; danceStyle.value = 'dance'; return }
-  if (k === 'g') { emote(); return }
-  if (k === 'h') { hudVisible.value = !hudVisible.value; return }
-  if (k === 'm') { minimapaVisivel.value = !minimapaVisivel.value; return }
-  if (k === 'l') { toggleSalaTrancada(); return }
-  if (voiceKey) { toggleMediaStage(); return }
-  if (k === 'escape') { closeModal(); return }
-  keys.add(k)
-}
-
-// zera todas as teclas de movimento seguras — evita "andar sozinho pra sempre"
-// quando o keyup nunca chega (janela perde foco: clique direito abrindo o menu
-// de contexto do navegador, alt-tab, devtools, etc.)
-function clearKeys() {
-  keys.clear()
-  panMode.value = false
-  panDragging = false
-  scene?.resetPan()
-}
-
-function emote() {
-  emoteUntil = Date.now() + 2500
-}
-
-// ROTEAMENTO — o ponto mais perigoso desta tela. Com três abas, o mesmo Enter
-// pode virar mensagem privada ou broadcast pro mundo inteiro. A conversa sai
-// ANTES por caminho próprio (enviar() do dm.state, que fala com a API de DM) e
-// nunca encosta no socket. O early-return também estreita o tipo de abaChat para
-// 'mundo' | 'sala' — que é exatamente o que emitChat aceita, então o compilador
-// recusa qualquer versão futura em que 'dm' escorregue para o broadcast.
-function sendChat() {
-  if (abaChat.value === 'dm') {
-    void enviarDm()
-    return
-  }
-  if (chatCooldown.value) return
-  const t = chatInput.value.trim()
-  if (!t) return
-  emitChat(t, abaChat.value)
-  chatInput.value = ''
-  chatCooldown.value = true
-  chatCooldownTimer = window.setTimeout(() => { chatCooldown.value = false }, CHAT_COOLDOWN_MS)
-}
-
-function atChatBottom() {
-  const el = chatLog.value
-  if (!el) return true
-  return el.scrollHeight - el.scrollTop - el.clientHeight <= CHAT_BOTTOM_SLACK
-}
-
-function scrollChatToEnd() {
-  const el = chatLog.value
-  if (el) el.scrollTop = el.scrollHeight
-  chatUnread.value = false
-}
-
-function onChatScroll() {
-  if (atChatBottom()) chatUnread.value = false
-}
-
-// mede o scroll ANTES da mensagem entrar no DOM (watcher pre-flush) e só decide
-// depois do nextTick, quando a altura nova já foi calculada; sem isso a medida
-// diria "está no fim" sempre. Watcher no array inteiro, não em .length: a lista
-// é capada em 50 no presence.ts e o length para de mudar depois disso.
-watch(messages, async () => {
-  const stick = atChatBottom()
-  await nextTick()
-  if (stick) scrollChatToEnd()
-  else chatUnread.value = true
+const peerLooks = computed(() => {
+  const saida: Record<string, { name: string }> = {}
+  for (const p of remotePlayers.values()) if (p.userId) saida[p.userId] = { name: p.name }
+  return saida
 })
 
-// controles touch (mobile)
-function pressKey(k: string) { keys.add(k) }
-function releaseKey(k: string) { keys.delete(k) }
-
-// zoom da câmera (+ persistir)
-function zoomBy(factor: number) {
-  if (!scene) return
-  scene.setZoom(scene.getZoom() * factor)
-  localStorage.setItem('kairos_zoom', String(scene.getZoom()))
-}
-function onWheel(e: WheelEvent) {
-  zoomBy(e.deltaY < 0 ? 1.1 : 0.9)
-}
-function onKeyUp(e: KeyboardEvent) {
-  if (e.key === ' ' || e.code === 'Space') {
-    // soltou o Espaço → sai do modo olhar e recentra no personagem
-    panMode.value = false
-    panDragging = false
-    scene?.resetPan()
-    return
-  }
-  keys.delete(e.key.toLowerCase())
+function pausarMundo(pausado: boolean) {
+  if (entrada) entrada.pausada = pausado
 }
 
-// ---- pan da câmera (B3.3): Espaço + arrastar com o botão esquerdo ----
-const panMode = ref(false) // Espaço pressionado = "modo olhar"
-const espectadorOuPan = computed(() => panMode.value || sudoEspectador.value)
-let panDragging = false
-let panLastX = 0
-let panLastY = 0
-function onPanDown(e: PointerEvent) {
-  if (!espectadorOuPan.value || e.button !== 0) return
-  panDragging = true
-  panLastX = e.clientX
-  panLastY = e.clientY
-  ;(e.target as HTMLElement).setPointerCapture?.(e.pointerId)
-}
-function onPanMove(e: PointerEvent) {
-  if (!panDragging) return
-  scene?.panBy(e.clientX - panLastX, e.clientY - panLastY)
-  panLastX = e.clientX
-  panLastY = e.clientY
-}
-function onPanUp() {
-  panDragging = false
-}
-
-function tryInteract() {
-  const z = activeZone.value
-  if (!z || gameStore.isModalOpen) return
-  // cadeira/sofá → sentar (em vez de modal); guarda de onde veio pra voltar
-  // ao levantar — o objeto costuma ser sólido, levantar "dentro" dele travava
-  if (z.sittable || z.kind === 'chair' || z.kind === 'sofa' || z.kind === 'bench') {
-    if (!sentado.value) preSit = { x: pos.x, y: pos.y }
-    sentado.value = true
-    pos.x = z.x + z.w / 2
-    pos.y = z.y + z.h / 2
-    return
-  }
-  if (z.kind === 'jukebox') {
-    jukeboxObjectId.value = z.id
-    jukeboxOpen.value = true
-    gameStore.isModalOpen = true
-    return
-  }
-  if (z.kind === 'desk') {
-    taskObjectId.value = z.id
-    taskOpen.value = true
-    gameStore.isModalOpen = true
-    return
-  }
-  if (z.kind === 'shelf') {
-    noteObjectId.value = z.id
-    noteOpen.value = true
-    gameStore.isModalOpen = true
-    return
-  }
-  if (z.kind === 'board') {
-    boardObjectId.value = z.id
-    boardOpen.value = true
-    gameStore.isModalOpen = true
-    return
-  }
-  activeModal.value = z
-  gameStore.isModalOpen = true
-}
 function closeModal() {
+  if (personagemObrigatorio.value && panel.value === 'personagem') return
   gameStore.isModalOpen = false
-  activeModal.value = null
-  jukeboxOpen.value = false
-  taskOpen.value = false
-  noteOpen.value = false
-  boardOpen.value = false
   panel.value = null
   panelInvite.value = ''
   friendsOpen.value = false
-  sudoPanelOpen.value = false
+  estacaoAberta.value = null
+  pausarMundo(false)
 }
 
 function openPanel(next: GamePanel, invite = '') {
+  if (personagemObrigatorio.value && next !== 'personagem') return
   closeModal()
   panel.value = next
   panelInvite.value = invite
   gameStore.isModalOpen = true
+  pausarMundo(true)
 }
 
 function openFriends() {
   closeModal()
   friendsOpen.value = true
   gameStore.isModalOpen = true
+  pausarMundo(true)
 }
 
-// a conversa vive na barra lateral: nada de isModalOpen, porque o mapa continua
-// jogável ao lado — é justamente o ponto da mudança
 function openDm(friendId = '') {
   closeModal()
   gameStore.sidebarOpen = true
@@ -1283,571 +348,531 @@ function jumpToFriend(serverId: string, mapId: string) {
   void sidebar.value?.jumpTo(serverId, mapId)
 }
 
-watch([look, myPhotoUrl], () => {
-  if (!scene?.avatar('me')) return
-  scene.removeAvatar('me')
-  const puppet = new AvatarPuppet(look.value)
-  scene.addAvatar('me', puppet)
-  puppet.setPhoto(myPhotoUrl.value)
-  // o boneco novo nasce zerado: sem reaplicar, trocar de avatar devolvia a escala
-  // ao padrão enquanto o controle seguia marcando o valor antigo, e quem estava
-  // invisível reaparecia pra sala inteira sem perceber
-  puppet.setEscala(sudoEscala.value)
-  puppet.setOculto(sudoInvisivel.value)
-  scene.placeAvatar('me', pos.x, pos.y)
-})
-
-function applyMap(map: MapDef) {
-  cancelarRota()
-  currentId.value = map.id
-  gameStore.activeMap = map.id
-  scene?.setMap(map)
-  pos.x = map.spawn.x
-  pos.y = map.spawn.y
-}
-
-function selectMap(id: string) {
-  // B2: já estou neste mundo → no-op. Re-entrar recriava a sessão (switchMap limpa
-  // os peers e re-join), me deixando "sozinho" e exigindo F5 pra voltar.
-  if (id === currentId.value) return
-  const map = maps.value.find((m) => m.id === id)
-  if (!scene || !map) return
-  applyMap(map)
-  switchMap(id)
-  // entrar num mundo é entrar na conversa dele: sem voz ainda, conecta; com voz,
-  // troca de sala (o media.ts compara o mundo e reconecta sozinho)
-  void enterVoice(id)
-}
-
-// um mundo foi criado ou apagado em outro painel: a lista da barra lateral vem
-// por prop daqui, então sem recarregar aqui o mundo apagado continua listado —
-// e clicar nele levaria a um mapa que não existe mais
-async function onMundosAlterados() {
-  try {
-    const antes = currentId.value
-    maps.value = await fetchMaps()
-    if (maps.value.some((m) => m.id === antes)) return
-    // o mundo em que eu estava foi apagado: sair dele é obrigatório, senão fico
-    // num mapa fantasma que ninguém mais enxerga
-    const destino = maps.value[0]
-    if (!destino) { mostrarAviso('Nenhum mundo disponível neste servidor.', 'aviso'); return }
-    currentId.value = ''
-    selectMap(destino.id)
-  } catch {
-    // falha ao recarregar a lista não pode derrubar quem está jogando
-  }
-}
-
-// o servidor ativo já mudou no backend (a barra lateral chamou switchServer):
-// aqui recarregam os mundos e a sessão. O socket lê o servidor no handshake e
-// não tem como atualizá-lo, então tem de reconectar — sem isso o avatar
-// continuaria na sala do servidor anterior.
-async function onServerChanged(_serverId?: string, mapId?: string) {
-  try {
-    maps.value = await fetchMaps()
-    const target = maps.value.find((m) => m.id === mapId)
-      || maps.value.find((m) => m.id === currentId.value)
-      || maps.value[0]
-    if (!target) { mostrarAviso('Nenhum mundo disponível neste servidor.', 'aviso'); return }
-    if (target.id !== currentId.value) applyMap(target)
-    disconnectPresence()
-    // o histórico é da sala do servidor anterior
-    chatMundo.splice(0)
-    chatSala.splice(0)
-    connectPresence({ avatar: joinAvatarPayload.value, map: target.id, x: pos.x, y: pos.y })
-    void sidebar.value?.reloadServers()
-    void enterVoice(target.id, true)
-  } catch {
-    mostrarAviso('Não deu pra trocar de mundo. Tente de novo em instantes.')
-  }
-}
-
-// foto de peer vem da rede — só carrega se for o caminho canônico da nossa API,
-// nunca uma URL externa arbitrária
-const PEER_PHOTO_RE = /\/kairos-api\/character\/photo\/([a-f0-9-]+\.(?:jpg|png|webp))$/
-function safePeerPhotoUrl(raw: string | null | undefined): string | null {
-  if (typeof raw !== 'string' || raw.length > 300) return null
-  const m = PEER_PHOTO_RE.exec(raw)
-  return m ? photoUrl(m[1]) : null
-}
-
-// colisão entre personagens: bloqueia só se o movimento APROXIMA de quem já está perto
-// (assim nunca "trava" dentro de outro — sempre dá pra se afastar/deslizar)
-function peerBlocks(nx: number, ny: number, cx: number, cy: number): boolean {
-  for (const peer of remotePlayers.values()) {
-    if (peer.map && peer.map !== currentId.value) continue
-    const dNew = Math.hypot(peer.x - nx, peer.y - ny)
-    if (dNew < 0.7 && dNew < Math.hypot(peer.x - cx, peer.y - cy)) return true
-  }
-  return false
-}
-
-// água atravessável deixa o movimento mais lento
-function onWater(map: MapDef, x: number, y: number): boolean {
-  return map.objects.some((o) => o.kind === 'water' && x >= o.x && x < o.x + o.w && y >= o.y && y < o.y + o.h)
-}
-
-function detectZone(map: MapDef) {
-  let nearest: MapObject | null = null
-  let best = 2.6
-  for (const o of interactableObjects(map)) {
-    const cx = o.x + o.w / 2
-    const cy = o.y + o.h / 2
-    const d = Math.hypot(cx - pos.x, cy - pos.y)
-    if (d < best) { best = d; nearest = o }
-  }
-  activeZone.value = nearest
-}
-
-// qual jukebox tocar: dentro de uma área, só a que está nela (senão silêncio —
-// não vaza pra fora); fora de área, a mais próxima entre as de fila "solta"
-// (sem sala própria), senão silêncio
-function jukeboxAtiva(map: MapDef): MapObject | null {
-  const caixas = map.objects.filter((o) => o.kind === 'jukebox')
-  if (!caixas.length) return null
-  // alcance global quer dizer exatamente "ignore a geometria": tem que sair antes
-  // dos filtros por sala, senão a caixa é descartada e ninguém chega a ler o flag
-  const global = caixas.find((o) => estadoDoJukebox(o.id)?.alcanceGlobal)
-  if (global) return global
-  if (salaAtualId.value) {
-    return caixas.find((o) => salaDoPonto(map, o.x + o.w / 2, o.y + o.h / 2) === salaAtualId.value) ?? null
-  }
-  let escolhida: MapObject | null = null
-  let melhor = Infinity
-  for (const o of caixas) {
-    if (estadoDoJukebox(o.id)?.areaId) continue
-    const d = Math.hypot(o.x + o.w / 2 - pos.x, o.y + o.h / 2 - pos.y)
-    if (d < melhor) { melhor = d; escolhida = o }
-  }
-  return escolhida
-}
-
-function dentroDosLimites(map: MapDef, x: number, y: number): boolean {
-  return x >= 1 && y >= 1 && x <= map.width - 2 && y <= map.height - 2
-}
-
-function minimapDoScene(): Minimap | null {
-  return scene?.minimap ?? null
-}
-
-// clique simples: qualquer pessoa manda o boneco andar até lá.
-// duplo clique: só sudo, e teleporta — a diferença entre andar e aparecer é
-// exatamente a diferença entre jogar e ter poder.
-function aoClicarMinimapa(x: number, y: number) {
-  irParaPonto(x, y)
-}
-
-function aoDuploCliqueMinimapa(x: number, y: number) {
-  if (!ehSudo.value) return
-  cancelarRota()
-  pos.x = x
-  pos.y = y
-  emitSudoTeleporte(x, y)
-}
-
-function puxarPara(alvoId: string) {
-  if (!ehSudo.value) return
-  emitSudoPuxar(alvoId)
-}
-
-function irAte(x: number, y: number) {
-  aoClicarMinimapa(x, y)
-}
-
-function alternarInvisivel(valor?: boolean) {
-  sudoInvisivel.value = valor ?? !sudoInvisivel.value
-  emitSudoInvisivel(sudoInvisivel.value)
-}
-
-const AVATAR_UPDATE_THROTTLE_MS = 1000
-let lastAvatarUpdateEmit = 0
-let avatarUpdateTimer = 0
-
-function emitEscalaAoServidor(v: number) {
-  const enviar = () => {
-    lastAvatarUpdateEmit = Date.now()
-    const payload = { ...joinAvatarPayload.value, escala: v }
-    emitAvatarUpdate(payload)
-  }
-  const decorrido = Date.now() - lastAvatarUpdateEmit
-  if (decorrido >= AVATAR_UPDATE_THROTTLE_MS) {
-    enviar()
+function interagir() {
+  const alvo = interacao.value
+  if (alvo?.estacao) {
+    closeModal()
+    estacaoAberta.value = { id: alvo.movel.id, estacao: alvo.estacao }
+    gameStore.isModalOpen = true
+    pausarMundo(true)
     return
   }
-  window.clearTimeout(avatarUpdateTimer)
-  avatarUpdateTimer = window.setTimeout(enviar, AVATAR_UPDATE_THROTTLE_MS - decorrido)
+  mundo.value?.interagir()
 }
 
-watch(sudoEscala, (v) => {
-  scene?.avatar('me')?.setEscala(v)
-  emitEscalaAoServidor(v)
+function alternarTranca() {
+  const id = salaFechadaId.value
+  if (id) emitSalaTrancar(id, !salasTrancadas.value.has(id))
+}
+
+function tocar(tecla: string) {
+  entrada?.apertar(tecla)
+}
+
+function soltar(tecla: string) {
+  entrada?.soltar(tecla)
+}
+
+function payloadDoAvatar() {
+  return { aparencia: minhaAparencia.value, ...(sudoEscala.value !== 1 ? { escala: sudoEscala.value } : {}) }
+}
+
+function entrarNaPresenca() {
+  const local = mundo.value?.local
+  connectPresence({ avatar: payloadDoAvatar(), map: MAPA_ATUAL, x: local?.x ?? 0, y: local?.y ?? 0 })
+  sidebar.value?.syncPresence()
+}
+
+function onServerChanged() {
+  disconnectPresence()
+  chatMundo.splice(0)
+  chatSala.splice(0)
+  entrarNaPresenca()
+  void sidebar.value?.reloadServers()
+  void enterVoice(true)
+}
+
+function aoSalvarPersonagem(aparencia: Aparencia) {
+  personagemObrigatorio.value = false
+  minhaAparencia.value = aparencia
+  const instancia = mundo.value
+  if (instancia && criarAvatar) {
+    if (instancia.temPessoa(EU)) instancia.trocarVisual(EU, criarAvatar(aparencia))
+    else instancia.adicionarPessoa(EU, criarAvatar(aparencia), playerName.value, instancia.local.x, instancia.local.y)
+  }
+  emitAvatarUpdate(payloadDoAvatar())
+  closeModal()
+  void enterVoice()
+}
+
+async function enterVoice(trocouServidor = false) {
+  if (voiceOptOut || personagemObrigatorio.value) return
+  if (trocouServidor && (media.state.connected || media.state.connecting)) {
+    await media.reconnect(MAPA_ATUAL)
+    return
+  }
+  await media.connect(MAPA_ATUAL)
+}
+
+function joinVoice() {
+  voiceOptOut = false
+  void enterVoice()
+}
+
+async function leaveVoice() {
+  voiceOptOut = true
+  await media.disconnect()
+}
+
+async function reconnectVoice() {
+  if (voiceConnecting.value) return
+  voiceOptOut = false
+  await media.reconnect(MAPA_ATUAL)
+}
+
+function openMediaStage() {
+  mediaStageOpen.value = true
+  void nextTick(() => mediaStage.value?.restore())
+}
+
+function alternarMediaStage() {
+  if (!mediaStageOpen.value) return openMediaStage()
+  if (voiceOn.value) return mediaStage.value?.toggleMinimized()
+  mediaStageOpen.value = false
+}
+
+const screenNotices = ref<{ id: number; userId: string; name: string }[]>([])
+const screenNoticeTimers = new Set<number>()
+let screenNoticeSeq = 0
+let offScreenShare: (() => void) | null = null
+
+function onScreenShareState(state: ScreenShareState) {
+  if (state.userId && state.userId === auth.userId) return
+  if (!state.on) {
+    screenNotices.value = screenNotices.value.filter((n) => n.userId !== state.userId)
+    return
+  }
+  const id = ++screenNoticeSeq
+  screenNotices.value.push({ id, userId: state.userId, name: state.name || 'alguém' })
+  const timer = window.setTimeout(() => {
+    screenNoticeTimers.delete(timer)
+    screenNotices.value = screenNotices.value.filter((n) => n.id !== id)
+  }, SCREEN_NOTICE_MS)
+  screenNoticeTimers.add(timer)
+}
+
+watch(() => media.state.screenOn, (on) => emitScreenShare(on))
+watch(salasTrancadas, (trancadas) => { if (mundo.value) mundo.value.trancadas = trancadas }, { deep: true })
+
+function onKeyDown(e: KeyboardEvent) {
+  if (e.key !== 'Escape') return
+  if (mapaExpandido.value) mapaExpandido.value = false
+  else if (atalhosAbertos.value) atalhosAbertos.value = false
+  else if (sudoAberto.value) sudoAberto.value = false
+  else closeModal()
+}
+
+function sincronizarRemotos() {
+  const instancia = mundo.value
+  if (!instancia || !criarAvatar) return
+  const vistos = new Set<string>([EU])
+  for (const peer of remotePlayers.values()) {
+    if (peer.map && peer.map !== MAPA_ATUAL) continue
+    vistos.add(peer.id)
+    const aparencia = sanitizarAparencia(peer.avatar?.aparencia)
+    const assinatura = JSON.stringify(aparencia)
+    if (!instancia.temPessoa(peer.id)) {
+      instancia.adicionarPessoa(peer.id, criarAvatar(aparencia), peer.name, peer.x, peer.y)
+      aparenciasRemotas.set(peer.id, assinatura)
+    } else if (aparenciasRemotas.get(peer.id) !== assinatura) {
+      instancia.trocarVisual(peer.id, criarAvatar(aparencia))
+      aparenciasRemotas.set(peer.id, assinatura)
+    }
+    instancia.atualizarRemoto(peer.id, peer.x, peer.y, peer.direcao ?? 0, peer.pose ?? 'parado', peer.name)
+    const escala = peer.avatar?.escala
+    instancia.definirEscala(peer.id, typeof escala === 'number' && escala > 0 ? escala : 1)
+  }
+  for (const id of [...aparenciasRemotas.keys()]) {
+    if (vistos.has(id)) continue
+    instancia.removerPessoa(id)
+    aparenciasRemotas.delete(id)
+  }
+}
+
+function jukeboxAtiva(mapaMobilia: Movel[], x: number, y: number): Movel | null {
+  const caixas = mapaMobilia.filter((m) => m.peca === 'jukebox')
+  const global = caixas.find((c) => estadoDoJukebox(c.id)?.alcanceGlobal)
+  if (global) return global
+  const mapa = mundo.value?.mapa
+  if (!mapa) return null
+  const minha = salaFechadaDoPonto(mapa, x, y)
+  if (minha) return caixas.find((c) => salaFechadaDoPonto(mapa, c.x, c.y)?.id === minha.id) ?? null
+  let melhor: Movel | null = null
+  let distancia = Infinity
+  for (const c of caixas) {
+    if (estadoDoJukebox(c.id)?.areaId) continue
+    const d = Math.hypot(c.x - x, c.y - y)
+    if (d < distancia) { distancia = d; melhor = c }
+  }
+  return melhor
+}
+
+function aoQuadro() {
+  const instancia = mundo.value
+  const mapa = instancia?.mapa
+  if (!instancia || !mapa) return
+  sincronizarRemotos()
+  const eu = instancia.local
+  const pessoas = [{ id: SELF_CALL_ID, x: eu.x, y: eu.y }]
+  for (const p of remotePlayers.values()) if (p.userId && (!p.map || p.map === MAPA_ATUAL)) pessoas.push({ id: p.userId, x: p.x, y: p.y })
+  const calls = callsDoMapa(mapa, pessoas)
+  const minhaCall = calls.get(SELF_CALL_ID) ?? null
+  const minhaSala = salaFechadaDoPonto(mapa, eu.x, eu.y)?.id ?? null
+  const vozAtiva = media.state.connected
+  const voz: string[] = []
+  const video: string[] = []
+  let maisPerto: string | null = null
+  let menor = 3
+  for (const peer of remotePlayers.values()) {
+    if (peer.map && peer.map !== MAPA_ATUAL) continue
+    const d = Math.hypot(peer.x - eu.x, peer.y - eu.y)
+    if (d < menor) { menor = d; maisPerto = peer.name }
+    if (!peer.userId) continue
+    const callDoPeer = calls.get(peer.userId) ?? null
+    media.setPeerGain(peer.userId, ganhoDoPeer({ mapa, falante: peer, ouvinte: eu, trancadas: salasTrancadas.value, callFalante: callDoPeer, callOuvinte: minhaCall }))
+    const mesmaCall = minhaCall !== null && minhaCall === callDoPeer
+    if (d <= 4 || mesmaCall || (vozAtiva && media.isSubscribed(peer.userId) && d <= 5)) voz.push(peer.userId)
+    const salaDoPeer = salaFechadaDoPonto(mapa, peer.x, peer.y)?.id ?? null
+    const querVideo = minhaSala || salaDoPeer ? minhaSala !== null && minhaSala === salaDoPeer : historeseMidia(vozAtiva && media.isVideoWanted(peer.userId), d)
+    if (querVideo) video.push(peer.userId)
+  }
+  if (pertoDe.value !== maisPerto) pertoDe.value = maisPerto
+  if (vozAtiva) {
+    media.syncSubscriptions(voz)
+    media.syncVideoSubscriptions(video)
+  }
+  const caixa = jukeboxAtiva(mapa.mobilia, eu.x, eu.y)
+  const estado = estadoDoJukebox(caixa?.id ?? null)
+  jukeboxAudio.setAreaDoOuvinte(salaAtualId.value)
+  jukeboxAudio.sync(estado)
+  if (estado?.current) {
+    if (estado.alcanceGlobal || estado.areaId) jukeboxAudio.setVolume(1, estado)
+    else if (caixa) jukeboxAudio.setVolume(Math.max(0, 1 - Math.hypot(caixa.x - eu.x, caixa.y - eu.y) / ALCANCE_JUKEBOX), estado)
+  }
+}
+
+const ATALHOS = [
+  { tecla: 'WASD', oque: 'andar (Shift corre)' },
+  { tecla: 'E', oque: 'interagir: sentar ou abrir a estação' },
+  { tecla: 'G', oque: 'acenar' },
+  { tecla: 'B', oque: 'dançar' },
+  { tecla: 'L', oque: 'trancar ou destrancar a sala em que você está' },
+  { tecla: 'V', oque: 'abrir a sala de voz' },
+  { tecla: 'M', oque: 'mostrar ou esconder o minimapa' },
+  { tecla: 'N', oque: 'abrir o mapa grande' },
+  { tecla: 'Espaço', oque: 'segurar e arrastar para olhar em volta' },
+  { tecla: 'roda', oque: 'aproximar ou afastar a câmera' },
+  { tecla: '?', oque: 'mostrar estes atalhos' },
+]
+
+function lerPreferencia(chave: string, padrao: boolean): boolean {
+  try {
+    const valor = localStorage.getItem(chave)
+    return valor === null ? padrao : valor === 'on'
+  } catch {
+    return padrao
+  }
+}
+
+function gravarPreferencia(chave: string, valor: boolean) {
+  try {
+    localStorage.setItem(chave, valor ? 'on' : 'off')
+  } catch {
+    return
+  }
+}
+
+const ehSudo = ref(false)
+const mapaAtual = shallowRef<Mapa | null>(null)
+const minimapaVisivel = ref(lerPreferencia('kairos_minimapa', true))
+const minimapaGrande = ref(lerPreferencia('kairos_minimapa_grande', false))
+const mapaExpandido = ref(false)
+const atalhosAbertos = ref(false)
+const sudoAberto = ref(false)
+const sudoNoclip = ref(false)
+const sudoInvisivel = ref(false)
+const sudoEspectador = ref(false)
+const sudoEscala = ref(1)
+const rota = ref<Rota | null>(null)
+const avisoRota = ref('')
+const horaAtual = ref(horaDeSaoPaulo())
+const horaTravada = computed(() => horaDoMundo.value)
+const horaEfetiva = computed(() => horaTravada.value ?? horaAtual.value)
+const periodo = computed(() => periodoDaHora(horaEfetiva.value))
+const horaTexto = computed(() => {
+  const h = horaEfetiva.value
+  return `${String(Math.floor(h)).padStart(2, '0')}:${String(Math.round((h % 1) * 60)).padStart(2, '0')}`
 })
-watch(sudoInvisivel, (v) => scene?.avatar('me')?.setOculto(v))
-
-
-
-const FESTA_DURACAO_MS = 5000
-let festaTimer = 0
-
-function aplicarFesta() {
-  window.clearTimeout(festaTimer)
-  dancing = true
-  danceStyle.value = 'dance'
-  festaTimer = window.setTimeout(() => { dancing = false }, FESTA_DURACAO_MS)
-}
-
-function dispararFesta() {
-  emitSudoFesta()
-  aplicarFesta()
-}
-
-function dancarComo(estilo: 'giro' | 'pulo' | 'robo') {
-  dancing = true
-  danceStyle.value = estilo
-}
-
+const salasComGente = ref<{ id: string; nome: string; trancada: boolean; aqui: boolean; gente: { id: string; nome: string; eu: boolean }[] }[]>([])
+const salasDoMapa = computed(() => (mapaAtual.value?.salas ?? []).filter((s) => !s.aberta))
+const pessoasNaSala = computed(() => [...remotePlayers.values()].filter((p) => !p.map || p.map === MAPA_ATUAL))
+const ladoDoMapaGrande = computed(() => Math.min(window.innerWidth - 360, window.innerHeight - 160, 760))
+const arrastando = ref(false)
+const podeArrastar = ref(false)
+let ultimoPonteiro = { x: 0, y: 0 }
+let avisoTimer = 0
+let relogio = 0
+let salasTimer = 0
+let posicaoTimer = 0
 let offPuxado: (() => void) | null = null
 let offFesta: (() => void) | null = null
 
-onMounted(async () => {
-  const asked = panelFromQuery(route.query)
-  const invite = route.query.invite
-  if (asked) openPanel(asked, typeof invite === 'string' ? invite : '')
-  if (asked || invite) void router.replace({ path: '/game' })
-
-  scene = new MapScene()
-  await scene.init(host.value!)
-  const savedZoom = parseFloat(localStorage.getItem('kairos_zoom') || '')
-  if (savedZoom) scene.setZoom(savedZoom)
-  scene.addAvatar('me', new AvatarPuppet(look.value))
-  scene.avatar('me')?.setPhoto(myPhotoUrl.value)
-  minimapDoScene()?.aoClicar(aoClicarMinimapa)
-  minimapDoScene()?.aoDuploClique(aoDuploCliqueMinimapa)
-  minimapDoScene()?.permitirClique(true)
-  // o watch só dispara na mudança: sem isto a preferência salva era ignorada no
-  // boot e o minimapa voltava sempre visível
-  scene.mostrarMinimapa(minimapaVisivel.value)
-  minimapDoScene()?.setLadoMax(minimapaGrande.value ? MINIMAPA_LADOS.grande : MINIMAPA_LADOS.pequeno)
-  relogioLuz = window.setInterval(aplicarLuzDoMundo, 30_000)
-  me()
-    .then((p) => {
-      ehSudo.value = p.isAdmin
-      auth.setUsername(p.username ?? null)
-      void precisaCriarPersonagem().then((v) => {
-        precisaPersonagem.value = v
-        if (v && !asked) openPanel('personagem')
-      })
-      // sem servidor nenhum a pessoa cai nos mundos abertos e fica num mapa que
-      // não é dela — o painel de servidores abre travado até ela criar um ou
-      // aceitar um convite
-      void getMyServers()
-        .then((lista) => {
-          if (lista.length === 0 && !asked) openPanel('servidores')
-        })
-        .catch(() => {
-          // não saber quantos servidores existem não pode impedir de jogar
-        })
-    })
-    .catch(() => { ehSudo.value = false })
-
-  try {
-    maps.value = await fetchMaps()
-    // retoma último mundo + posição salvos (se logado)
-    let startId = gameStore.activeMap
-    let savedPos: { x: number; y: number } | null = null
-    if (auth.isAuthenticated) {
-      try {
-        const st = await getWorldState()
-        if (st && maps.value.find((m) => m.id === st.activeMap)) {
-          startId = st.activeMap
-          savedPos = { x: st.playerX, y: st.playerY }
-        }
-      } catch {
-        // falha ao carregar estado salvo nunca bloqueia a entrada na sala
-      }
-    }
-    const first = maps.value.find((m) => m.id === startId) || maps.value[0]
-    if (!first) { mostrarAviso('Nenhum mundo disponível neste servidor.', 'aviso'); return }
-    selectMap(first.id)
-    if (savedPos) { pos.x = savedPos.x; pos.y = savedPos.y }
-    connectPresence({ avatar: joinAvatarPayload.value, map: first.id, x: pos.x, y: pos.y })
-    // a barra lateral já montou (e já pediu a lista de servidores) antes do
-    // socket existir: o observador de presença só cola agora
-    sidebar.value?.syncPresence()
-  } catch {
-    mostrarAviso('Não deu pra entrar no mundo. Recarregue a página.')
-  }
-
-  window.addEventListener('keydown', onKeyDown)
-  window.addEventListener('keyup', onKeyUp)
-  window.addEventListener('blur', clearKeys)
-  offScreenShare = onScreenShare(onScreenShareState)
-  offPuxado = onPuxado(({ x, y }) => { pos.x = x; pos.y = y })
-  offFesta = onFesta(aplicarFesta)
-  stateTimer = window.setInterval(persistState, 15000)
-
-  scene.app.ticker.add((ticker) => {
-    if (!scene) return
-    const map = currentMap.value
-    if (!map) return
-    const dt = Math.min(ticker.deltaMS / 1000, 0.05)
-
-    // ---- movimento local (com colisão) ----
-    let dx = 0, dy = 0
-    // boost (M2): Shift acelera ~1.8x — carrinho aparece sob o boneco enquanto anda
-    const boosting = keys.has('shift')
-    // Espaço (modo olhar/pan) congela o personagem — só a câmera se move.
-    // Sessão derrubada (aberta em outro lugar) também congela — não faz
-    // sentido continuar "andando" localmente já desconectado da sala.
-    const livreParaAndar = !gameStore.isModalOpen && !espectadorOuPan.value && !sessionKicked.value
-    // qualquer tecla de movimento devolve o controle NO MESMO QUADRO — sem isso
-    // a pessoa briga com o próprio boneco e não sabe como desfazer
-    const pediuControle = ['w', 'a', 's', 'd', 'arrowup', 'arrowdown', 'arrowleft', 'arrowright']
-      .some((k) => keys.has(k))
-    if (rotaAtiva.value && (pediuControle || !livreParaAndar)) cancelarRota()
-
-    if (livreParaAndar && rotaAtiva.value) {
-      const r = rotaAtiva.value
-      const alvo = r.pontos[r.indice]
-      // o alvo é canto de tile; mirar no centro evita ficar orbitando a quina
-      const ax = alvo.x + 0.5
-      const ay = alvo.y + 0.5
-      const distancia = Math.hypot(ax - pos.x, ay - pos.y)
-      if (distancia < 0.35) {
-        r.indice += 1
-        ultimaDistancia = Infinity
-        if (r.indice >= r.pontos.length) cancelarRota()
-      } else {
-        const sp = 5 * dt * (onWater(map, pos.x, pos.y) ? 0.5 : 1) * turboMult.value
-        const passo = Math.min(sp, distancia)
-        dx = ((ax - pos.x) / distancia) * passo
-        dy = ((ay - pos.y) / distancia) * passo
-        // travou (porta fechou, móvel spawnou na frente): a rota é por ponto, a
-        // colisão é por eixo — sempre existe quina onde o A* aprova e o corpo não passa
-        if (distancia < ultimaDistancia - 0.02) {
-          ultimaDistancia = distancia
-          paradoDesde = 0
-        } else {
-          paradoDesde += dt
-          // travar pode ser desvio acumulado, porta que fechou ou alguém que
-          // spawnou móvel na frente: replanejar da posição atual resolve os três.
-          // Desistir só depois de o replano também falhar.
-          if (paradoDesde > 0.7) {
-            if (replanos < 2 && replanejar()) replanos += 1
-            else cancelarRota('Não consegui chegar até lá.')
-          }
-        }
-      }
-    } else if (livreParaAndar) {
-      const sp = 5 * dt * (onWater(map, pos.x, pos.y) ? 0.5 : 1) * (boosting ? turboMult.value : 1)
-      if (keys.has('w') || keys.has('arrowup')) dy -= sp
-      if (keys.has('s') || keys.has('arrowdown')) dy += sp
-      if (keys.has('a') || keys.has('arrowleft')) dx -= sp
-      if (keys.has('d') || keys.has('arrowright')) dx += sp
-    }
-    const moving = dx !== 0 || dy !== 0
-    if (moving && sentado.value) {
-      // levantar devolve pra onde estava antes de sentar (senão fica dentro do sólido)
-      sentado.value = false
-      if (preSit) {
-        pos.x = preSit.x
-        pos.y = preSit.y
-        preSit = null
-      }
-    }
-    if (moving) {
-      facing = Math.abs(dx) > Math.abs(dy) ? (dx < 0 ? 'left' : 'right') : (dy < 0 ? 'up' : 'down')
-      const nx = pos.x + dx
-      const ny = pos.y + dy
-      const salaAtual = salaDoPonto(map, pos.x, pos.y)
-      // escape: se o tile ATUAL já é sólido (sentou/spawnou dentro), libera o
-      // movimento — regra anti-travamento, nunca deixa o personagem preso
-      const stuck = isSolid(map, Math.floor(pos.x), Math.floor(pos.y), salasTrancadas.value, salaAtual)
-      const liberaX = sudoNoclip.value
-        ? dentroDosLimites(map, Math.floor(nx), Math.floor(pos.y))
-        : (stuck || !isSolid(map, Math.floor(nx), Math.floor(pos.y), salasTrancadas.value, salaAtual))
-      const liberaY = sudoNoclip.value
-        ? dentroDosLimites(map, Math.floor(pos.x), Math.floor(ny))
-        : (stuck || !isSolid(map, Math.floor(pos.x), Math.floor(ny), salasTrancadas.value, salaAtual))
-      if (liberaX && !peerBlocks(nx, pos.y, pos.x, pos.y)) pos.x = nx
-      if (liberaY && !peerBlocks(pos.x, ny, pos.x, pos.y)) pos.y = ny
-    }
-    scene.posicionarLuzDoJogador(pos.x, pos.y)
-    scene.atualizarMinimapa(
-      pos,
-      [...remotePlayers.values()].map((p) => ({ x: p.x, y: p.y, falando: media.peers.get(p.userId)?.speaking })),
-      salasTrancadas.value,
-    )
-    const pessoasDoMapa = [{ id: SELF_CALL_ID, x: pos.x, y: pos.y }]
-    for (const p of remotePlayers.values()) {
-      if (p.map && p.map !== map.id) continue
-      if (p.userId) pessoasDoMapa.push({ id: p.userId, x: p.x, y: p.y })
-    }
-    const calls = callsDoMapa(map, pessoasDoMapa)
-    const minhaCall = calls.get(SELF_CALL_ID) ?? null
-
-    for (const p of remotePlayers.values()) {
-      const ganho = ganhoDoPeer({
-        map,
-        falante: { x: p.x, y: p.y },
-        ouvinte: pos,
-        trancadas: salasTrancadas.value,
-        callFalante: p.userId ? calls.get(p.userId) ?? null : null,
-        callOuvinte: minhaCall,
-      })
-      media.setPeerGain(p.userId, ganho)
-    }
-
-    const onCart = boosting && moving
-    const emoting = Date.now() < emoteUntil
-    const pose: AvatarPose = sentado.value ? 'sit' : moving ? 'walk' : emoting ? 'wave' : dancing ? danceStyle.value : 'idle'
-    // emite estado quando se move ou quando pose/direção/boost mudam (dança parado conta)
-    if (moving || pose !== lastSent.pose || facing !== lastSent.facing || onCart !== lastSent.boost) {
-      emitMove(pos.x, pos.y, facing, pose, onCart)
-      lastSent.pose = pose
-      lastSent.facing = facing
-      lastSent.boost = onCart
-    }
-    detectZone(map)
-
-    const me = scene.avatar('me')
-    if (me) {
-      me.setFacing(facing)
-      me.setPose(pose)
-      me.setBoost(onCart)
-      me.update(dt)
-    }
-    scene.placeAvatar('me', pos.x, pos.y)
-    scene.follow(pos.x, pos.y)
-    scene.cull()
-    const sala = scene.nomeDaAreaAtual()
-    if (sala !== nomeDaSala.value) nomeDaSala.value = sala
-
-    // ---- avatares remotos ----
-    syncRemotes(dt, map)
-    scene.sortAvatars()
-
-    // ---- proximidade: indicador + voz por proximidade ----
-    let near: string | null = null
-    let best = 3
-    const voiceIds: string[] = []
-    const videoIds: string[] = []
-    const voiceLive = media.state.connected
-    const minhaSala = salaDoPonto(map, pos.x, pos.y)
-    for (const peer of remotePlayers.values()) {
-      if (peer.map && peer.map !== map.id) continue
-      const d = Math.hypot(peer.x - pos.x, peer.y - pos.y)
-      if (d < best) { best = d; near = peer.name }
-      const inRange = d <= 4 // raio de comunicação — mesmo alcance usado pra voz por proximidade
-      // histerese na voz: assina a ≤4, mas quem já está assinado só cai a >5 —
-      // sem isso, dançar na borda do raio gera assina/desassina em loop
-      const keepConnected = voiceLive && media.isSubscribed(peer.userId) && d <= 5
-      const mesmaCallDoPeer =
-        !!peer.userId && minhaCall !== null && minhaCall === (calls.get(peer.userId) ?? null)
-      // (userId vazio não deveria acontecer — o gateway recusa socket sem usuário —
-      // mas se acontecer o peer só fica sem mídia, sem quebrar o frame)
-      if (peer.userId && (inRange || keepConnected || mesmaCallDoPeer)) voiceIds.push(peer.userId)
-      scene.avatar(peer.id)?.setNameVisible(inRange)
-
-      if (peer.userId) {
-        const salaDoPeer = salaDoPonto(map, peer.x, peer.y)
-        const querVideo =
-          minhaSala || salaDoPeer
-            ? minhaSala !== null && minhaSala === salaDoPeer
-            : historeseMidia(voiceLive && media.isVideoWanted(peer.userId), d)
-        if (querVideo) videoIds.push(peer.userId)
-      }
-    }
-    nearby.value = near
-    if (voiceLive) {
-      media.syncSubscriptions(voiceIds)
-      media.syncVideoSubscriptions(videoIds)
-    }
-
-    // dentro da sala do jukebox o volume é cheio — é ambiente, não proximidade.
-    // a queda por distância só vale para fila sem sala (mundo aberto).
-    const caixaAtiva = jukeboxAtiva(map)
-    const estadoJukeboxAtivo = estadoDoJukebox(caixaAtiva?.id ?? null)
-    jukeboxAudio.setAreaDoOuvinte(salaAtualId.value)
-    jukeboxAudio.sync(estadoJukeboxAtivo)
-    scene.setJukeboxPlaying(!!estadoJukeboxAtivo?.current)
-    if (estadoJukeboxAtivo?.current) {
-      if (estadoJukeboxAtivo.alcanceGlobal || estadoJukeboxAtivo.areaId) {
-        jukeboxAudio.setVolume(1, estadoJukeboxAtivo)
-      } else if (caixaAtiva) {
-        const d = Math.hypot(caixaAtiva.x + caixaAtiva.w / 2 - pos.x, caixaAtiva.y + caixaAtiva.h / 2 - pos.y)
-        jukeboxAudio.setVolume(Math.max(0, 1 - d / JUKEBOX_RADIUS), estadoJukeboxAtivo)
-      }
-    }
-  })
+watch(minimapaVisivel, (v) => gravarPreferencia('kairos_minimapa', v))
+watch(minimapaGrande, (v) => gravarPreferencia('kairos_minimapa_grande', v))
+watch(horaEfetiva, (h) => mundo.value?.definirHora(h))
+watch(sudoNoclip, (v) => { if (mundo.value) mundo.value.noclip = v || sudoEspectador.value })
+watch(sudoEspectador, (v) => {
+  if (!mundo.value) return
+  mundo.value.noclip = v || sudoNoclip.value
+  mundo.value.definirVisivel(EU, !v)
+  if (v !== sudoInvisivel.value) alternarInvisivel(v)
+})
+watch(sudoEscala, (v) => {
+  mundo.value?.definirEscala(EU, v)
+  emitAvatarUpdate(payloadDoAvatar())
 })
 
-function syncRemotes(dt: number, map: MapDef) {
-  if (!scene) return
-  const seen = new Set<string>()
-  for (const peer of remotePlayers.values()) {
-    if (peer.map && peer.map !== map.id) continue
-    seen.add(peer.id)
-    let p = scene.avatar(peer.id)
-    if (!p) {
-      p = new AvatarPuppet(sanitizeLook(peer.avatar))
-      p.setName(peer.name)
-      p.setPhoto(safePeerPhotoUrl((peer.avatar as AvatarProps)?.photoUrl))
-      scene.addAvatar(peer.id, p)
-      peerIds.add(peer.id)
-    }
-    // pose e direção agora vêm sincronizadas da rede
-    p.setFacing(peer.facing || 'down')
-    p.setPose(peer.pose || 'idle')
-    p.setBoost(!!peer.boost)
-    p.setName(peer.name)
-    p.setEscala((peer.avatar as AvatarProps)?.escala ?? ESCALA_PADRAO)
-    p.update(dt)
-    scene.placeAvatar(peer.id, peer.x, peer.y)
+function chavePosicao(): string {
+  return `kairos_posicao_${auth.userId ?? 'anonimo'}_${MAPA_ATUAL}`
+}
+
+function salvarPosicao() {
+  const local = mundo.value?.local
+  if (!local) return
+  try {
+    localStorage.setItem(chavePosicao(), JSON.stringify({ x: local.x, y: local.y }))
+  } catch {
+    return
   }
-  // remove quem saiu / mudou de mapa
-  for (const id of [...peerIds]) {
-    if (!seen.has(id)) { scene.removeAvatar(id); peerIds.delete(id) }
+}
+
+function posicaoSalva(): { x: number; y: number } | null {
+  try {
+    const bruta = JSON.parse(localStorage.getItem(chavePosicao()) ?? 'null')
+    return bruta && Number.isFinite(bruta.x) && Number.isFinite(bruta.y) ? bruta : null
+  } catch {
+    return null
+  }
+}
+
+function mostrarAvisoRota(texto: string) {
+  avisoRota.value = texto
+  window.clearTimeout(avisoTimer)
+  avisoTimer = window.setTimeout(() => { if (!rota.value) avisoRota.value = '' }, 3000)
+}
+
+function irPara(x: number, y: number, nome?: string) {
+  const mapa = mapaAtual.value
+  const sala = mapa ? salaDoPonto(mapa, x, y) : null
+  mundo.value?.irPara(x, y, nome ?? (sala && !sala.aberta ? sala.nome : 'lá'))
+}
+
+function irParaSala(salaId: string) {
+  mundo.value?.irParaSala(salaId)
+}
+
+function teleportarSudo(x: number, y: number) {
+  if (!ehSudo.value || !mundo.value) return
+  mundo.value.cancelarRota()
+  mundo.value.teleportar(x, y)
+  emitSudoTeleporte(x, y)
+}
+
+function alternarInvisivel(valor: boolean) {
+  sudoInvisivel.value = valor
+  emitSudoInvisivel(valor)
+}
+
+function posicoesParaMapa() {
+  const local = mundo.value?.local ?? { x: 0, y: 0 }
+  const outros = [...remotePlayers.values()]
+    .filter((p) => !p.map || p.map === MAPA_ATUAL)
+    .map((p) => ({ x: p.x, y: p.y, falando: !!media.peers.get(p.userId)?.speaking }))
+  return { eu: { x: local.x, y: local.y }, outros }
+}
+
+function genteNaSala(salaId: string): number {
+  return salasComGente.value.find((s) => s.id === salaId)?.gente.length ?? 0
+}
+
+function atualizarSalasComGente() {
+  const mapa = mapaAtual.value
+  const local = mundo.value?.local
+  if (!mapa || !local) return
+  const grupos = new Map<string, { id: string; nome: string; eu: boolean }[]>()
+  const colocar = (id: string, nome: string, x: number, y: number, eu: boolean) => {
+    const sala = salaDoPonto(mapa, x, y)
+    if (!sala || sala.aberta) return
+    grupos.set(sala.id, [...(grupos.get(sala.id) ?? []), { id, nome, eu }])
+  }
+  colocar(EU, playerName.value, local.x, local.y, true)
+  for (const p of remotePlayers.values()) if (!p.map || p.map === MAPA_ATUAL) colocar(p.id, p.name, p.x, p.y, false)
+  const minha = salaDoPonto(mapa, local.x, local.y)?.id
+  salasComGente.value = mapa.salas
+    .filter((s) => grupos.has(s.id))
+    .map((s) => ({ id: s.id, nome: s.nome, trancada: salasTrancadas.value.has(s.id), aqui: s.id === minha, gente: grupos.get(s.id)! }))
+    .sort((a, b) => b.gente.length - a.gente.length || a.nome.localeCompare(b.nome))
+}
+
+function aoApertarTela(e: PointerEvent) {
+  if (!entrada?.segurando(' ') || e.button !== 0) return
+  arrastando.value = true
+  ultimoPonteiro = { x: e.clientX, y: e.clientY }
+  ;(e.target as HTMLElement).setPointerCapture?.(e.pointerId)
+}
+
+function aoMoverTela(e: PointerEvent) {
+  podeArrastar.value = !!entrada?.segurando(' ')
+  if (!arrastando.value) return
+  mundo.value?.arrastarCamera(e.clientX - ultimoPonteiro.x, e.clientY - ultimoPonteiro.y)
+  ultimoPonteiro = { x: e.clientX, y: e.clientY }
+}
+
+function aoSoltarTela() {
+  arrastando.value = false
+}
+
+function aoSoltarTecla(e: KeyboardEvent) {
+  if (e.key === ' ') {
+    arrastando.value = false
+    podeArrastar.value = false
+    mundo.value?.recentrarCamera()
+  }
+}
+
+async function montarMundo() {
+  if (!tela.value || !camadaNomes.value) return
+  try {
+    const [{ Mundo: ClasseMundo }, { Entrada: ClasseEntrada }, { AvatarModelo, carregarPersonagem }, mapa, personagem] = await Promise.all([
+      import('@/mundo/Mundo'),
+      import('@/mundo/entrada'),
+      import('@/mundo/personagem/AvatarModelo'),
+      buscarMapa(MAPA_ATUAL),
+      buscarPersonagem().catch(() => null),
+    ])
+    if (personagem?.aparencia) minhaAparencia.value = sanitizarAparencia(personagem.aparencia)
+    mundos.value = [{ id: mapa.id, name: mapa.name }]
+    entrada = new ClasseEntrada()
+    const instancia = new ClasseMundo(tela.value, camadaNomes.value, {
+      aoMudarInteracao: (alvo) => { interacao.value = alvo },
+      aoMudarSala: (sala) => {
+        salaAtual.value = sala && !sala.aberta ? sala.nome : ''
+        salaAtualId.value = sala?.id ?? null
+        salaFechadaId.value = sala && !sala.aberta ? sala.id : null
+      },
+      aoMover: (estado) => emitMove(estado.x, estado.y, estado.direcao, estado.pose),
+      aoMudarRota: (nova, aviso) => {
+        rota.value = nova
+        if (aviso) mostrarAvisoRota(aviso)
+        else if (nova) avisoRota.value = ''
+      },
+      aoQuadro,
+    })
+    instancia.direcaoDesejada = () => entrada!.direcao()
+    instancia.trancadas = salasTrancadas.value
+    entrada.aoTeclar('e', interagir)
+    entrada.aoTeclar('g', () => instancia.gesto('acenar'))
+    entrada.aoTeclar('b', () => instancia.gesto('dancar'))
+    entrada.aoTeclar('l', alternarTranca)
+    entrada.aoTeclar('v', alternarMediaStage)
+    entrada.aoTeclar('m', () => { minimapaVisivel.value = !minimapaVisivel.value })
+    entrada.aoTeclar('n', () => { mapaExpandido.value = !mapaExpandido.value })
+    entrada.aoTeclar('?', () => { atalhosAbertos.value = !atalhosAbertos.value })
+    mundo.value = instancia
+    await instancia.definirMapa(mapa)
+    mapaAtual.value = mapa
+    instancia.definirHora(horaEfetiva.value)
+    const salva = posicaoSalva()
+    if (salva && instancia.estaLivre(salva.x, salva.y)) instancia.teleportar(salva.x, salva.y)
+    conteinerPersonagem = await carregarPersonagem(instancia.cena)
+    criarAvatar = (aparencia) => new AvatarModelo(instancia.cena, conteinerPersonagem!, aparencia)
+    if (!personagemObrigatorio.value) {
+      instancia.adicionarPessoa(EU, criarAvatar(minhaAparencia.value), playerName.value, instancia.local.x, instancia.local.y)
+    }
+    entrarNaPresenca()
+    void enterVoice()
+  } catch {
+    erroMundo.value = 'Não deu pra montar o escritório. Recarregue a página.'
+  } finally {
+    carregando.value = false
   }
 }
 
 async function leave() {
   disconnectPresence()
-  // precisa vir ANTES do logout() local — esse ainda usa o token pra avisar o
-  // backend (se for convidado, apaga a conta inteira); depois de limpar o
-  // token não teria mais como autenticar essa chamada
   await logoutApi()
-  useAuthStore().logout()
-  characterStore.$reset() // limpa nome/avatar em memória (não vaza pra próxima conta)
+  auth.logout()
   syncDmUnread([])
   jukeboxAudio.stop()
   router.push('/login')
 }
 
+onMounted(async () => {
+  const asked = panelFromQuery(route.query)
+  const invite = route.query.invite
+  if (asked || invite) void router.replace({ path: '/game' })
+
+  const perfil = await me().catch(() => null)
+  auth.setUsername(perfil?.username ?? null)
+  ehSudo.value = !!perfil?.isAdmin
+  if (await precisaCriarPersonagem().catch(() => false)) {
+    personagemObrigatorio.value = true
+    panel.value = 'personagem'
+    gameStore.isModalOpen = true
+  } else if (asked) {
+    openPanel(asked, typeof invite === 'string' ? invite : '')
+  } else {
+    getMyServers()
+      .then((lista) => { if (lista.length === 0) openPanel('servidores') })
+      .catch(() => mostrarAviso('Não deu pra carregar seus servidores. Recarregue a página.'))
+  }
+
+  await montarMundo()
+  pausarMundo(gameStore.isModalOpen)
+  offScreenShare = onScreenShare(onScreenShareState)
+  offPuxado = onPuxado(({ x, y }) => {
+    mundo.value?.cancelarRota()
+    mundo.value?.teleportar(x, y)
+  })
+  offFesta = onFesta(() => mundo.value?.festa())
+  relogio = window.setInterval(() => { horaAtual.value = horaDeSaoPaulo() }, 30_000)
+  salasTimer = window.setInterval(atualizarSalasComGente, 500)
+  posicaoTimer = window.setInterval(salvarPosicao, 5000)
+  window.addEventListener('keydown', onKeyDown)
+  window.addEventListener('keyup', aoSoltarTecla)
+  window.addEventListener('beforeunload', salvarPosicao)
+})
+
 onUnmounted(() => {
-  window.clearInterval(relogioLuz)
   window.removeEventListener('keydown', onKeyDown)
-  window.removeEventListener('keyup', onKeyUp)
-  window.removeEventListener('blur', clearKeys)
-  clearInterval(stateTimer)
-  clearTimeout(chatCooldownTimer)
+  window.removeEventListener('keyup', aoSoltarTecla)
+  window.removeEventListener('beforeunload', salvarPosicao)
+  salvarPosicao()
   offScreenShare?.()
-  offScreenShare = null
   offPuxado?.()
-  offPuxado = null
   offFesta?.()
-  offFesta = null
-  window.clearTimeout(festaTimer)
-  window.clearTimeout(avatarUpdateTimer)
+  window.clearInterval(relogio)
+  window.clearInterval(salasTimer)
+  window.clearInterval(posicaoTimer)
+  window.clearTimeout(avisoTimer)
   for (const timer of screenNoticeTimers) clearTimeout(timer)
-  screenNoticeTimers.clear()
-  persistState()
-  // Room vazada = microfone continua ligado depois de sair da tela
+  entrada?.destruir()
+  entrada = null
+  mundo.value?.destruir()
+  mundo.value = null
   void media.disconnect()
   disconnectPresence()
   jukeboxAudio.stop()
-  scene?.destroy()
-  scene = null
 })
 </script>
 
@@ -1860,10 +885,6 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-/* a barra flutua SOBRE o mapa, descolada das bordas — não é coluna de grid.
-   O mapa corre por baixo dela, e é isso que dá o respiro do desenho. Como
-   coluna, ela empurrava o mapa e o Pixi redimensionava a cada quadro da
-   transição de largura; flutuando, abrir e fechar não mexe no palco. */
 .gp-sidebar {
   position: absolute;
   left: 0.875rem;
@@ -1880,20 +901,7 @@ onUnmounted(() => {
 }
 
 .gp-root.gp-sidebar-open { --barra-larg: 18rem; }
-
-.gp-sidebar.gp-sidebar-open {
-  width: 18rem;
-}
-
-.gp-avatar-box {
-  width: 2.25rem;
-  height: 2.25rem;
-  background: var(--bg-3);
-  display: grid;
-  place-items: center;
-  overflow: hidden;
-  flex-shrink: 0;
-}
+.gp-sidebar.gp-sidebar-open { width: 18rem; }
 
 .gp-stage {
   position: absolute;
@@ -1902,25 +910,55 @@ onUnmounted(() => {
   background: var(--bg-0);
 }
 
-.gp-canvas-host {
+.gp-tela {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
+  outline: none;
+  touch-action: none;
 }
-.gp-cursor-default { cursor: default; }
-.gp-cursor-grab { cursor: grab; }
-.gp-cursor-grabbing { cursor: grabbing; }
 
-.gp-zoom {
+.gp-nomes {
   position: absolute;
-  top: 4rem;
-  right: 1rem;
-  z-index: 10;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
 }
-.gp-zoom-btn {
-  cursor: pointer;
-  width: 1.875rem;
-  height: 1.875rem;
-  font-size: 1rem;
+
+.gp-nomes :deep(.mundo-nome) {
+  position: absolute;
+  left: 0;
+  top: 0;
+  padding: 0.125rem 0.375rem;
+  background: var(--bg-2);
+  border: 0.125rem solid var(--tinta);
+  color: var(--text);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  white-space: nowrap;
+  will-change: transform;
+}
+
+.gp-aviso-centro {
+  position: absolute;
+  top: 50%;
+  left: calc(50% + var(--barra-larg) / 2);
+  transform: translate(-50%, -50%);
+  width: min(22rem, calc(100% - 2rem));
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.625rem;
+  z-index: 5;
+}
+
+.gp-aviso-texto {
+  margin: 0;
+  font-size: 0.875rem;
+  color: var(--text-2);
 }
 
 .gp-hud {
@@ -1928,54 +966,48 @@ onUnmounted(() => {
   z-index: 10;
 }
 
-.gp-hud-topleft {
+.gp-sala {
   top: 1rem;
-  left: 1rem;
+  left: calc(50% + var(--barra-larg) / 2);
+  transform: translateX(-50%);
   display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.375rem 0.375rem 0.375rem 0.75rem;
   background: var(--bg-1);
   border: 0.125rem solid var(--tinta);
   box-shadow: var(--ui-shadow);
-  padding: 0.5rem 0.75rem 0.5rem 0.5rem;
-}
-
-.gp-hud-tight { line-height: 1.1; }
-.gp-hud-name { font-size: 0.8125rem; font-weight: 600; }
-.gp-hud-mapname {
+  font-family: var(--f-pixel);
   font-size: 0.5rem;
-  color: var(--text-3);
-  font-family: var(--f-mono);
-  letter-spacing: 0.12em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.gp-nearby {
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(44, 116, 65, 0.2);
-  border: 0.0625rem solid var(--primary-hi);
-  backdrop-filter: blur(0.625rem);
-  padding: 0.375rem 0.875rem;
-  font-size: 0.75rem;
-  color: var(--text);
+.gp-sala-tranca {
+  appearance: none;
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  background: var(--bg-2);
+  border: 0.125rem dashed var(--tinta);
+  font: inherit;
+  color: var(--text-2);
 }
 
-/* abaixo do "perto de X" pra não brigar pelo topo-centro */
-.gp-screen-notices {
+.gp-sala-tranca:hover { background: var(--bg-3); }
+
+.gp-avisos-tela {
   position: absolute;
   top: 3.75rem;
-  left: 50%;
+  left: calc(50% + var(--barra-larg) / 2);
   transform: translateX(-50%);
   z-index: 20;
   display: grid;
   justify-items: center;
   gap: 0.25rem;
-  max-width: min(26rem, calc(100% - 2rem));
-  /* não captura clique nem foco: o jogo segue respondendo ao teclado embaixo */
   pointer-events: none;
 }
 
-.gp-screen-notice {
+.gp-aviso-tela {
   display: flex;
   align-items: center;
   gap: 0.375rem;
@@ -1986,22 +1018,34 @@ onUnmounted(() => {
   font-size: 0.75rem;
   color: var(--text-2);
 }
-.gp-screen-notice b { color: var(--accent-texto); }
 
-@media (prefers-reduced-motion: no-preference) {
-  .gp-screen-notice {
-    animation: gpScreenNotice 0.18s steps(3, jump-none) both;
-  }
-  @keyframes gpScreenNotice {
-    from { opacity: 0; transform: translateY(-0.5rem); }
-    to { opacity: 1; transform: translateY(0); }
-  }
+.gp-aviso-tela b { color: var(--accent-texto); }
+
+.gp-agir, .gp-perto {
+  bottom: 1rem;
+  left: calc(50% + var(--barra-larg) / 2);
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
+  box-shadow: var(--ui-shadow);
+  font-size: 0.8125rem;
+  color: var(--text-2);
 }
+
+.gp-agir-txt {
+  font-size: 0.8125rem;
+  color: var(--text-2);
+}
+
+.gp-agir-acao { color: var(--accent-texto); font-weight: 700; }
 
 .gp-canto-esq {
   position: absolute;
   bottom: 0.875rem;
-  /* depois da barra, não por baixo dela: 0,875 de margem + a largura dela + respiro */
   left: calc(0.875rem + var(--barra-larg, 3.5rem) + 0.75rem);
   transition: left 0.2s ease;
   z-index: 10;
@@ -2010,319 +1054,38 @@ onUnmounted(() => {
   align-items: flex-start;
   gap: 0.5rem;
   max-width: calc(100% - 2rem);
-  pointer-events: none;
 }
 
-.gp-canto-esq > * { pointer-events: auto; }
-
-.gp-chat {
-  position: static;
-  width: min(17.5rem, calc(100vw - 2rem));
-  z-index: 10;
-}
-
-.gp-chat-log {
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-  max-height: 11.25rem;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  margin-bottom: 0.375rem;
-  padding: 0.5rem 0.5rem;
-  background: var(--bg-2);
-  background: color-mix(in srgb, var(--bg-2) 96%, transparent);
-  border: var(--ui-border-style);
-  box-shadow: var(--contorno-duplo);
-  scrollbar-width: thin;
-  scrollbar-color: var(--border-strong) transparent;
-}
-.gp-chat-log::-webkit-scrollbar { width: 0.375rem; }
-.gp-chat-log::-webkit-scrollbar-track { background: transparent; }
-.gp-chat-log::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: var(--r-sm); }
-.gp-chat-log::-webkit-scrollbar-thumb:hover { background: var(--text-4); }
-
-.gp-chat-msg {
-  font-size: 0.75rem;
-  line-height: 1.4;
-  overflow-wrap: anywhere;
-  text-shadow: 0 0.0625rem 0.125rem var(--bg-0);
-}
-.gp-chat-name { font-weight: 600; }
-.gp-chat-text { color: var(--text); }
-
-.gp-chat-field {
-  position: relative;
-}
-
-.gp-chat-foot {
+.gp-touch {
   position: absolute;
-  left: 0;
-  right: 0;
-  bottom: calc(100% + 0.25rem);
-  display: flex;
-  align-items: flex-end;
-  gap: 0.375rem;
-  pointer-events: none;
-}
-
-.gp-chat-jump {
-  position: sticky;
-  bottom: 0;
-  align-self: center;
-  margin-top: 0.25rem;
-  pointer-events: auto;
-}
-
-.gp-chat-count {
-  margin-left: auto;
-  font-family: var(--f-num);
-  font-size: 0.75rem;
-  color: var(--text-3);
-  background: var(--bg-1);
-  background: color-mix(in srgb, var(--bg-1) 70%, transparent);
-  padding: 0.125rem 0.25rem;
-}
-.gp-chat-count-max { color: var(--warn); }
-
-/* mesmo vocabulário do resto da HUD: creme opaco + contorno duplo (2px tinta
-   por fora, 2px creme por dentro — ver o porquê no topo de tokens.css). Antes
-   era caixa cinza translúcida sem contorno, o único controle fora do padrão. */
-.gp-chat-input-wrap {
-  display: flex;
-  align-items: stretch;
-  width: 100%;
-  box-sizing: border-box;
-  background: var(--bg-2);
-  border: var(--ui-border-style);
-  box-shadow: var(--contorno-duplo);
-}
-.gp-chat-input-wrap:focus-within { border-color: var(--tinta); box-shadow: var(--contorno-duplo), 0 0 0 0.1875rem var(--accent); }
-
-/* prefixo persistente: mesma cor de "aba ativa" (.gp-chat-aba-on), pra ficar
-   óbvio que o campo escreve pra onde a aba já está apontando */
-.gp-chat-prefixo {
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-  max-width: 5.5rem;
-  margin: 0.1875rem 0 0.1875rem 0.1875rem;
-  padding: 0 0.4375rem;
-  background: var(--primary);
-  color: var(--bg-2);
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.gp-chat-input {
-  flex: 1 1 auto;
-  min-width: 0;
-  width: 100%;
-  box-sizing: border-box;
-  background: transparent;
-  border: none;
-  color: var(--text);
-  padding: 0.5rem 0.625rem;
-  font-size: 0.8125rem;
-  font-family: inherit;
-}
-.gp-chat-input::placeholder { color: var(--text-3); }
-.gp-chat-input:focus { outline: none; }
-
-.gp-chat-cooldown {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  height: 0.125rem;
-  background: var(--primary-hi);
-  transform-origin: left center;
-  pointer-events: none;
-  /* duração casada com CHAT_COOLDOWN_MS no script */
-  animation: gpChatCooldown 0.5s linear forwards;
-}
-@keyframes gpChatCooldown {
-  from { transform: scaleX(1); }
-  to { transform: scaleX(0); }
-}
-
-.gp-hud-agir {
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, 3rem);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  background: var(--bg-1);
-  border: 0.125rem solid var(--tinta);
-  box-shadow: var(--ui-shadow);
-  padding: 0.5rem 0.875rem;
-}
-/* "aperte [E] para sentar": a frase é curta e de comando, então vai em caixa
-   alta espaçada — a tecla é o único pedaço em fonte pixel, via .k-key */
-.gp-hud-agir-txt {
-  font-family: var(--f-sans);
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-2);
-}
-.gp-hud-action { color: var(--accent-texto); }
-
-.gp-hud-ctl {
-  position: static;
-  width: 25.25rem;
-  max-width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
-  gap: 0.5rem;
-  padding: 0;
-  z-index: 15;
-}
-.gp-hud-ctl-mini { width: fit-content; }
-
-/* largura travada: o slot condicional reserva o espaço mesmo vazio, senão a
-   barra muda de tamanho sozinha ao entrar e sair de uma sala */
-.gp-hud-linha {
+  bottom: 5rem;
+  right: 1.5rem;
+  z-index: 20;
   display: grid;
-  grid-template-columns: 1fr 6rem;
-  gap: 0.625rem;
-  align-items: end;
-}
-.gp-hud-campo { display: flex; flex-direction: column; gap: 0.375rem; min-width: 0; }
-.gp-hud-slot { justify-content: flex-end; }
-.gp-hud-topo { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
-.gp-hud-cap { margin: 0; }
-.gp-hud-full { width: 100%; }
-/* tira recolhida: só ícone, altura de um botão. antes o "recolhido" mantinha o
-   cabeçalho do cluster e dois valores de leitura, o que não parecia recolhido
-   nem podia sumir. */
-.gp-hud-mini {
-  display: flex;
-  align-items: center;
+  grid-template-columns: repeat(3, 2.75rem);
+  grid-template-rows: repeat(3, 2.75rem);
   gap: 0.25rem;
-  padding: 0.25rem;
+  touch-action: none;
+  user-select: none;
+}
+
+.tbtn {
   background: var(--bg-1);
   border: 0.125rem solid var(--tinta);
-  box-shadow: var(--ui-shadow);
-}
-.gp-hud-mini-btn {
-  appearance: none;
-  background: none;
-  border: none;
-  cursor: pointer;
-  width: 2rem;
-  height: 2rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   color: var(--text);
-  font-family: var(--f-sans);
-  font-size: 0.75rem;
-  font-weight: 600;
-}
-.gp-hud-mini-btn:hover { background: var(--bg-2); box-shadow: inset 0 0 0 0.125rem var(--tinta); }
-
-.gp-hud-rodape {
-  appearance: none;
-  background: none;
-  border: none;
-  border-right: 0.125rem solid rgba(36, 28, 21, 0.18);
-  min-height: 2.375rem;
+  font-size: 1rem;
+  font-weight: 700;
+  display: grid;
+  place-items: center;
   cursor: pointer;
-  color: var(--text);
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.375rem;
-}
-/* o glifo do protótipo entra como texto, não como PixelIcon: ⌖ não existe no
-   conjunto de ícones e desenhar um só pra este botão sairia do desenho */
-.gp-hud-glifo { font-family: var(--f-sans); font-size: 0.875rem; line-height: 1; }
-.gp-hud-rodape:last-child { border-right: none; }
-.gp-hud-rodape:hover { background: var(--bg-2); }
-.gp-hud-rodape-on { background: var(--accent); }
-.gp-hud-coroa { max-width: 2.75rem; }
-
-.gp-atalhos {
-  position: absolute;
-  right: 1.25rem;
-  top: 8.5rem;
-  z-index: 30;
-  width: 18rem;
-  padding: 0.875rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-}
-.gp-atalhos-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4375rem; }
-.gp-atalhos-lista li { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--text-2); }
-
-.gp-sudo-panel {
-  position: absolute;
-  /* ancorado à direita, embaixo da barra de controles: à esquerda ele cobria o
-     nome do mundo e a lista de mundos */
-  top: 8.5rem;
-  right: 1.25rem;
-  z-index: 30;
-  width: 25.25rem;
-  max-width: calc(100vw - 2.5rem);
-  /* a lista de pessoas e os 4 grupos passam da tela em monitor baixo — sem teto
-     o painel some por baixo do rodapé em vez de rolar */
-  max-height: calc(100vh - 10rem);
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 0.625rem;
-  padding: 0.75rem;
+  border-radius: 0.375rem;
+  touch-action: none;
 }
 
-.gp-sudo-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.375rem;
-}
-.gp-sudo-row .k-btn { flex: 1 1 auto; }
-.gp-sudo-spawn { display: grid; grid-template-columns: 1fr 10.625rem; gap: 0.375rem; align-items: stretch; }
-.gp-sudo-grupo { margin: 0; }
-.gp-sudo-select { flex: 1; min-width: 0; }
-.gp-sudo-perigo-tit { color: var(--err); margin: 0.25rem 0 0; }
-.gp-sudo-perigo-txt { font-size: 0.6875rem; color: #7a4a3a; line-height: 1.4; margin: 0 0 0.125rem; }
-.gp-sudo-pessoas { display: flex; flex-direction: column; gap: 0.375rem; }
-/* a lista cresce com quem entra: sem teto ela empurra o resto do painel */
-.gp-sudo-lista {
-  max-height: 12.5rem;
-  overflow-y: auto;
-  border: 0.125rem solid var(--tinta);
-  background: var(--bg-2);
-}
-.gp-sudo-pessoa {
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  padding: 0.375rem 0.5rem;
-  min-height: 2.5rem;
-  border-bottom: 0.125rem solid rgba(36, 28, 21, 0.1);
-}
-.gp-sudo-pessoa:last-child { border-bottom: none; }
-.gp-sudo-pessoa-nome { flex: 1; min-width: 0; font-size: 0.8125rem; font-weight: 700; }
-.gp-sudo-erro {
-  margin: 0.375rem 0 0;
-  padding: 0.375rem 0.5rem;
-  background: var(--err);
-  color: var(--bg-2);
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+.tbtn:active { background: rgba(44, 116, 65, 0.32); }
+
+@media (hover: hover) and (pointer: fine) {
+  .touch-ctl { display: none !important; }
 }
 
 .gp-modal-overlay {
@@ -2341,8 +1104,6 @@ onUnmounted(() => {
   width: min(32.5rem, 100%);
 }
 
-.gp-modal-close { padding: 0.375rem 0.625rem; gap: 0.375rem; }
-
 .gp-modal-title {
   margin: 0 0 0.375rem;
   font-size: 1.5rem;
@@ -2356,53 +1117,135 @@ onUnmounted(() => {
   font-size: 0.875rem;
 }
 
-.gp-modal-body {
-  background: var(--bg-1);
-  border: 0.0625rem solid var(--border);
-  padding: 1rem;
-  font-size: 0.8125rem;
-  color: var(--text-2);
-  line-height: 1.6;
-}
+.gp-arrastando { cursor: grabbing; }
+.gp-pode-arrastar { cursor: grab; }
 
-.gp-touch-ctl {
-  position: absolute;
-  bottom: 5rem;
-  right: 1.5rem;
-  z-index: 20;
-  display: grid;
-  grid-template-columns: repeat(3, 2.75rem);
-  grid-template-rows: repeat(3, 2.75rem);
-  gap: 0.25rem;
-  touch-action: none;
-  user-select: none;
-}
-
-
-.tbtn {
+.gp-rota {
+  top: 3.5rem;
+  left: calc(50% + var(--barra-larg) / 2);
+  transform: translateX(-50%);
+  padding: 0.4375rem 0.75rem;
   background: var(--bg-1);
   border: 0.125rem solid var(--tinta);
-  color: var(--text);
-  font-size: 1.125rem;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-  border-radius: 0.375rem;
-  touch-action: none;
-}
-.tbtn:active {
-  background: rgba(44, 116, 65, 0.32);
-}
-/* esconde os controles touch em dispositivos com mouse (desktop) */
-@media (hover: hover) and (pointer: fine) {
-  .touch-ctl {
-    display: none !important;
-  }
+  box-shadow: var(--ui-shadow);
+  font-size: 0.8125rem;
+  color: var(--text-2);
+  z-index: 20;
 }
 
-/* Telas estreitas (ou zoom alto do navegador, que reduz os mesmos px de CSS):
-   a barra colada nas bordas ganha a tela inteira, porque 18rem descolados não
-   sobram num celular. */
+.gp-rota b { color: var(--text); }
+
+.gp-canto-dir {
+  position: absolute;
+  top: 0.875rem;
+  right: 0.875rem;
+  z-index: 15;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.gp-minimapa {
+  padding: 0.25rem;
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
+  box-shadow: var(--ui-shadow);
+}
+
+.gp-controles {
+  display: flex;
+  align-items: stretch;
+  background: var(--bg-1);
+  border: 0.125rem solid var(--tinta);
+  box-shadow: var(--ui-shadow);
+}
+
+.gp-hora {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0 0.625rem;
+  font-family: var(--f-num);
+  font-size: 0.8125rem;
+  color: var(--text-2);
+  border-right: 0.0625rem solid var(--border);
+}
+
+.gp-botao {
+  appearance: none;
+  cursor: pointer;
+  min-width: 2rem;
+  min-height: 2rem;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  border: none;
+  border-right: 0.0625rem solid var(--border);
+  color: var(--text);
+  font-weight: 700;
+}
+
+.gp-botao:last-child { border-right: none; }
+.gp-botao:hover { background: var(--bg-2); }
+.gp-botao-on { background: var(--accent); }
+
+.gp-cartao {
+  position: absolute;
+  right: 0.875rem;
+  top: 4rem;
+  z-index: 25;
+  width: min(20rem, calc(100% - 2rem));
+  padding: 0.875rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.gp-cartao-topo { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+
+.gp-atalhos-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.4375rem; }
+.gp-atalhos-lista li { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: var(--text-2); }
+
+.gp-sudo-linha { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; font-weight: 600; }
+.gp-sudo-linha small { color: var(--text-3); font-weight: 400; }
+.gp-sudo-faixa { flex-direction: column; align-items: stretch; gap: 0.25rem; }
+.gp-sudo-acoes { display: flex; gap: 0.375rem; flex-wrap: wrap; }
+.gp-sudo-pessoas { display: flex; flex-direction: column; gap: 0.25rem; max-height: 10rem; overflow-y: auto; }
+.gp-sudo-pessoa { display: flex; align-items: center; gap: 0.375rem; font-size: 0.8125rem; }
+.gp-sudo-pessoa .ellipsis { flex: 1; min-width: 0; }
+
+.gp-mapa-grande {
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: calc(100vw - 2rem);
+}
+
+.gp-mapa-grande-corpo { display: flex; gap: 1rem; align-items: flex-start; }
+
+.gp-mapa-salas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.25rem; width: 13rem; max-height: 70vh; overflow-y: auto; }
+
+.gp-mapa-sala {
+  appearance: none;
+  cursor: pointer;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.375rem 0.5rem;
+  background: var(--bg-2);
+  border: 0.0625rem solid var(--border);
+  color: var(--text);
+  font-size: 0.8125rem;
+  text-align: left;
+}
+
+.gp-mapa-sala:hover { border-color: var(--border-strong); background: var(--bg-3); }
+.gp-mapa-sala .ellipsis { flex: 1; min-width: 0; }
+.gp-mapa-sala-gente { font-family: var(--f-num); color: var(--text-3); }
+
 @media (max-width: 48rem) {
   .gp-sidebar.gp-sidebar-open {
     left: 0;
@@ -2413,120 +1256,8 @@ onUnmounted(() => {
     box-shadow: 0.5rem 0 1.5rem rgba(0, 0, 0, 0.5);
   }
 
-  /* HUD: lista de quem está online ocupava um card próprio no topo-direita —
-     em telas estreitas colide com o card do topo-esquerda. Esconde os nomes,
-     mantém só a contagem (mais compacta). */
-
-  .gp-chat {
-    bottom: 0.75rem;
-    left: 0.75rem;
-  }
+  .gp-aviso-centro, .gp-sala, .gp-agir, .gp-perto, .gp-avisos-tela, .gp-rota { left: 50%; }
+  .gp-minimapa { display: none; }
+  .gp-mapa-grande-corpo { flex-direction: column; }
 }
-
-.gp-chat-abas { display: flex; flex-wrap: wrap; gap: 0.25rem; margin-bottom: 0.25rem; }
-.gp-chat-aba {
-  min-height: 2rem;
-  appearance: none;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.375rem;
-  max-width: 9rem;
-  min-height: 2rem;
-  padding: 0.3125rem 0.5rem;
-  background: var(--bg-1);
-  border: 0.125rem solid var(--tinta);
-  color: var(--text-2);
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.gp-chat-aba-on { background: var(--primary); color: var(--bg-2); }
-.gp-chat-aba-vazia { opacity: 0.45; cursor: default; border-style: dashed; }
-.gp-chat-bolha {
-  background: var(--accent);
-  color: var(--tinta);
-  border: 0.125rem solid var(--tinta);
-  padding: 0 0.25rem;
-  font-size: 0.5rem;
-}
-
-/* a aba da conversa ganha um pouco mais de largura que a da sala: nome de
-   pessoa corta pior que nome de sala, que costuma ser curto */
-.gp-chat-aba-dm { max-width: 11rem; }
-
-/* o chip fica no fim da fila de abas — é preferência, não destino de mensagem */
-.gp-chat-chip {
-  appearance: none;
-  cursor: pointer;
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  min-width: 2rem;
-  min-height: 2rem;
-  padding: 0.3125rem 0.5rem;
-  background: var(--bg-1);
-  border: 0.125rem dashed var(--tinta);
-  color: var(--text-3);
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.gp-chat-chip:hover { background: var(--bg-2); }
-.gp-chat-chip-on { background: var(--accent); color: var(--tinta); border-style: solid; }
-
-.gp-dm-msg {
-  display: flex;
-  align-items: baseline;
-  gap: 0.375rem;
-  font-size: 0.75rem;
-  line-height: 1.4;
-  color: var(--text);
-  overflow-wrap: anywhere;
-  text-shadow: 0 0.0625rem 0.125rem var(--bg-0);
-}
-.gp-dm-msg-minha { justify-content: flex-end; }
-.gp-dm-msg-minha .gp-dm-texto { color: var(--accent-texto); }
-.gp-dm-texto { min-width: 0; }
-.gp-dm-hora {
-  flex-shrink: 0;
-  font-family: var(--f-num);
-  font-size: 0.625rem;
-  color: var(--text-3);
-}
-
-/* separador de dia, marcador de não lido e "vista às" caem todos aqui: são
-   anotações do log, não fala de ninguém */
-.gp-dm-nota {
-  margin: 0.25rem 0;
-  text-align: center;
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-3);
-}
-
-.gp-chat-contrato {
-  margin: 0.375rem 0 0;
-  color: var(--text-3);
-}
-.gp-rota {
-  top: 1rem;
-  left: 50%;
-  transform: translateX(-50%);
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.4375rem 0.75rem;
-  background: var(--bg-1);
-  border: 0.125rem solid var(--tinta);
-  box-shadow: var(--ui-shadow);
-  font-size: 0.8125rem;
-  color: var(--text-2);
-  z-index: 20;
-}
-.gp-rota b { color: var(--text); }
 </style>

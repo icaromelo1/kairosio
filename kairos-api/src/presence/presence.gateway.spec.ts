@@ -21,7 +21,7 @@ function makeGateway(amizades: Record<string, string[]> = {}) {
       },
     } as any,
     { register: () => undefined } as any,
-    { findOne: async () => ({ objects: [] }) } as any,
+    { findOne: async () => ({ salas: [] }) } as any,
   )
   gateway.server = {
     to: (para: string) => ({
@@ -47,9 +47,8 @@ function entra(
     serverId,
     x: 0,
     y: 0,
-    facing: 'down',
-    pose: 'idle',
-    boost: false,
+    direcao: 0,
+    pose: 'parado',
   })
 }
 

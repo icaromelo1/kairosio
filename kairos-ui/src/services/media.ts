@@ -173,7 +173,7 @@ export const media = {
     impl?.setPeerGain(identity, gain)
   },
 
-  // roda no ticker do Pixi, a cada frame: lê o estado compartilhado direto, sem
+  // roda a cada frame do mundo: lê o estado compartilhado direto, sem
   // depender do SDK ter carregado
   isSubscribed(identity: string): boolean {
     return !!peers.get(identity)?.subscribed
