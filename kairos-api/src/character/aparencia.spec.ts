@@ -30,6 +30,20 @@ describe('validarAparencia', () => {
     expect(resultado?.pecas).not.toHaveProperty('asas');
   });
 
+  it('aceita segunda cor e recusa segunda cor fora do formato', () => {
+    const comDetalhe = {
+      ...valida,
+      pecas: { ...valida.pecas, sapato: { id: 'tenis', cor: '#f0eee8', cor2: '#c0392b' } },
+    };
+    expect(validarAparencia(comDetalhe)).toEqual(comDetalhe);
+    expect(
+      validarAparencia({
+        ...valida,
+        pecas: { ...valida.pecas, sapato: { id: 'tenis', cor: '#f0eee8', cor2: 'red' } },
+      }),
+    ).toBeNull();
+  });
+
   it('recusa cor fora do formato e id com caminho', () => {
     expect(validarAparencia({ ...valida, pele: 'red' })).toBeNull();
     expect(

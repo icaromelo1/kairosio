@@ -9,6 +9,8 @@ TEMP="$(mktemp -d)"
 trap 'rm -rf "$TEMP"' EXIT
 
 export PINTAR="${PINTAR:-1}"
+"$BLENDER" -b --factory-startup --python "$RAIZ/arte/verificar_personagem.py" -- "$TEMP/verificacao" > "$TEMP/verificacao.log" 2>&1
+python3 "$RAIZ/arte/catraca_personagem.py" "$TEMP/verificacao/relatorio.json" "$RAIZ/arte/verificacao.base.json"
 for nome in mobilia personagem; do
   "$BLENDER" -b --factory-startup --python "$RAIZ/arte/$nome.py" -- "$TEMP/$nome.glb" > "$TEMP/$nome.log" 2>&1
   grep -E 'TRIANGULOS|Error|Traceback' "$TEMP/$nome.log" || true

@@ -102,6 +102,19 @@ base (antes do `#`).
 geradas por `arte/miniaturas.py` dentro do `gerar.sh`; prévia abre de frente em 3/4, gira
 arrastando, zoom na roda e botão "rosto"; desfazer (botão e Ctrl+Z, 30 passos).
 
+**Peças (20/10)**: cabelos curto, topete, longo, coque, cacheado, moicano, rabo de cavalo, franja,
+tranças, black power e careca; cima camiseta, moletom, camisa, regata, jaqueta, cardigã, terno e
+vestido (`cobreBaixo` esconde a parte de baixo); baixo calça, bermuda, saia e macacão. Segunda cor
+por peça: material `tinta_<slot>2`, catálogo `cor2` (cor padrão), aparência `pecas[slot].cor2`
+opcional, validada na API. Rosto com brilho nos olhos, sobrancelha (cor do cabelo), sorriso e
+piscada (osso `olhos`, nas animações parado e sentar).
+
+**Catraca do personagem**: o `gerar.sh` roda `verificar_personagem.py` e
+`catraca_personagem.py` antes de exportar; falha se aparecer erro estrutural, corpo atravessando
+a si mesmo, pé abaixo do chão (fora sentar) ou par de peças com interseção nova ou 10% maior que
+`arte/verificacao.base.json`. Mudou de propósito? Conferir as folhas (`--fotos --combinacoes`) e
+rodar `python3 arte/catraca_personagem.py <relatorio.json> arte/verificacao.base.json --atualizar`.
+
 **API**: mapa por `salas`/`mobilia` (`game_maps`), escritório oficial em `map/escritorio.ts`
 semeado no boot (pulado se `editadoEm` preenchido); `characters.aparencia` (jsonb) validada em
 `character/aparencia.ts` e reaproveitada pela presença; presença com `direcao` (ângulo) e

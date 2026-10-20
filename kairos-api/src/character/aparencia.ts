@@ -14,7 +14,10 @@ export interface Aparencia {
   v: 1;
   pele: string;
   corCabelo: string;
-  pecas: Record<(typeof SLOTS)[number], { id: string; cor: string }>;
+  pecas: Record<
+    (typeof SLOTS)[number],
+    { id: string; cor: string; cor2?: string }
+  >;
 }
 
 export function validarAparencia(bruta: unknown): Aparencia | null {
@@ -35,6 +38,10 @@ export function validarAparencia(bruta: unknown): Aparencia | null {
     if (!item || typeof item.id !== 'string' || !ID.test(item.id)) return null;
     if (typeof item.cor !== 'string' || !HEX.test(item.cor)) return null;
     saida[slot] = { id: item.id, cor: item.cor };
+    if (item.cor2 !== undefined) {
+      if (typeof item.cor2 !== 'string' || !HEX.test(item.cor2)) return null;
+      saida[slot].cor2 = item.cor2;
+    }
   }
   return { v: 1, pele: a.pele, corCabelo: a.corCabelo, pecas: saida };
 }

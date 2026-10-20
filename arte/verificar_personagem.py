@@ -28,7 +28,7 @@ def ler_catalogo():
     for m in re.finditer(r"\{ id: '([^']+)', slot: '([^']+)', nome: '([^']+)', malha: (null|'[^']+')([^}]*)\}", texto):
         malha = None if m.group(4) == 'null' else m.group(4).strip("'")
         corte = re.search(r"corte: '([^']+)'", m.group(5))
-        pecas.append({'id': m.group(1), 'slot': m.group(2), 'malha': malha, 'corte': corte.group(1) if corte else None, 'semCor': 'semCor: true' in m.group(5)})
+        pecas.append({'id': m.group(1), 'slot': m.group(2), 'malha': malha, 'corte': corte.group(1) if corte else None, 'semCor': 'semCor: true' in m.group(5), 'cor2': 'cor2:' in m.group(5), 'cobreBaixo': 'cobreBaixo: true' in m.group(5)})
     return pecas
 
 
@@ -43,6 +43,7 @@ def montar():
     comum.limpar()
     p.corpo()
     p.cabelos()
+    p.cabelos_novos()
     p.cabelos_sob_chapeu()
     p.chapeus()
     p.rostos()
@@ -81,7 +82,12 @@ def estruturais(armacao, catalogo):
         mats = {s.material.name for s in obj.material_slots if s.material}
         if TINTAS[c['slot']] not in mats:
             achados.append(f"{c['slot']}/{c['id']}: slot coloravel mas a peca nao usa {TINTAS[c['slot']]} (cor escolhida nao muda nada; usa {sorted(mats)})")
-        alheias = sorted(m for m in mats if m.startswith('tinta_') and m != TINTAS[c['slot']])
+        segunda = TINTAS[c['slot']] + '2'
+        if c['cor2'] and segunda not in mats:
+            achados.append(f"{c['slot']}/{c['id']}: tem cor2 no catalogo mas a peca nao usa {segunda}")
+        if not c['cor2'] and segunda in mats:
+            achados.append(f"{c['slot']}/{c['id']}: usa {segunda} mas o catalogo nao oferece cor2 (fica na cor padrao)")
+        alheias = sorted(m for m in mats if m.startswith('tinta_') and m not in (TINTAS[c['slot']], segunda))
         if alheias:
             achados.append(f"{c['slot']}/{c['id']}: tambem usa {alheias} (pinta com a cor de outro slot)")
     for pose in POSES:
@@ -123,7 +129,7 @@ def partes_do_corpo(depsgraph):
     return {g: BVHTree.FromPolygons(vertices, faces) for g, faces in por_grupo.items()}
 
 
-VIZINHOS = {('braco.L', 'tronco'), ('braco.R', 'tronco'), ('antebraco.L', 'braco.L'), ('antebraco.R', 'braco.R'), ('coxa.L', 'quadril'), ('coxa.R', 'quadril'), ('canela.L', 'coxa.L'), ('canela.R', 'coxa.R'), ('cabeca', 'tronco'), ('quadril', 'tronco')}
+VIZINHOS = {('olhos', 'cabeca'), ('braco.L', 'tronco'), ('braco.R', 'tronco'), ('antebraco.L', 'braco.L'), ('antebraco.R', 'braco.R'), ('coxa.L', 'quadril'), ('coxa.R', 'quadril'), ('canela.L', 'coxa.L'), ('canela.R', 'coxa.R'), ('cabeca', 'tronco'), ('quadril', 'tronco')}
 
 
 def geometricos(armacao, catalogo):
@@ -136,9 +142,13 @@ def geometricos(armacao, catalogo):
                 corte_da_malha[f"{c['malha']}_{corte}"] = corte
     slot_da_malha['corpo'] = 'corpo'
 
+    cobre = {c['malha'] for c in catalogo if c['cobreBaixo']}
+
     def combina(a, b):
         sa, sb = slot_da_malha[a], slot_da_malha[b]
         if sa == sb:
+            return False
+        if (a in cobre and sb == 'baixo') or (b in cobre and sa == 'baixo'):
             return False
         if {sa, sb} == {'cabelo', 'chapeu'}:
             cabelo, chapeu = (a, b) if sa == 'cabelo' else (b, a)
@@ -195,6 +205,8 @@ def contato(pasta, armacao, catalogo):
             continue
         visiveis = {'corpo', *base.values()}
         visiveis.discard(base.get(c['slot']))
+        if c['cobreBaixo']:
+            visiveis.discard(base['baixo'])
         visiveis.add(c['malha'])
         for pose in ['parado', 'andar', 'correr', 'sentar', 'acenar', 'dancar']:
             acao = bpy.data.actions[pose]

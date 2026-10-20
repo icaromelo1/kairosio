@@ -27,12 +27,18 @@ PALETA = {
     'tinta_baixo': {'cor': '#2f3d5c'},
     'tinta_sapato': {'cor': '#f0eee8'},
     'tinta_acessorio': {'cor': '#d9a441'},
+    'tinta_chapeu2': {'cor': '#f4f1ea'},
+    'tinta_cima2': {'cor': '#f4f1ea'},
+    'tinta_baixo2': {'cor': '#d9a441'},
+    'tinta_sapato2': {'cor': '#f4f1ea'},
+    'tinta_acessorio2': {'cor': '#26262b'},
 }
 
 OSSOS = [
     ('quadril', (0, 0, 0.5), (0, 0, 0.6), 'raiz'),
     ('tronco', (0, 0, 0.6), (0, 0, 0.85), 'quadril'),
     ('cabeca', (0, 0, 0.85), (0, 0, 1.25), 'tronco'),
+    ('olhos', (0, -0.15, 1.05), (0, -0.15, 1.1), 'cabeca'),
     ('braco.L', (0.17, 0, 0.82), (0.195, 0, 0.62), 'tronco'),
     ('antebraco.L', (0.195, 0, 0.62), (0.205, 0, 0.44), 'braco.L'),
     ('braco.R', (-0.17, 0, 0.82), (-0.195, 0, 0.62), 'tronco'),
@@ -60,6 +66,15 @@ def cortar_abaixo(obj, z):
     bm.free()
 
 
+def cortar_acima(obj, z):
+    m.aplicar(obj)
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if v.co.z > z], context='VERTS')
+    bm.to_mesh(obj.data)
+    bm.free()
+
+
 def lados(funcao):
     for lado, sx in (('L', 1), ('R', -1)):
         funcao(lado, sx)
@@ -71,9 +86,12 @@ def fechar(nome):
 
 def corpo():
     m.esfera('cabeca', CABECA, RAIO_CABECA, 'pele', 'cabeca', escala=(1, 0.95, 1), segmentos=16, aneis=10)
-    lados(lambda l, sx: m.esfera(f'olho{l}', (sx * 0.072, -0.18, 1.05), 0.026, 'olhos', 'cabeca', escala=(1, 0.6, 1.25), segmentos=8, aneis=6))
+    lados(lambda l, sx: m.esfera(f'olho{l}', (sx * 0.072, -0.18, 1.05), 0.026, 'olhos', 'olhos', escala=(1, 0.6, 1.25), segmentos=10, aneis=8))
+    lados(lambda l, sx: m.esfera(f'brilho{l}', (sx * 0.072 + 0.009, -0.196, 1.062), 0.0085, 'branco', 'olhos', escala=(1, 0.5, 1), segmentos=6, aneis=4))
+    lados(lambda l, sx: m.caixa(f'sobrancelha{l}', (sx * 0.076, -0.182, 1.1), (0.056, 0.035, 0.014), 'tinta_cabelo', 'cabeca', chanfro=0.005, rot=(0, -sx * 0.1, 0)))
     lados(lambda l, sx: m.esfera(f'bochecha{l}', (sx * 0.12, -0.16, 0.98), 0.03, 'bochecha', 'cabeca', escala=(1, 0.4, 0.7), segmentos=8, aneis=5))
-    m.caixa('boca', (0, -0.188, 0.955), (0.05, 0.01, 0.012), 'olhos', 'cabeca', chanfro=0)
+    sorriso = m.toro('boca', (0, -0.186, 0.972), 0.026, 0.0065, 'olhos', 'cabeca', rot=(math.pi / 2, 0, 0), lados=16, secao=4)
+    cortar_acima(sorriso, 0.966)
     lados(lambda l, sx: m.esfera(f'orelha{l}', (sx * 0.195, 0.0, 1.02), 0.04, 'pele', 'cabeca', escala=(0.5, 0.8, 1), segmentos=8, aneis=5))
     m.cilindro('pescoco', (0, 0, 0.84), 0.05, 0.07, 'pele', 'tronco')
     m.caixa('peito', (0, 0, 0.72), (0.3, 0.18, 0.26), 'pele', 'tronco', chanfro=0.03)
@@ -105,9 +123,11 @@ def cabelos():
     fechar('cabelo_topete')
 
     base_cabelo()
-    m.caixa('cascata', (0, 0.12, 0.9), (0.38, 0.1, 0.42), 'tinta_cabelo', 'cabeca', chanfro=0.04)
-    lados(lambda l, sx: m.caixa(f'mecha{l}', (sx * 0.19, 0.0, 0.94), (0.07, 0.16, 0.32), 'tinta_cabelo', 'cabeca', chanfro=0.03))
-    m.caixa('franja', (0, -0.15, 1.15), (0.3, 0.06, 0.08), 'tinta_cabelo', 'cabeca', chanfro=0.03)
+    m.esfera('volume', (0, 0.07, 0.97), 0.22, 'tinta_cabelo', 'cabeca', escala=(1.04, 0.78, 1.35), segmentos=16, aneis=10)
+    for sx in (-1, 1):
+        for i, (z, r) in enumerate(((1.0, 0.07), (0.9, 0.066), (0.8, 0.058))):
+            m.icosfera(f'mecha{sx}{i}', (sx * (0.185 + 0.006 * i), -0.03 + 0.02 * i, z), r, 'tinta_cabelo', 'cabeca', escala=(0.85, 1, 1.25))
+    m.caixa('franja', (0.04, -0.165, 1.15), (0.27, 0.05, 0.075), 'tinta_cabelo', 'cabeca', chanfro=0.03, rot=(0, 0.2, 0))
     fechar('cabelo_longo')
 
     base_cabelo()
@@ -129,6 +149,40 @@ def cabelos():
     fechar('cabelo_moicano')
 
 
+def cabelos_novos():
+    base_cabelo()
+    m.toro('elastico', (0, 0.2, 1.1), 0.045, 0.014, 'preto', 'cabeca', rot=(1.2, 0, 0), lados=12, secao=4)
+    m.icosfera('rabo1', (0, 0.25, 1.04), 0.075, 'tinta_cabelo', 'cabeca', escala=(1, 1, 1.35))
+    m.icosfera('rabo2', (0, 0.27, 0.93), 0.065, 'tinta_cabelo', 'cabeca', escala=(1, 1, 1.4))
+    m.icosfera('rabo3', (0, 0.27, 0.84), 0.045, 'tinta_cabelo', 'cabeca', escala=(1, 1, 1.3))
+    fechar('cabelo_rabo')
+
+    base_cabelo()
+    m.esfera('franja', (0, -0.15, 1.13), 0.17, 'tinta_cabelo', 'cabeca', escala=(1.12, 0.32, 0.42), segmentos=14, aneis=8)
+    lados(lambda l, sx: m.esfera(f'lado{l}', (sx * 0.175, 0.03, 0.99), 0.13, 'tinta_cabelo', 'cabeca', escala=(0.45, 1.25, 1.05), segmentos=12, aneis=8))
+    m.esfera('nuca', (0, 0.12, 0.99), 0.2, 'tinta_cabelo', 'cabeca', escala=(1.02, 0.55, 0.72), segmentos=14, aneis=8)
+    fechar('cabelo_franja')
+
+    base_cabelo()
+    for sx in (-1, 1):
+        for i in range(4):
+            r = 0.052 - i * 0.006
+            m.icosfera(f'tranca{sx}{i}', (sx * 0.2, 0.15, 0.99 - i * 0.075), r, 'tinta_cabelo', 'cabeca', escala=(1, 1, 1.2))
+        m.cilindro(f'laco{sx}', (sx * 0.2, 0.15, 0.73), 0.03, 0.025, 'preto', 'cabeca', lados=8)
+    fechar('cabelo_trancas')
+
+    m.icosfera('black', (0, 0.08, 1.16), 0.235, 'tinta_cabelo', 'cabeca', escala=(1.06, 1, 0.92), nivel=2)
+    m.icosfera('nuca', (0, 0.1, 1.0), 0.18, 'tinta_cabelo', 'cabeca', escala=(1.12, 0.85, 0.75), nivel=2)
+    for i in range(14):
+        a = i / 14 * math.tau
+        if math.sin(a) < -0.55:
+            continue
+        alto = 1.16 + 0.1 * math.sin(i * 1.7)
+        raio = 0.235 * math.sqrt(max(0.2, 1 - ((alto - 1.16) / 0.216) ** 2))
+        m.icosfera(f'cacho{i}', (math.cos(a) * raio * 1.03, 0.08 + math.sin(a) * raio * 0.96, alto), 0.06, 'tinta_cabelo', 'cabeca')
+    fechar('cabelo_black')
+
+
 def cabelos_sob_chapeu():
     for original in [o for o in pecas if o.name.startswith('cabelo_')]:
         for sufixo, corte in CORTES.items():
@@ -145,22 +199,22 @@ def cabelos_sob_chapeu():
 
 def chapeus():
     m.torno('copa', [(0.238, 1.105), (0.236, 1.16), (0.208, 1.225), (0.13, 1.272), (0.0, 1.282)], 'tinta_chapeu', 'cabeca', centro=(0, 0.02, 0), lados=20)
-    m.caixa('aba', (0, -0.235, 1.14), (0.25, 0.062, 0.02), 'tinta_chapeu', 'cabeca', chanfro=0.008, rot=(-0.25, 0, 0))
+    m.caixa('aba', (0, -0.235, 1.14), (0.25, 0.062, 0.02), 'tinta_chapeu2', 'cabeca', chanfro=0.008, rot=(-0.25, 0, 0))
     fechar('chapeu_bone')
 
     m.torno('gorro', [(0.242, 1.11), (0.244, 1.17), (0.218, 1.25), (0.14, 1.31), (0.0, 1.33)], 'tinta_chapeu', 'cabeca', centro=(0, 0.02, 0), lados=20)
     m.cilindro('barra', (0, 0.02, 1.14), 0.25, 0.06, 'tinta_chapeu', 'cabeca', lados=20)
-    m.icosfera('pompom', (0, 0.02, 1.36), 0.05, 'branco', 'cabeca')
+    m.icosfera('pompom', (0, 0.02, 1.36), 0.05, 'tinta_chapeu2', 'cabeca')
     fechar('chapeu_gorro')
 
     m.cilindro('aba', (0, 0.01, 1.16), 0.3, 0.02, 'tinta_chapeu', 'cabeca', lados=20)
     m.cilindro('copa', (0, 0.01, 1.25), 0.17, 0.17, 'tinta_chapeu', 'cabeca', lados=16, raio_topo=0.15)
-    m.cilindro('faixa', (0, 0.01, 1.19), 0.172, 0.035, 'preto', 'cabeca', lados=16)
+    m.cilindro('faixa', (0, 0.01, 1.19), 0.172, 0.035, 'tinta_chapeu2', 'cabeca', lados=16)
     fechar('chapeu_fedora')
 
     arco = m.toro('arco', (0, 0, 1.03), 0.285, 0.02, 'tinta_chapeu', 'cabeca', rot=(math.pi / 2, 0, 0), lados=28)
     cortar_abaixo(arco, 1.02)
-    lados(lambda l, sx: m.cilindro(f'concha{l}', (sx * 0.255, 0, 1.02), 0.068, 0.065, 'preto', 'cabeca', rot=(0, math.pi / 2, 0), lados=14))
+    lados(lambda l, sx: m.cilindro(f'concha{l}', (sx * 0.255, 0, 1.02), 0.068, 0.065, 'tinta_chapeu2', 'cabeca', rot=(0, math.pi / 2, 0), lados=14))
     lados(lambda l, sx: m.cilindro(f'tampa{l}', (sx * 0.29, 0, 1.02), 0.05, 0.012, 'tinta_chapeu', 'cabeca', rot=(0, math.pi / 2, 0), lados=14))
     fechar('chapeu_fones')
 
@@ -207,14 +261,14 @@ def cimas():
     mangas(True)
     m.caixa('capuz', (0, 0.11, 0.85), (0.24, 0.08, 0.09), 'tinta_cima', 'tronco', chanfro=0.03)
     m.caixa('bolso', (0, -0.115, 0.6), (0.18, 0.01, 0.08), 'tinta_cima', 'quadril', chanfro=0.01)
-    lados(lambda l, sx: m.cilindro(f'cordao{l}', (sx * 0.04, -0.112, 0.76), 0.007, 0.09, 'branco', 'tronco', lados=5))
+    lados(lambda l, sx: m.cilindro(f'cordao{l}', (sx * 0.04, -0.112, 0.76), 0.007, 0.09, 'tinta_cima2', 'tronco', lados=5))
     fechar('cima_moletom')
 
     tronco_roupa()
     mangas(True)
-    m.caixa('gola', (0, -0.06, 0.845), (0.16, 0.1, 0.035), 'branco', 'tronco', chanfro=0.01)
+    m.caixa('gola', (0, -0.06, 0.845), (0.16, 0.1, 0.035), 'tinta_cima2', 'tronco', chanfro=0.01)
     for i in range(4):
-        m.esfera(f'botao{i}', (0, -0.107, 0.8 - i * 0.07), 0.009, 'branco', 'tronco' if i < 3 else 'quadril', segmentos=6, aneis=4)
+        m.esfera(f'botao{i}', (0, -0.107, 0.8 - i * 0.07), 0.009, 'tinta_cima2', 'tronco' if i < 3 else 'quadril', segmentos=6, aneis=4)
     fechar('cima_camisa')
 
     tronco_roupa(largura=0.31, profundidade=0.2)
@@ -222,9 +276,34 @@ def cimas():
 
     tronco_roupa(largura=0.345, profundidade=0.225)
     mangas(True)
-    m.caixa('blusaInterna', (0, -0.113, 0.7), (0.09, 0.01, 0.26), 'branco', 'tronco', chanfro=0)
+    m.caixa('blusaInterna', (0, -0.113, 0.7), (0.09, 0.01, 0.26), 'tinta_cima2', 'tronco', chanfro=0)
     lados(lambda l, sx: m.caixa(f'lapela{l}', (sx * 0.07, -0.118, 0.78), (0.05, 0.012, 0.12), 'tinta_cima', 'tronco', chanfro=0.005, rot=(0, sx * 0.3, 0)))
     fechar('cima_jaqueta')
+
+    tronco_roupa(largura=0.34, profundidade=0.22)
+    mangas(True)
+    m.caixa('blusaInterna', (0, -0.112, 0.7), (0.1, 0.01, 0.27), 'tinta_cima2', 'tronco', chanfro=0)
+    lados(lambda l, sx: m.caixa(f'borda{l}', (sx * 0.056, -0.114, 0.7), (0.016, 0.012, 0.29), 'tinta_cima', 'tronco', chanfro=0.004))
+    for i in range(3):
+        m.esfera(f'botao{i}', (-0.056, -0.122, 0.78 - i * 0.08), 0.009, 'branco', 'tronco', segmentos=6, aneis=4)
+    lados(lambda l, sx: m.caixa(f'bolso{l}', (sx * 0.11, -0.113, 0.6), (0.07, 0.01, 0.06), 'tinta_cima', 'quadril', chanfro=0.004))
+    fechar('cima_cardiga')
+
+    tronco_roupa(largura=0.35, profundidade=0.225)
+    mangas(True)
+    m.caixa('camisa', (0, -0.113, 0.76), (0.1, 0.01, 0.17), 'branco', 'tronco', chanfro=0)
+    m.caixa('gravata', (0, -0.12, 0.74), (0.035, 0.012, 0.17), 'tinta_cima2', 'tronco', chanfro=0.004)
+    m.caixa('no', (0, -0.121, 0.832), (0.04, 0.014, 0.025), 'tinta_cima2', 'tronco', chanfro=0.004)
+    lados(lambda l, sx: m.caixa(f'lapela{l}', (sx * 0.07, -0.118, 0.76), (0.05, 0.012, 0.16), 'tinta_cima', 'tronco', chanfro=0.005, rot=(0, sx * 0.35, 0)))
+    m.caixa('bolsoPeito', (0.1, -0.114, 0.77), (0.05, 0.008, 0.012), 'branco', 'tronco', chanfro=0)
+    fechar('cima_terno')
+
+    tronco_roupa(largura=0.32, profundidade=0.2)
+    mangas(False)
+    m.caixa('cinto', (0, 0, 0.53), (0.31, 0.19, 0.03), 'tinta_cima2', 'quadril', chanfro=0.008)
+    m.torno('saia', [(0.17, 0.53), (0.22, 0.42), (0.28, 0.27)], 'tinta_cima', 'quadril', lados=16)
+    fechar('cima_vestido')
+    saia_nas_coxas(pecas[-1])
 
 
 def baixos():
@@ -242,6 +321,18 @@ def baixos():
     fechar('baixo_bermuda')
 
     quadril()
+    lados(lambda l, sx: m.cilindro(f'coxa{l}', (sx * 0.075, 0, 0.385), 0.068, 0.25, 'tinta_baixo', f'coxa.{l}', lados=8))
+    lados(lambda l, sx: m.cilindro(f'canela{l}', (sx * 0.075, 0, 0.16), 0.058, 0.22, 'tinta_baixo', f'canela.{l}', lados=8))
+    lados(lambda l, sx: m.esfera(f'joelho{l}', (sx * 0.075, 0, 0.27), 0.063, 'tinta_baixo', f'canela.{l}', segmentos=8, aneis=6))
+    m.caixa('peitilho', (0, -0.121, 0.72), (0.2, 0.012, 0.19), 'tinta_baixo', 'tronco', chanfro=0.006)
+    m.caixa('bolsoPeito', (0, -0.128, 0.73), (0.09, 0.006, 0.07), 'tinta_baixo', 'tronco', chanfro=0.003)
+    for sy in (-1, 1):
+        lados(lambda l, sx: m.caixa(f'alca{l}{sy}', (sx * 0.08, sy * 0.121, 0.815 if sy < 0 else 0.73), (0.032, 0.012, 0.09 if sy < 0 else 0.26), 'tinta_baixo', 'tronco', chanfro=0.004))
+    lados(lambda l, sx: m.caixa(f'ombro{l}', (sx * 0.08, 0, 0.865), (0.032, 0.25, 0.012), 'tinta_baixo', 'tronco', chanfro=0))
+    lados(lambda l, sx: m.esfera(f'botao{l}', (sx * 0.08, -0.13, 0.8), 0.012, 'tinta_baixo2', 'tronco', segmentos=6, aneis=4))
+    fechar('baixo_macacao')
+
+    quadril()
     m.torno('saia', [(0.16, 0.56), (0.2, 0.45), (0.24, 0.32)], 'tinta_baixo', 'quadril', lados=14)
     fechar('baixo_saia')
     saia_nas_coxas(pecas[-1])
@@ -249,47 +340,50 @@ def baixos():
 
 def saia_nas_coxas(obj):
     quadril = obj.vertex_groups['quadril']
-    esquerda = obj.vertex_groups.new(name='coxa.L')
-    direita = obj.vertex_groups.new(name='coxa.R')
+    esquerda = obj.vertex_groups.get('coxa.L') or obj.vertex_groups.new(name='coxa.L')
+    direita = obj.vertex_groups.get('coxa.R') or obj.vertex_groups.new(name='coxa.R')
     for v in obj.data.vertices:
+        if quadril.index not in {g.group for g in v.groups}:
+            continue
         x, y, z = v.co
         w = min(1.0, max(0.0, (0.5 - z) / 0.17)) * min(1.0, max(0.25, 0.6 - y * 2.0))
+        if w <= 0:
+            continue
         lado = min(1.0, max(0.0, 0.5 + x / 0.12))
         quadril.add([v.index], 1.0 - w, 'REPLACE')
-        if w > 0:
-            esquerda.add([v.index], w * lado, 'REPLACE')
-            direita.add([v.index], w * (1.0 - lado), 'REPLACE')
+        esquerda.add([v.index], w * lado, 'REPLACE')
+        direita.add([v.index], w * (1.0 - lado), 'REPLACE')
 
 
 def sapatos():
     def tenis(l, sx):
         m.caixa(f'tenis{l}', (sx * 0.075, -0.03, 0.04), (0.1, 0.18, 0.07), 'tinta_sapato', f'canela.{l}', chanfro=0.02)
-        m.caixa(f'sola{l}', (sx * 0.075, -0.03, 0.01), (0.105, 0.185, 0.02), 'branco', f'canela.{l}', chanfro=0.005)
+        m.caixa(f'sola{l}', (sx * 0.075, -0.03, 0.01), (0.105, 0.185, 0.02), 'tinta_sapato2', f'canela.{l}', chanfro=0.005)
     lados(tenis)
     fechar('sapato_tenis')
 
     def bota(l, sx):
         m.caixa(f'bota{l}', (sx * 0.075, -0.02, 0.075), (0.1, 0.17, 0.14), 'tinta_sapato', f'canela.{l}', chanfro=0.02)
-        m.caixa(f'sola{l}', (sx * 0.075, -0.02, 0.01), (0.105, 0.175, 0.022), 'preto', f'canela.{l}', chanfro=0.005)
+        m.caixa(f'sola{l}', (sx * 0.075, -0.02, 0.01), (0.105, 0.175, 0.022), 'tinta_sapato2', f'canela.{l}', chanfro=0.005)
     lados(bota)
     fechar('sapato_bota')
 
     def social(l, sx):
         m.caixa(f'sapato{l}', (sx * 0.075, -0.035, 0.035), (0.092, 0.18, 0.055), 'tinta_sapato', f'canela.{l}', chanfro=0.02)
-        m.caixa(f'sola{l}', (sx * 0.075, -0.035, 0.008), (0.095, 0.182, 0.016), 'preto', f'canela.{l}', chanfro=0.004)
+        m.caixa(f'sola{l}', (sx * 0.075, -0.035, 0.008), (0.095, 0.182, 0.016), 'tinta_sapato2', f'canela.{l}', chanfro=0.004)
     lados(social)
     fechar('sapato_social')
 
     def chinelo(l, sx):
         m.caixa(f'chinelo{l}', (sx * 0.075, -0.03, 0.008), (0.1, 0.19, 0.016), 'tinta_sapato', f'canela.{l}', chanfro=0.004)
-        m.caixa(f'tira{l}', (sx * 0.075, -0.06, 0.045), (0.09, 0.02, 0.02), 'tinta_sapato', f'canela.{l}', chanfro=0)
+        m.caixa(f'tira{l}', (sx * 0.075, -0.06, 0.045), (0.09, 0.02, 0.02), 'tinta_sapato2', f'canela.{l}', chanfro=0)
     lados(chinelo)
     fechar('sapato_chinelo')
 
 
 def acessorios():
     m.caixa('mochila', (0, 0.17, 0.7), (0.24, 0.1, 0.27), 'tinta_acessorio', 'tronco', chanfro=0.03)
-    m.caixa('bolsoMochila', (0, 0.225, 0.64), (0.18, 0.03, 0.1), 'tinta_acessorio', 'tronco', chanfro=0.015)
+    m.caixa('bolsoMochila', (0, 0.225, 0.64), (0.18, 0.03, 0.1), 'tinta_acessorio2', 'tronco', chanfro=0.015)
     lados(lambda l, sx: m.caixa(f'alca{l}', (sx * 0.09, -0.112, 0.73), (0.03, 0.012, 0.22), 'preto', 'tronco', chanfro=0))
     fechar('acessorio_mochila')
 
@@ -297,16 +391,16 @@ def acessorios():
     m.caixa('ponta', (0.06, -0.15, 0.75), (0.075, 0.032, 0.17), 'tinta_acessorio', 'tronco', chanfro=0.012, rot=(0, 0.08, 0))
     m.caixa('ponta2', (-0.02, -0.158, 0.77), (0.07, 0.03, 0.12), 'tinta_acessorio', 'tronco', chanfro=0.012, rot=(0, -0.1, 0))
     for i in range(3):
-        m.caixa(f'franja{i}', (0.06 + (i - 1) * 0.022, -0.15, 0.655), (0.012, 0.02, 0.03), 'tinta_acessorio', 'tronco', chanfro=0)
+        m.caixa(f'franja{i}', (0.06 + (i - 1) * 0.022, -0.15, 0.655), (0.012, 0.02, 0.03), 'tinta_acessorio2', 'tronco', chanfro=0)
     fechar('acessorio_cachecol')
 
-    m.caixa('fita', (0, -0.112, 0.78), (0.012, 0.01, 0.12), 'tinta_acessorio', 'tronco', chanfro=0)
+    m.caixa('fita', (0, -0.112, 0.78), (0.012, 0.01, 0.12), 'tinta_acessorio2', 'tronco', chanfro=0)
     m.caixa('cracha', (0, -0.118, 0.69), (0.07, 0.012, 0.09), 'branco', 'tronco', chanfro=0.005)
     m.caixa('foto', (0, -0.125, 0.7), (0.035, 0.004, 0.035), 'tinta_acessorio', 'tronco', chanfro=0)
     fechar('acessorio_cracha')
 
     m.caixa('bolsa', (0.205, -0.02, 0.55), (0.075, 0.19, 0.15), 'tinta_acessorio', 'quadril', chanfro=0.02)
-    m.caixa('tampa', (0.21, -0.02, 0.6), (0.08, 0.195, 0.06), 'tinta_acessorio', 'quadril', chanfro=0.015)
+    m.caixa('tampa', (0.21, -0.02, 0.6), (0.08, 0.195, 0.06), 'tinta_acessorio2', 'quadril', chanfro=0.015)
     m.caixa('fecho', (0.25, -0.02, 0.585), (0.008, 0.04, 0.03), 'branco', 'quadril', chanfro=0)
     for y in (-0.128, 0.128):
         m.caixa(f'alca{y}', (0.035, y, 0.73), (0.405, 0.012, 0.026), 'preto', 'tronco', chanfro=0, rot=(0, 0.697, 0))
@@ -321,10 +415,10 @@ ELEVA_CORRIDA = -0.036
 
 
 def animacoes(armacao):
+    respiro = {'tronco': {'r': (2, 0, 0)}, 'cabeca': {'r': (-2, 0, 2)}, 'braco.L': {'r': (0, 0, -2)}, 'braco.R': {'r': (0, 0, 2)}}
+    piscada = {'olhos': {'s': (1, 0.12, 1)}}
     comum.acao_com_escala(armacao, 'parado', 2.4, [
-        (0, {}),
-        (0.5, {'tronco': {'r': (2, 0, 0)}, 'cabeca': {'r': (-2, 0, 2)}, 'braco.L': {'r': (0, 0, -2)}, 'braco.R': {'r': (0, 0, 2)}}),
-        (1, {}),
+        (0, {}), (0.5, respiro), (0.86, {}), (0.89, piscada), (0.93, {}), (1, {}),
     ])
 
     def passo(fase):
@@ -354,7 +448,9 @@ def animacoes(armacao):
     }
     respira = dict(sentado)
     respira['tronco'] = {'r': (3, 0, 0)}
-    comum.acao_com_escala(armacao, 'sentar', 2.4, [(0, sentado), (0.5, respira), (1, sentado)])
+    piscando = dict(sentado)
+    piscando['olhos'] = {'s': (1, 0.12, 1)}
+    comum.acao_com_escala(armacao, 'sentar', 2.4, [(0, sentado), (0.5, respira), (0.84, sentado), (0.87, piscando), (0.91, sentado), (1, sentado)])
 
     def aceno(angulo):
         return {'braco.R': {'r': (0, 0, 118)}, 'antebraco.R': {'r': (0, 0, angulo)}, 'cabeca': {'r': (0, 0, -4)}, 'braco.L': {'r': (0, 0, -3)}}
@@ -459,6 +555,7 @@ if __name__ == '__main__':
     comum.limpar()
     corpo()
     cabelos()
+    cabelos_novos()
     cabelos_sob_chapeu()
     chapeus()
     rostos()
