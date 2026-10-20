@@ -7,6 +7,8 @@ export interface Peca {
   malha: string | null
   corte?: 'chapeu' | 'aba'
   semCor?: boolean
+  cor2?: string
+  cobreBaixo?: boolean
 }
 
 interface DefinicaoSlot {
@@ -20,7 +22,7 @@ export interface Aparencia {
   v: 1
   pele: string
   corCabelo: string
-  pecas: Record<Slot, { id: string; cor: string }>
+  pecas: Record<Slot, { id: string; cor: string; cor2?: string }>
 }
 
 export const SLOTS: DefinicaoSlot[] = [
@@ -40,34 +42,42 @@ export const PECAS: Peca[] = [
   { id: 'coque', slot: 'cabelo', nome: 'Coque', malha: 'cabelo_coque' },
   { id: 'cacheado', slot: 'cabelo', nome: 'Cacheado', malha: 'cabelo_cacheado' },
   { id: 'moicano', slot: 'cabelo', nome: 'Moicano', malha: 'cabelo_moicano' },
+  { id: 'rabo', slot: 'cabelo', nome: 'Rabo de cavalo', malha: 'cabelo_rabo' },
+  { id: 'franja', slot: 'cabelo', nome: 'Franja', malha: 'cabelo_franja' },
+  { id: 'trancas', slot: 'cabelo', nome: 'Tranças', malha: 'cabelo_trancas' },
+  { id: 'black', slot: 'cabelo', nome: 'Black power', malha: 'cabelo_black' },
   { id: 'careca', slot: 'cabelo', nome: 'Careca', malha: null },
   { id: 'nenhum', slot: 'chapeu', nome: 'Nenhum', malha: null },
-  { id: 'bone', slot: 'chapeu', nome: 'Boné', malha: 'chapeu_bone', corte: 'chapeu' },
-  { id: 'gorro', slot: 'chapeu', nome: 'Gorro', malha: 'chapeu_gorro', corte: 'chapeu' },
-  { id: 'fedora', slot: 'chapeu', nome: 'Chapéu', malha: 'chapeu_fedora', corte: 'aba' },
-  { id: 'fones', slot: 'chapeu', nome: 'Fones', malha: 'chapeu_fones' },
+  { id: 'bone', slot: 'chapeu', nome: 'Boné', malha: 'chapeu_bone', corte: 'chapeu', cor2: '#f0eee8' },
+  { id: 'gorro', slot: 'chapeu', nome: 'Gorro', malha: 'chapeu_gorro', corte: 'chapeu', cor2: '#f4f1ea' },
+  { id: 'fedora', slot: 'chapeu', nome: 'Chapéu', malha: 'chapeu_fedora', corte: 'aba', cor2: '#26262b' },
+  { id: 'fones', slot: 'chapeu', nome: 'Fones', malha: 'chapeu_fones', cor2: '#26262b' },
   { id: 'nenhum', slot: 'rosto', nome: 'Nenhum', malha: null },
   { id: 'oculos', slot: 'rosto', nome: 'Óculos', malha: 'rosto_oculos' },
   { id: 'oculos_sol', slot: 'rosto', nome: 'Óculos escuros', malha: 'rosto_oculos_sol' },
   { id: 'barba', slot: 'rosto', nome: 'Barba', malha: 'rosto_barba', semCor: true },
   { id: 'bigode', slot: 'rosto', nome: 'Bigode', malha: 'rosto_bigode', semCor: true },
   { id: 'camiseta', slot: 'cima', nome: 'Camiseta', malha: 'cima_camiseta' },
-  { id: 'moletom', slot: 'cima', nome: 'Moletom', malha: 'cima_moletom' },
-  { id: 'camisa', slot: 'cima', nome: 'Camisa', malha: 'cima_camisa' },
+  { id: 'moletom', slot: 'cima', nome: 'Moletom', malha: 'cima_moletom', cor2: '#f4f1ea' },
+  { id: 'camisa', slot: 'cima', nome: 'Camisa', malha: 'cima_camisa', cor2: '#f4f1ea' },
   { id: 'regata', slot: 'cima', nome: 'Regata', malha: 'cima_regata' },
-  { id: 'jaqueta', slot: 'cima', nome: 'Jaqueta', malha: 'cima_jaqueta' },
+  { id: 'jaqueta', slot: 'cima', nome: 'Jaqueta', malha: 'cima_jaqueta', cor2: '#f4f1ea' },
+  { id: 'cardiga', slot: 'cima', nome: 'Cardigã', malha: 'cima_cardiga', cor2: '#f4f1ea' },
+  { id: 'terno', slot: 'cima', nome: 'Terno', malha: 'cima_terno', cor2: '#c0392b' },
+  { id: 'vestido', slot: 'cima', nome: 'Vestido', malha: 'cima_vestido', cor2: '#26262b', cobreBaixo: true },
   { id: 'calca', slot: 'baixo', nome: 'Calça', malha: 'baixo_calca' },
   { id: 'bermuda', slot: 'baixo', nome: 'Bermuda', malha: 'baixo_bermuda' },
   { id: 'saia', slot: 'baixo', nome: 'Saia', malha: 'baixo_saia' },
-  { id: 'tenis', slot: 'sapato', nome: 'Tênis', malha: 'sapato_tenis' },
-  { id: 'bota', slot: 'sapato', nome: 'Bota', malha: 'sapato_bota' },
-  { id: 'social', slot: 'sapato', nome: 'Social', malha: 'sapato_social' },
-  { id: 'chinelo', slot: 'sapato', nome: 'Chinelo', malha: 'sapato_chinelo' },
+  { id: 'macacao', slot: 'baixo', nome: 'Macacão', malha: 'baixo_macacao', cor2: '#d9a441' },
+  { id: 'tenis', slot: 'sapato', nome: 'Tênis', malha: 'sapato_tenis', cor2: '#f4f1ea' },
+  { id: 'bota', slot: 'sapato', nome: 'Bota', malha: 'sapato_bota', cor2: '#26262b' },
+  { id: 'social', slot: 'sapato', nome: 'Social', malha: 'sapato_social', cor2: '#26262b' },
+  { id: 'chinelo', slot: 'sapato', nome: 'Chinelo', malha: 'sapato_chinelo', cor2: '#f4f1ea' },
   { id: 'nenhum', slot: 'acessorio', nome: 'Nenhum', malha: null },
-  { id: 'mochila', slot: 'acessorio', nome: 'Mochila', malha: 'acessorio_mochila' },
-  { id: 'cachecol', slot: 'acessorio', nome: 'Cachecol', malha: 'acessorio_cachecol' },
-  { id: 'cracha', slot: 'acessorio', nome: 'Crachá', malha: 'acessorio_cracha' },
-  { id: 'bolsa', slot: 'acessorio', nome: 'Bolsa', malha: 'acessorio_bolsa' },
+  { id: 'mochila', slot: 'acessorio', nome: 'Mochila', malha: 'acessorio_mochila', cor2: '#2f3d5c' },
+  { id: 'cachecol', slot: 'acessorio', nome: 'Cachecol', malha: 'acessorio_cachecol', cor2: '#f4f1ea' },
+  { id: 'cracha', slot: 'acessorio', nome: 'Crachá', malha: 'acessorio_cracha', cor2: '#2f3d5c' },
+  { id: 'bolsa', slot: 'acessorio', nome: 'Bolsa', malha: 'acessorio_bolsa', cor2: '#7a5232' },
 ]
 
 export const TONS_DE_PELE = ['#f6d5b8', '#e8b894', '#d49a6a', '#b07850', '#8a5a3b', '#5e3b26']
@@ -113,6 +123,7 @@ export function sanitizarAparencia(bruta: unknown): Aparencia {
     if (!item || typeof item !== 'object') continue
     if (typeof item.id === 'string' && pecaDe(slot, item.id)) base.pecas[slot].id = item.id
     if (typeof item.cor === 'string' && HEX.test(item.cor)) base.pecas[slot].cor = item.cor
+    if (typeof item.cor2 === 'string' && HEX.test(item.cor2)) base.pecas[slot].cor2 = item.cor2
   }
   return base
 }
@@ -129,6 +140,7 @@ export function aparenciaAleatoria(): Aparencia {
     const vazio = opcoes.find((p) => p.id === 'nenhum')
     const peca = vazio && Math.random() < 0.55 ? vazio : sortear(opcoes)
     aparencia.pecas[slot] = { id: peca.id, cor: sortear(CORES_DE_ROUPA) }
+    if (peca.cor2 && Math.random() < 0.5) aparencia.pecas[slot].cor2 = sortear(CORES_DE_ROUPA)
   }
   aparencia.pecas.cabelo.cor = corCabelo
   return aparencia

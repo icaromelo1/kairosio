@@ -91,6 +91,20 @@
               <input type="color" class="pp-cor-livre" :value="aparencia.pecas[aba].cor" aria-label="outra cor" @input="aparencia.pecas[aba].cor = ($event.target as HTMLInputElement).value" />
             </div>
           </template>
+          <template v-if="pecaAtual?.cor2">
+            <span class="k-label">detalhe</span>
+            <div class="pp-cores">
+              <button
+                v-for="c in CORES_DE_ROUPA" :key="c"
+                class="pp-cor" :class="{ 'pp-cor-on': segundaCor === c }" :style="{ background: c }"
+                :aria-label="`detalhe ${c}`" @click="definirSegunda(c)"
+              />
+              <input type="color" class="pp-cor-livre" :value="segundaCor" aria-label="outra cor de detalhe" @input="definirSegunda(($event.target as HTMLInputElement).value)" />
+            </div>
+          </template>
+          <p v-if="aba === 'baixo' && pecaDe('cima', aparencia.pecas.cima.id)?.cobreBaixo" class="k-hint-text">
+            O vestido cobre a parte de baixo.
+          </p>
           <p v-if="pecaDe(aba, aparencia.pecas[aba].id)?.semCor" class="k-hint-text">
             Segue a cor do cabelo (aba Corpo).
           </p>
@@ -147,6 +161,12 @@ const salvando = ref(false)
 const precisaNome = computed(() => !auth.username)
 const slotAtual = computed(() => SLOTS.find((s) => s.slot === aba.value) ?? null)
 const rosto = ref(false)
+const pecaAtual = computed(() => (aba.value === 'corpo' ? null : pecaDe(aba.value, aparencia.pecas[aba.value].id)))
+const segundaCor = computed(() => (aba.value === 'corpo' ? '' : aparencia.pecas[aba.value].cor2 ?? pecaAtual.value?.cor2 ?? ''))
+
+function definirSegunda(cor: string) {
+  if (aba.value !== 'corpo') aparencia.pecas[aba.value].cor2 = cor
+}
 const historico = ref<string[]>([])
 const previa = shallowRef<Previa | null>(null)
 let ultimo = ''

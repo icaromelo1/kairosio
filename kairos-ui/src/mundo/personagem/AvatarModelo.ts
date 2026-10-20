@@ -74,16 +74,21 @@ export class AvatarModelo implements AvatarVisual {
   aplicar(aparencia: Aparencia) {
     const visiveis = new Set<string>(['corpo'])
     const corte = pecaDe('chapeu', aparencia.pecas.chapeu.id)?.corte
+    const semBaixo = !!pecaDe('cima', aparencia.pecas.cima.id)?.cobreBaixo
     for (const { slot } of SLOTS) {
       const peca = pecaDe(slot, aparencia.pecas[slot].id)
-      if (!peca?.malha) continue
+      if (!peca?.malha || (slot === 'baixo' && semBaixo)) continue
       visiveis.add(slot === 'cabelo' && corte ? `${peca.malha}_${corte}` : peca.malha)
     }
     for (const [nome, nos] of this.pecas) for (const no of nos) no.setEnabled(visiveis.has(nome))
     this.pintar('pele', aparencia.pele)
     this.pintar('tinta_cabelo', aparencia.corCabelo)
     for (const definicao of SLOTS) {
-      if (definicao.colorivel) this.pintar(definicao.material, aparencia.pecas[definicao.slot].cor)
+      if (!definicao.colorivel) continue
+      const item = aparencia.pecas[definicao.slot]
+      this.pintar(definicao.material, item.cor)
+      const segunda = item.cor2 ?? pecaDe(definicao.slot, item.id)?.cor2
+      if (segunda) this.pintar(`${definicao.material}2`, segunda)
     }
   }
 
