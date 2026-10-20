@@ -16,8 +16,7 @@ import {
   selfVideoElement,
   state,
   videoElements,
-  type ScreenMode,
-} from './media.state'
+  type ScreenMode, dispositivos, gravarDispositivos, type TipoDeDispositivo } from './media.state'
 
 export { SELF_KEY } from './media.state'
 export type { MediaPeer, ScreenMode, ScreenStats } from './media.state'
@@ -151,6 +150,30 @@ export const media = {
 
   async setCameraEnabled(on: boolean): Promise<boolean> {
     return (await impl?.setCameraEnabled(on)) ?? false
+  },
+
+  dispositivos,
+
+  // sem permissão o navegador devolve aparelhos sem nome; pedir o microfone
+  // (e a câmera, se houver) uma vez libera os rótulos
+  async listarDispositivos(): Promise<Record<TipoDeDispositivo, MediaDeviceInfo[]>> {
+    const devices = navigator.mediaDevices
+    if (!devices?.enumerateDevices) return { audioinput: [], videoinput: [], audiooutput: [] }
+    let lista = await devices.enumerateDevices()
+    if (lista.every((d) => !d.label)) {
+      const temCamera = lista.some((d) => d.kind === 'videoinput')
+      const fluxo = await devices.getUserMedia({ audio: true, video: temCamera }).catch(() => devices.getUserMedia({ audio: true }).catch(() => null))
+      fluxo?.getTracks().forEach((t) => t.stop())
+      lista = await devices.enumerateDevices()
+    }
+    const de = (tipo: TipoDeDispositivo) => lista.filter((d) => d.kind === tipo && d.deviceId)
+    return { audioinput: de('audioinput'), videoinput: de('videoinput'), audiooutput: de('audiooutput') }
+  },
+
+  async definirDispositivo(tipo: TipoDeDispositivo, id: string): Promise<void> {
+    dispositivos[tipo] = id
+    gravarDispositivos()
+    await impl?.trocarDispositivo(tipo, id)
   },
 
   async startScreenShare(mode: ScreenMode): Promise<boolean> {

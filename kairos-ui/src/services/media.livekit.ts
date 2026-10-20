@@ -33,8 +33,7 @@ import {
   selfVideoElement,
   state,
   videoElements,
-  type ScreenMode,
-} from './media.state'
+  type ScreenMode, dispositivos, type TipoDeDispositivo } from './media.state'
 import { explicarErro } from './avisos'
 
 const SCREEN_STATS_MS = 3000
@@ -184,7 +183,13 @@ export class MediaRoom {
       // servidor. Abrir a Room agora seria abrir uma que ninguém vai fechar.
       if (this.epoch !== epoch) return false
 
-      const room = new Room({ adaptiveStream: true, dynacast: true })
+      const room = new Room({
+        adaptiveStream: true,
+        dynacast: true,
+        audioCaptureDefaults: dispositivos.audioinput ? { deviceId: dispositivos.audioinput } : undefined,
+        videoCaptureDefaults: dispositivos.videoinput ? { deviceId: dispositivos.videoinput } : undefined,
+        audioOutput: dispositivos.audiooutput ? { deviceId: dispositivos.audiooutput } : undefined,
+      })
       this.room = room
       this.bind(room)
       try {
@@ -274,6 +279,11 @@ export class MediaRoom {
     } catch {
       this.state.micMuted = !!publication.isMuted
     }
+  }
+
+  async trocarDispositivo(tipo: TipoDeDispositivo, id: string): Promise<void> {
+    if (!this.room || !id) return
+    await this.room.switchActiveDevice(tipo, id)
   }
 
   async setCameraEnabled(on: boolean): Promise<boolean> {

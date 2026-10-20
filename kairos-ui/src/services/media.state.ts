@@ -64,6 +64,37 @@ export const state = reactive({
   error: '',
 })
 
+export type TipoDeDispositivo = 'audioinput' | 'videoinput' | 'audiooutput'
+
+const CHAVE_DISPOSITIVOS = 'kairos_dispositivos'
+
+function lerDispositivos(): Record<TipoDeDispositivo, string> {
+  const vazio = { audioinput: '', videoinput: '', audiooutput: '' }
+  try {
+    const salvo: unknown = JSON.parse(localStorage.getItem(CHAVE_DISPOSITIVOS) || 'null')
+    if (!salvo || typeof salvo !== 'object') return vazio
+    const s = salvo as Record<string, unknown>
+    return {
+      audioinput: typeof s.audioinput === 'string' ? s.audioinput : '',
+      videoinput: typeof s.videoinput === 'string' ? s.videoinput : '',
+      audiooutput: typeof s.audiooutput === 'string' ? s.audiooutput : '',
+    }
+  } catch {
+    return vazio
+  }
+}
+
+// escolhidos por navegador, não por conta: o fone pertence ao computador
+export const dispositivos = reactive(lerDispositivos())
+
+export function gravarDispositivos() {
+  try {
+    localStorage.setItem(CHAVE_DISPOSITIVOS, JSON.stringify(dispositivos))
+  } catch {
+    return
+  }
+}
+
 export const peers = reactive(new Map<string, MediaPeer>())
 
 export const videoElements = shallowRef(new Map<string, HTMLVideoElement>())

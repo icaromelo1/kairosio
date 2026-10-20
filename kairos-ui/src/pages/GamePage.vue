@@ -170,6 +170,7 @@
       <NotePanel v-if="estacaoAberta?.estacao === 'notas'" :map-id="MAPA_ATUAL" :object-id="estacaoAberta.id" @close="closeModal" />
       <WhiteboardPanel v-if="estacaoAberta?.estacao === 'lousa'" :object-id="estacaoAberta.id" @close="closeModal" />
 
+      <DispositivosPanel v-if="panel === 'dispositivos'" @close="closeModal" />
       <PersonagemPanel v-if="panel === 'personagem'" :obrigatorio="personagemObrigatorio" @close="closeModal" @salvo="aoSalvarPersonagem" />
       <ServersPanel v-if="panel === 'servidores'" :invite="panelInvite" @close="closeModal" @server-changed="onServerChanged" />
       <AdminPanel
@@ -259,6 +260,7 @@ import WhiteboardPanel from '@/components/WhiteboardPanel.vue'
 import MediaStage from '@/components/MediaStage.vue'
 import Minimapa from '@/components/Minimapa.vue'
 
+const DispositivosPanel = defineAsyncComponent(() => import('@/components/DispositivosPanel.vue'))
 const PersonagemPanel = defineAsyncComponent(() => import('@/components/PersonagemPanel.vue'))
 
 const EU = 'eu'
@@ -883,6 +885,16 @@ onMounted(async () => {
   const perfil = await me().catch(() => null)
   auth.setUsername(perfil?.username ?? null)
   ehSudo.value = !!perfil?.isAdmin
+  if (ehSudo.value && new URLSearchParams(window.location.search).has('varredura')) {
+    Object.assign(window, {
+      kairosVarredura: {
+        teleportar: (x: number, y: number) => mundo.value?.teleportar(x, y),
+        interagir,
+        fechar: closeModal,
+        acao: () => interacao.value?.acao ?? null,
+      },
+    })
+  }
   if (await precisaCriarPersonagem().catch(() => false)) {
     personagemObrigatorio.value = true
     panel.value = 'personagem'

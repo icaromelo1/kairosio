@@ -280,6 +280,13 @@
 
             <button
               class="ss-ctrl"
+              title="Escolher microfone, câmera e alto-falante"
+              aria-label="Escolher microfone, câmera e alto-falante"
+              @click="emit('open-panel', 'dispositivos')"
+            ><PixelIcon name="settings-cog" size="0.875rem" /></button>
+
+            <button
+              class="ss-ctrl"
               :class="{ 'ss-ctrl-on': voiceLive }"
               :title="voiceLive ? 'Abrir a sala de voz — você está no ar' : 'Abrir a sala de voz'"
               aria-label="Abrir a sala de voz"
