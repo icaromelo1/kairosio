@@ -272,8 +272,11 @@ def acessorios():
     fechar('acessorio_bolsa')
 
 
+ESCALAS = {'cabeca': (1.22, 1.22, 1.22)}
+
+
 def animacoes(armacao):
-    comum.acao(armacao, 'parado', 2.4, [
+    comum.acao_com_escala(armacao, 'parado', 2.4, [
         (0, {}),
         (0.5, {'tronco': {'r': (2, 0, 0)}, 'cabeca': {'r': (-2, 0, 2)}, 'braco.L': {'r': (0, 0, -2)}, 'braco.R': {'r': (0, 0, 2)}}),
         (1, {}),
@@ -295,7 +298,7 @@ def animacoes(armacao):
         }
 
     meio = {'quadril': {'l': (0, -0.01, 0)}, 'canela.L': {'r': (20, 0, 0)}, 'canela.R': {'r': (20, 0, 0)}, 'tronco': {'r': (4, 0, 0)}, 'antebraco.L': {'r': (-15, 0, 0)}, 'antebraco.R': {'r': (-15, 0, 0)}}
-    comum.acao(armacao, 'andar', 0.7, [(0, passo(True)), (0.25, meio), (0.5, passo(False)), (0.75, meio), (1, passo(True))])
+    comum.acao_com_escala(armacao, 'andar', 0.7, [(0, passo(True)), (0.25, meio), (0.5, passo(False)), (0.75, meio), (1, passo(True))])
 
     sentado = {
         'coxa.L': {'r': (-88, 0, 0)}, 'coxa.R': {'r': (-88, 0, 0)},
@@ -306,11 +309,11 @@ def animacoes(armacao):
     }
     respira = dict(sentado)
     respira['tronco'] = {'r': (3, 0, 0)}
-    comum.acao(armacao, 'sentar', 2.4, [(0, sentado), (0.5, respira), (1, sentado)])
+    comum.acao_com_escala(armacao, 'sentar', 2.4, [(0, sentado), (0.5, respira), (1, sentado)])
 
     def aceno(angulo):
         return {'braco.R': {'r': (0, 0, 145)}, 'antebraco.R': {'r': (0, 0, angulo)}, 'cabeca': {'r': (0, 0, 6)}, 'braco.L': {'r': (0, 0, -3)}}
-    comum.acao(armacao, 'acenar', 0.8, [(0, aceno(-25)), (0.5, aceno(25)), (1, aceno(-25))])
+    comum.acao_com_escala(armacao, 'acenar', 0.8, [(0, aceno(-25)), (0.5, aceno(25)), (1, aceno(-25))])
 
     def danca(s):
         return {
@@ -327,7 +330,7 @@ def animacoes(armacao):
             'canela.L': {'r': (15 if s > 0 else 0, 0, 0)},
             'canela.R': {'r': (0 if s > 0 else 15, 0, 0)},
         }
-    comum.acao(armacao, 'dancar', 1.0, [(0, danca(1)), (0.5, danca(-1)), (1, danca(1))])
+    comum.acao_com_escala(armacao, 'dancar', 1.0, [(0, danca(1)), (0.5, danca(-1)), (1, danca(1))])
 
 
 def fotografar(pasta, armacao, visiveis, nome, acao_nome=None, quadro=1, direcao=(0.6, -1, 0.5)):

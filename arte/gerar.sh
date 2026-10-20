@@ -8,6 +8,7 @@ GT="$RAIZ/kairos-ui/node_modules/.bin/gltf-transform"
 TEMP="$(mktemp -d)"
 trap 'rm -rf "$TEMP"' EXIT
 
+export PINTAR="${PINTAR:-1}"
 for nome in mobilia personagem; do
   "$BLENDER" -b --factory-startup --python "$RAIZ/arte/$nome.py" -- "$TEMP/$nome.glb" > "$TEMP/$nome.log" 2>&1
   grep -E 'TRIANGULOS|Error|Traceback' "$TEMP/$nome.log" || true

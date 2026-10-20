@@ -7,12 +7,14 @@ import { TransformNode } from '@babylonjs/core/Meshes/transformNode'
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
 import type { Scene } from '@babylonjs/core/scene'
 import { pecaDe } from './mobilia'
+import { converterMalhas } from './materiais'
 import type { Movel } from './tipos'
 
 const URL_MOBILIA = `${import.meta.env.BASE_URL}modelos/mobilia.glb`
 
 export class CatalogoDeMobilia {
   private fontes = new Map<string, Mesh[]>()
+  private fontesInternas = new Map<string, Mesh[]>()
   private carregando: Promise<void> | null = null
   private reserva: StandardMaterial | null = null
   private contador = 0
@@ -28,6 +30,7 @@ export class CatalogoDeMobilia {
     try {
       const conteiner = await LoadAssetContainerAsync(URL_MOBILIA, this.cena)
       conteiner.addAllToScene()
+      converterMalhas(this.cena, conteiner.meshes)
       for (const no of conteiner.rootNodes) {
         for (const filho of no.getChildren()) {
           const malhas = (filho instanceof Mesh ? [filho] : []).concat(filho.getChildMeshes(false).filter((m): m is Mesh => m instanceof Mesh))
@@ -47,13 +50,34 @@ export class CatalogoDeMobilia {
     }
   }
 
-  instanciar(movel: Movel): TransformNode | null {
+  private fontesDe(nome: string, interna: boolean): Mesh[] | null {
+    const externas = this.fontes.get(nome)
+    if (!externas || !interna) return externas ?? null
+    let internas = this.fontesInternas.get(nome)
+    if (!internas) {
+      internas = externas.map((fonte) => {
+        const copia = fonte.clone(`${fonte.name}-interna`, null, true)!
+        copia.isVisible = false
+        copia.isPickable = false
+        copia.receiveShadows = true
+        return copia
+      })
+      this.fontesInternas.set(nome, internas)
+    }
+    return internas
+  }
+
+  todasAsFontes(interna: boolean): Mesh[] {
+    return [...(interna ? this.fontesInternas : this.fontes).values()].flat()
+  }
+
+  instanciar(movel: Movel, interna = false): TransformNode | null {
     const peca = pecaDe(movel)
     if (!peca) return null
     const no = new TransformNode(`movel-${movel.id}`, this.cena)
     no.position.set(movel.x, 0, movel.y)
     no.rotation.y = (movel.giro * Math.PI) / 180
-    const fontes = this.fontes.get(movel.peca)
+    const fontes = this.fontesDe(movel.peca, interna)
     if (fontes) {
       for (const fonte of fontes) {
         const instancia = fonte.createInstance(`${movel.peca}-${++this.contador}`)

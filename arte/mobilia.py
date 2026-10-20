@@ -47,6 +47,17 @@ PALETA = {
     'azulMesa': {'cor': '#2c5d8f'},
     'arcade': {'cor': '#6b4fa8'},
     'telaJogo': {'cor': '#ff7ac8', 'emissao': '#ff6ab8', 'forca': 1.0},
+    'vidro': {'cor': '#bfe3f2', 'emissao': '#a8d8ee', 'forca': 0.35, 'aspereza': 0.1},
+    'moldura': {'cor': '#f3efe6'},
+    'cortica': {'cor': '#c9955c'},
+    'papelA': {'cor': '#fff3a6'},
+    'papelB': {'cor': '#ffc2d1'},
+    'papelC': {'cor': '#b8e6c9'},
+    'quadroA': {'cor': '#e07a5f'},
+    'quadroB': {'cor': '#3d6fb0'},
+    'quadroC': {'cor': '#f2c94c'},
+    'tapeteGrande': {'cor': '#5b7fb5'},
+    'tapeteBorda': {'cor': '#e6d8b8'},
 }
 
 m = Modelo(PALETA)
@@ -60,50 +71,85 @@ def pernas(x, y, altura, raio=0.025, mat='metal'):
 
 
 def mesa_trabalho():
-    m.caixa('tampo', (0, 0, 0.72), (1.4, 0.7, 0.05), 'madeira')
-    pernas(0.64, 0.3, 0.7)
-    m.caixa('baseMonitor', (0, 0.17, 0.755), (0.22, 0.15, 0.02), 'preto')
-    m.caixa('hasteMonitor', (0, 0.2, 0.86), (0.04, 0.04, 0.2), 'preto')
-    m.caixa('monitor', (0, 0.18, 1.02), (0.62, 0.04, 0.38), 'preto')
-    m.caixa('telaMonitor', (0, 0.158, 1.02), (0.56, 0.006, 0.32), 'tela', chanfro=0)
-    m.caixa('teclado', (0, -0.12, 0.755), (0.42, 0.14, 0.02), 'creme')
-    m.caixa('mouse', (0.3, -0.12, 0.755), (0.05, 0.08, 0.02), 'creme')
-    m.cilindro('caneca', (-0.48, -0.05, 0.79), 0.04, 0.09, 'vermelho')
+    m.caixa('tampo', (0, 0, 0.725), (1.4, 0.7, 0.04), 'madeira', chanfro=0.012)
+    m.caixa('borda', (0, -0.345, 0.7), (1.38, 0.012, 0.03), 'madeiraEscura', chanfro=0)
+    for sx in (-1, 1):
+        m.caixa('pe', (sx * 0.66, 0, 0.36), (0.04, 0.62, 0.04), 'metal', chanfro=0.008)
+        m.caixa('coluna', (sx * 0.66, 0, 0.36), (0.04, 0.04, 0.7), 'metal', chanfro=0.008)
+    m.caixa('trave', (0, 0.25, 0.55), (1.3, 0.03, 0.08), 'metal', chanfro=0.006)
+    m.caixa('gaveteiro', (0.45, 0.02, 0.32), (0.38, 0.5, 0.56), 'branco', chanfro=0.015)
+    for i in range(3):
+        z = 0.15 + i * 0.17
+        m.caixa(f'gaveta{i}', (0.45, -0.232, z), (0.34, 0.01, 0.15), 'creme', chanfro=0.004)
+        m.caixa(f'puxador{i}', (0.45, -0.24, z + 0.04), (0.12, 0.012, 0.012), 'metal', chanfro=0)
+    m.caixa('baseMonitor', (0, 0.18, 0.755), (0.24, 0.16, 0.015), 'preto', chanfro=0.006)
+    m.caixa('hasteMonitor', (0, 0.22, 0.86), (0.05, 0.04, 0.22), 'preto', chanfro=0.006)
+    m.caixa('monitor', (0, 0.18, 1.04), (0.64, 0.035, 0.38), 'preto', chanfro=0.01)
+    m.caixa('telaMonitor', (0, 0.161, 1.045), (0.58, 0.004, 0.32), 'tela', chanfro=0)
+    m.caixa('teclado', (0, -0.12, 0.752), (0.44, 0.15, 0.015), 'preto', chanfro=0.004)
+    for i in range(4):
+        m.caixa(f'teclas{i}', (0, -0.17 + i * 0.033, 0.761), (0.4, 0.022, 0.004), 'metalClaro', chanfro=0)
+    m.caixa('mousepad', (0.34, -0.12, 0.747), (0.22, 0.18, 0.004), 'azul', chanfro=0)
+    m.esfera('mouse', (0.34, -0.12, 0.757), 0.03, 'branco', escala=(0.8, 1.2, 0.5), segmentos=8, aneis=6)
+    m.cilindro('caneca', (-0.5, -0.06, 0.79), 0.04, 0.09, 'vermelho', lados=12)
+    m.toro('alca', (-0.455, -0.06, 0.79), 0.025, 0.008, 'vermelho', rot=(math.pi / 2, 0, 0), lados=10, secao=4)
+    m.caixa('papel1', (-0.32, -0.02, 0.747), (0.2, 0.28, 0.004), 'branco', chanfro=0, rot=(0, 0, 0.15))
+    m.caixa('papel2', (-0.3, -0.04, 0.751), (0.2, 0.28, 0.004), 'creme', chanfro=0, rot=(0, 0, -0.1))
     return m.agrupar('mesa_trabalho')
 
-
 def cadeira():
-    m.caixa('assento', (0, 0, 0.46), (0.48, 0.46, 0.08), 'azul', chanfro=0.02)
-    m.caixa('encosto', (0, 0.21, 0.74), (0.46, 0.07, 0.44), 'azul', chanfro=0.02)
-    m.caixa('suporte', (0, 0.2, 0.52), (0.06, 0.04, 0.12), 'metal')
-    m.cilindro('coluna', (0, 0, 0.24), 0.03, 0.4, 'metal')
-    m.cilindro('base', (0, 0, 0.04), 0.25, 0.04, 'preto', lados=5)
+    m.caixa('assento', (0, -0.01, 0.47), (0.46, 0.44, 0.07), 'azul', chanfro=0.03)
+    m.caixa('almofadaAssento', (0, -0.02, 0.51), (0.4, 0.38, 0.03), 'azul', chanfro=0.015)
+    m.caixa('encosto', (0, 0.22, 0.78), (0.44, 0.06, 0.46), 'azul', chanfro=0.03, rot=(-0.12, 0, 0))
+    m.caixa('lombar', (0, 0.19, 0.68), (0.36, 0.03, 0.12), 'azul', chanfro=0.012, rot=(-0.12, 0, 0))
+    m.caixa('suporte', (0, 0.2, 0.55), (0.06, 0.04, 0.16), 'preto', chanfro=0.008)
+    for sx in (-1, 1):
+        m.caixa(f'bracoV{sx}', (sx * 0.24, 0.02, 0.58), (0.03, 0.04, 0.16), 'preto', chanfro=0.006)
+        m.caixa(f'bracoH{sx}', (sx * 0.24, -0.01, 0.665), (0.05, 0.26, 0.03), 'preto', chanfro=0.01)
+    m.cilindro('coluna', (0, 0, 0.3), 0.025, 0.32, 'metalClaro', lados=10)
+    m.cilindro('capa', (0, 0, 0.22), 0.035, 0.16, 'preto', lados=10)
+    for i in range(5):
+        a = i / 5 * math.tau
+        m.caixa(f'pata{i}', (math.cos(a) * 0.13, math.sin(a) * 0.13, 0.07), (0.26, 0.04, 0.03), 'preto', chanfro=0.008, rot=(0, 0, a))
+        m.esfera(f'rodinha{i}', (math.cos(a) * 0.25, math.sin(a) * 0.25, 0.03), 0.03, 'preto', segmentos=8, aneis=5)
     return m.agrupar('cadeira')
 
-
 def mesa_reuniao():
-    m.caixa('tampo', (0, 0, 0.72), (3.2, 1.3, 0.06), 'madeira', chanfro=0.02)
-    for x in (-1.0, 1.0):
-        m.caixa('pedestal', (x, 0, 0.35), (0.22, 0.7, 0.7), 'metal')
-    m.caixa('notebook', (0.6, -0.2, 0.76), (0.34, 0.24, 0.02), 'metalClaro')
-    m.cilindro('copo', (-0.8, 0.2, 0.8), 0.035, 0.11, 'agua')
+    m.caixa('tampo', (0, 0, 0.73), (3.2, 1.3, 0.05), 'madeira', chanfro=0.025)
+    m.caixa('filete', (0, 0, 0.705), (3.1, 1.2, 0.02), 'madeiraEscura', chanfro=0)
+    for x in (-1.05, 1.05):
+        m.caixa('pedestal', (x, 0, 0.36), (0.12, 0.8, 0.68), 'metal', chanfro=0.015)
+        m.caixa('pe', (x, 0, 0.02), (0.22, 1.0, 0.04), 'metal', chanfro=0.01)
+    m.caixa('travessa', (0, 0, 0.4), (2.0, 0.08, 0.06), 'metal', chanfro=0.01)
+    m.caixa('tomadas', (0, 0, 0.765), (0.4, 0.12, 0.02), 'preto', chanfro=0.004)
+    m.caixa('notebook', (0.6, -0.25, 0.765), (0.34, 0.24, 0.02), 'metalClaro', chanfro=0.004)
+    m.caixa('tela', (0.6, -0.14, 0.87), (0.34, 0.02, 0.2), 'metalClaro', chanfro=0.004, rot=(-0.25, 0, 0))
+    for i, x in enumerate((-1.1, -0.2, 1.0)):
+        m.caixa(f'bloco{i}', (x, 0.35 * (1 if i % 2 else -1), 0.76), (0.15, 0.21, 0.01), 'papelA', chanfro=0)
+        m.cilindro(f'caneta{i}', (x + 0.12, 0.35 * (1 if i % 2 else -1), 0.765), 0.006, 0.14, 'azul', lados=5, rot=(math.pi / 2, 0, 0.3))
+    m.cilindro('jarra', (-0.6, 0.15, 0.85), 0.06, 0.2, 'agua', lados=12)
+    for x in (-0.45, -0.75):
+        m.cilindro('copo', (x, 0.3, 0.8), 0.03, 0.09, 'agua', lados=10)
     return m.agrupar('mesa_reuniao')
 
-
 def estofado(largura, profundidade, tecido, nome, lugares):
-    m.caixa('base', (0, 0, 0.2), (largura, profundidade, 0.26), tecido, chanfro=0.03)
-    largura_util = largura - 0.36
+    m.caixa('base', (0, 0, 0.2), (largura - 0.1, profundidade - 0.05, 0.22), tecido, chanfro=0.04)
+    largura_util = largura - 0.4
     for i in range(lugares):
         x = -largura_util / 2 + largura_util / lugares * (i + 0.5)
-        m.caixa('almofada', (x, -0.06, 0.4), (largura_util / lugares - 0.03, profundidade - 0.3, 0.14), tecido, chanfro=0.04)
-    m.caixa('encosto', (0, profundidade / 2 - 0.12, 0.58), (largura, 0.24, 0.48), tecido, chanfro=0.04)
+        m.caixa('almofada', (x, -0.06, 0.38), (largura_util / lugares - 0.02, profundidade - 0.32, 0.15), tecido, chanfro=0.05)
+        m.caixa('encostoAlmofada', (x, profundidade / 2 - 0.22, 0.62), (largura_util / lugares - 0.03, 0.16, 0.36), tecido, chanfro=0.06, rot=(-0.18, 0, 0))
+        m.caixa('costura', (x, -0.06, 0.457), (largura_util / lugares - 0.1, profundidade - 0.42, 0.004), 'creme', chanfro=0)
+    m.caixa('encosto', (0, profundidade / 2 - 0.08, 0.5), (largura, 0.16, 0.6), tecido, chanfro=0.05)
     for sx in (-1, 1):
-        m.caixa('braco', (sx * (largura / 2 - 0.09), 0, 0.42), (0.18, profundidade, 0.32), tecido, chanfro=0.04)
+        m.caixa('braco', (sx * (largura / 2 - 0.1), 0, 0.36), (0.2, profundidade, 0.32), tecido, chanfro=0.05)
+        m.cilindro('rolo', (sx * (largura / 2 - 0.1), 0, 0.53), 0.1, profundidade, tecido, lados=12, rot=(math.pi / 2, 0, 0))
+    if largura > 1.2:
+        m.caixa('almofadaDecor', (-largura / 2 + 0.35, 0.12, 0.6), (0.3, 0.1, 0.3), 'mostarda' if tecido != 'mostarda' else 'vinho', chanfro=0.05, rot=(0.3, 0, 0.2))
     for sx in (-1, 1):
         for sy in (-1, 1):
-            m.caixa('pe', (sx * (largura / 2 - 0.1), sy * (profundidade / 2 - 0.1), 0.035), (0.06, 0.06, 0.07), 'madeiraEscura')
+            m.cilindro('pe', (sx * (largura / 2 - 0.12), sy * (profundidade / 2 - 0.12), 0.045), 0.03, 0.09, 'madeiraEscura', lados=8, raio_topo=0.02)
     return m.agrupar(nome)
-
 
 def mesa_centro():
     m.caixa('tampo', (0, 0, 0.38), (1.1, 0.6, 0.05), 'madeira', chanfro=0.015)
@@ -139,12 +185,16 @@ def puff():
 
 def folhagem(centro, raio, n):
     cx, cy, cz = centro
-    for i in range(n):
-        a = i / n * math.tau + aleatorio.random()
-        d = raio * 0.55
-        m.icosfera('folha', (cx + math.cos(a) * d, cy + math.sin(a) * d, cz + aleatorio.uniform(-0.05, 0.12)), raio * aleatorio.uniform(0.55, 0.75), 'folha' if i % 2 else 'folhaClara')
-    m.icosfera('copa', (cx, cy, cz + raio * 0.35), raio * 0.7, 'folhaClara')
-
+    m.icosfera('copa', (cx, cy, cz), raio * 0.62, 'folha', nivel=2)
+    for i in range(n * 3):
+        a = i / (n * 3) * math.tau + aleatorio.random() * 0.4
+        incl = 0.35 + aleatorio.random() * 0.6
+        comprimento = raio * aleatorio.uniform(0.75, 1.05)
+        x = cx + math.cos(a) * raio * 0.45
+        y = cy + math.sin(a) * raio * 0.45
+        z = cz + aleatorio.uniform(-0.15, 0.3) * raio
+        folha = m.esfera(f'folha{i}', (x, y, z), comprimento * 0.5, 'folha' if i % 3 else 'folhaClara', escala=(0.42, 1, 0.12), segmentos=8, aneis=5)
+        folha.rotation_euler = (incl, 0, a - math.pi / 2)
 
 def planta():
     m.torno('vaso', [(0.15, 0), (0.19, 0.32), (0.21, 0.34), (0.21, 0.37), (0, 0.37)], 'vaso')
@@ -209,16 +259,21 @@ def jukebox():
 
 def balcao():
     m.caixa('frente', (0, -0.34, 0.5), (2.6, 0.12, 1.0), 'madeira', chanfro=0.02)
-    m.caixa('faixa', (0, -0.405, 0.65), (2.6, 0.01, 0.12), 'mostarda', chanfro=0)
-    m.caixa('tampo', (0, -0.3, 1.04), (2.66, 0.3, 0.05), 'branco', chanfro=0.015)
+    for i in range(6):
+        x = -1.1 + i * 0.44
+        m.caixa(f'ripa{i}', (x, -0.405, 0.48), (0.36, 0.012, 0.86), 'madeiraEscura' if i % 2 else 'madeira', chanfro=0.004)
+    m.caixa('faixa', (0, -0.41, 0.93), (2.6, 0.012, 0.08), 'mostarda', chanfro=0)
+    m.caixa('tampo', (0, -0.3, 1.04), (2.7, 0.32, 0.05), 'branco', chanfro=0.015)
     m.caixa('mesaInterna', (0, 0.05, 0.72), (2.5, 0.6, 0.04), 'madeiraEscura')
     for sx in (-1, 1):
         m.caixa('lateral', (sx * 1.28, 0, 0.5), (0.05, 0.8, 1.0), 'madeira')
     m.caixa('monitor', (0.5, 0.15, 0.95), (0.5, 0.04, 0.32), 'preto')
     m.caixa('tela', (0.5, 0.128, 0.95), (0.45, 0.006, 0.27), 'tela', chanfro=0)
     m.cilindro('sino', (-0.8, -0.3, 1.09), 0.05, 0.05, 'mostarda', raio_topo=0.02)
+    m.torno('vasinho', [(0.06, 1.065), (0.07, 1.16), (0, 1.16)], 'vaso', centro=(0.9, -0.3, 0), lados=10)
+    m.icosfera('flor', (0.9, -0.3, 1.24), 0.08, 'florRosa')
+    m.caixa('folhetos', (-0.3, -0.3, 1.075), (0.22, 0.14, 0.02), 'papelB', chanfro=0.003)
     return m.agrupar('balcao')
-
 
 def geladeira():
     m.caixa('corpo', (0, 0, 0.9), (0.78, 0.68, 1.8), 'branco', chanfro=0.03)
@@ -271,11 +326,15 @@ def tapete_redondo():
 
 
 def arvore():
-    m.cilindro('tronco', (0, 0, 0.6), 0.12, 1.2, 'tronco', lados=8)
-    folhagem((0, 0, 1.55), 0.75, 6)
-    folhagem((0.15, -0.1, 2.05), 0.5, 4)
+    m.cilindro('tronco', (0, 0, 0.7), 0.13, 1.4, 'tronco', lados=10, raio_topo=0.09)
+    for i, a in enumerate((0.4, 2.4, 4.3)):
+        m.cilindro(f'galho{i}', (math.cos(a) * 0.18, math.sin(a) * 0.18, 1.35), 0.05, 0.6, 'tronco', lados=6, rot=(math.sin(a) * 0.7, -math.cos(a) * 0.7, 0))
+    for i, (x, y, z, r) in enumerate(((0, 0, 1.75, 0.7), (0.4, 0.15, 1.6, 0.5), (-0.38, -0.1, 1.62, 0.52), (0.1, -0.35, 1.55, 0.45), (0.05, 0.1, 2.15, 0.5))):
+        m.icosfera(f'copa{i}', (x, y, z), r, 'folha' if i % 2 else 'folhaClara', nivel=2)
+    for i in range(5):
+        a = i / 5 * math.tau
+        m.icosfera(f'raiz{i}', (math.cos(a) * 0.14, math.sin(a) * 0.14, 0.05), 0.07, 'tronco', escala=(1.4, 0.7, 0.6))
     return m.agrupar('arvore')
-
 
 def arvore_pinheiro():
     m.cilindro('tronco', (0, 0, 0.3), 0.1, 0.6, 'tronco', lados=8)
@@ -285,9 +344,12 @@ def arvore_pinheiro():
 
 
 def arbusto():
-    folhagem((0, 0, 0.32), 0.38, 5)
+    for i, (x, y, z, r) in enumerate(((0, 0, 0.3, 0.32), (0.22, 0.08, 0.24, 0.24), (-0.2, -0.06, 0.25, 0.25), (0.05, -0.2, 0.22, 0.2))):
+        m.icosfera(f'tufo{i}', (x, y, z), r, 'folha' if i % 2 else 'folhaClara', nivel=2)
+    for i in range(4):
+        a = i * 1.7
+        m.icosfera(f'florzinha{i}', (math.cos(a) * 0.25, math.sin(a) * 0.25, 0.42), 0.04, 'florRosa' if i % 2 else 'branco')
     return m.agrupar('arbusto')
-
 
 def canteiro():
     m.caixa('borda', (0, 0, 0.1), (1.8, 0.8, 0.2), 'madeiraEscura')
@@ -411,6 +473,104 @@ def divisoria():
         m.caixa('pe', (sx * 0.8, 0, 0.03), (0.08, 0.35, 0.06), 'metal')
     return m.agrupar('divisoria')
 
+
+def notebook():
+    m.caixa('base', (0, -0.05, 0.765), (0.34, 0.24, 0.018), 'metalClaro', chanfro=0.004)
+    m.caixa('tampa', (0, 0.07, 0.88), (0.34, 0.018, 0.22), 'metalClaro', chanfro=0.004, rot=(-0.25, 0, 0))
+    m.caixa('tela', (0, 0.06, 0.885), (0.3, 0.004, 0.18), 'tela', chanfro=0, rot=(-0.25, 0, 0))
+    return m.agrupar('notebook')
+
+
+def planta_mesa():
+    m.torno('vaso', [(0.06, 0.75), (0.075, 0.86), (0, 0.86)], 'vaso', lados=10)
+    folhagem((0, 0, 0.93), 0.09, 4)
+    return m.agrupar('planta_mesa')
+
+
+def pilha_livros():
+    for i, (cor, w) in enumerate((('livroA', 0.24), ('livroC', 0.22), ('livroB', 0.2))):
+        m.caixa(f'livro{i}', (0.01 * i, 0, 0.765 + i * 0.035), (w, 0.17, 0.033), cor, chanfro=0.004, rot=(0, 0, 0.1 * i))
+    return m.agrupar('pilha_livros')
+
+
+def quadro(nome, cores):
+    m.caixa('moldura', (0, 0, 0.75), (0.7, 0.04, 0.5), 'madeiraEscura', chanfro=0.01)
+    m.caixa('tela', (0, -0.022, 0.75), (0.6, 0.006, 0.4), 'moldura', chanfro=0)
+    for i, cor in enumerate(cores):
+        m.caixa(f'mancha{i}', (-0.15 + i * 0.15, -0.026, 0.72 + (i % 2) * 0.08), (0.16, 0.004, 0.2 - i * 0.03), cor, chanfro=0)
+    return m.agrupar(nome)
+
+
+def relogio():
+    m.cilindro('aro', (0, 0, 0.85), 0.17, 0.05, 'preto', lados=20, rot=(math.pi / 2, 0, 0))
+    m.cilindro('mostrador', (0, -0.027, 0.85), 0.15, 0.006, 'moldura', lados=20, rot=(math.pi / 2, 0, 0))
+    m.caixa('ponteiroH', (0.03, -0.032, 0.87), (0.07, 0.004, 0.015), 'preto', chanfro=0, rot=(0, 0.6, 0))
+    m.caixa('ponteiroM', (-0.01, -0.033, 0.9), (0.012, 0.004, 0.11), 'vermelho', chanfro=0)
+    return m.agrupar('relogio')
+
+
+def janela():
+    m.caixa('moldura', (0, 0, 0.72), (1.2, 0.08, 0.62), 'moldura', chanfro=0.01)
+    m.caixa('vidro', (0, -0.045, 0.72), (1.08, 0.006, 0.52), 'vidro', chanfro=0)
+    m.caixa('travessa', (0, -0.05, 0.72), (0.04, 0.008, 0.52), 'moldura', chanfro=0)
+    m.caixa('peitoril', (0, -0.07, 0.4), (1.3, 0.14, 0.04), 'moldura', chanfro=0.005)
+    return m.agrupar('janela')
+
+
+def quadro_avisos():
+    m.caixa('moldura', (0, 0, 0.75), (1.1, 0.04, 0.6), 'madeira', chanfro=0.01)
+    m.caixa('cortica', (0, -0.022, 0.75), (1.0, 0.006, 0.5), 'cortica', chanfro=0)
+    for i, (x, z, cor) in enumerate(((-0.3, 0.85, 'papelA'), (0.05, 0.8, 'papelB'), (0.32, 0.88, 'papelC'), (-0.15, 0.62, 'papelC'), (0.25, 0.62, 'papelA'))):
+        m.caixa(f'papel{i}', (x, -0.027, z), (0.18, 0.004, 0.18), cor, chanfro=0, rot=(0, (i % 3 - 1) * 0.08, 0))
+    return m.agrupar('quadro_avisos')
+
+
+def lixeira():
+    m.torno('cesto', [(0.13, 0), (0.16, 0.38), (0.15, 0.38), (0.12, 0.02), (0, 0.02)], 'metal', lados=12)
+    return m.agrupar('lixeira')
+
+
+def cabideiro():
+    m.cilindro('base', (0, 0, 0.03), 0.2, 0.06, 'madeiraEscura', lados=10)
+    m.cilindro('haste', (0, 0, 0.85), 0.03, 1.6, 'madeiraEscura', lados=8)
+    for i in range(4):
+        a = i * math.pi / 2
+        m.cilindro(f'gancho{i}', (math.cos(a) * 0.1, math.sin(a) * 0.1, 1.55), 0.015, 0.2, 'madeiraEscura', lados=6, rot=(math.sin(a) * 0.9, -math.cos(a) * 0.9, 0))
+    m.caixa('casaco', (0.08, -0.08, 1.3), (0.2, 0.08, 0.45), 'vermelho', chanfro=0.03)
+    return m.agrupar('cabideiro')
+
+
+def vaso_alto():
+    m.torno('vaso', [(0.17, 0), (0.2, 0.5), (0, 0.5)], 'branco', lados=12)
+    m.cilindro('cacto', (0, 0, 0.95), 0.1, 0.9, 'folha', lados=8)
+    m.cilindro('braco1', (0.13, 0, 1.05), 0.06, 0.3, 'folha', lados=8)
+    m.cilindro('braco2', (-0.12, 0, 0.9), 0.055, 0.25, 'folha', lados=8)
+    return m.agrupar('vaso_alto')
+
+
+def tapete_grande():
+    m.caixa('tapete', (0, 0, 0.006), (5.2, 3.6, 0.012), 'tapeteGrande', chanfro=0)
+    m.caixa('faixa', (0, 0, 0.009), (4.8, 3.2, 0.012), 'tapeteBorda', chanfro=0)
+    m.caixa('miolo', (0, 0, 0.012), (4.6, 3.0, 0.012), 'tapeteGrande', chanfro=0)
+    return m.agrupar('tapete_grande')
+
+
+def tufo():
+    for i in range(7):
+        a = i / 7 * math.tau
+        m.cilindro(f'folha{i}', (math.cos(a) * 0.05, math.sin(a) * 0.05, 0.1), 0.025, 0.22, 'folhaClara' if i % 2 else 'folha', lados=4, raio_topo=0.0, rot=(math.sin(a) * 0.35, -math.cos(a) * 0.35, 0))
+    return m.agrupar('tufo')
+
+
+def flores():
+    cores = ['florRosa', 'florAmarela', 'florRoxa', 'branco']
+    for i in range(5):
+        a = i / 5 * math.tau + 0.4
+        x, y = math.cos(a) * 0.12, math.sin(a) * 0.12
+        m.cilindro(f'caule{i}', (x, y, 0.1), 0.01, 0.2, 'folha', lados=4)
+        m.icosfera(f'flor{i}', (x, y, 0.21), 0.05, cores[i % 4])
+    return m.agrupar('flores')
+
 PECAS = [
     mesa_trabalho, cadeira, mesa_reuniao,
     lambda: estofado(2.0, 0.85, 'verde', 'sofa', 2),
@@ -419,6 +579,10 @@ PECAS = [
     balcao, geladeira, bebedouro, rack_servidor, luminaria, tapete, tapete_redondo,
     arvore, arvore_pinheiro, arbusto, canteiro, banco_jardim, mesa_picnic, fonte, poste, pedra,
     tv, mesa_pingpong, arcade, sinuca, impressora, armario, divisoria,
+    notebook, planta_mesa, pilha_livros,
+    lambda: quadro('quadro_a', ('quadroA', 'quadroC', 'quadroB')),
+    lambda: quadro('quadro_b', ('quadroB', 'livroD', 'quadroC')),
+    relogio, janela, quadro_avisos, lixeira, cabideiro, vaso_alto, tapete_grande, tufo, flores,
 ]
 
 if __name__ == '__main__':

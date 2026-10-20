@@ -32,8 +32,13 @@ function area(tipo: Area['tipo'], forma: Area['forma'], x: number, y: number, la
   areas.push({ id: `a${areas.length + 1}`, tipo, forma, x, y, largura, profundidade })
 }
 
+const enfeitesDeMesa = ['notebook', 'planta_mesa', 'pilha_livros', 'notebook', 'planta_mesa', 'pilha_livros']
+
 function ilhaDeMesas(cx: number, cy: number) {
-  for (const dx of [-1.4, 0, 1.4]) {
+  por('tapete_grande', cx, cy)
+  for (const [k, dx] of [-1.4, 0, 1.4].entries()) {
+    por(enfeitesDeMesa[k], cx + dx - 0.35, cy + 0.42, 0)
+    por(enfeitesDeMesa[k + 3], cx + dx + 0.42, cy - 0.42, 180)
     por('mesa_trabalho', cx + dx, cy + 0.35, 0)
     por('cadeira', cx + dx, cy + 1.1, 180)
     por('mesa_trabalho', cx + dx, cy - 0.35, 180)
@@ -145,6 +150,26 @@ por('poltrona', 43.2, 31, 90)
 por('estante', 49.6, 30.5, 270, { nome: 'estante da descompressão' })
 por('planta_grande', 49.4, 27.8)
 
+for (const [x, y, peca] of [
+  [14.6, 15.2, 'lixeira'], [29.6, 26.5, 'lixeira'], [49.4, 26.6, 'cabideiro'], [27.6, 29.2, 'cabideiro'],
+  [36.4, 29.6, 'vaso_alto'], [14.6, 27.4, 'vaso_alto'], [22.6, 8.6, 'lixeira'], [42.6, 26.6, 'vaso_alto'],
+] as const) por(peca, x, y)
+
+for (const x of [16, 20, 25, 28.5, 34, 40, 45.5, 48.5]) por('janela', x, 8.12, 0)
+por('quadro_a', 17, 15.12, 0)
+por('relogio', 23.5, 15.12, 0)
+por('quadro_avisos', 33.4, 15.12, 0, { nome: 'quadro de avisos' })
+por('quadro_b', 39.5, 15.12, 0)
+por('quadro_a', 47.5, 15.12, 0)
+por('quadro_b', 16.5, 27.12, 0)
+por('relogio', 30, 27.12, 0)
+por('quadro_a', 45, 27.12, 0)
+for (const x of [16, 21, 25, 30, 34, 44, 48]) por('janela', x, 34.12, 0)
+
+area('grama', 'circulo', 4.5, 31, 12, 15)
+area('grama', 'circulo', 4, 9, 9, 10)
+area('grama', 'circulo', 61, 42, 8, 9)
+area('grama', 'circulo', 3, 44, 7, 6)
 area('caminho', 'retangulo', 32, 5, 48, 2.2)
 area('caminho', 'retangulo', 9, 23, 2.4, 38)
 area('caminho', 'retangulo', 55, 23, 2.4, 38)
@@ -196,26 +221,50 @@ por('mesa_picnic', 60, 33.8)
 por('arbusto', 20, 44.5)
 por('arbusto', 44, 44.5)
 
+let semente = 7
+function aleatorio() {
+  semente = (semente * 16807) % 2147483647
+  return (semente - 1) / 2147483646
+}
+
+function livreNoJardim(x: number, y: number) {
+  if (x > 12.5 && x < 51.5 && y > 6.5 && y < 35.5) return false
+  for (const a of areas) {
+    if (a.forma === 'circulo') {
+      if (((x - a.x) / (a.largura / 2 + 0.6)) ** 2 + ((y - a.y) / (a.profundidade / 2 + 0.6)) ** 2 < 1) return false
+    } else if (Math.abs(x - a.x) < a.largura / 2 + 0.3 && Math.abs(y - a.y) < a.profundidade / 2 + 0.3) return false
+  }
+  return !mobilia.some((m) => Math.hypot(m.x - x, m.y - y) < 1.1)
+}
+
+for (let i = 0, colocados = 0; i < 4000 && colocados < 260; i++) {
+  const x = 1 + aleatorio() * 62
+  const y = 1 + aleatorio() * 46
+  if (!livreNoJardim(x, y)) continue
+  por(aleatorio() < 0.72 ? 'tufo' : 'flores', Math.round(x * 10) / 10, Math.round(y * 10) / 10, ([0, 90, 180, 270] as const)[Math.floor(aleatorio() * 4)])
+  colocados++
+}
+
 export const ESCRITORIO = {
   id: 'escritorio',
   name: 'Escritório',
   largura: 64,
   profundidade: 48,
-  piso: '#8fbf6a',
+  piso: '#93c96b',
   spawn: { x: 32, y: 37 },
   salas: [
-    { id: 'salao', nome: 'Salão', x: 14, y: 8, largura: 36, profundidade: 26, piso: '#eadfc8', aberta: true, murada: true, portas: [{ lado: 'oeste', centro: 13, largura: 2 }, { lado: 'leste', centro: 13, largura: 2 }] },
-    { id: 'reuniao', nome: 'Sala de reunião', x: 14, y: 8, largura: 8, profundidade: 7, piso: '#cdd8e2', portas: [{ lado: 'sul', centro: 4, largura: 1.4 }] },
-    { id: 'copa', nome: 'Copa', x: 22, y: 8, largura: 9, profundidade: 7, piso: '#efdcb8', portas: [{ lado: 'sul', centro: 4.5, largura: 1.6 }] },
-    { id: 'foco', nome: 'Sala de foco', x: 31, y: 8, largura: 6, profundidade: 7, piso: '#d5e2cc', portas: [{ lado: 'sul', centro: 3, largura: 1.2 }] },
-    { id: 'ideias', nome: 'Sala de ideias', x: 37, y: 8, largura: 6, profundidade: 7, piso: '#e8d2de', portas: [{ lado: 'sul', centro: 3, largura: 1.4 }] },
-    { id: 'reuniao2', nome: 'Sala de reunião 2', x: 43, y: 8, largura: 7, profundidade: 7, piso: '#d2dbe8', portas: [{ lado: 'sul', centro: 3.5, largura: 1.4 }] },
-    { id: 'servidores', nome: 'Sala de servidores', x: 14, y: 27, largura: 5, profundidade: 7, piso: '#cfd4d8', portas: [{ lado: 'norte', centro: 2.5, largura: 1.2 }] },
-    { id: 'jogos', nome: 'Sala de jogos', x: 19, y: 27, largura: 8, profundidade: 7, piso: '#e6d9f0', portas: [{ lado: 'norte', centro: 4, largura: 1.6 }] },
-    { id: 'recepcao', nome: 'Recepção', x: 27, y: 27, largura: 10, profundidade: 7, piso: '#e9d6b4', portas: [{ lado: 'norte', centro: 5, largura: 2.4 }, { lado: 'sul', centro: 5, largura: 2.4 }] },
-    { id: 'cabine1', nome: 'Cabine 1', x: 37, y: 27, largura: 2.5, profundidade: 7, piso: '#dfe7d6', portas: [{ lado: 'norte', centro: 1.25, largura: 1 }] },
-    { id: 'cabine2', nome: 'Cabine 2', x: 39.5, y: 27, largura: 2.5, profundidade: 7, piso: '#dfe7d6', portas: [{ lado: 'norte', centro: 1.25, largura: 1 }] },
-    { id: 'descompressao', nome: 'Descompressão', x: 42, y: 27, largura: 8, profundidade: 7, piso: '#e3dcef', portas: [{ lado: 'norte', centro: 4, largura: 1.4 }] },
+    { id: 'salao', nome: 'Salão', x: 14, y: 8, largura: 36, profundidade: 26, piso: '#e2c49a', aberta: true, murada: true, textura: 'madeira', portas: [{ lado: 'oeste', centro: 13, largura: 2 }, { lado: 'leste', centro: 13, largura: 2 }] },
+    { id: 'reuniao', nome: 'Sala de reunião', x: 14, y: 8, largura: 8, profundidade: 7, piso: '#cdd8e2', textura: 'carpete', portas: [{ lado: 'sul', centro: 4, largura: 1.4 }] },
+    { id: 'copa', nome: 'Copa', x: 22, y: 8, largura: 9, profundidade: 7, piso: '#efdcb8', textura: 'ladrilho', portas: [{ lado: 'sul', centro: 4.5, largura: 1.6 }] },
+    { id: 'foco', nome: 'Sala de foco', x: 31, y: 8, largura: 6, profundidade: 7, piso: '#cfa877', textura: 'madeira', portas: [{ lado: 'sul', centro: 3, largura: 1.2 }] },
+    { id: 'ideias', nome: 'Sala de ideias', x: 37, y: 8, largura: 6, profundidade: 7, piso: '#e8d2de', textura: 'carpete', portas: [{ lado: 'sul', centro: 3, largura: 1.4 }] },
+    { id: 'reuniao2', nome: 'Sala de reunião 2', x: 43, y: 8, largura: 7, profundidade: 7, piso: '#d2dbe8', textura: 'carpete', portas: [{ lado: 'sul', centro: 3.5, largura: 1.4 }] },
+    { id: 'servidores', nome: 'Sala de servidores', x: 14, y: 27, largura: 5, profundidade: 7, piso: '#cfd4d8', textura: 'ladrilho', portas: [{ lado: 'norte', centro: 2.5, largura: 1.2 }] },
+    { id: 'jogos', nome: 'Sala de jogos', x: 19, y: 27, largura: 8, profundidade: 7, piso: '#d9b48a', textura: 'madeira', portas: [{ lado: 'norte', centro: 4, largura: 1.6 }] },
+    { id: 'recepcao', nome: 'Recepção', x: 27, y: 27, largura: 10, profundidade: 7, piso: '#d8b27e', textura: 'madeira', portas: [{ lado: 'norte', centro: 5, largura: 2.4 }, { lado: 'sul', centro: 5, largura: 2.4 }] },
+    { id: 'cabine1', nome: 'Cabine 1', x: 37, y: 27, largura: 2.5, profundidade: 7, piso: '#dfe7d6', textura: 'carpete', portas: [{ lado: 'norte', centro: 1.25, largura: 1 }] },
+    { id: 'cabine2', nome: 'Cabine 2', x: 39.5, y: 27, largura: 2.5, profundidade: 7, piso: '#dfe7d6', textura: 'carpete', portas: [{ lado: 'norte', centro: 1.25, largura: 1 }] },
+    { id: 'descompressao', nome: 'Descompressão', x: 42, y: 27, largura: 8, profundidade: 7, piso: '#e3dcef', textura: 'carpete', portas: [{ lado: 'norte', centro: 4, largura: 1.4 }] },
   ],
   mobilia,
   areas,

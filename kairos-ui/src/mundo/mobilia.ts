@@ -47,6 +47,20 @@ export const PECAS: Record<string, Peca> = {
   impressora: { largura: 0.7, profundidade: 0.55, solida: true, nome: 'impressora' },
   armario: { largura: 1.6, profundidade: 0.5, solida: true, nome: 'armário' },
   divisoria: { largura: 1.8, profundidade: 0.1, solida: true, nome: 'divisória' },
+  notebook: { largura: 0.35, profundidade: 0.3, solida: false, nome: 'notebook' },
+  planta_mesa: { largura: 0.2, profundidade: 0.2, solida: false, nome: 'planta' },
+  pilha_livros: { largura: 0.25, profundidade: 0.2, solida: false, nome: 'livros' },
+  quadro_a: { largura: 0.7, profundidade: 0.05, solida: false, nome: 'quadro' },
+  quadro_b: { largura: 0.7, profundidade: 0.05, solida: false, nome: 'quadro' },
+  relogio: { largura: 0.35, profundidade: 0.05, solida: false, nome: 'relógio' },
+  janela: { largura: 1.3, profundidade: 0.15, solida: false, nome: 'janela' },
+  quadro_avisos: { largura: 1.1, profundidade: 0.05, solida: false, nome: 'quadro de avisos' },
+  lixeira: { largura: 0.32, profundidade: 0.32, solida: true, nome: 'lixeira' },
+  cabideiro: { largura: 0.4, profundidade: 0.4, solida: true, nome: 'cabideiro' },
+  vaso_alto: { largura: 0.4, profundidade: 0.4, solida: true, nome: 'cacto' },
+  tapete_grande: { largura: 5.2, profundidade: 3.6, solida: false, nome: 'tapete' },
+  tufo: { largura: 0.3, profundidade: 0.3, solida: false, nome: 'grama' },
+  flores: { largura: 0.35, profundidade: 0.35, solida: false, nome: 'flores' },
 }
 
 export function pecaDe(movel: Movel): Peca | null {
