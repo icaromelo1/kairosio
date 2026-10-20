@@ -286,7 +286,10 @@ export class Mundo {
     this.construirPiso(mapa)
     this.construirParedes(mapa)
     await this.catalogo.carregar()
-    for (const movel of mapa.mobilia) {
+    const encaixe = encaixeNaParede(paredesDe(mapa))
+    for (const original of mapa.mobilia) {
+      const movel = pecaDe(original)?.deParede ? encaixe(original) : original
+      if (!movel) continue
       const interna = !!salaDoPonto(mapa, movel.x, movel.y)
       const no = this.catalogo.instanciar(movel, interna)
       if (!no) continue
@@ -984,4 +987,42 @@ function arvoresDeFora(mapa: Mapa): Movel[] {
     }
   }
   return arvores
+}
+
+function encaixeNaParede(paredes: ReturnType<typeof paredesDe>) {
+  const ocupados = new Map<string, [number, number][]>()
+  return (movel: Movel): Movel | null => {
+    const largura = pecaDe(movel)?.largura ?? 1
+    const horizontal = movel.giro % 180 === 0
+    const linhaDoMovel = horizontal ? movel.y : movel.x
+    const ao = horizontal ? movel.x : movel.y
+    const meia = largura / 2 + 0.12
+    let melhor: { pos: number; distancia: number; chave: string } | null = null
+    for (const parede of paredes) {
+      if (parede.horizontal !== horizontal || parede.externa || Math.abs(parede.linha - linhaDoMovel) > 0.35) continue
+      const chave = `${horizontal ? 'h' : 'v'}:${parede.linha.toFixed(2)}`
+      const livres = trechosLivres(parede.inicio + meia, parede.fim - meia, ocupados.get(chave) ?? [], meia)
+      for (const [inicio, fim] of livres) {
+        const pos = Math.min(fim, Math.max(inicio, ao))
+        const distancia = Math.abs(pos - ao)
+        if (!melhor || distancia < melhor.distancia) melhor = { pos, distancia, chave }
+      }
+    }
+    if (!melhor || melhor.distancia > 3) return null
+    ocupados.set(melhor.chave, [...(ocupados.get(melhor.chave) ?? []), [melhor.pos - meia, melhor.pos + meia]])
+    return horizontal ? { ...movel, x: melhor.pos } : { ...movel, y: melhor.pos }
+  }
+}
+
+function trechosLivres(inicio: number, fim: number, ocupados: [number, number][], meia: number): [number, number][] {
+  if (fim < inicio) return []
+  let trechos: [number, number][] = [[inicio, fim]]
+  for (const [a, b] of ocupados) {
+    trechos = trechos.flatMap(([i, f]) => {
+      const antes: [number, number] = [i, Math.min(f, a - meia)]
+      const depois: [number, number] = [Math.max(i, b + meia), f]
+      return [antes, depois].filter(([x, y]) => y >= x)
+    })
+  }
+  return trechos
 }
