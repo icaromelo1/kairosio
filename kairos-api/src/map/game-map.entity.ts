@@ -26,6 +26,9 @@ export class GameMap {
   @Column('jsonb')
   mobilia: unknown[]
 
+  @Column('jsonb', { default: () => "'[]'" })
+  areas: unknown[]
+
   @Column({ type: 'uuid', nullable: true })
   ownerId: string | null
 

@@ -113,6 +113,29 @@
               <span class="ss-world-count" :class="{ 'ss-world-count-zero': !w.people.length }">{{ w.people.length }}</span>
             </div>
 
+            <template v-if="!w.collapsed && w.current && salas?.length">
+              <div class="ss-label ss-label-sub">Salas com gente</div>
+              <div v-for="sala in salas" :key="sala.id" class="ss-sala">
+                <div
+                  class="ss-sala-cab ss-sala-alvo"
+                  :class="{ 'ss-sala-aqui': sala.aqui }"
+                  :title="`Dois cliques para ir até ${sala.nome}`"
+                  @dblclick="emit('ir-para-sala', sala.id)"
+                >
+                  <PixelIcon v-if="sala.trancada" name="lock" size="0.625rem" class="ss-sala-lock" />
+                  <span class="ellipsis ss-sala-nome">{{ sala.nome }}</span>
+                  <span class="ss-world-count">{{ sala.gente.length }}</span>
+                </div>
+                <ul class="ss-people ss-people-sala">
+                  <li v-for="p in sala.gente" :key="p.id" class="ss-person">
+                    <span class="ss-person-dot">●</span>
+                    <span class="ellipsis">{{ p.nome }}</span>
+                    <span v-if="p.eu" class="ss-person-you">você</span>
+                  </li>
+                </ul>
+              </div>
+            </template>
+
             <ul v-if="!w.collapsed && w.people.length" class="ss-people">
               <li v-for="p in w.people" :key="p.id" class="ss-person">
                 <span class="ss-person-dot">●</span>
@@ -286,11 +309,13 @@ const props = defineProps<{
   playerName: string
   voiceOn: boolean
   isGuest: boolean
+  salas?: { id: string; nome: string; trancada: boolean; aqui: boolean; gente: { id: string; nome: string; eu: boolean }[] }[]
 }>()
 
 const emit = defineEmits<{
   'update:open': [open: boolean]
   'select-world': [mapId: string]
+  'ir-para-sala': [salaId: string]
   'server-changed': [serverId: string, mapId?: string]
   'open-media': []
   'open-panel': [panel: GamePanel]
@@ -1138,4 +1163,26 @@ onUnmounted(() => {
     50% { opacity: 0.25; }
   }
 }
+.ss-label-sub { padding: 0.25rem 0.375rem 0.25rem 1rem; }
+.ss-sala { margin: 0.25rem 0 0 0.5rem; }
+.ss-sala-cab {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.1875rem 0.375rem;
+  border-left: 0.125rem solid var(--border);
+}
+.ss-sala-alvo { cursor: pointer; user-select: none; }
+.ss-sala-alvo:hover { background: var(--bg-2); }
+.ss-sala-aqui { border-left-color: var(--primary); background: rgba(44, 116, 65, 0.12); }
+.ss-sala-nome {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-3);
+}
+.ss-sala-aqui .ss-sala-nome { color: var(--text); }
+.ss-sala-lock { color: var(--err); }
+.ss-people-sala { margin-left: 0.5rem; }
 </style>

@@ -15,6 +15,7 @@ export interface Sala {
   profundidade: number
   piso: string
   aberta?: boolean
+  murada?: boolean
   portas: Porta[]
 }
 
@@ -28,6 +29,18 @@ export interface Movel {
   nome?: string
 }
 
+type TipoDeArea = 'caminho' | 'pedra' | 'deck' | 'agua' | 'terra' | 'grama'
+
+export interface Area {
+  id: string
+  tipo: TipoDeArea
+  forma: 'retangulo' | 'circulo'
+  x: number
+  y: number
+  largura: number
+  profundidade: number
+}
+
 export interface Mapa {
   id: string
   name: string
@@ -37,6 +50,7 @@ export interface Mapa {
   spawn: { x: number; y: number }
   salas: Sala[]
   mobilia: Movel[]
+  areas?: Area[]
 }
 
 export type Pose = 'parado' | 'andar' | 'sentar' | 'acenar' | 'dancar'
