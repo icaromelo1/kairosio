@@ -94,71 +94,93 @@
       <div class="ss-body">
         <div class="ss-tree">
         <template v-if="showingHere">
-          <div class="ss-label">Mundos</div>
+          <button v-if="ehAdmin" class="k-btn k-btn-accent k-btn-sm ss-convidar" :disabled="copiando" @click="convidar">
+            <PixelIcon :name="convite === 'link copiado' ? 'check' : 'user-plus'" size="0.75rem" />{{ convite }}
+          </button>
 
-          <div v-for="w in worlds" :key="w.id" class="ss-world">
-            <div class="ss-world-row" :class="{ 'ss-world-row-here': w.current }">
-              <button
-                class="ss-world-caret"
-                :title="w.collapsed ? 'Mostrar quem está aqui' : 'Esconder quem está aqui'"
-                :aria-expanded="!w.collapsed"
-                @click="toggleWorld(w)"
-              ><PixelIcon :name="w.collapsed ? 'chevron-right' : 'chevron-down'" size="0.75rem" /></button>
-
-              <button class="ss-world-name" :title="`Entrar em ${w.name}`" @click="emit('select-world', w.id)">
-                <span class="ellipsis">{{ w.name }}</span>
-              </button>
-
-              <span v-if="w.current" class="ss-world-here">aqui</span>
-              <span class="ss-world-count" :class="{ 'ss-world-count-zero': !w.people.length }">{{ w.people.length }}</span>
-            </div>
-
-            <template v-if="!w.collapsed && w.current && salas?.length">
-              <div class="ss-label ss-label-sub">Salas com gente</div>
-              <div v-for="sala in salas" :key="sala.id" class="ss-sala">
-                <div
-                  class="ss-sala-cab ss-sala-alvo"
-                  :class="{ 'ss-sala-aqui': sala.aqui }"
-                  :title="`Dois cliques para ir até ${sala.nome}`"
-                  @dblclick="emit('ir-para-sala', sala.id)"
-                >
-                  <PixelIcon v-if="sala.trancada" name="lock" size="0.625rem" class="ss-sala-lock" />
-                  <span class="ellipsis ss-sala-nome">{{ sala.nome }}</span>
-                  <span class="ss-world-count">{{ sala.gente.length }}</span>
-                </div>
-                <ul class="ss-people ss-people-sala">
-                  <li v-for="p in sala.gente" :key="p.id" class="ss-person">
-                    <span class="ss-person-dot">●</span>
-                    <span class="ellipsis">{{ p.nome }}</span>
-                    <span v-if="p.eu" class="ss-person-you">você</span>
-                  </li>
-                </ul>
-              </div>
-            </template>
-
-            <ul v-if="!w.collapsed && w.people.length" class="ss-people">
-              <li v-for="p in w.people" :key="p.id" class="ss-person">
+          <section class="ss-secao">
+            <div class="ss-label">Perto de você</div>
+            <ul v-if="painel.perto.length" class="ss-people">
+              <li v-for="p in painel.perto" :key="p.id" class="ss-person" :class="{ 'ss-person-falando': falando(p.userId) }">
                 <span class="ss-person-dot">●</span>
-                <span class="ellipsis">{{ p.name }}</span>
-                <span v-if="p.userId === auth.userId" class="ss-person-you">você</span>
-                <PixelIcon
-                  v-if="p.micMuted"
-                  name="mic"
-                  :off="true"
-                  size="0.75rem"
-                  class="ss-person-icon"
-                  title="microfone desligado"
-                />
-                <PixelIcon
-                  v-if="p.sharingScreen"
-                  name="monitor"
-                  size="0.75rem"
-                  class="ss-person-icon ss-person-screen"
-                  title="transmitindo a tela"
-                />
+                <span class="ellipsis ss-person-nome">{{ p.nome }}</span>
+                <PixelIcon v-if="estadoDe(p.userId)?.micMuted" name="mic-off" size="0.75rem" class="ss-person-icon" title="microfone desligado" />
+                <PixelIcon v-if="estadoDe(p.userId)?.sharingScreen" name="monitor" size="0.75rem" class="ss-person-icon ss-person-screen" title="transmitindo a tela" />
+                <span class="ss-person-acoes">
+                  <button class="ss-person-acao" :title="`Ir até ${p.nome}`" :aria-label="`Ir até ${p.nome}`" @click="emit('andar-ate', p.x, p.y)"><PixelIcon name="directions" size="0.75rem" /></button>
+                  <button v-if="!isGuest" class="ss-person-acao" :title="`Mensagem para ${p.nome}`" :aria-label="`Mensagem para ${p.nome}`" @click="abrirConversas(p.userId)"><PixelIcon name="message" size="0.75rem" /></button>
+                </span>
               </li>
             </ul>
-          </div>
+            <p v-else class="ss-vazio">{{ painel.sozinhoNaSala ? `Só você em ${painel.sozinhoNaSala}.` : 'Ninguém por perto. Chegue perto de alguém para conversar.' }}</p>
+          </section>
+
+          <section class="ss-secao">
+            <div class="ss-label">No escritório <span class="ss-label-n">{{ totalNoEscritorio }}</span></div>
+            <div v-for="sala in painel.salas" :key="sala.id" class="ss-sala">
+              <button class="ss-sala-cab ss-sala-alvo" :title="`Ir até ${sala.nome}`" @click="emit('ir-para-sala', sala.id)">
+                <PixelIcon v-if="sala.trancada" name="lock" size="0.625rem" class="ss-sala-lock" />
+                <span class="ellipsis ss-sala-nome">{{ sala.nome }}</span>
+                <span class="ss-world-count">{{ sala.gente.length }}</span>
+              </button>
+              <ul class="ss-people ss-people-sala">
+                <li v-for="p in sala.gente" :key="p.id" class="ss-person" :class="{ 'ss-person-falando': falando(p.userId) }">
+                <span class="ss-person-dot">●</span>
+                <span class="ellipsis ss-person-nome">{{ p.nome }}</span>
+                <PixelIcon v-if="estadoDe(p.userId)?.micMuted" name="mic-off" size="0.75rem" class="ss-person-icon" title="microfone desligado" />
+                <PixelIcon v-if="estadoDe(p.userId)?.sharingScreen" name="monitor" size="0.75rem" class="ss-person-icon ss-person-screen" title="transmitindo a tela" />
+                <span class="ss-person-acoes">
+                  <button class="ss-person-acao" :title="`Ir até ${p.nome}`" :aria-label="`Ir até ${p.nome}`" @click="emit('andar-ate', p.x, p.y)"><PixelIcon name="directions" size="0.75rem" /></button>
+                  <button v-if="!isGuest" class="ss-person-acao" :title="`Mensagem para ${p.nome}`" :aria-label="`Mensagem para ${p.nome}`" @click="abrirConversas(p.userId)"><PixelIcon name="message" size="0.75rem" /></button>
+                </span>
+              </li>
+              </ul>
+            </div>
+            <div v-if="painel.soltos.length" class="ss-sala">
+              <div class="ss-sala-cab">
+                <span class="ellipsis ss-sala-nome">Áreas abertas</span>
+                <span class="ss-world-count">{{ painel.soltos.length }}</span>
+              </div>
+              <ul class="ss-people ss-people-sala">
+                <li v-for="p in painel.soltos" :key="p.id" class="ss-person" :class="{ 'ss-person-falando': falando(p.userId) }">
+                <span class="ss-person-dot">●</span>
+                <span class="ellipsis ss-person-nome">{{ p.nome }}</span>
+                <PixelIcon v-if="estadoDe(p.userId)?.micMuted" name="mic-off" size="0.75rem" class="ss-person-icon" title="microfone desligado" />
+                <PixelIcon v-if="estadoDe(p.userId)?.sharingScreen" name="monitor" size="0.75rem" class="ss-person-icon ss-person-screen" title="transmitindo a tela" />
+                <span class="ss-person-acoes">
+                  <button class="ss-person-acao" :title="`Ir até ${p.nome}`" :aria-label="`Ir até ${p.nome}`" @click="emit('andar-ate', p.x, p.y)"><PixelIcon name="directions" size="0.75rem" /></button>
+                  <button v-if="!isGuest" class="ss-person-acao" :title="`Mensagem para ${p.nome}`" :aria-label="`Mensagem para ${p.nome}`" @click="abrirConversas(p.userId)"><PixelIcon name="message" size="0.75rem" /></button>
+                </span>
+              </li>
+              </ul>
+            </div>
+            <p v-if="!totalNoEscritorio" class="ss-vazio">Ninguém mais no escritório agora.</p>
+          </section>
+
+          <section v-if="offline.length" class="ss-secao">
+            <button class="ss-label ss-label-botao" :aria-expanded="mostrarOffline" @click="mostrarOffline = !mostrarOffline">
+              <PixelIcon :name="mostrarOffline ? 'chevron-down' : 'chevron-right'" size="0.625rem" />Offline <span class="ss-label-n">{{ offline.length }}</span>
+            </button>
+            <ul v-if="mostrarOffline" class="ss-people ss-offline">
+              <li v-for="m in offline" :key="m.id" class="ss-person">
+                <span class="ss-person-dot">●</span>
+                <span class="ellipsis ss-person-nome">{{ m.nome }}</span>
+              </li>
+            </ul>
+          </section>
+
+          <section v-if="worlds.length > 1" class="ss-secao">
+            <div class="ss-label">Mundos</div>
+            <button
+              v-for="w in worlds" :key="w.id"
+              class="ss-world-row ss-world-name" :class="{ 'ss-world-row-here': w.current }"
+              :title="w.current ? 'Você está aqui' : `Entrar em ${w.name}`"
+              @click="emit('select-world', w.id)"
+            >
+              <span class="ellipsis">{{ w.name }}</span>
+              <span class="ss-world-count" :class="{ 'ss-world-count-zero': !w.people.length }">{{ w.people.length }}</span>
+            </button>
+          </section>
         </template>
 
         <div v-else class="ss-other">
@@ -271,9 +293,10 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
 import { explicarErro } from '@/services/avisos'
-import { getMyServers, switchServer, type MyServerSummary } from '@/services/server.api'
+import { getInvite, getMyServer, getMyServers, switchServer, type MyServerSummary } from '@/services/server.api'
+import type { PainelDePessoas } from '@/components/painelDePessoas'
 import {
   dmUnreadTotal,
   emitMicState,
@@ -298,7 +321,6 @@ interface WorldRow {
   id: string
   name: string
   current: boolean
-  collapsed: boolean
   people: PresencePerson[]
 }
 
@@ -309,7 +331,7 @@ const props = defineProps<{
   playerName: string
   voiceOn: boolean
   isGuest: boolean
-  salas?: { id: string; nome: string; trancada: boolean; aqui: boolean; gente: { id: string; nome: string; eu: boolean }[] }[]
+  painel: PainelDePessoas
 }>()
 
 const emit = defineEmits<{
@@ -360,6 +382,52 @@ const error = ref('')
 const shownServer = computed(() => servers.value.find((s) => s.id === shownServerId.value) || null)
 const activeServer = computed(() => servers.value.find((s) => s.id === activeServerId.value) || null)
 const showingHere = computed(() => shownServerId.value === activeServerId.value)
+const ehAdmin = computed(() => activeServer.value?.role === 'admin')
+const membros = ref<{ id: string; nome: string }[]>([])
+const mostrarOffline = ref(false)
+const convite = ref('Convidar pessoas')
+const copiando = ref(false)
+
+const pessoasDoServidor = computed(() =>
+  activeServerId.value ? props.maps.flatMap((m) => peopleInWorld(activeServerId.value!, m.id)) : [],
+)
+const estados = computed(() => new Map(pessoasDoServidor.value.map((p) => [p.userId, p])))
+const offline = computed(() => {
+  const online = new Set(pessoasDoServidor.value.map((p) => p.userId))
+  return membros.value.filter((m) => m.id !== auth.userId && !online.has(m.id))
+})
+const totalNoEscritorio = computed(() =>
+  props.painel.salas.reduce((n, s) => n + s.gente.length, 0) + props.painel.soltos.length,
+)
+
+function estadoDe(userId: string) {
+  return estados.value.get(userId)
+}
+
+function falando(userId: string): boolean {
+  return !!media.peers.get(userId)?.speaking
+}
+
+async function carregarMembros() {
+  const servidor = await getMyServer().catch(() => null)
+  membros.value = (servidor?.members ?? []).map((m) => ({ id: m.id, nome: m.name || 'sem nome' }))
+}
+
+async function convidar() {
+  if (!activeServerId.value || copiando.value) return
+  copiando.value = true
+  try {
+    const { code } = await getInvite(activeServerId.value)
+    const base = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`
+    await navigator.clipboard.writeText(`${window.location.origin}${base}join/${code}`)
+    convite.value = 'link copiado'
+  } catch {
+    convite.value = 'não deu, tente de novo'
+  } finally {
+    copiando.value = false
+    window.setTimeout(() => { convite.value = 'Convidar pessoas' }, 2500)
+  }
+}
 
 const worlds = computed<WorldRow[]>(() =>
   props.maps.map((m) => {
@@ -368,7 +436,6 @@ const worlds = computed<WorldRow[]>(() =>
       id: m.id,
       name: m.name,
       current: m.id === props.currentMapId,
-      collapsed: collapsedFor(m.id, people.length),
       people,
     }
   }),
@@ -434,6 +501,7 @@ async function loadServers() {
   activeServerId.value = servers.value.find((s) => s.active)?.id ?? null
   if (!servers.value.some((s) => s.id === shownServerId.value)) shownServerId.value = activeServerId.value
   syncPresence()
+  void carregarMembros()
 }
 
 // watchServerPresence SUBSTITUI a lista observada: mandar menos que todos os
@@ -490,40 +558,6 @@ function pollSocial() {
 }
 
 // ---- colapsar por mundo ----
-const COLLAPSE_KEY = 'kairos_worlds_collapsed'
-
-function loadCollapsed(): Record<string, boolean> {
-  const out: Record<string, boolean> = {}
-  try {
-    const raw = localStorage.getItem(COLLAPSE_KEY)
-    const parsed: unknown = raw ? JSON.parse(raw) : null
-    if (!parsed || typeof parsed !== 'object') return out
-    for (const [id, value] of Object.entries(parsed as Record<string, unknown>)) {
-      if (typeof value === 'boolean') out[id] = value
-    }
-  } catch {
-    // preferência corrompida não pode impedir a lista de aparecer
-  }
-  return out
-}
-
-const collapsed = reactive<Record<string, boolean>>(loadCollapsed())
-
-function collapsedFor(mapId: string, people: number): boolean {
-  const saved = collapsed[mapId]
-  if (typeof saved === 'boolean') return saved
-  return mapId !== props.currentMapId && people === 0
-}
-
-function toggleWorld(world: WorldRow) {
-  collapsed[world.id] = !world.collapsed
-  try {
-    localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsed))
-  } catch {
-    // storage cheio/bloqueado não pode travar o clique
-  }
-}
-
 // ---- microfone e som ----
 const voiceLive = computed(() => props.voiceOn)
 const voiceBusy = computed(() => media.state.connecting)
@@ -879,19 +913,6 @@ onUnmounted(() => {
 .ss-world-row:hover { background: var(--bg-1); }
 .ss-world-row-here { border-color: var(--primary-hi); background: rgba(44, 116, 65, 0.16); }
 
-.ss-world-caret {
-  appearance: none;
-  background: transparent;
-  border: none;
-  color: var(--text-4);
-  width: 2rem;
-  height: 2rem;
-  flex: none;
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
-.ss-world-caret:hover { color: var(--text-2); }
 
 .ss-world-name {
   appearance: none;
@@ -915,19 +936,6 @@ onUnmounted(() => {
 /* chip "aqui" do mundo ativo: veio do cabeçalho (.ss-head-tag, 24×10px — achado
    de auditoria) pra dentro da linha do mundo, com o vocabulário de chip do
    projeto (âmbar preenchido + borda + texto --tinta, 8,40:1) */
-.ss-world-here {
-  flex: none;
-  display: inline-flex;
-  align-items: center;
-  padding: 0.1875rem 0.375rem;
-  background: var(--accent);
-  border: 0.0625rem solid var(--tinta);
-  color: var(--tinta);
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
 
 .ss-world-count {
   flex: none;
@@ -958,7 +966,22 @@ onUnmounted(() => {
   padding: 0.0625rem 0.25rem 0.0625rem 0;
 }
 .ss-person-dot { color: var(--ok); font-size: 0.5rem; flex: none; }
-.ss-person-you { flex: none; color: var(--text-4); font-size: 0.625rem; }
+.ss-person-nome { min-width: 0; }
+.ss-person-falando .ss-person-dot { color: var(--accent); text-shadow: 0 0 0.375rem var(--accent); }
+.ss-person-falando .ss-person-nome { color: var(--text); font-weight: 700; }
+.ss-person-acoes { display: none; gap: 0.125rem; margin-left: auto; flex: none; }
+.ss-person:hover .ss-person-acoes, .ss-person:focus-within .ss-person-acoes { display: inline-flex; }
+.ss-person:hover .ss-person-icon { display: none; }
+.ss-person-acao { appearance: none; border: 0; background: transparent; color: var(--text-3); padding: 0.125rem; cursor: pointer; display: inline-flex; }
+.ss-person-acao:hover { color: var(--text); background: var(--bg-3); }
+.ss-secao { display: flex; flex-direction: column; gap: 0.25rem; margin-bottom: 0.75rem; }
+.ss-label-n { color: var(--text-4); margin-left: 0.25rem; }
+.ss-label-botao { appearance: none; border: 0; background: transparent; padding: 0; cursor: pointer; display: inline-flex; align-items: center; gap: 0.25rem; text-align: left; }
+.ss-vazio { margin: 0; font-size: 0.75rem; color: var(--text-4); line-height: 1.35; }
+.ss-offline .ss-person { opacity: 0.55; }
+.ss-offline .ss-person-dot { color: var(--text-4); }
+.ss-convidar { width: 100%; justify-content: center; margin-bottom: 0.75rem; }
+button.ss-sala-cab { appearance: none; border: 0; background: transparent; width: 100%; text-align: left; cursor: pointer; font: inherit; color: inherit; }
 .ss-person-icon { flex: none; color: var(--text-3); margin-left: auto; }
 .ss-person-icon + .ss-person-icon { margin-left: 0; }
 .ss-person-screen { color: var(--accent-texto); }
@@ -1163,7 +1186,6 @@ onUnmounted(() => {
     50% { opacity: 0.25; }
   }
 }
-.ss-label-sub { padding: 0.25rem 0.375rem 0.25rem 1rem; }
 .ss-sala { margin: 0.25rem 0 0 0.5rem; }
 .ss-sala-cab {
   display: flex;
@@ -1174,7 +1196,6 @@ onUnmounted(() => {
 }
 .ss-sala-alvo { cursor: pointer; user-select: none; }
 .ss-sala-alvo:hover { background: var(--bg-2); }
-.ss-sala-aqui { border-left-color: var(--primary); background: rgba(44, 116, 65, 0.12); }
 .ss-sala-nome {
   flex: 1;
   min-width: 0;
@@ -1182,7 +1203,6 @@ onUnmounted(() => {
   font-weight: 600;
   color: var(--text-3);
 }
-.ss-sala-aqui .ss-sala-nome { color: var(--text); }
 .ss-sala-lock { color: var(--err); }
 .ss-people-sala { margin-left: 0.5rem; }
 </style>

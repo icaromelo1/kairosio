@@ -9,7 +9,7 @@
         :player-name="playerName"
         :voice-on="voiceOn"
         :is-guest="auth.isGuest"
-        :salas="salasComGente"
+        :painel="painelPessoas"
         @ir-para-sala="irParaSala"
         @andar-ate="(x: number, y: number) => irPara(x, y, 'a conversa')"
         @server-changed="onServerChanged"
@@ -244,6 +244,7 @@ import type { Entrada } from '@/mundo/entrada'
 import type { Estacao, Mapa, Movel } from '@/mundo/tipos'
 import type { AssetContainer } from '@babylonjs/core/assetContainer'
 import ServerSidebar from '@/components/ServerSidebar.vue'
+import type { PainelDePessoas, PessoaDoPainel } from '@/components/painelDePessoas'
 import ChatHud from '@/components/ChatHud.vue'
 import PixelIcon from '@/components/PixelIcon.vue'
 import ServersPanel from '@/components/ServersPanel.vue'
@@ -613,6 +614,7 @@ const horaTexto = computed(() => {
   const h = horaEfetiva.value
   return `${String(Math.floor(h)).padStart(2, '0')}:${String(Math.round((h % 1) * 60)).padStart(2, '0')}`
 })
+const painelPessoas = ref<PainelDePessoas>({ perto: [], salas: [], soltos: [], sozinhoNaSala: null })
 const salasComGente = ref<{ id: string; nome: string; trancada: boolean; aqui: boolean; gente: { id: string; nome: string; eu: boolean }[] }[]>([])
 const salasDoMapa = computed(() => (mapaAtual.value?.salas ?? []).filter((s) => !s.aberta))
 const pessoasNaSala = computed(() => [...remotePlayers.values()].filter((p) => !p.map || p.map === MAPA_ATUAL))
@@ -722,6 +724,39 @@ function atualizarSalasComGente() {
     .filter((s) => grupos.has(s.id))
     .map((s) => ({ id: s.id, nome: s.nome, trancada: salasTrancadas.value.has(s.id), aqui: s.id === minha, gente: grupos.get(s.id)! }))
     .sort((a, b) => b.gente.length - a.gente.length || a.nome.localeCompare(b.nome))
+  atualizarPainelDePessoas()
+}
+
+function atualizarPainelDePessoas() {
+  const mapa = mapaAtual.value
+  const local = mundo.value?.local
+  if (!mapa || !local) return
+  const remotos = [...remotePlayers.values()].filter((p) => p.userId && (!p.map || p.map === MAPA_ATUAL))
+  const calls = callsDoMapa(mapa, [{ id: SELF_CALL_ID, x: local.x, y: local.y }, ...remotos.map((p) => ({ id: p.userId, x: p.x, y: p.y }))])
+  const minhaCall = calls.get(SELF_CALL_ID)
+  const pessoa = (p: (typeof remotos)[number]): PessoaDoPainel => ({ id: p.id, userId: p.userId, nome: p.name, x: p.x, y: p.y })
+  const perto: PessoaDoPainel[] = []
+  const porSala = new Map<string, PessoaDoPainel[]>()
+  const soltos: PessoaDoPainel[] = []
+  for (const p of remotos) {
+    if (minhaCall && calls.get(p.userId) === minhaCall) {
+      perto.push(pessoa(p))
+      continue
+    }
+    const sala = salaFechadaDoPonto(mapa, p.x, p.y)
+    if (sala) porSala.set(sala.id, [...(porSala.get(sala.id) ?? []), pessoa(p)])
+    else soltos.push(pessoa(p))
+  }
+  const minha = salaFechadaDoPonto(mapa, local.x, local.y)
+  painelPessoas.value = {
+    perto,
+    salas: mapa.salas
+      .filter((s) => porSala.has(s.id))
+      .map((s) => ({ id: s.id, nome: s.nome, trancada: salasTrancadas.value.has(s.id), gente: porSala.get(s.id)! }))
+      .sort((a, b) => b.gente.length - a.gente.length || a.nome.localeCompare(b.nome)),
+    soltos,
+    sozinhoNaSala: minha && !perto.length ? minha.nome : null,
+  }
 }
 
 function aoApertarTela(e: PointerEvent) {
