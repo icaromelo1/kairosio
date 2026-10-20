@@ -13,14 +13,10 @@ import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector'
 import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder'
 import { CreateDisc } from '@babylonjs/core/Meshes/Builders/discBuilder'
 import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder'
-import { CreateCylinder } from '@babylonjs/core/Meshes/Builders/cylinderBuilder'
-import { CreateTorus } from '@babylonjs/core/Meshes/Builders/torusBuilder'
-import { Mesh } from '@babylonjs/core/Meshes/mesh'
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
 import { TransformNode } from '@babylonjs/core/Meshes/transformNode'
 import { ImageProcessingConfiguration } from '@babylonjs/core/Materials/imageProcessingConfiguration'
 import { DefaultRenderingPipeline } from '@babylonjs/core/PostProcesses/RenderPipeline/Pipelines/defaultRenderingPipeline'
-import type { Texture } from '@babylonjs/core/Materials/Textures/texture'
 import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh'
 import { ESPESSURA_PAREDE, Grade, areaDoPonto, paredesDe, salaDoPonto } from './grade'
 import { estacaoDe, nomeDe, pecaDe } from './mobilia'
@@ -28,6 +24,7 @@ import { CatalogoDeMobilia } from './modelosMobilia'
 import { calcularRota } from './rota'
 import { luzDaHora } from './luz'
 import { materialDePiso, textura } from './materiais'
+import { construirLago, type Lago } from './lago'
 import type { AvatarVisual } from './avatar'
 import type { Area, Estacao, Mapa, Movel, Pose, Sala } from './tipos'
 
@@ -136,7 +133,8 @@ export class Mundo {
   private luzesDeSala: PointLight[] = []
   private readonly internas = new Set<AbstractMesh>()
   private readonly dentro = new Map<string, boolean>()
-  private aguaTexturas: Texture[] = []
+  private lagos: Lago[] = []
+  private luzDaAgua = Color3.White()
   private readonly raizMapa: TransformNode
   private readonly pessoas = new Map<string, Pessoa>()
   private readonly catalogo: CatalogoDeMobilia
@@ -241,6 +239,8 @@ export class Mundo {
     this.sol.diffuse = cor(luz.sol)
     this.sol.intensity = luz.intensidadeSol
     this.cena.clearColor = Color4.FromHexString(`${luz.fundo}ff`)
+    this.luzDaAgua = Color3.White().scale(0.15).add(cor(luz.ceu).scale(luz.intensidadeCeu * 0.6 + luz.intensidadeSol * 0.3))
+    for (const lago of this.lagos ?? []) lago.definirLuz(this.luzDaAgua)
   }
 
   async definirMapa(mapa: Mapa) {
@@ -281,7 +281,7 @@ export class Mundo {
   }
 
   private construirPiso(mapa: Mapa) {
-    this.aguaTexturas = []
+    this.lagos = []
     const base = CreateGround('piso', { width: mapa.largura, height: mapa.profundidade }, this.cena)
     base.position.set(mapa.largura / 2, 0, mapa.profundidade / 2)
     base.material = materialDePiso(this.cena, 'piso', mapa.piso, 'gramado', mapa.largura, mapa.profundidade, 4)
@@ -328,43 +328,10 @@ export class Mundo {
   }
 
   private construirLago(area: Area) {
-    const rx = area.largura / 2
-    const rz = area.profundidade / 2
-    const pedra = materialDePiso(this.cena, `borda-${area.id}`, '#c9c0ad', 'pavimento', area.largura, area.profundidade, 1.2)
-    const parteDe = (malha: Mesh) => {
-      malha.parent = this.raizMapa
-      malha.isPickable = false
-      malha.receiveShadows = true
-      return malha
-    }
-    const externa = parteDe(CreateCylinder(`lagoFora-${area.id}`, { diameter: 2, height: 0.24, tessellation: 56, cap: Mesh.NO_CAP }, this.cena))
-    externa.scaling.set(rx + 0.32, 1, rz + 0.32)
-    externa.position.set(area.x, 0.12, area.y)
-    externa.material = pedra
-    this.sombra.addShadowCaster(externa)
-    const aro = parteDe(CreateTorus(`lagoAro-${area.id}`, { diameter: 2, thickness: 0.6, tessellation: 56 }, this.cena))
-    aro.scaling.set(rx + 0.02, 0.4, rz + 0.02)
-    aro.position.set(area.x, 0.22, area.y)
-    aro.material = pedra
-    const interna = parteDe(CreateCylinder(`lagoDentro-${area.id}`, { diameter: 2, height: 0.24, tessellation: 56, cap: Mesh.NO_CAP, sideOrientation: Mesh.BACKSIDE }, this.cena))
-    interna.scaling.set(rx - 0.2, 1, rz - 0.2)
-    interna.position.set(area.x, 0.08, area.y)
-    interna.material = this.materialFosco('lagoParede', '#4f7f8c')
-    const fundo = parteDe(CreateDisc(`lagoFundo-${area.id}`, { radius: 1, tessellation: 56 }, this.cena))
-    fundo.rotation.x = Math.PI / 2
-    fundo.scaling.set(rx - 0.2, rz - 0.2, 1)
-    fundo.position.set(area.x, 0.005, area.y)
-    fundo.material = this.materialFosco('lagoFundo', '#2f6f86')
-    const agua = parteDe(CreateDisc(`lagoAgua-${area.id}`, { radius: 1, tessellation: 56 }, this.cena))
-    agua.rotation.x = Math.PI / 2
-    agua.scaling.set(rx - 0.2, rz - 0.2, 1)
-    agua.position.set(area.x, 0.15, area.y)
-    const material = materialDePiso(this.cena, `agua-${area.id}`, CORES_DE_AREA.agua, 'variacao', area.largura, area.profundidade, 4)
-    material.specularColor = new Color3(0.9, 0.95, 1)
-    material.specularPower = 64
-    material.alpha = 0.82
-    if (material.diffuseTexture) this.aguaTexturas.push(material.diffuseTexture as Texture)
-    agua.material = material
+    const lago = construirLago(this.cena, area, this.raizMapa, this.sombra)
+    this.contornar(lago.contornaveis, 0.012)
+    lago.definirLuz(this.luzDaAgua)
+    this.lagos.push(lago)
   }
 
   private criarLuzesDeSala(mapa: Mapa) {
@@ -698,10 +665,7 @@ export class Mundo {
     }
     this.posicionarCamera()
     this.posicionarSombra()
-    for (const tex of this.aguaTexturas) {
-      tex.uOffset += decorrido * 0.02
-      tex.vOffset += decorrido * 0.012
-    }
+    for (const lago of this.lagos) lago.atualizar(decorrido)
     this.cena.render()
     this.posicionarNomes()
   }
