@@ -25,6 +25,7 @@ import { calcularRota } from './rota'
 import { luzDaHora } from './luz'
 import { materialDePiso, textura } from './materiais'
 import { construirLago, type Lago } from './lago'
+import { estadoDoAmbiente, registrarAmbiente, type EstadoDoAmbiente, type Recorte } from './ambiente'
 import type { AvatarVisual } from './avatar'
 import type { Area, Estacao, Mapa, Movel, Pose, Sala } from './tipos'
 import type { Mesh } from '@babylonjs/core/Meshes/mesh'
@@ -32,6 +33,7 @@ import { VertexBuffer } from '@babylonjs/core/Buffers/buffer'
 
 const ELEVACAO = (36 * Math.PI) / 180
 const MARGEM_EXTERNA = 40
+const RAIO_DE_LUZ: Record<string, number> = { poste: 3.6, jukebox: 2.4, luminaria: 2.2 }
 const DISTANCIA_CAMERA = 40
 const ALTURA_PAREDE = 1.1
 const ALTURA_CERCA = 0.9
@@ -138,6 +140,11 @@ export class Mundo {
   private readonly dentro = new Map<string, boolean>()
   private lagos: Lago[] = []
   private luzDaAgua = Color3.White()
+  private ambiente!: EstadoDoAmbiente
+  private recortes: { id: string; recorte: Recorte }[] = []
+  private recorteAtual: string | null = null
+  private recorteDesejado: string | null = null
+  private escuroFora = 0.42
   private readonly raizMapa: TransformNode
   private readonly pessoas = new Map<string, Pessoa>()
   private readonly catalogo: CatalogoDeMobilia
@@ -163,8 +170,10 @@ export class Mundo {
     private readonly camadaNomes: HTMLElement,
     private readonly opcoes: OpcoesDoMundo = {},
   ) {
+    registrarAmbiente()
     this.motor = new Engine(tela, true, { stencil: true, preserveDrawingBuffer: false, powerPreference: 'high-performance' }, true)
     this.cena = new Scene(this.motor)
+    this.ambiente = estadoDoAmbiente(this.cena)
     this.cena.useRightHandedSystem = true
     this.cena.clearColor = Color4.FromHexString('#7fb35cff')
     const processamento = this.cena.imageProcessingConfiguration
@@ -242,6 +251,9 @@ export class Mundo {
     this.sol.diffuse = cor(luz.sol)
     this.sol.intensity = luz.intensidadeSol
     this.cena.clearColor = Color4.FromHexString(`${luz.fundo}ff`)
+    const noite = Math.min(1, Math.max(0, (0.55 - luz.intensidadeSol) / 0.37))
+    this.ambiente.noite = noite
+    this.escuroFora = 0.42 + 0.3 * noite
     this.luzDaAgua = Color3.White().scale(0.15).add(cor(luz.ceu).scale(luz.intensidadeCeu * 0.6 + luz.intensidadeSol * 0.3))
     for (const lago of this.lagos ?? []) lago.definirLuz(this.luzDaAgua)
   }
@@ -253,6 +265,7 @@ export class Mundo {
     for (const luz of this.luzesDeSala) luz.dispose()
     this.luzesDeSala = []
     this.internas.clear()
+    this.montarAmbiente(mapa)
     this.construirPiso(mapa)
     this.construirParedes(mapa)
     await this.catalogo.carregar()
@@ -690,9 +703,61 @@ export class Mundo {
     }
     this.posicionarCamera()
     this.posicionarSombra()
+    this.atualizarAmbiente(decorrido)
     for (const lago of this.lagos) lago.atualizar(decorrido)
     this.cena.render()
     this.posicionarNomes()
+  }
+
+  private montarAmbiente(mapa: Mapa) {
+    this.recortes = mapa.salas
+      .filter((s) => !s.aberta || s.murada)
+      .map((s) => ({ id: s.id, recorte: { x0: s.x, y0: s.y, x1: s.x + s.largura, y1: s.y + s.profundidade } }))
+    this.ambiente.luzes = mapa.mobilia
+      .filter((m) => RAIO_DE_LUZ[m.peca])
+      .map((m) => ({ x: m.x, y: m.y, raio: RAIO_DE_LUZ[m.peca] }))
+    this.recorteAtual = this.recorteDesejado = null
+    this.aplicarRecorte(null)
+    this.ambiente.forca = 1
+  }
+
+  private recorteDoPonto(x: number, y: number): string | null {
+    let melhor: { id: string; area: number } | null = null
+    for (const { id, recorte: r } of this.recortes) {
+      if (x < r.x0 || x > r.x1 || y < r.y0 || y > r.y1) continue
+      const area = (r.x1 - r.x0) * (r.y1 - r.y0)
+      if (!melhor || area < melhor.area) melhor = { id, area }
+    }
+    return melhor?.id ?? null
+  }
+
+  private aplicarRecorte(id: string | null) {
+    const atual = this.recortes.find((r) => r.id === id)?.recorte ?? null
+    const contem = (a: Recorte, b: Recorte) => a.x0 <= b.x0 && a.y0 <= b.y0 && a.x1 >= b.x1 && a.y1 >= b.y1
+    this.ambiente.sala = atual
+    this.ambiente.outras = this.recortes
+      .filter((r) => r.id !== id && !(atual && contem(r.recorte, atual)))
+      .map((r) => r.recorte)
+  }
+
+  private atualizarAmbiente(decorrido: number) {
+    const a = this.ambiente
+    a.tempo += decorrido
+    a.escuroFora = this.escuroFora
+    a.calor = 1
+    a.jogador = { x: this.local.x, y: this.local.y, raio: 3.2 }
+    this.recorteDesejado = this.recorteDoPonto(this.local.x, this.local.y)
+    if (this.recorteDesejado !== this.recorteAtual) {
+      a.forca = Math.max(0, a.forca - decorrido / 0.15)
+      if (a.forca === 0) {
+        this.recorteAtual = this.recorteDesejado
+        this.aplicarRecorte(this.recorteAtual)
+      }
+    } else if (a.forca < 1) {
+      a.forca = Math.min(1, a.forca + decorrido / 0.2)
+    }
+    const escuroNoLago = a.sala ? a.escuroFora * a.forca : 0
+    for (const lago of this.lagos) lago.definirLuz(this.luzDaAgua.scale(1 - escuroNoLago))
   }
 
   private bloqueadoPorTranca(x: number, y: number): boolean {
