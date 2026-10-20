@@ -113,10 +113,14 @@ viram cerca viva.
   pegam as internas (`includedOnlyMeshes`); cada sala ganha uma luz pontual na cor de
   `LUZ_DAS_SALAS`, só no piso dela. O avatar troca de conjunto ao entrar/sair
   (`atualizarZona`). As paredes do perímetro do prédio continuam com sol por fora.
-- Pisos de sala e áreas com textura (`sala.textura`, `TEXTURAS_DE_AREA`); lago elevado com
-  borda de pedra e água animada.
-- A skill "REA" pedida para estudar o Gather não existe entre as skills instaladas; falta o
-  Icaro mandar o link do GitHub se for uma skill externa.
+- Pisos de sala e áreas com textura (`sala.textura`, `TEXTURAS_DE_AREA`).
+- Lago em `mundo/lago.ts`: borda fina de pedras 3D irregulares (mescladas numa malha, com
+  sombra e contorno), água abaixo da borda com parede interna à mostra, `ShaderMaterial`
+  próprio (gradiente raso→fundo, cáusticas, ondas, espuma na margem, cor pela hora via
+  `definirLuz`), vitórias-régias, lótus, juncos e carpas animadas.
+- REA (github.com/morluto/rea) é um MCP de engenharia reversa (binários, apps JS/Electron,
+  sites). Não foi instalado: o setup altera a config do agente e o Gather é 2D em pixel art,
+  então o ganho para a arte 3D é pequeno. Instalar só com OK do Icaro.
 
 ## Funcionalidades do mapa antigo (conferidas em 20/10)
 
