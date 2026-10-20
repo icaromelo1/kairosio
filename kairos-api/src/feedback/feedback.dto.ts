@@ -2,8 +2,8 @@ import { IsIn, IsOptional, IsString, MaxLength, MinLength } from 'class-validato
 
 export class CreateFeedbackDto {
   @IsOptional()
-  @IsIn(['bug', 'melhoria'])
-  kind?: 'bug' | 'melhoria'
+  @IsIn(['bug', 'melhoria', 'suporte'])
+  kind?: 'bug' | 'melhoria' | 'suporte'
 
   @IsString()
   @MinLength(3)

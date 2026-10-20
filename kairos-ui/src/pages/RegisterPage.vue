@@ -99,7 +99,12 @@
         <p v-if="confirmError" id="reg-confirm-error" class="k-field-error">{{ confirmError }}</p>
       </div>
 
-      <button class="k-btn k-btn-primary reg-submit" :disabled="loading" @click="submit">
+      <label class="reg-aceite">
+        <input v-model="aceitou" type="checkbox" />
+        <span>Li e aceito os <a :href="`${BASE}termos`" target="_blank" rel="noopener" @click.stop>termos de uso</a> e a <a :href="`${BASE}privacidade`" target="_blank" rel="noopener" @click.stop>política de privacidade</a>. Tenho 13 anos ou mais.</span>
+      </label>
+
+      <button class="k-btn k-btn-primary reg-submit" :disabled="loading || !aceitou" @click="submit">
         {{ loading ? 'Criando…' : 'Cadastrar →' }}
       </button>
 
@@ -129,6 +134,8 @@ const username = ref('')
 const password = ref('')
 const confirm = ref('')
 const error = ref('')
+const aceitou = ref(false)
+const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`
 const loading = ref(false)
 
 const emailInputRef = ref<HTMLInputElement>()
@@ -408,6 +415,9 @@ const REGISTER_ERRORS: Record<string, string> = {
 .reg-status.is-neutral {
   color: var(--text-3);
 }
+.reg-aceite { display: flex; gap: 0.5rem; align-items: flex-start; font-size: 0.8125rem; color: var(--text-2); line-height: 1.4; cursor: pointer; }
+.reg-aceite input { margin-top: 0.2rem; flex: none; }
+.reg-aceite a { color: var(--text); }
 .reg-submit {
   margin-top: 1.125rem;
 }

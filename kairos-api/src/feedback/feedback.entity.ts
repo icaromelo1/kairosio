@@ -1,6 +1,6 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm'
 
-export type FeedbackKind = 'bug' | 'melhoria'
+export type FeedbackKind = 'bug' | 'melhoria' | 'suporte'
 export type FeedbackStatus = 'aberto' | 'em_andamento' | 'resolvido' | 'recusado'
 
 // Relato de bug ou pedido de melhoria. Guarda o status da correção e o autor
