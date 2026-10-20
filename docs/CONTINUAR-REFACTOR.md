@@ -59,8 +59,8 @@ acessórios). A edição de sala vem depois.
 ## Como está montado
 
 **Front (`kairos-ui/src/mundo/`)**, carregado só na rota do jogo por `import()`:
-- `Mundo.ts`: cena Babylon (mão direita), câmera ortográfica a 48° que segue o jogador,
-  luz ambiente + sol com sombra, piso e paredes gerados do mapa, mobília instanciada do
+- `Mundo.ts`: cena Babylon (mão direita), câmera ortográfica a 36° (inclinada, para ver a frente das coisas) que segue o
+  jogador, iluminação separada dentro e fora do prédio (ver "Visual"), piso e paredes gerados do mapa, mobília instanciada do
   `mobilia.glb`, pessoas (local e remotas, com interpolação), nomes em camada HTML,
   movimento com colisão, sentar, gestos, interação por proximidade e salas trancadas.
 - `grade.ts`: paredes derivadas das salas (com vãos de porta) e grade de colisão de 0,25 m.
@@ -73,8 +73,12 @@ acessórios). A edição de sala vem depois.
   editor (obrigatório no primeiro acesso).
 
 **Arte (`arte/`)**: `comum.py` (primitivas, esqueleto, skin rígido, ações NLA, exportação),
-`mobilia.py` (21 peças) e `personagem.py` (corpo + 34 peças + 5 animações). Regerar com
+`mobilia.py` (cerca de 56 peças) e `personagem.py` (corpo + 34 peças + 5 animações). Regerar com
 `arte/gerar.sh` (Blender + `gltf-transform` weld/dedup/quantize → `kairos-ui/public/modelos/`).
+`texturas.py` gera as texturas tileáveis de `kairos-ui/public/texturas/` (grama, gramado,
+cascalho, pavimento, madeira, deck, carpete, ladrilho, reboco, variacao). Com `PINTAR=1`
+(padrão do `gerar.sh`) cada peça ganha uma textura de detalhe de 256 px com AO, gradiente de
+altura e brilho de bordas, como no Icarus.
 Frente dos modelos = −Y no Blender. Convenção de ossos: rotação Z positiva leva o braço
 direito para fora; negativa, o esquerdo. `personagem.py -- <pasta> --fotos` renderiza poses
 para conferir.
@@ -97,6 +101,22 @@ porta da recepção, do lado de fora. A mobília tem 37 peças (`arte/mobilia.py
 Formato: `Sala.murada` desenha paredes numa sala aberta (o salão continua "área aberta" para
 chat e voz); `Mapa.areas` são pisos externos (`agua` deixa lento); paredes no limite do mapa
 viram cerca viva.
+
+## Visual (20/10)
+
+- Materiais PBR do glTF viram `StandardMaterial` (`mundo/materiais.ts`), com tonemapping
+  ACES, FXAA, bloom leve e sharpen; contorno escuro em avatares e móveis.
+- **Luz de fora:** céu (hemisférica) + sol com sombra de 4096 que acompanha o jogador, cor e
+  força pela hora (`luz.ts`).
+- **Luz de dentro:** conjunto próprio (`teto` direcional + `ambienteInterno` + sombra de
+  2048). Sol e céu excluem as malhas internas (`excludedMeshes`), as luzes internas só
+  pegam as internas (`includedOnlyMeshes`); cada sala ganha uma luz pontual na cor de
+  `LUZ_DAS_SALAS`, só no piso dela. O avatar troca de conjunto ao entrar/sair
+  (`atualizarZona`). As paredes do perímetro do prédio continuam com sol por fora.
+- Pisos de sala e áreas com textura (`sala.textura`, `TEXTURAS_DE_AREA`); lago elevado com
+  borda de pedra e água animada.
+- A skill "REA" pedida para estudar o Gather não existe entre as skills instaladas; falta o
+  Icaro mandar o link do GitHub se for uma skill externa.
 
 ## Funcionalidades do mapa antigo (conferidas em 20/10)
 
@@ -132,8 +152,8 @@ A conta `teste1` é sudo **só no banco de teste** (`kairos_refactor`).
 
 - **Voz e vídeo** foram religados (proximidade, chamadas por sala/bolha, ganho por parede),
   mas não testados com microfone e duas pessoas reais.
-- **Poderes de sudo** (noclip, invisível, espectador, escala, festa, teleporte, puxar) e o
-  controle da hora do mundo ficaram sem interface; os handlers do gateway continuam lá.
+- **LiveKit** responde com erro de CORS a partir de `localhost:4180`, então voz não dá para
+  testar pelo túnel; precisa de um domínio de teste liberado no LiveKit.
 - **E2E**: `e2e/tests/smoke.spec.ts` ainda não roda contra a branch.
 - **Bundle**: o Babylon sai em chunks separados, mas o loader de glTF puxa bastante código
   (cerca de 1,2 MB entre `transformNode` e `Mundo`). Vale revisar os imports do loader.
@@ -156,7 +176,7 @@ A conta `teste1` é sudo **só no banco de teste** (`kairos_refactor`).
   (`npm run migration:generate|run|revert`).
 - Banco de teste do refactor: **`kairos_refactor`** no container `postgres` da VM (o mesmo
   do `appdb` de produção, dono `kairos`). Migrations aplicadas: `Inicial`,
-  `MapaPorSalasEMobilia`, `AparenciaDoPersonagem`.
+  `MapaPorSalasEMobilia`, `AparenciaDoPersonagem`, `AreasDoMapa`.
 - Para rodar a CLI do Mac: `ssh -f -N -L 25432:127.0.0.1:5432 oracle-vm` e
   `DATABASE_URL=postgres://kairos:<senha do .env da VM>@127.0.0.1:25432/kairos_refactor`.
 
