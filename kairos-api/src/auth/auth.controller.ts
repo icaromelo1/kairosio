@@ -3,14 +3,18 @@ import { Response } from 'express'
 import { Throttle } from '@nestjs/throttler'
 import { AuthService } from './auth.service'
 import { AuthGuard } from '@nestjs/passport'
-import { AuthCredentialsDto, RegisterDto, UpdateUsernameDto, UsernameQueryDto } from './auth.dto'
+import { AuthCredentialsDto, ExcluirContaDto, RegisterDto, UpdateUsernameDto, UsernameQueryDto } from './auth.dto'
+import { ContaService } from './conta.service'
 import { FRONT_URL } from './front-url'
 import { OAuthErroFilter } from './oauth-erro.filter'
 import { provedoresAtivos, type PerfilOAuth } from './oauth'
 
 @Controller('auth')
 export class AuthController {
-  constructor(private authService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private contaService: ContaService,
+  ) {}
 
   // ---- OAuth (ativo só com credenciais; ver auth.module) ----
   @Get('provedores')
@@ -49,6 +53,14 @@ export class AuthController {
   private async entrarComOAuth(perfil: PerfilOAuth, res: Response) {
     const { token } = await this.authService.oauthLogin(perfil)
     res.redirect(`${FRONT_URL}/login#token=${token}`)
+  }
+
+  @Throttle({ default: { limit: 3, ttl: 60000 } })
+  @UseGuards(AuthGuard('jwt'))
+  @Post('excluir-conta')
+  async excluirConta(@Request() req: { user: { sub: string } }, @Body() _body: ExcluirContaDto) {
+    await this.contaService.excluir(req.user.sub)
+    return { ok: true }
   }
 
   @Throttle({ default: { limit: 8, ttl: 60000 } })

@@ -26,6 +26,9 @@ export class User {
   @Column({ type: 'varchar', nullable: true, unique: true })
   githubId: string | null
 
+  @Column({ type: 'timestamptz', nullable: true })
+  termosAceitosEm: Date | null
+
   @Column({ default: false })
   isGuest: boolean
 
