@@ -1,8 +1,14 @@
 import { Injectable } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
 import { Strategy } from 'passport-github2'
+import type { PerfilOAuth } from './oauth'
 
-// Só é registrada quando GITHUB_CLIENT_ID/SECRET existem (ver auth.module).
+interface EmailDoGithub {
+  value: string
+  primary?: boolean
+  verified?: boolean
+}
+
 @Injectable()
 export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
   constructor() {
@@ -13,11 +19,13 @@ export class GithubStrategy extends PassportStrategy(Strategy, 'github') {
         process.env.GITHUB_CALLBACK_URL ||
         'https://icaromelodev.com.br/kairos-api/auth/github/callback',
       scope: ['user:email'],
+      allRawEmails: true,
     })
   }
 
-  validate(_accessToken: string, _refreshToken: string, profile: any, done: (err: any, user: any) => void) {
-    const email = profile?.emails?.[0]?.value || `${profile?.username || 'user'}@github.local`
-    done(null, { email })
+  validate(_accessToken: string, _refreshToken: string, profile: { id: string; emails?: EmailDoGithub[] }, done: (err: unknown, user: PerfilOAuth) => void) {
+    const verificados = (profile.emails ?? []).filter((e) => e.verified)
+    const email = (verificados.find((e) => e.primary) ?? verificados[0])?.value ?? null
+    done(null, { provedor: 'github', id: String(profile.id), email })
   }
 }

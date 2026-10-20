@@ -1,41 +1,54 @@
-import { Controller, Post, Patch, Body, Get, Query, Request, Res, UseGuards } from '@nestjs/common'
+import { Controller, Post, Patch, Body, Get, Query, Request, Res, UseFilters, UseGuards } from '@nestjs/common'
 import { Response } from 'express'
 import { Throttle } from '@nestjs/throttler'
 import { AuthService } from './auth.service'
 import { AuthGuard } from '@nestjs/passport'
 import { AuthCredentialsDto, RegisterDto, UpdateUsernameDto, UsernameQueryDto } from './auth.dto'
-
-const FRONT_URL = process.env.FRONT_URL || 'https://icaromelodev.com.br/kairos'
+import { FRONT_URL } from './front-url'
+import { OAuthErroFilter } from './oauth-erro.filter'
+import { provedoresAtivos, type PerfilOAuth } from './oauth'
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
   // ---- OAuth (ativo só com credenciais; ver auth.module) ----
+  @Get('provedores')
+  provedores() {
+    return provedoresAtivos()
+  }
+
   @Get('google')
+  @UseFilters(OAuthErroFilter)
   @UseGuards(AuthGuard('google'))
   googleStart() {
     // o guard redireciona pro Google
   }
 
   @Get('google/callback')
+  @UseFilters(OAuthErroFilter)
   @UseGuards(AuthGuard('google'))
-  async googleCallback(@Request() req: any, @Res() res: Response) {
-    const { token } = await this.authService.oauthLogin(req.user.email)
-    res.redirect(`${FRONT_URL}/login?token=${token}`)
+  async googleCallback(@Request() req: { user: PerfilOAuth }, @Res() res: Response) {
+    await this.entrarComOAuth(req.user, res)
   }
 
   @Get('github')
+  @UseFilters(OAuthErroFilter)
   @UseGuards(AuthGuard('github'))
   githubStart() {
     // o guard redireciona pro GitHub
   }
 
   @Get('github/callback')
+  @UseFilters(OAuthErroFilter)
   @UseGuards(AuthGuard('github'))
-  async githubCallback(@Request() req: any, @Res() res: Response) {
-    const { token } = await this.authService.oauthLogin(req.user.email)
-    res.redirect(`${FRONT_URL}/login?token=${token}`)
+  async githubCallback(@Request() req: { user: PerfilOAuth }, @Res() res: Response) {
+    await this.entrarComOAuth(req.user, res)
+  }
+
+  private async entrarComOAuth(perfil: PerfilOAuth, res: Response) {
+    const { token } = await this.authService.oauthLogin(perfil)
+    res.redirect(`${FRONT_URL}/login#token=${token}`)
   }
 
   @Throttle({ default: { limit: 8, ttl: 60000 } })

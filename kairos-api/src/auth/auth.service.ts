@@ -18,6 +18,7 @@ import {
   nextUsernameChangeAt,
   normalizeUsername,
 } from '../user/username'
+import type { PerfilOAuth } from './oauth'
 
 const UNIQUE_VIOLATION = '23505'
 
@@ -44,9 +45,6 @@ export class AuthService {
 
   async register(email: string, password: string, username: string) {
     const normalized = email.trim().toLowerCase()
-    // sufixo reservado pro fallback do OAuth GitHub (contas sem email público) —
-    // registrar um @github.local por senha permitiria sequestrar essa conta
-    if (normalized.endsWith('@github.local')) throw new ConflictException('Email não permitido')
     this.assertUsernameAllowed(username)
     const name = displayUsername(username)
     const nameLower = normalizeUsername(username)
@@ -67,11 +65,19 @@ export class AuthService {
     return { token: this.jwtService.sign({ sub: user.id, email: user.email }) }
   }
 
-  async oauthLogin(email: string) {
-    const normalized = email.trim().toLowerCase()
-    let user = await this.userRepo.findOne({ where: { email: normalized } })
+  async oauthLogin(perfil: PerfilOAuth) {
+    const coluna = perfil.provedor === 'google' ? 'googleId' : 'githubId'
+    const email = perfil.email?.trim().toLowerCase() || null
+    let user = await this.userRepo.findOne({ where: { [coluna]: perfil.id } })
+    if (!user && email) {
+      user = await this.userRepo.findOne({ where: { email } })
+      if (user) {
+        user[coluna] = perfil.id
+        await this.userRepo.save(user)
+      }
+    }
     if (!user) {
-      user = this.userRepo.create({ email: normalized })
+      user = this.userRepo.create({ email, [coluna]: perfil.id })
       await this.userRepo.save(user)
     }
     return { token: this.jwtService.sign({ sub: user.id, email: user.email }) }

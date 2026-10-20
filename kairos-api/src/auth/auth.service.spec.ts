@@ -140,3 +140,30 @@ describe('AuthService — troca de @nome', () => {
     await expectCode(p, 'guest-no-username')
   })
 })
+
+describe('AuthService — login com Google e GitHub', () => {
+  it('cria a conta no primeiro login e reconhece pelo id do provedor depois', async () => {
+    const { service, users } = makeService()
+    await service.oauthLogin({ provedor: 'google', id: 'g1', email: 'Ana@Exemplo.com' })
+    await service.oauthLogin({ provedor: 'google', id: 'g1', email: 'outro@exemplo.com' })
+    expect(users.rows).toHaveLength(1)
+    expect(users.rows[0]).toMatchObject({ email: 'ana@exemplo.com', googleId: 'g1' })
+  })
+
+  it('vincula a conta de senha quando o e-mail verificado é o mesmo', async () => {
+    const { service, users } = makeService()
+    await service.register('ana@exemplo.com', 'segredo', 'Ana')
+    await service.oauthLogin({ provedor: 'github', id: '42', email: 'ana@exemplo.com' })
+    expect(users.rows).toHaveLength(1)
+    expect(users.rows[0].githubId).toBe('42')
+  })
+
+  it('sem e-mail verificado cria conta própria e não toca em outra', async () => {
+    const { service, users } = makeService()
+    await service.register('ana@exemplo.com', 'segredo', 'Ana')
+    await service.oauthLogin({ provedor: 'github', id: '7', email: null })
+    expect(users.rows).toHaveLength(2)
+    expect(users.rows[0].githubId).toBeUndefined()
+    expect(users.rows[1]).toMatchObject({ email: null, githubId: '7' })
+  })
+})

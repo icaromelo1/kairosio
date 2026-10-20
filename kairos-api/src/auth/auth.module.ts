@@ -11,10 +11,11 @@ import { User } from '../user/user.entity'
 import { ServerMembership } from '../server/server-membership.entity'
 import { jwtSecret } from './jwt-secret'
 
+import { provedoresAtivos } from './oauth'
+
 // OAuth só entra quando as credenciais existem — sem creds, o login normal segue intacto
-const oauthStrategies: any[] = []
-if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) oauthStrategies.push(GoogleStrategy)
-if (process.env.GITHUB_CLIENT_ID && process.env.GITHUB_CLIENT_SECRET) oauthStrategies.push(GithubStrategy)
+const ativos = provedoresAtivos()
+const oauthStrategies = [...(ativos.google ? [GoogleStrategy] : []), ...(ativos.github ? [GithubStrategy] : [])]
 
 @Module({
   imports: [

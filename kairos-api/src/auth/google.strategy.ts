@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
-import { Strategy, VerifyCallback } from 'passport-google-oauth20'
+import { Profile, Strategy, VerifyCallback } from 'passport-google-oauth20'
+import type { PerfilOAuth } from './oauth'
 
-// Só é registrada quando GOOGLE_CLIENT_ID/SECRET existem (ver auth.module).
 @Injectable()
 export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
   constructor() {
@@ -16,8 +16,9 @@ export class GoogleStrategy extends PassportStrategy(Strategy, 'google') {
     })
   }
 
-  validate(_accessToken: string, _refreshToken: string, profile: any, done: VerifyCallback) {
-    const email = profile?.emails?.[0]?.value
-    done(null, { email })
+  validate(_accessToken: string, _refreshToken: string, profile: Profile, done: VerifyCallback) {
+    const email = profile.emails?.find((e) => e.verified)?.value ?? null
+    const perfil: PerfilOAuth = { provedor: 'google', id: profile.id, email }
+    done(null, perfil)
   }
 }
