@@ -4,7 +4,7 @@ import { getMyServers, consumePendingInvite } from './server.api'
 import { buscarPersonagem } from './personagem.api'
 import { me } from './auth.api'
 
-const PANELS = ['personagem', 'servidores', 'admin', 'feedback'] as const
+const PANELS = ['personagem', 'servidores', 'admin', 'feedback', 'dispositivos'] as const
 
 export type GamePanel = (typeof PANELS)[number]
 

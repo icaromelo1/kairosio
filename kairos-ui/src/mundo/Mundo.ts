@@ -36,6 +36,7 @@ import { VertexBuffer } from '@babylonjs/core/Buffers/buffer'
 
 const ELEVACAO = (36 * Math.PI) / 180
 const MARGEM_EXTERNA = 40
+const ALTURA_DO_SENTAR = 0.47
 const NIVEIS_DE_COR = 18
 
 Effect.ShadersStore.pixelPaletaFragmentShader = `
@@ -590,6 +591,7 @@ export class Mundo {
   }
 
   teleportar(x: number, y: number) {
+    this.sentadoEm = null
     this.local.x = x
     this.local.y = y
     const eu = this.pessoas.get('eu')
@@ -716,7 +718,7 @@ export class Mundo {
         pessoa.y += (pessoa.alvoY - pessoa.y) * t
       }
       pessoa.direcao = anguloSuave(pessoa.direcao, pessoa.alvoDirecao, decorrido * 14)
-      pessoa.visual.raiz.position.set(pessoa.x, 0, pessoa.y)
+      pessoa.visual.raiz.position.set(pessoa.x, pessoa.pose === 'sentar' ? this.alturaDoAssento(id, pessoa.x, pessoa.y) : 0, pessoa.y)
       pessoa.visual.raiz.rotation.y = pessoa.direcao
       pessoa.visual.atualizar(dt)
       this.atualizarZona(id)
@@ -795,6 +797,22 @@ export class Mundo {
     }
     const escuroNoLago = a.sala ? a.escuroFora * a.forca : 0
     for (const lago of this.lagos) lago.definirLuz(this.luzDaAgua.scale(1 - escuroNoLago))
+  }
+
+  private alturaDoAssento(id: string, x: number, y: number): number {
+    const movel = id === 'eu' && this.sentadoEm ? this.sentadoEm.movel : this.assentoMaisPerto(x, y)
+    const altura = movel ? pecaDe(movel)?.alturaAssento : undefined
+    return altura === undefined ? 0 : altura - ALTURA_DO_SENTAR
+  }
+
+  private assentoMaisPerto(x: number, y: number): Movel | null {
+    let melhor: { movel: Movel; d: number } | null = null
+    for (const movel of this.mapa?.mobilia ?? []) {
+      if (!pecaDe(movel)?.sentavel) continue
+      const d = Math.hypot(movel.x - x, movel.y - y)
+      if (d < 1.2 && (!melhor || d < melhor.d)) melhor = { movel, d }
+    }
+    return melhor?.movel ?? null
   }
 
   private bloqueadoPorTranca(x: number, y: number): boolean {
