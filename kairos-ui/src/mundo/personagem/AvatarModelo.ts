@@ -30,7 +30,7 @@ export class AvatarModelo implements AvatarVisual {
   readonly raiz: TransformNode
   readonly malhas: AbstractMesh[]
   private readonly pecas = new Map<string, Node[]>()
-  private readonly materiais = new Map<string, Material>()
+  private readonly materiais = new Map<string, Material[]>()
   private readonly animacoes = new Map<string, AnimationGroup>()
   private readonly todasAnimacoes: AnimationGroup[]
   private readonly esqueletos: { dispose(): void }[]
@@ -58,7 +58,13 @@ export class AvatarModelo implements AvatarVisual {
       const material = malha.material
       if (material) {
         const materiais = 'subMaterials' in material ? (material as unknown as { subMaterials: Material[] }).subMaterials : [material]
-        for (const m of materiais) if (m) this.materiais.set(m.name, m)
+        for (const m of materiais) {
+          if (!m) continue
+          const base = m.name.split('#')[0]
+          const lista = this.materiais.get(base) ?? []
+          if (!lista.includes(m)) lista.push(m)
+          this.materiais.set(base, lista)
+        }
       }
     }
     this.aplicar(aparencia)
@@ -74,15 +80,15 @@ export class AvatarModelo implements AvatarVisual {
       visiveis.add(slot === 'cabelo' && corte ? `${peca.malha}_${corte}` : peca.malha)
     }
     for (const [nome, nos] of this.pecas) for (const no of nos) no.setEnabled(visiveis.has(nome))
-    const pele = this.materiais.get('pele')
-    if (pele) pintarMaterial(pele, aparencia.pele)
-    const cabelo = this.materiais.get('tinta_cabelo')
-    if (cabelo) pintarMaterial(cabelo, aparencia.corCabelo)
+    this.pintar('pele', aparencia.pele)
+    this.pintar('tinta_cabelo', aparencia.corCabelo)
     for (const definicao of SLOTS) {
-      if (!definicao.colorivel) continue
-      const material = this.materiais.get(definicao.material)
-      if (material) pintarMaterial(material, aparencia.pecas[definicao.slot].cor)
+      if (definicao.colorivel) this.pintar(definicao.material, aparencia.pecas[definicao.slot].cor)
     }
+  }
+
+  private pintar(material: string, cor: string) {
+    for (const m of this.materiais.get(material) ?? []) pintarMaterial(m, cor)
   }
 
   definirPose(pose: Pose) {

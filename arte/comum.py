@@ -176,10 +176,25 @@ def pintar(tamanho=256):
     cena.cycles.device = 'CPU'
     cena.cycles.samples = 16
     cena.render.bake.margin = 4
+    usos = {}
+    for obj in malhas:
+        for m in set(obj.data.materials):
+            if m:
+                usos[m.name] = usos.get(m.name, 0) + 1
+    for obj in malhas:
+        for i, m in enumerate(obj.data.materials):
+            if m and not _emissivo(m) and usos[m.name] > 1:
+                copia = m.copy()
+                copia.name = f'{m.name}#{obj.name}'
+                obj.data.materials[i] = copia
+    visibilidade = {o.name: o.hide_render for o in bpy.data.objects if o.type == 'MESH'}
     for obj in malhas:
         materiais = [m for m in obj.data.materials if m and not _emissivo(m)]
         if not materiais:
             continue
+        for outro in bpy.data.objects:
+            if outro.type == 'MESH':
+                outro.hide_render = outro is not obj
         bpy.ops.object.select_all(action='DESELECT')
         obj.select_set(True)
         bpy.context.view_layer.objects.active = obj
@@ -248,6 +263,8 @@ def pintar(tamanho=256):
             mistura.inputs[7].default_value = bsdf.inputs['Base Color'].default_value
             m.node_tree.links.new(textura.outputs['Color'], mistura.inputs[6])
             m.node_tree.links.new(mistura.outputs[2], bsdf.inputs['Base Color'])
+    for nome, oculto in visibilidade.items():
+        bpy.data.objects[nome].hide_render = oculto
 
 
 def exportar(caminho, animado=False):

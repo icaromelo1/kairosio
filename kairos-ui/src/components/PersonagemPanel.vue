@@ -2,7 +2,13 @@
   <PanelShell title="personagem" icon="user" size="lg" :bloqueado="obrigatorio" @close="emit('close')">
     <div class="pp-root">
       <section class="pp-previa">
-        <canvas ref="tela" class="pp-tela" />
+        <div class="pp-palco">
+          <canvas ref="tela" class="pp-tela" />
+          <div class="pp-camera">
+            <button class="k-btn k-btn-ghost k-btn-xs" :class="{ 'k-active': rosto }" @click="alternarRosto">{{ rosto ? 'corpo' : 'rosto' }}</button>
+            <button class="k-btn k-btn-ghost k-btn-xs" @click="previa?.deFrente()">de frente</button>
+          </div>
+        </div>
         <div class="pp-poses">
           <button
             v-for="p in POSES" :key="p.pose"
@@ -10,9 +16,12 @@
             @click="trocarPose(p.pose)"
           >{{ p.nome }}</button>
         </div>
-        <button class="k-btn k-btn-accent k-btn-sm pp-sortear" @click="sortear">
-          <PixelIcon name="shuffle" size="0.75rem" />sortear
-        </button>
+        <div class="pp-acoes">
+          <button class="k-btn k-btn-accent k-btn-sm" @click="sortear">
+            <PixelIcon name="shuffle" size="0.75rem" />sortear
+          </button>
+          <button class="k-btn k-btn-ghost k-btn-sm" :disabled="!historico.length" title="desfazer (Ctrl+Z)" @click="desfazer">desfazer</button>
+        </div>
         <div class="pp-presets">
           <span class="k-label">prontos</span>
           <button v-for="p in PRESETS" :key="p.nome" class="k-btn k-btn-ghost k-btn-xs" @click="usar(p.aparencia)">{{ p.nome }}</button>
@@ -58,7 +67,7 @@
               v-for="p in pecasDo('cabelo')" :key="p.id"
               class="pp-item" :class="{ 'pp-item-on': aparencia.pecas.cabelo.id === p.id }"
               @click="aparencia.pecas.cabelo.id = p.id"
-            >{{ p.nome }}</button>
+            ><img class="pp-mini" :src="miniatura('cabelo', p.id)" alt="" loading="lazy" />{{ p.nome }}</button>
           </div>
         </div>
 
@@ -69,7 +78,7 @@
               v-for="p in pecasDo(aba)" :key="p.id"
               class="pp-item" :class="{ 'pp-item-on': aparencia.pecas[aba].id === p.id }"
               @click="aparencia.pecas[aba].id = p.id"
-            >{{ p.nome }}</button>
+            ><img class="pp-mini" :src="miniatura(aba, p.id)" alt="" loading="lazy" />{{ p.nome }}</button>
           </div>
           <template v-if="slotAtual?.colorivel && aparencia.pecas[aba].id !== 'nenhum' && !pecaDe(aba, aparencia.pecas[aba].id)?.semCor">
             <span class="k-label">cor</span>
@@ -100,7 +109,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, reactive, ref, watch } from 'vue'
+import { computed, onMounted, onUnmounted, reactive, ref, shallowRef, watch } from 'vue'
 import PanelShell from '@/components/PanelShell.vue'
 import PixelIcon from '@/components/PixelIcon.vue'
 import { useAuthStore } from '@/stores/useAuthStore'
@@ -137,7 +146,34 @@ const erro = ref('')
 const salvando = ref(false)
 const precisaNome = computed(() => !auth.username)
 const slotAtual = computed(() => SLOTS.find((s) => s.slot === aba.value) ?? null)
-let previa: Previa | null = null
+const rosto = ref(false)
+const historico = ref<string[]>([])
+const previa = shallowRef<Previa | null>(null)
+let ultimo = ''
+let desfazendo = false
+
+function miniatura(slot: Slot, id: string): string {
+  return `${import.meta.env.BASE_URL}personagem/miniaturas/${slot}-${id}.webp`
+}
+
+function alternarRosto() {
+  rosto.value = !rosto.value
+  previa.value?.focarRosto(rosto.value)
+}
+
+function desfazer() {
+  const anterior = historico.value.pop()
+  if (!anterior) return
+  desfazendo = true
+  usar(JSON.parse(anterior) as Aparencia)
+}
+
+function aoTeclar(e: KeyboardEvent) {
+  if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !(e.target instanceof HTMLInputElement)) {
+    e.preventDefault()
+    desfazer()
+  }
+}
 
 function copiar(a: Aparencia): Aparencia {
   return JSON.parse(JSON.stringify(a)) as Aparencia
@@ -158,10 +194,17 @@ function definirCorCabelo(cor: string) {
 
 function trocarPose(nova: Pose) {
   pose.value = nova
-  previa?.pose(nova)
+  previa.value?.pose(nova)
 }
 
-watch(aparencia, () => { void previa?.mostrar(copiar(aparencia)) }, { deep: true })
+watch(aparencia, () => {
+  const atual = JSON.stringify(aparencia)
+  if (atual === ultimo) return
+  if (ultimo && !desfazendo) historico.value = [...historico.value.slice(-29), ultimo]
+  desfazendo = false
+  ultimo = atual
+  void previa.value?.mostrar(copiar(aparencia))
+}, { deep: true })
 
 async function salvar() {
   erro.value = ''
@@ -184,17 +227,20 @@ async function salvar() {
 
 onMounted(async () => {
   const atual = await buscarPersonagem().catch(() => null)
+  desfazendo = true
   if (atual?.aparencia) usar(sanitizarAparencia(atual.aparencia))
   else if (props.obrigatorio) usar(aparenciaAleatoria())
+  window.addEventListener('keydown', aoTeclar)
   if (!tela.value) return
   const { Previa: ClassePrevia } = await import('@/mundo/personagem/previa')
-  previa = new ClassePrevia(tela.value)
-  await previa.mostrar(copiar(aparencia))
+  previa.value = new ClassePrevia(tela.value)
+  await previa.value.mostrar(copiar(aparencia))
 })
 
 onUnmounted(() => {
-  previa?.destruir()
-  previa = null
+  window.removeEventListener('keydown', aoTeclar)
+  previa.value?.destruir()
+  previa.value = null
 })
 </script>
 
@@ -224,7 +270,10 @@ onUnmounted(() => {
 
 .pp-poses, .pp-presets { display: flex; flex-wrap: wrap; gap: 0.25rem; align-items: center; }
 .pp-presets .k-label { margin: 0 0.25rem 0 0; }
-.pp-sortear { align-self: flex-start; }
+.pp-acoes { display: flex; gap: 0.375rem; }
+.pp-palco { position: relative; }
+.pp-camera { position: absolute; top: 0.375rem; right: 0.375rem; display: flex; gap: 0.25rem; }
+.pp-mini { display: block; width: 3.5rem; height: 3.5rem; margin: 0 auto 0.125rem; object-fit: contain; image-rendering: auto; }
 
 .pp-opcoes {
   display: flex;

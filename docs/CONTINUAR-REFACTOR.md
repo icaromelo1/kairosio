@@ -92,6 +92,16 @@ si e pés abaixo do chão (`relatorio.json`). `--fotos` renderiza cada peça em 
 usar em `corte`. Barba e bigode seguem a cor do cabelo (`semCor`). Poses: `parado`, `andar`,
 `correr` (Shift), `sentar`, `acenar`, `dancar`.
 
+**Bake de detalhe (`comum.pintar`)**: cada peça ganha cópia própria dos materiais compartilhados
+(`<material>#<peça>`) e é assada sozinha (as outras ficam fora do render). Antes, todas as peças de
+um material usavam a textura da última peça assada e o AO via peças sobrepostas — era a mancha
+escura no rosto e nos móveis. No front, `AvatarModelo` pinta todos os materiais com o mesmo nome
+base (antes do `#`).
+
+**Editor**: miniaturas das peças em `kairos-ui/public/personagem/miniaturas/<slot>-<id>.webp`,
+geradas por `arte/miniaturas.py` dentro do `gerar.sh`; prévia abre de frente em 3/4, gira
+arrastando, zoom na roda e botão "rosto"; desfazer (botão e Ctrl+Z, 30 passos).
+
 **API**: mapa por `salas`/`mobilia` (`game_maps`), escritório oficial em `map/escritorio.ts`
 semeado no boot (pulado se `editadoEm` preenchido); `characters.aparencia` (jsonb) validada em
 `character/aparencia.ts` e reaproveitada pela presença; presença com `direcao` (ângulo) e
