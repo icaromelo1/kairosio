@@ -826,17 +826,17 @@ export class Mundo {
     this.posicionarNomes()
   }
 
-  definirPixel(tamanho: number) {
+  definirPixel(tamanho: number, comPaleta: boolean) {
     const ligado = tamanho > 1
     this.motor.setHardwareScalingLevel(ligado ? tamanho : 1 / (window.devicePixelRatio || 1))
     this.pipeline.fxaaEnabled = !ligado
     this.pipeline.sharpenEnabled = !ligado
     this.pipeline.samples = ligado ? 1 : 4
-    if (ligado && !this.paleta) {
+    if (comPaleta && !this.paleta) {
       const paleta = new PostProcess('paleta', 'pixelPaleta', ['niveis'], null, 1, this.camera, Constants.TEXTURE_NEAREST_SAMPLINGMODE, this.motor)
       paleta.onApply = (efeito) => efeito.setFloat('niveis', NIVEIS_DE_COR)
       this.paleta = paleta
-    } else if (!ligado && this.paleta) {
+    } else if (!comPaleta && this.paleta) {
       this.paleta.dispose(this.camera)
       this.paleta = null
     }

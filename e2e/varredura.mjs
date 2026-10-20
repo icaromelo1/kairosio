@@ -27,7 +27,7 @@ const mapa = await fetch(`${BASE}/kairos-api/map/escritorio`, { headers: { Autho
 mkdirSync(SAIDA, { recursive: true })
 const navegador = await chromium.launch()
 const pagina = await navegador.newPage({ viewport: { width: 1280, height: 800 } })
-await pagina.addInitScript(`localStorage.setItem('kairos_token', ${JSON.stringify(token)}); localStorage.setItem('kairos_pixel', '1')`)
+await pagina.addInitScript(`localStorage.setItem('kairos_token', ${JSON.stringify(token)}); localStorage.setItem('kairos_grafico', 'nitido')`)
 await pagina.goto(`${BASE}${process.env.KAIROS_BASE ?? ''}/game?varredura=1`, { waitUntil: 'domcontentloaded' })
 await pagina.waitForSelector('.gp-tela', { timeout: 60000 })
 await pagina.waitForTimeout(9000)

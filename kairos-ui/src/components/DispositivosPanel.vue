@@ -1,6 +1,22 @@
 <template>
-  <PanelShell title="áudio e vídeo" icon="headphone" @close="emit('close')">
+  <PanelShell title="configurações" icon="settings-cog" @close="emit('close')">
     <div class="dp-root">
+      <section class="dp-secao">
+        <h3 class="dp-titulo">Gráficos</h3>
+        <div class="dp-qualidades" role="radiogroup" aria-label="Qualidade da imagem">
+          <button
+            v-for="q in QUALIDADES" :key="q.id"
+            class="dp-qualidade" :class="{ 'dp-qualidade-on': qualidade === q.id }"
+            role="radio" :aria-checked="qualidade === q.id"
+            @click="qualidade = q.id"
+          >
+            <b>{{ q.nome }}</b>
+            <span>{{ q.descricao }}</span>
+          </button>
+        </div>
+      </section>
+
+      <h3 class="dp-titulo">Áudio e vídeo</h3>
       <p v-if="carregando" class="k-hint-text">Procurando aparelhos…</p>
       <p v-else-if="erro" class="dp-erro">{{ erro }}</p>
       <template v-else>
@@ -32,6 +48,7 @@ import PanelShell from '@/components/PanelShell.vue'
 import PixelIcon from '@/components/PixelIcon.vue'
 import { media } from '@/services/media'
 import type { TipoDeDispositivo } from '@/services/media.state'
+import { QUALIDADES, qualidade } from '@/services/graficos'
 
 const emit = defineEmits<{ close: [] }>()
 
@@ -94,6 +111,14 @@ onMounted(async () => {
 
 <style scoped>
 .dp-root { display: flex; flex-direction: column; gap: 0.875rem; }
+.dp-secao { display: flex; flex-direction: column; gap: 0.5rem; padding-bottom: 0.875rem; border-bottom: 0.125rem dashed var(--border-strong); }
+.dp-titulo { margin: 0; font-size: 0.875rem; }
+.dp-qualidades { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.375rem; }
+.dp-qualidade { appearance: none; text-align: left; cursor: pointer; display: flex; flex-direction: column; gap: 0.125rem; padding: 0.5rem; background: var(--bg-1); border: 0.125rem solid var(--border-strong); color: var(--text); font: inherit; }
+.dp-qualidade span { font-size: 0.75rem; color: var(--text-3); line-height: 1.3; }
+.dp-qualidade:hover { background: var(--bg-3); }
+.dp-qualidade-on { background: var(--accent, #f2a93b); border-color: var(--tinta, #3a2a1a); }
+.dp-qualidade-on span { color: var(--text-2); }
 .dp-campo { display: flex; flex-direction: column; gap: 0.25rem; }
 .dp-teste { align-self: flex-start; }
 .dp-erro { margin: 0; color: var(--danger, #a83232); font-size: 0.8125rem; }
