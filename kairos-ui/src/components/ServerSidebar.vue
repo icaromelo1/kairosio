@@ -218,6 +218,9 @@
             <button class="k-btn k-btn-ghost ss-act" @click="emit('open-panel', 'feedback')">
               <PixelIcon name="bug" size="0.75rem" /><span>Feedback / Reportar</span>
             </button>
+            <a class="k-btn k-btn-ghost ss-act" :href="`${BASE}suporte`" target="_blank" rel="noopener">
+              <PixelIcon name="info-box" size="0.75rem" /><span>Ajuda e privacidade</span>
+            </a>
             <button class="k-btn k-btn-ghost ss-act" @click="emit('leave')">
               <PixelIcon name="logout" size="0.75rem" /><span>Sair</span>
             </button>
@@ -358,6 +361,7 @@ const emit = defineEmits<{
 // o modo mora aqui, não como prop: trocar de servidor ou de mundo volta pra
 // árvore, e o componente é quem sabe quando isso acontece
 const modo = ref<'mundos' | 'conversas'>('mundos')
+const BASE = import.meta.env.BASE_URL.endsWith('/') ? import.meta.env.BASE_URL : `${import.meta.env.BASE_URL}/`
 
 async function abrirConversas(userId?: string) {
   modo.value = 'conversas'

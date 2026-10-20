@@ -149,6 +149,7 @@
           </button>
         </div>
         <p v-if="!provedores.google && !provedores.github" class="social-hint k-hint-text">login social indisponível — use email e senha</p>
+        <p v-else class="social-hint k-hint-text">Ao continuar com Google ou GitHub você aceita os <RouterLink to="/termos">termos</RouterLink> e a <RouterLink to="/privacidade">privacidade</RouterLink>.</p>
 
       </div>
 
@@ -156,11 +157,11 @@
       <div class="login-footer">
         <span>© Kairos 2026</span>
         <span class="footer-links">
-          <a href="#" @click.prevent>termos</a>
+          <RouterLink to="/termos">termos</RouterLink>
           <span> · </span>
-          <a href="#" @click.prevent>privacidade</a>
+          <RouterLink to="/privacidade">privacidade</RouterLink>
           <span> · </span>
-          <a href="#" @click.prevent>discord</a>
+          <RouterLink to="/suporte">suporte</RouterLink>
         </span>
       </div>
     </div>
@@ -169,7 +170,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { RouterLink, useRouter } from 'vue-router'
 import MeanderBorder from '@/components/pixel/MeanderBorder.vue'
 import PixelColumn from '@/components/pixel/PixelColumn.vue'
 import Logo from '@/components/logos/Logo.vue'

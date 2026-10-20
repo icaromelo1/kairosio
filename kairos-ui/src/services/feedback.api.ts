@@ -3,7 +3,7 @@ import { apiFetch } from './http'
 
 const API_URL = import.meta.env.VITE_API_URL || window.location.origin
 
-export type FeedbackKind = 'bug' | 'melhoria'
+export type FeedbackKind = 'bug' | 'melhoria' | 'suporte'
 export type FeedbackStatus = 'aberto' | 'em_andamento' | 'resolvido' | 'recusado'
 
 export interface Feedback {

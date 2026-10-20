@@ -18,7 +18,7 @@ export async function login(email: string, password: string): Promise<TokenRespo
 export async function register(email: string, password: string, username: string): Promise<TokenResponse> {
   const res = await apiFetch('/auth/register', {
     method: 'POST',
-    body: JSON.stringify({ email, password, username }),
+    body: JSON.stringify({ email, password, username, aceitouTermos: true }),
   })
   if (!res.ok) throw new Error(await failureCode(res))
   return res.json()
@@ -114,4 +114,9 @@ export async function buscarProvedores(): Promise<Record<Provedor, boolean>> {
 
 export function urlDoProvedor(provedor: Provedor): string {
   return `${import.meta.env.VITE_API_URL || window.location.origin}/kairos-api/auth/${provedor}`
+}
+
+export async function excluirConta(): Promise<void> {
+  const res = await apiFetch('/auth/excluir-conta', { method: 'POST', body: JSON.stringify({ confirmacao: 'EXCLUIR' }) })
+  if (!res.ok) throw new Error(`excluir-conta ${res.status}`)
 }

@@ -21,6 +21,10 @@ const router = createRouter({
     },
     { path: '/login', component: LoginPage },
     { path: '/register', component: RegisterPage },
+    { path: '/termos', component: () => import('@/pages/legal/TermosPage.vue') },
+    { path: '/privacidade', component: () => import('@/pages/legal/PrivacidadePage.vue') },
+    { path: '/suporte', component: () => import('@/pages/legal/SuportePage.vue') },
+    { path: '/excluir-conta', component: () => import('@/pages/legal/ExcluirContaPage.vue') },
     {
       path: '/join/:code',
       redirect: (to) => {

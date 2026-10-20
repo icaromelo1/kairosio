@@ -54,7 +54,7 @@
           <li v-for="f in list" :key="f.id" class="fp-item">
             <div class="fp-item-top">
               <span class="fp-tag">
-                <PixelIcon :name="f.kind === 'bug' ? 'bug' : 'sparkles'" size="0.8125rem" />{{ f.kind === 'bug' ? 'Bug' : 'Melhoria' }}
+                <PixelIcon :name="f.kind === 'bug' ? 'bug' : f.kind === 'suporte' ? 'info-box' : 'sparkles'" size="0.8125rem" />{{ f.kind === 'bug' ? 'Bug' : f.kind === 'suporte' ? 'Suporte' : 'Melhoria' }}
               </span>
               <span class="k-badge" :class="statusBadgeClass[f.status]">{{ statusLabel[f.status] }}</span>
             </div>
