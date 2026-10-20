@@ -11,6 +11,7 @@ import { ShadowGenerator } from '@babylonjs/core/Lights/Shadows/shadowGenerator'
 import { Color3, Color4 } from '@babylonjs/core/Maths/math.color'
 import { Matrix, Vector3 } from '@babylonjs/core/Maths/math.vector'
 import { CreateBox } from '@babylonjs/core/Meshes/Builders/boxBuilder'
+import { CreateSphere } from '@babylonjs/core/Meshes/Builders/sphereBuilder'
 import { CreateDisc } from '@babylonjs/core/Meshes/Builders/discBuilder'
 import { CreateGround } from '@babylonjs/core/Meshes/Builders/groundBuilder'
 import { StandardMaterial } from '@babylonjs/core/Materials/standardMaterial'
@@ -21,7 +22,7 @@ import { PostProcess } from '@babylonjs/core/PostProcesses/postProcess'
 import { Effect } from '@babylonjs/core/Materials/effect'
 import { Constants } from '@babylonjs/core/Engines/constants'
 import type { AbstractMesh } from '@babylonjs/core/Meshes/abstractMesh'
-import { ESPESSURA_PAREDE, Grade, areaDoPonto, paredesDe, salaDoPonto } from './grade'
+import { ESPESSURA_PAREDE, Grade, areaDoPonto, paredesDe, portasDe, salaDoPonto, type PortaDoMapa } from './grade'
 import { estacaoDe, nomeDe, pecaDe } from './mobilia'
 import { CatalogoDeMobilia } from './modelosMobilia'
 import { calcularRota } from './rota'
@@ -31,7 +32,7 @@ import { construirLago, type Lago } from './lago'
 import { estadoDoAmbiente, registrarAmbiente, type EstadoDoAmbiente, type Recorte } from './ambiente'
 import type { AvatarVisual } from './avatar'
 import type { Area, Estacao, Mapa, Movel, Pose, Sala } from './tipos'
-import type { Mesh } from '@babylonjs/core/Meshes/mesh'
+import { Mesh } from '@babylonjs/core/Meshes/mesh'
 import { VertexBuffer } from '@babylonjs/core/Buffers/buffer'
 
 const ELEVACAO = (36 * Math.PI) / 180
@@ -156,6 +157,7 @@ export class Mundo {
   private lagos: Lago[] = []
   private luzDaAgua = Color3.White()
   private ambiente!: EstadoDoAmbiente
+  private portas: { porta: PortaDoMapa; dobradica: TransformNode; base: number; giro: number; angulo: number }[] = []
   private pipeline!: DefaultRenderingPipeline
   private paleta: PostProcess | null = null
   private recortes: { id: string; recorte: Recorte }[] = []
@@ -286,6 +288,7 @@ export class Mundo {
     this.montarAmbiente(mapa)
     this.construirPiso(mapa)
     this.construirParedes(mapa)
+    this.construirPortas(mapa)
     await this.catalogo.carregar()
     const encaixe = encaixeNaParede(paredesDe(mapa))
     for (const original of mapa.mobilia) {
@@ -414,6 +417,77 @@ export class Mundo {
       if (p.horizontal) return (Math.abs(p.linha - sala.y) < 0.01 || Math.abs(p.linha - sala.y - sala.profundidade) < 0.01) && p.inicio >= sala.x - 0.01 && p.fim <= sala.x + sala.largura + 0.01
       return (Math.abs(p.linha - sala.x) < 0.01 || Math.abs(p.linha - sala.x - sala.largura) < 0.01) && p.inicio >= sala.y - 0.01 && p.fim <= sala.y + sala.profundidade + 0.01
     })
+  }
+
+  private construirPortas(mapa: Mapa) {
+    this.portas = []
+    const madeira = this.materialFosco('portaMadeira', '#a0703f')
+    madeira.diffuseTexture = textura(this.cena, 'madeira')
+    const painel = this.materialFosco('portaPainel', '#b98552')
+    const metal = this.materialFosco('portaMacaneta', '#3b3a40')
+    for (const porta of portasDe(mapa)) {
+      const folha = porta.largura - 0.06
+      const dobradica = new TransformNode(`porta-${porta.chave}`, this.cena)
+      dobradica.parent = this.raizMapa
+      const inicio = porta.centro - porta.largura / 2 + 0.03
+      dobradica.position = porta.horizontal ? new Vector3(inicio, 0, porta.linha) : new Vector3(porta.linha, 0, inicio)
+      const base = porta.horizontal ? 0 : -Math.PI / 2
+      const giro = (porta.horizontal ? -porta.dentro : porta.dentro) * (Math.PI / 2)
+      dobradica.rotation.y = base
+      const partes: Mesh[] = []
+      const parte = (nome: string, largura: number, altura: number, profundidade: number, x: number, y: number, z: number, material: StandardMaterial) => {
+        const malha = CreateBox(`${nome}-${porta.chave}`, { width: largura, height: altura, depth: profundidade }, this.cena)
+        malha.position.set(x, y, z)
+        malha.material = material
+        malha.parent = dobradica
+        malha.isPickable = false
+        malha.receiveShadows = true
+        partes.push(malha)
+        return malha
+      }
+      parte('folha', folha, 1.0, 0.05, folha / 2, 0.52, 0, madeira)
+      for (const lado of [-1, 1]) {
+        parte('painelAlto', folha - 0.18, 0.36, 0.012, folha / 2, 0.76, lado * 0.03, painel)
+        parte('painelBaixo', folha - 0.18, 0.36, 0.012, folha / 2, 0.3, lado * 0.03, painel)
+        const macaneta = CreateSphere(`macaneta-${porta.chave}-${lado}`, { diameter: 0.07, segments: 6 }, this.cena)
+        macaneta.position.set(folha - 0.1, 0.52, lado * 0.055)
+        macaneta.material = metal
+        macaneta.parent = dobradica
+        macaneta.isPickable = false
+        partes.push(macaneta)
+      }
+      const sala = mapa.salas.find((s) => s.id === porta.salaId)
+      const interna = !sala?.murada
+      for (const malha of partes) {
+        if (interna) {
+          this.internas.add(malha)
+          this.sombraInterna.addShadowCaster(malha)
+        } else {
+          this.sombra.addShadowCaster(malha)
+        }
+      }
+      this.contornar(partes, 0.012)
+      this.portas.push({ porta, dobradica, base, giro, angulo: 0 })
+    }
+  }
+
+  private animarPortas(decorrido: number) {
+    const t = 1 - Math.exp(-decorrido * 7)
+    for (const p of this.portas) {
+      const { porta } = p
+      const cx = porta.horizontal ? porta.centro : porta.linha
+      const cy = porta.horizontal ? porta.linha : porta.centro
+      let perto = false
+      for (const pessoa of this.pessoas.values()) {
+        if (pessoa.visivel && Math.hypot(pessoa.x - cx, pessoa.y - cy) < 1.4) {
+          perto = true
+          break
+        }
+      }
+      const alvo = perto && !this.trancadas.has(porta.salaId) ? 1 : 0
+      p.angulo += (alvo - p.angulo) * t
+      p.dobradica.rotation.y = p.base + p.giro * p.angulo
+    }
   }
 
   private construirParedes(mapa: Mapa) {
@@ -726,6 +800,7 @@ export class Mundo {
     this.posicionarCamera()
     this.posicionarSombra()
     this.atualizarAmbiente(decorrido)
+    this.animarPortas(decorrido)
     for (const lago of this.lagos) lago.atualizar(decorrido)
     this.cena.render()
     this.posicionarNomes()

@@ -53,6 +53,34 @@ function bordasDe(sala: Sala) {
   ]
 }
 
+export interface PortaDoMapa {
+  chave: string
+  salaId: string
+  horizontal: boolean
+  linha: number
+  centro: number
+  largura: number
+  dentro: 1 | -1
+}
+
+export function portasDe(mapa: Mapa): PortaDoMapa[] {
+  const portas = new Map<string, PortaDoMapa>()
+  for (const sala of mapa.salas) {
+    if (sala.aberta && !sala.murada) continue
+    for (const borda of bordasDe(sala)) {
+      for (const porta of sala.portas) {
+        if (porta.lado !== borda.lado) continue
+        const centro = borda.inicio + porta.centro
+        const chave = `${borda.horizontal ? 'h' : 'v'}:${borda.linha.toFixed(2)}:${centro.toFixed(2)}`
+        if (portas.has(chave)) continue
+        const dentro = borda.lado === 'norte' || borda.lado === 'oeste' ? 1 : -1
+        portas.set(chave, { chave, salaId: sala.id, horizontal: borda.horizontal, linha: borda.linha, centro, largura: porta.largura, dentro })
+      }
+    }
+  }
+  return [...portas.values()]
+}
+
 export function paredesDe(mapa: Mapa): Parede[] {
   const linhas = new Map<string, { horizontal: boolean; linha: number; trechos: Intervalo[]; buracos: Intervalo[] }>()
   const chave = (horizontal: boolean, linha: number) => `${horizontal ? 'h' : 'v'}:${linha.toFixed(3)}`
