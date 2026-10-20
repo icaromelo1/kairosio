@@ -83,6 +83,15 @@ Frente dos modelos = −Y no Blender. Convenção de ossos: rotação Z positiva
 direito para fora; negativa, o esquerdo. `personagem.py -- <pasta> --fotos` renderiza poses
 para conferir.
 
+**Verificação do personagem**: `arte/verificar_personagem.py -- <pasta> [--fotos] [--combinacoes]`
+monta o modelo, confere catálogo × malhas × ossos × pesos × materiais de tinta × animações e mede,
+em 8 quadros de cada animação, interseção entre peças de slots diferentes, partes do corpo entre
+si e pés abaixo do chão (`relatorio.json`). `--fotos` renderiza cada peça em todas as poses e
+`--combinacoes` cada par de slots que se encostam. Cabelo sob chapéu: cada cabelo tem as variantes
+`_chapeu` (boné, gorro) e `_aba` (chapéu), achatadas na altura da aba; a peça do chapéu diz qual
+usar em `corte`. Barba e bigode seguem a cor do cabelo (`semCor`). Poses: `parado`, `andar`,
+`correr` (Shift), `sentar`, `acenar`, `dancar`.
+
 **API**: mapa por `salas`/`mobilia` (`game_maps`), escritório oficial em `map/escritorio.ts`
 semeado no boot (pulado se `editadoEm` preenchido); `characters.aparencia` (jsonb) validada em
 `character/aparencia.ts` e reaproveitada pela presença; presença com `direcao` (ângulo) e

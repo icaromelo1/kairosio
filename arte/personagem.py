@@ -48,6 +48,7 @@ pecas = []
 
 CABECA = (0, 0, 1.03)
 RAIO_CABECA = 0.2
+CORTES = {'chapeu': 1.115, 'aba': 1.145}
 
 
 def cortar_abaixo(obj, z):
@@ -113,6 +114,9 @@ def cabelos():
     m.esfera('coque', (0, 0.12, 1.27), 0.09, 'tinta_cabelo', 'cabeca')
     fechar('cabelo_coque')
 
+    base_cabelo()
+    for i in range(5):
+        m.icosfera(f'nuca{i}', ((i - 2) * 0.075, 0.16, 0.97 + 0.02 * (i % 2)), 0.07, 'tinta_cabelo', 'cabeca')
     for i in range(11):
         a = i / 11 * math.tau
         r = 0.17
@@ -125,25 +129,39 @@ def cabelos():
     fechar('cabelo_moicano')
 
 
+def cabelos_sob_chapeu():
+    for original in [o for o in pecas if o.name.startswith('cabelo_')]:
+        for sufixo, corte in CORTES.items():
+            copia = original.copy()
+            copia.data = original.data.copy()
+            copia.name = f'{original.name}_{sufixo}'
+            copia.data.name = copia.name
+            bpy.context.collection.objects.link(copia)
+            for v in copia.data.vertices:
+                if v.co.z > corte:
+                    v.co.z = corte
+            pecas.append(copia)
+
+
 def chapeus():
-    m.torno('copa', [(0.222, 1.08), (0.21, 1.17), (0.15, 1.24), (0.0, 1.26)], 'tinta_chapeu', 'cabeca', lados=16)
-    m.caixa('aba', (0, -0.24, 1.09), (0.24, 0.16, 0.02), 'tinta_chapeu', 'cabeca', chanfro=0.01)
-    m.esfera('botao', (0, 0, 1.26), 0.02, 'tinta_chapeu', 'cabeca', segmentos=6, aneis=4)
+    m.torno('copa', [(0.238, 1.105), (0.236, 1.16), (0.208, 1.225), (0.13, 1.272), (0.0, 1.282)], 'tinta_chapeu', 'cabeca', centro=(0, 0.02, 0), lados=20)
+    m.caixa('aba', (0, -0.235, 1.14), (0.25, 0.062, 0.02), 'tinta_chapeu', 'cabeca', chanfro=0.008, rot=(-0.25, 0, 0))
     fechar('chapeu_bone')
 
-    m.torno('gorro', [(0.228, 1.04), (0.232, 1.12), (0.2, 1.22), (0.12, 1.29), (0.0, 1.31)], 'tinta_chapeu', 'cabeca', lados=16)
-    m.cilindro('barra', (0, 0, 1.06), 0.234, 0.06, 'tinta_chapeu', 'cabeca', lados=16)
-    m.icosfera('pompom', (0, 0, 1.34), 0.05, 'branco', 'cabeca')
+    m.torno('gorro', [(0.242, 1.11), (0.244, 1.17), (0.218, 1.25), (0.14, 1.31), (0.0, 1.33)], 'tinta_chapeu', 'cabeca', centro=(0, 0.02, 0), lados=20)
+    m.cilindro('barra', (0, 0.02, 1.14), 0.25, 0.06, 'tinta_chapeu', 'cabeca', lados=20)
+    m.icosfera('pompom', (0, 0.02, 1.36), 0.05, 'branco', 'cabeca')
     fechar('chapeu_gorro')
 
-    m.cilindro('aba', (0, 0, 1.16), 0.31, 0.02, 'tinta_chapeu', 'cabeca', lados=18)
-    m.cilindro('copa', (0, 0, 1.25), 0.17, 0.17, 'tinta_chapeu', 'cabeca', lados=16, raio_topo=0.15)
-    m.cilindro('faixa', (0, 0, 1.19), 0.172, 0.035, 'preto', 'cabeca', lados=16)
+    m.cilindro('aba', (0, 0.01, 1.16), 0.3, 0.02, 'tinta_chapeu', 'cabeca', lados=20)
+    m.cilindro('copa', (0, 0.01, 1.25), 0.17, 0.17, 'tinta_chapeu', 'cabeca', lados=16, raio_topo=0.15)
+    m.cilindro('faixa', (0, 0.01, 1.19), 0.172, 0.035, 'preto', 'cabeca', lados=16)
     fechar('chapeu_fedora')
 
-    arco = m.toro('arco', (0, 0, 1.03), 0.228, 0.018, 'tinta_chapeu', 'cabeca', rot=(math.pi / 2, 0, 0), lados=24)
+    arco = m.toro('arco', (0, 0, 1.03), 0.285, 0.02, 'tinta_chapeu', 'cabeca', rot=(math.pi / 2, 0, 0), lados=28)
     cortar_abaixo(arco, 1.02)
-    lados(lambda l, sx: m.cilindro(f'concha{l}', (sx * 0.22, 0, 1.02), 0.06, 0.05, 'preto', 'cabeca', rot=(0, math.pi / 2, 0), lados=12))
+    lados(lambda l, sx: m.cilindro(f'concha{l}', (sx * 0.255, 0, 1.02), 0.068, 0.065, 'preto', 'cabeca', rot=(0, math.pi / 2, 0), lados=14))
+    lados(lambda l, sx: m.cilindro(f'tampa{l}', (sx * 0.29, 0, 1.02), 0.05, 0.012, 'tinta_chapeu', 'cabeca', rot=(0, math.pi / 2, 0), lados=14))
     fechar('chapeu_fones')
 
 
@@ -173,7 +191,8 @@ def tronco_roupa(mat='tinta_cima', largura=0.33, profundidade=0.21):
 
 def mangas(longa, mat='tinta_cima'):
     def manga(l, sx):
-        m.cilindro(f'manga{l}', (sx * 0.185, 0, 0.75 if not longa else 0.72), 0.056, 0.14 if not longa else 0.22, mat, f'braco.{l}', lados=8)
+        m.esfera(f'ombro{l}', (sx * 0.175, 0, 0.83), 0.066, mat, f'braco.{l}', escala=(1, 1, 0.8), segmentos=10, aneis=6)
+        m.cilindro(f'manga{l}', (sx * 0.185, 0, 0.765 if not longa else 0.72), 0.056, 0.17 if not longa else 0.22, mat, f'braco.{l}', lados=8)
         if longa:
             m.cilindro(f'punho{l}', (sx * 0.2, 0, 0.54), 0.05, 0.2, mat, f'antebraco.{l}', lados=8)
     lados(manga)
@@ -215,6 +234,7 @@ def baixos():
     quadril()
     lados(lambda l, sx: m.cilindro(f'coxa{l}', (sx * 0.075, 0, 0.385), 0.068, 0.25, 'tinta_baixo', f'coxa.{l}', lados=8))
     lados(lambda l, sx: m.cilindro(f'canela{l}', (sx * 0.075, 0, 0.16), 0.058, 0.22, 'tinta_baixo', f'canela.{l}', lados=8))
+    lados(lambda l, sx: m.esfera(f'joelho{l}', (sx * 0.075, 0, 0.27), 0.063, 'tinta_baixo', f'canela.{l}', segmentos=8, aneis=6))
     fechar('baixo_calca')
 
     quadril()
@@ -224,6 +244,21 @@ def baixos():
     quadril()
     m.torno('saia', [(0.16, 0.56), (0.2, 0.45), (0.24, 0.32)], 'tinta_baixo', 'quadril', lados=14)
     fechar('baixo_saia')
+    saia_nas_coxas(pecas[-1])
+
+
+def saia_nas_coxas(obj):
+    quadril = obj.vertex_groups['quadril']
+    esquerda = obj.vertex_groups.new(name='coxa.L')
+    direita = obj.vertex_groups.new(name='coxa.R')
+    for v in obj.data.vertices:
+        x, y, z = v.co
+        w = min(1.0, max(0.0, (0.5 - z) / 0.17)) * min(1.0, max(0.25, 0.6 - y * 2.0))
+        lado = min(1.0, max(0.0, 0.5 + x / 0.12))
+        quadril.add([v.index], 1.0 - w, 'REPLACE')
+        if w > 0:
+            esquerda.add([v.index], w * lado, 'REPLACE')
+            direita.add([v.index], w * (1.0 - lado), 'REPLACE')
 
 
 def sapatos():
@@ -258,8 +293,11 @@ def acessorios():
     lados(lambda l, sx: m.caixa(f'alca{l}', (sx * 0.09, -0.112, 0.73), (0.03, 0.012, 0.22), 'preto', 'tronco', chanfro=0))
     fechar('acessorio_mochila')
 
-    m.toro('cachecol', (0, 0, 0.845), 0.085, 0.035, 'tinta_acessorio', 'tronco', lados=14, secao=6)
-    m.caixa('ponta', (0.05, -0.1, 0.74), (0.06, 0.03, 0.16), 'tinta_acessorio', 'tronco', chanfro=0.01)
+    m.toro('cachecol', (0, 0, 0.855), 0.14, 0.05, 'tinta_acessorio', 'tronco', escala=(1, 1, 0.62), lados=20, secao=8)
+    m.caixa('ponta', (0.06, -0.15, 0.75), (0.075, 0.032, 0.17), 'tinta_acessorio', 'tronco', chanfro=0.012, rot=(0, 0.08, 0))
+    m.caixa('ponta2', (-0.02, -0.158, 0.77), (0.07, 0.03, 0.12), 'tinta_acessorio', 'tronco', chanfro=0.012, rot=(0, -0.1, 0))
+    for i in range(3):
+        m.caixa(f'franja{i}', (0.06 + (i - 1) * 0.022, -0.15, 0.655), (0.012, 0.02, 0.03), 'tinta_acessorio', 'tronco', chanfro=0)
     fechar('acessorio_cachecol')
 
     m.caixa('fita', (0, -0.112, 0.78), (0.012, 0.01, 0.12), 'tinta_acessorio', 'tronco', chanfro=0)
@@ -267,12 +305,19 @@ def acessorios():
     m.caixa('foto', (0, -0.125, 0.7), (0.035, 0.004, 0.035), 'tinta_acessorio', 'tronco', chanfro=0)
     fechar('acessorio_cracha')
 
-    m.caixa('bolsa', (0.2, -0.02, 0.55), (0.07, 0.18, 0.14), 'tinta_acessorio', 'quadril', chanfro=0.02)
-    m.caixa('alcaBolsa', (0.02, -0.02, 0.72), (0.03, 0.02, 0.4), 'preto', 'tronco', chanfro=0, rot=(0, -0.8, 0))
+    m.caixa('bolsa', (0.205, -0.02, 0.55), (0.075, 0.19, 0.15), 'tinta_acessorio', 'quadril', chanfro=0.02)
+    m.caixa('tampa', (0.21, -0.02, 0.6), (0.08, 0.195, 0.06), 'tinta_acessorio', 'quadril', chanfro=0.015)
+    m.caixa('fecho', (0.25, -0.02, 0.585), (0.008, 0.04, 0.03), 'branco', 'quadril', chanfro=0)
+    for y in (-0.128, 0.128):
+        m.caixa(f'alca{y}', (0.035, y, 0.73), (0.405, 0.012, 0.026), 'preto', 'tronco', chanfro=0, rot=(0, 0.697, 0))
+    m.caixa('alcaOmbro', (-0.12, 0, 0.868), (0.03, 0.26, 0.012), 'preto', 'tronco', chanfro=0)
     fechar('acessorio_bolsa')
 
 
 ESCALAS = {'cabeca': (1.22, 1.22, 1.22)}
+ELEVA_PASSO = 0.057
+ELEVA_MEIO = 0.027
+ELEVA_CORRIDA = -0.036
 
 
 def animacoes(armacao):
@@ -285,7 +330,7 @@ def animacoes(armacao):
     def passo(fase):
         s = 1 if fase else -1
         return {
-            'quadril': {'l': (0, 0.015, 0)},
+            'quadril': {'l': (0, ELEVA_PASSO, 0)},
             'coxa.L': {'r': (-28 * s, 0, 0)},
             'coxa.R': {'r': (28 * s, 0, 0)},
             'canela.L': {'r': (12 if s > 0 else 30, 0, 0)},
@@ -297,14 +342,14 @@ def animacoes(armacao):
             'tronco': {'r': (4, 3 * s, 0)},
         }
 
-    meio = {'quadril': {'l': (0, -0.01, 0)}, 'canela.L': {'r': (20, 0, 0)}, 'canela.R': {'r': (20, 0, 0)}, 'tronco': {'r': (4, 0, 0)}, 'antebraco.L': {'r': (-15, 0, 0)}, 'antebraco.R': {'r': (-15, 0, 0)}}
+    meio = {'quadril': {'l': (0, ELEVA_MEIO, 0)}, 'canela.L': {'r': (20, 0, 0)}, 'canela.R': {'r': (20, 0, 0)}, 'tronco': {'r': (4, 0, 0)}, 'antebraco.L': {'r': (-15, 0, 0)}, 'antebraco.R': {'r': (-15, 0, 0)}}
     comum.acao_com_escala(armacao, 'andar', 0.7, [(0, passo(True)), (0.25, meio), (0.5, passo(False)), (0.75, meio), (1, passo(True))])
 
     sentado = {
         'coxa.L': {'r': (-88, 0, 0)}, 'coxa.R': {'r': (-88, 0, 0)},
         'canela.L': {'r': (88, 0, 0)}, 'canela.R': {'r': (88, 0, 0)},
-        'braco.L': {'r': (-25, 0, 3)}, 'braco.R': {'r': (-25, 0, -3)},
-        'antebraco.L': {'r': (-45, 0, 0)}, 'antebraco.R': {'r': (-45, 0, 0)},
+        'braco.L': {'r': (-22, 0, -9)}, 'braco.R': {'r': (-22, 0, 9)},
+        'antebraco.L': {'r': (-38, 0, -4)}, 'antebraco.R': {'r': (-38, 0, 4)},
         'quadril': {'l': (0, -0.02, 0)},
     }
     respira = dict(sentado)
@@ -312,13 +357,13 @@ def animacoes(armacao):
     comum.acao_com_escala(armacao, 'sentar', 2.4, [(0, sentado), (0.5, respira), (1, sentado)])
 
     def aceno(angulo):
-        return {'braco.R': {'r': (0, 0, 145)}, 'antebraco.R': {'r': (0, 0, angulo)}, 'cabeca': {'r': (0, 0, 6)}, 'braco.L': {'r': (0, 0, -3)}}
-    comum.acao_com_escala(armacao, 'acenar', 0.8, [(0, aceno(-25)), (0.5, aceno(25)), (1, aceno(-25))])
+        return {'braco.R': {'r': (0, 0, 118)}, 'antebraco.R': {'r': (0, 0, angulo)}, 'cabeca': {'r': (0, 0, -4)}, 'braco.L': {'r': (0, 0, -3)}}
+    comum.acao_com_escala(armacao, 'acenar', 0.8, [(0, aceno(12)), (0.5, aceno(48)), (1, aceno(12))])
 
     def danca(s):
         return {
             'raiz': {'l': (0, 0, 0)},
-            'quadril': {'r': (0, 0, 8 * s), 'l': (0, 0.03 if s > 0 else 0, 0)},
+            'quadril': {'r': (0, 0, 8 * s), 'l': (0, 0.035 if s > 0 else 0.015, 0)},
             'tronco': {'r': (0, 10 * s, -6 * s)},
             'cabeca': {'r': (0, -8 * s, 6 * s)},
             'braco.L': {'r': (0, 0, -130 if s > 0 else -30)},
@@ -331,6 +376,31 @@ def animacoes(armacao):
             'canela.R': {'r': (0 if s > 0 else 15, 0, 0)},
         }
     comum.acao_com_escala(armacao, 'dancar', 1.0, [(0, danca(1)), (0.5, danca(-1)), (1, danca(1))])
+
+    def corrida(fase):
+        s = 1 if fase else -1
+        return {
+            'quadril': {'l': (0, ELEVA_CORRIDA, 0), 'r': (0, 6 * s, 0)},
+            'coxa.L': {'r': (-46 * s, 0, 0)},
+            'coxa.R': {'r': (46 * s, 0, 0)},
+            'canela.L': {'r': (18 if s > 0 else 72, 0, 0)},
+            'canela.R': {'r': (72 if s > 0 else 18, 0, 0)},
+            'braco.L': {'r': (42 * s, 0, -8)},
+            'braco.R': {'r': (-42 * s, 0, 8)},
+            'antebraco.L': {'r': (-78, 0, 0)},
+            'antebraco.R': {'r': (-78, 0, 0)},
+            'tronco': {'r': (12, -6 * s, 0)},
+            'cabeca': {'r': (-8, 4 * s, 0)},
+        }
+    voo = {
+        'quadril': {'l': (0, ELEVA_CORRIDA + 0.045, 0)},
+        'coxa.L': {'r': (-10, 0, 0)}, 'coxa.R': {'r': (-10, 0, 0)},
+        'canela.L': {'r': (55, 0, 0)}, 'canela.R': {'r': (55, 0, 0)},
+        'braco.L': {'r': (0, 0, -8)}, 'braco.R': {'r': (0, 0, 8)},
+        'antebraco.L': {'r': (-78, 0, 0)}, 'antebraco.R': {'r': (-78, 0, 0)},
+        'tronco': {'r': (12, 0, 0)}, 'cabeca': {'r': (-8, 0, 0)},
+    }
+    comum.acao_com_escala(armacao, 'correr', 0.46, [(0, corrida(True)), (0.25, voo), (0.5, corrida(False)), (0.75, voo), (1, corrida(True))])
 
 
 def fotografar(pasta, armacao, visiveis, nome, acao_nome=None, quadro=1, direcao=(0.6, -1, 0.5)):
@@ -389,6 +459,7 @@ if __name__ == '__main__':
     comum.limpar()
     corpo()
     cabelos()
+    cabelos_sob_chapeu()
     chapeus()
     rostos()
     cimas()

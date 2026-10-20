@@ -20,7 +20,7 @@ import { validarAparencia } from '../character/aparencia'
 import { jwtSecret } from '../auth/jwt-secret'
 
 type MapId = string
-type Pose = 'parado' | 'andar' | 'sentar' | 'acenar' | 'dancar'
+type Pose = 'parado' | 'andar' | 'correr' | 'sentar' | 'acenar' | 'dancar'
 
 interface JukeboxQueueItem {
   trackId: string
@@ -141,7 +141,7 @@ const ESCALA_MAX = 3
 const COORD_LIMIT = 100000
 const JUKEBOX_ADD_COOLDOWN_MS = 5000
 const JUKEBOX_MAX_QUEUE = 50
-const POSE_VALUES: Pose[] = ['parado', 'andar', 'sentar', 'acenar', 'dancar']
+const POSE_VALUES: Pose[] = ['parado', 'andar', 'correr', 'sentar', 'acenar', 'dancar']
 const PHOTO_PATH = /\/kairos-api\/character\/photo\/([a-f0-9-]+\.(?:jpg|png|webp))$/
 
 function sameSet(a: Set<string> | undefined, b: Set<string>): boolean {

@@ -5,7 +5,8 @@ export interface Peca {
   slot: Slot
   nome: string
   malha: string | null
-  somemComChapeu?: boolean
+  corte?: 'chapeu' | 'aba'
+  semCor?: boolean
 }
 
 interface DefinicaoSlot {
@@ -36,20 +37,20 @@ export const PECAS: Peca[] = [
   { id: 'curto', slot: 'cabelo', nome: 'Curto', malha: 'cabelo_curto' },
   { id: 'topete', slot: 'cabelo', nome: 'Topete', malha: 'cabelo_topete' },
   { id: 'longo', slot: 'cabelo', nome: 'Longo', malha: 'cabelo_longo' },
-  { id: 'coque', slot: 'cabelo', nome: 'Coque', malha: 'cabelo_coque', somemComChapeu: true },
-  { id: 'cacheado', slot: 'cabelo', nome: 'Cacheado', malha: 'cabelo_cacheado', somemComChapeu: true },
-  { id: 'moicano', slot: 'cabelo', nome: 'Moicano', malha: 'cabelo_moicano', somemComChapeu: true },
+  { id: 'coque', slot: 'cabelo', nome: 'Coque', malha: 'cabelo_coque' },
+  { id: 'cacheado', slot: 'cabelo', nome: 'Cacheado', malha: 'cabelo_cacheado' },
+  { id: 'moicano', slot: 'cabelo', nome: 'Moicano', malha: 'cabelo_moicano' },
   { id: 'careca', slot: 'cabelo', nome: 'Careca', malha: null },
   { id: 'nenhum', slot: 'chapeu', nome: 'Nenhum', malha: null },
-  { id: 'bone', slot: 'chapeu', nome: 'Boné', malha: 'chapeu_bone' },
-  { id: 'gorro', slot: 'chapeu', nome: 'Gorro', malha: 'chapeu_gorro' },
-  { id: 'fedora', slot: 'chapeu', nome: 'Chapéu', malha: 'chapeu_fedora' },
+  { id: 'bone', slot: 'chapeu', nome: 'Boné', malha: 'chapeu_bone', corte: 'chapeu' },
+  { id: 'gorro', slot: 'chapeu', nome: 'Gorro', malha: 'chapeu_gorro', corte: 'chapeu' },
+  { id: 'fedora', slot: 'chapeu', nome: 'Chapéu', malha: 'chapeu_fedora', corte: 'aba' },
   { id: 'fones', slot: 'chapeu', nome: 'Fones', malha: 'chapeu_fones' },
   { id: 'nenhum', slot: 'rosto', nome: 'Nenhum', malha: null },
   { id: 'oculos', slot: 'rosto', nome: 'Óculos', malha: 'rosto_oculos' },
   { id: 'oculos_sol', slot: 'rosto', nome: 'Óculos escuros', malha: 'rosto_oculos_sol' },
-  { id: 'barba', slot: 'rosto', nome: 'Barba', malha: 'rosto_barba' },
-  { id: 'bigode', slot: 'rosto', nome: 'Bigode', malha: 'rosto_bigode' },
+  { id: 'barba', slot: 'rosto', nome: 'Barba', malha: 'rosto_barba', semCor: true },
+  { id: 'bigode', slot: 'rosto', nome: 'Bigode', malha: 'rosto_bigode', semCor: true },
   { id: 'camiseta', slot: 'cima', nome: 'Camiseta', malha: 'cima_camiseta' },
   { id: 'moletom', slot: 'cima', nome: 'Moletom', malha: 'cima_moletom' },
   { id: 'camisa', slot: 'cima', nome: 'Camisa', malha: 'cima_camisa' },

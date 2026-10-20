@@ -723,6 +723,7 @@ export class Mundo {
     const dirX = automatica ? automatica.x : entrada.x
     const dirY = automatica ? automatica.y : entrada.y
     let movendo = false
+    let correndo = false
     if (dirX || dirY) {
       if (this.sentadoEm) this.levantar()
       const norma = Math.hypot(dirX, dirY)
@@ -740,12 +741,13 @@ export class Mundo {
       if (livre(this.local.x, ny)) this.local.y = Math.min(this.mapa.profundidade - 0.3, Math.max(0.3, ny))
       this.local.direcao = Math.atan2(dx, dy)
       movendo = true
+      correndo = entrada.correndo && !naAgua
       this.dancando = false
       this.poseForcada = null
     }
     const agora = performance.now()
     if (this.poseForcada && agora > this.poseForcada.ate) this.poseForcada = null
-    this.local.pose = this.sentadoEm ? 'sentar' : movendo ? 'andar' : this.poseForcada ? this.poseForcada.pose : this.dancando ? 'dancar' : 'parado'
+    this.local.pose = this.sentadoEm ? 'sentar' : movendo ? (correndo ? 'correr' : 'andar') : this.poseForcada ? this.poseForcada.pose : this.dancando ? 'dancar' : 'parado'
     this.atualizarArredores()
     const assinatura = `${this.local.x.toFixed(2)}|${this.local.y.toFixed(2)}|${this.local.direcao.toFixed(2)}|${this.local.pose}`
     if (assinatura !== this.ultimoEnviado) {

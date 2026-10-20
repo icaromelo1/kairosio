@@ -71,7 +71,7 @@
               @click="aparencia.pecas[aba].id = p.id"
             >{{ p.nome }}</button>
           </div>
-          <template v-if="slotAtual?.colorivel && aparencia.pecas[aba].id !== 'nenhum'">
+          <template v-if="slotAtual?.colorivel && aparencia.pecas[aba].id !== 'nenhum' && !pecaDe(aba, aparencia.pecas[aba].id)?.semCor">
             <span class="k-label">cor</span>
             <div class="pp-cores">
               <button
@@ -82,8 +82,8 @@
               <input type="color" class="pp-cor-livre" :value="aparencia.pecas[aba].cor" aria-label="outra cor" @input="aparencia.pecas[aba].cor = ($event.target as HTMLInputElement).value" />
             </div>
           </template>
-          <p v-if="aba === 'chapeu' && aparencia.pecas.chapeu.id !== 'nenhum' && cabeloSome" class="k-hint-text">
-            Com chapéu, o cabelo {{ nomeDoCabelo }} aparece curto.
+          <p v-if="pecaDe(aba, aparencia.pecas[aba].id)?.semCor" class="k-hint-text">
+            Segue a cor do cabelo (aba Corpo).
           </p>
         </div>
 
@@ -122,6 +122,7 @@ const POSES: { pose: Pose; nome: string }[] = [
   { pose: 'andar', nome: 'andar' },
   { pose: 'acenar', nome: 'acenar' },
   { pose: 'dancar', nome: 'dançar' },
+  { pose: 'correr', nome: 'correr' },
   { pose: 'sentar', nome: 'sentar' },
 ]
 const SLOTS_EDITAVEIS = SLOTS.filter((s) => s.slot !== 'cabelo')
@@ -136,8 +137,6 @@ const erro = ref('')
 const salvando = ref(false)
 const precisaNome = computed(() => !auth.username)
 const slotAtual = computed(() => SLOTS.find((s) => s.slot === aba.value) ?? null)
-const cabeloSome = computed(() => !!pecaDe('cabelo', aparencia.pecas.cabelo.id)?.somemComChapeu)
-const nomeDoCabelo = computed(() => pecaDe('cabelo', aparencia.pecas.cabelo.id)?.nome.toLowerCase() ?? '')
 let previa: Previa | null = null
 
 function copiar(a: Aparencia): Aparencia {

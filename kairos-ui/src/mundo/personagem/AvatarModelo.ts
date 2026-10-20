@@ -14,7 +14,8 @@ import { converterMalhas, pintarMaterial } from '../materiais'
 
 const URL_PERSONAGEM = `${import.meta.env.BASE_URL}modelos/personagem.glb`
 const conteineres = new WeakMap<Scene, Promise<AssetContainer>>()
-const MALHAS = new Set(['corpo', ...PECAS.map((p) => p.malha).filter((m): m is string => !!m)])
+const CORTES = ['chapeu', 'aba'] as const
+const MALHAS = new Set(['corpo', ...PECAS.flatMap((p) => (p.malha ? [p.malha, ...(p.slot === 'cabelo' ? CORTES.map((c) => `${p.malha}_${c}`) : [])] : []))])
 
 export function carregarPersonagem(cena: Scene): Promise<AssetContainer> {
   let pedido = conteineres.get(cena)
@@ -66,11 +67,11 @@ export class AvatarModelo implements AvatarVisual {
 
   aplicar(aparencia: Aparencia) {
     const visiveis = new Set<string>(['corpo'])
-    const chapeu = aparencia.pecas.chapeu.id !== 'nenhum'
+    const corte = pecaDe('chapeu', aparencia.pecas.chapeu.id)?.corte
     for (const { slot } of SLOTS) {
-      let peca = pecaDe(slot, aparencia.pecas[slot].id)
-      if (peca?.somemComChapeu && chapeu) peca = pecaDe('cabelo', 'curto')
-      if (peca?.malha) visiveis.add(peca.malha)
+      const peca = pecaDe(slot, aparencia.pecas[slot].id)
+      if (!peca?.malha) continue
+      visiveis.add(slot === 'cabelo' && corte ? `${peca.malha}_${corte}` : peca.malha)
     }
     for (const [nome, nos] of this.pecas) for (const no of nos) no.setEnabled(visiveis.has(nome))
     const pele = this.materiais.get('pele')
