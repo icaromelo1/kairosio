@@ -588,7 +588,7 @@ onUnmounted(() => {
   margin-top: 0.125rem;
 }
 
-/* a mensagem minha assina com a barra musgo à direita, como o ToggleRow ligado —
+/* a mensagem minha assina com a barra musgo à direita —
    trocar o fundo inteiro brigaria com o balão do outro no mesmo creme */
 .dms-msg-minha {
   align-self: flex-end;

@@ -1,8 +1,8 @@
 import type { LocationQuery, RouteLocationRaw } from 'vue-router'
 import { useAuthStore } from '@/stores/useAuthStore'
-import { getCharacter } from './character.api'
-import { me } from './auth.api'
 import { getMyServers, consumePendingInvite } from './server.api'
+import { buscarPersonagem } from './personagem.api'
+import { me } from './auth.api'
 
 const PANELS = ['personagem', 'servidores', 'admin', 'feedback'] as const
 
@@ -17,15 +17,15 @@ export function panelFromQuery(query: LocationQuery): GamePanel | null {
 
 export async function initialPanel(): Promise<GamePanel | null> {
   const auth = useAuthStore()
-  const [character, servers, perfil] = await Promise.all([getCharacter(), getMyServers(), me()])
-  if (!perfil.username || !character) return 'personagem'
+  if (await precisaCriarPersonagem()) return 'personagem'
+  const servers = await getMyServers()
   if (!servers.length && !auth.isGuest) return 'servidores'
   return null
 }
 
 export async function precisaCriarPersonagem(): Promise<boolean> {
-  const [character, perfil] = await Promise.all([getCharacter(), me()])
-  return !perfil.username || !character
+  const [personagem, perfil] = await Promise.all([buscarPersonagem(), me()])
+  return !perfil.username || !personagem?.aparencia
 }
 
 export async function postAuthDest(): Promise<RouteLocationRaw> {

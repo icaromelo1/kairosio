@@ -47,12 +47,6 @@
           <rect x="126" y="36" width="12" height="12" fill="var(--ok)" />
           <rect x="130" y="48" width="4" height="8" fill="var(--accent-lo)" />
         </svg>
-
-        <span class="lp-who lp-who-a"><PixelAvatar :scale="1.9" hair-style="curly" /></span>
-        <span class="lp-who lp-who-b"><PixelAvatar :scale="1.9" hair-style="ponytail" /></span>
-        <span class="lp-who lp-who-c"><PixelAvatar :scale="1.9" hair-style="mohawk" /></span>
-
-        <span class="lp-bubble">olá!</span>
       </section>
     </main>
 
@@ -64,7 +58,6 @@
 import { useRouter } from 'vue-router'
 import Logo from '@/components/logos/Logo.vue'
 import MeanderBorder from '@/components/pixel/MeanderBorder.vue'
-import PixelAvatar from '@/components/pixel/PixelAvatar.vue'
 import PixelIcon from '@/components/PixelIcon.vue'
 
 const router = useRouter()
@@ -182,37 +175,6 @@ const floorTiles = Array.from({ length: 9 }, (_, row) =>
   display: block;
   width: 100%;
   height: 100%;
-}
-
-.lp-who {
-  position: absolute;
-  transform: translate(-50%, -100%);
-}
-
-.lp-who-a { left: 30%; top: 62%; animation: lpBob 1.8s steps(1, end) infinite; }
-.lp-who-b { left: 52%; top: 84%; }
-.lp-who-c { left: 74%; top: 58%; animation: lpBob 2.4s steps(1, end) infinite 0.6s; }
-
-@keyframes lpBob {
-  0%, 100% { transform: translate(-50%, -100%); }
-  50% { transform: translate(-50%, calc(-100% - 0.125rem)); }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lp-who { animation: none; }
-}
-
-.lp-bubble {
-  position: absolute;
-  left: 56%;
-  top: 60%;
-  padding: 0.25rem 0.5rem;
-  background: var(--bg-1);
-  border: 0.125rem solid var(--primary-hi);
-  color: var(--text-2);
-  font-family: var(--f-pixel);
-  font-size: 0.5rem;
-  white-space: nowrap;
 }
 
 .lp-foot {

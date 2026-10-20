@@ -1,16 +1,17 @@
 # Kairos — O que ainda falta
 
+> **Refactor em andamento (branch `main-refactor`, desde 19/10/2026):** o motor PixiJS está
+> sendo trocado por Babylon.js. Estado e próximo passo em `docs/CONTINUAR-REFACTOR.md`;
+> plano completo em `kairos-ui/public/docs/refactor/index.html`.
+
 > Lista enxuta do que está **pendente**. O grosso do roadmap já foi entregue.
 > Atualizado: 2026-07-30. Specs detalhados nos outros `docs/PLANO-*.md`.
 
 ---
 
-## 🎨 1. Arte / visual 2.5D (estilo Stardew)
-> Billboards, avatar fofo, y-sort, sombras, customização e objetos com volume já feitos.
-> `docs/PLANO-arte-2.5d.md`.
-- [ ] **Avatar art completa** — spritesheets desenhadas (4 direções, walk frames).
-      *grande, precisa decisão + arte.* Destrava também o **virar de perfil no A/D**
-      (tentado e revertido em 22/06: sem spritesheet real fica estranho).
+## 🎨 1. Arte, mapa e personagem
+- [ ] Substituídos pelo refactor para Babylon.js (branch `main-refactor`). O avatar
+      modular com roupas e cores é o ponto 5 de `docs/CONTINUAR-REFACTOR.md`.
 
 ## 🔐 2. OAuth Google/GitHub — *código pronto, BLOQUEADO no Icaro*
 - [ ] Criar os apps OAuth (Google Cloud + GitHub) e pôr as creds no `.env` do servidor
@@ -27,9 +28,8 @@
 - [ ] **2FA** — a considerar, especialmente para contas sudo. Nada decidido ainda.
 
 ## 🧹 4. Débitos técnicos conhecidos
-- [ ] **`synchronize: true` em produção** (TypeORM). Funciona hoje, mas uma mudança
-      de entity mal feita altera o schema sozinha. Trocar por migrations quando o
-      schema estabilizar.
+- [x] **`synchronize: true`** saiu na `main-refactor`: o schema passa a ser só por
+      migrations (`npm run migration:generate|run|revert` no `kairos-api`).
 - [ ] **Estado do jogo em memória no gateway** (presença, fila do jukebox, lousas).
       Reiniciar a API zera lousas e filas; e não escala pra 2+ instâncias. Só vale
       resolver (Redis adapter) se houver mais de uma instância.
@@ -43,6 +43,7 @@
 
 ## 💡 4. Backlog / não agendado
 - **NPCs com LLM** — só ideia, fora do plano atual.
+- **Kanban integrado** — futuro distante. Não entra em plano nem documento; só volta quando o Icaro pedir para lembrar.
 - **Economia / dinheiro** — ❌ recusado.
 
 ---

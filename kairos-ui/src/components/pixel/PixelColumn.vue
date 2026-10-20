@@ -22,7 +22,7 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { shade } from '@/game/shadeHelper'
+import { shade } from '@/utils/shade'
 
 const props = withDefaults(defineProps<{
   scale?: number

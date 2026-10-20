@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Refactor do Kairos</title>
+<meta name="description" content="Plano ponto a ponto da troca do motor PixiJS por Babylon.js no Kairos.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Nunito:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --tinta: #241c15;
+  --bg: #f4e4c1;
+  --bg-card: #fff6e0;
+  --bg-soft: #e9d8b2;
+  --text: #241c15;
+  --text-2: #4a3d2e;
+  --text-3: #685a48;
+  --border: rgba(36, 28, 21, 0.18);
+  --primary: #2c7441;
+  --primary-soft: #dcebd9;
+  --mundo: #2a4d8f;
+  --mundo-soft: #e3ebfa;
+  --accent: #f2a93b;
+  --accent-texto: #825109;
+  --accent-soft: #fbe6c2;
+  --err: #a83232;
+  --err-soft: #f5dcd6;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --tinta: #f4e4c1;
+    --bg: #1b1611;
+    --bg-card: #241d16;
+    --bg-soft: #2e251c;
+    --text: #f4e4c1;
+    --text-2: #d9c8a6;
+    --text-3: #b3a283;
+    --border: rgba(244, 228, 193, 0.16);
+    --primary: #6cc287;
+    --primary-soft: #1f3324;
+    --mundo: #8fb0ee;
+    --mundo-soft: #1c2638;
+    --accent: #f2a93b;
+    --accent-texto: #f2b85c;
+    --accent-soft: #3a2a12;
+    --err: #e88a8a;
+    --err-soft: #3a1c1c;
+  }
+}
+:root[data-theme="dark"] {
+  --tinta: #f4e4c1;
+  --bg: #1b1611;
+  --bg-card: #241d16;
+  --bg-soft: #2e251c;
+  --text: #f4e4c1;
+  --text-2: #d9c8a6;
+  --text-3: #b3a283;
+  --border: rgba(244, 228, 193, 0.16);
+  --primary: #6cc287;
+  --primary-soft: #1f3324;
+  --mundo: #8fb0ee;
+  --mundo-soft: #1c2638;
+  --accent: #f2a93b;
+  --accent-texto: #f2b85c;
+  --accent-soft: #3a2a12;
+  --err: #e88a8a;
+  --err-soft: #3a1c1c;
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font: 400 16px/1.6 Nunito, system-ui, sans-serif;
+}
+main { max-width: 860px; margin: 0 auto; padding: 48px 16px 96px; }
+h1, h2, h3 { font-family: 'Pixelify Sans', Nunito, sans-serif; line-height: 1.15; margin: 0; }
+h1 { font-size: clamp(2rem, 6vw, 2.75rem); font-weight: 700; }
+h2 { font-size: 1.6rem; font-weight: 700; margin-top: 64px; padding-top: 16px; border-top: 2px solid var(--tinta); }
+h3 { font-size: 1.15rem; font-weight: 700; margin-top: 32px; }
+p, ul, ol { margin: 12px 0 0; }
+li + li { margin-top: 4px; }
+a { color: var(--mundo); }
+code, .mono { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.86em; }
+code { background: var(--bg-soft); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+.eyebrow { font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-3); }
+.lead { font-size: 1.15rem; color: var(--text-2); max-width: 62ch; margin-top: 16px; }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 20px; margin-top: 20px; color: var(--text-3); font-size: 0.9rem; }
+.muted { color: var(--text-3); }
+nav.toc { margin-top: 32px; padding: 16px 20px; background: var(--bg-card); border: 2px solid var(--tinta); border-radius: 6px; }
+nav.toc ol { margin: 8px 0 0; padding-left: 20px; }
+nav.toc a { color: var(--text); text-decoration: none; }
+nav.toc a:hover { text-decoration: underline; }
+
+.pontos { list-style: none; padding: 0; margin-top: 20px; display: grid; gap: 10px; }
+.ponto { display: grid; grid-template-columns: 44px 1fr auto; gap: 4px 14px; align-items: start; padding: 14px 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; }
+.ponto .n { font-family: 'Pixelify Sans', sans-serif; font-size: 1.4rem; font-weight: 700; color: var(--text-3); }
+.ponto .t { font-weight: 700; }
+.ponto .d { grid-column: 2 / 4; color: var(--text-2); font-size: 0.95rem; }
+.ponto.agora { border: 2px solid var(--tinta); }
+.ponto.futuro { background: transparent; border-style: dashed; }
+.tag { font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; font-weight: 600; padding: 2px 8px; border-radius: 99px; white-space: nowrap; }
+.tag.feito { background: var(--primary-soft); color: var(--primary); }
+.tag.proximo { background: var(--accent-soft); color: var(--accent-texto); }
+.tag.analisar { background: var(--bg-soft); color: var(--text-3); }
+.tag.futuro { background: var(--mundo-soft); color: var(--mundo); }
+
+.callout { margin-top: 20px; padding: 14px 16px; border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 0 6px 6px 0; }
+.callout.risco { border-color: var(--err); background: var(--err-soft); }
+.callout strong { display: block; margin-bottom: 2px; }
+
+.tabela { width: 100%; border-collapse: collapse; margin-top: 16px; font-size: 0.93rem; }
+.tabela-wrap { overflow-x: auto; }
+.tabela th, .tabela td { text-align: left; vertical-align: top; padding: 9px 10px; border-bottom: 1px solid var(--border); }
+.tabela th { font-family: 'JetBrains Mono', monospace; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-3); font-weight: 600; }
+.tabela td:first-child { white-space: nowrap; }
+
+.duas { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.caixa { padding: 16px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; }
+.caixa h3 { margin-top: 0; }
+.caixa ul { padding-left: 18px; font-size: 0.93rem; }
+.caixa.sai { border-top: 4px solid var(--err); }
+.caixa.fica { border-top: 4px solid var(--primary); }
+
+.perguntas { counter-reset: q; list-style: none; padding: 0; }
+.perguntas li { counter-increment: q; position: relative; padding: 14px 16px 14px 52px; margin-top: 10px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 6px; }
+.perguntas li::before { content: counter(q); position: absolute; left: 16px; top: 12px; font-family: 'Pixelify Sans', sans-serif; font-weight: 700; font-size: 1.2rem; color: var(--accent-texto); }
+.perguntas .rec { display: block; margin-top: 6px; color: var(--text-2); font-size: 0.93rem; }
+
+svg text { font-family: Nunito, sans-serif; }
+.diagrama { margin-top: 20px; width: 100%; height: auto; }
+
+footer { margin-top: 80px; color: var(--text-3); font-size: 0.85rem; }
+
+@media (max-width: 640px) {
+  main { padding-top: 32px; }
+  .duas { grid-template-columns: 1fr; }
+  .ponto { grid-template-columns: 32px 1fr; }
+  .ponto .tag { grid-column: 2; justify-self: start; }
+  .ponto .d { grid-column: 2; }
+}
+</style>
+</head>
+<body>
+<main>
+  <p class="eyebrow">Kairos · documentação interna · branch <code>main-refactor</code></p>
+  <h1>Refactor do Kairos: de PixiJS para Babylon.js</h1>
+  <p class="lead">O Kairos vira um espaço no estilo Gather, com o lado social do Discord, renderizado em Babylon.js. O motor PixiJS sai inteiro. Este documento é revisado ponto a ponto: cada ponto só começa depois de analisado e aprovado aqui.</p>
+  <div class="meta">
+    <span>Atualizado em 19/10/2026</span>
+    <span>Pontos 0 a 5 <strong>feitos</strong> · próximo: 6 · edição de sala, quando pedido</span>
+  </div>
+
+  <nav class="toc" aria-label="Sumário">
+    <strong>Sumário</strong>
+    <ol>
+      <li><a href="#visao">Visão</a></li>
+      <li><a href="#pontos">Os pontos, em ordem</a></li>
+      <li><a href="#limpeza">Ponto 1: limpeza do motor</a></li>
+      <li><a href="#icarus">O que herdamos do Icarus Journey</a></li>
+      <li><a href="#esboco">Esboço dos pontos seguintes</a></li>
+      <li><a href="#decisoes">Decisões</a></li>
+    </ol>
+  </nav>
+
+  <h2 id="visao">Visão</h2>
+  <p>Hoje o Kairos já tem o miolo social pronto: organizações, convites, DM, amigos, presença, chat, voz e vídeo por proximidade, jukebox, lousa, tarefas e notas. O que não serve mais é o <strong>mundo</strong>: o render em PixiJS, os pacotes de tiles de terceiros, o avatar por spritesheet e as máscaras de recoloração. Esse conjunto rendeu muita correção de textura e proporção e travou o avatar em 4 direções.</p>
+  <p>O refactor troca só o mundo e preserva o miolo social. A ordem é:</p>
+  <ol>
+    <li><strong>Agora:</strong> um escritório fixo e a personalização completa do personagem (roupa, cabelo, pele, sapato, chapéu e acessórios).</li>
+    <li><strong>Depois:</strong> edição de sala (mobília e acessórios do escritório).</li>
+  </ol>
+
+  <h2 id="pontos">Os pontos, em ordem</h2>
+  <p>Cada ponto ganha uma seção própria neste documento antes de virar código.</p>
+  <ul class="pontos">
+    <li class="ponto"><span class="n">0</span><span class="t">Documento e branch</span><span class="tag feito">feito</span><span class="d">Branch <code>main-refactor</code> criada a partir da <code>main</code>, e este documento servido pelo próprio jogo em <code>/docs/refactor/</code>.</span></li>
+    <li class="ponto"><span class="n">1</span><span class="t">Limpeza do motor</span><span class="tag feito">feito</span><span class="d">Apagar PixiJS, tiles, sprites, máscaras, gerador de mapas e as tabelas ligadas a eles, sem deixar vestígio. O inventário completo está <a href="#limpeza">abaixo</a>.</span></li>
+    <li class="ponto"><span class="n">2</span><span class="t">Base Babylon.js</span><span class="tag feito">feito</span><span class="d">Cena, câmera, luz, laço de input, movimento e colisão. Tudo atrás de uma fronteira só (<code>src/mundo/</code>), para que o Vue não importe Babylon direto.</span></li>
+    <li class="ponto"><span class="n">3</span><span class="t">Mapa de escritório fixo</span><span class="tag feito">feito</span><span class="d">Um escritório só, descrito em dados: salas, paredes, portas e mobília. As estações atuais (mesa, lousa, jukebox, estante) voltam como objetos do mapa.</span></li>
+    <li class="ponto"><span class="n">4</span><span class="t">Presença reconectada</span><span class="tag feito">feito</span><span class="d">O gateway socket.io continua. Os eventos <code>move</code>, <code>avatarUpdate</code> e <code>switchMap</code> passam a carregar a posição e a aparência no formato novo. Salas, áudio espacial e rota são reescritos sobre o mapa novo.</span></li>
+    <li class="ponto"><span class="n">5</span><span class="t">Personagem modular</span><span class="tag feito">feito</span><span class="d">Corpo base com esqueleto contratado, peças trocáveis por slot (cabelo, chapéu, parte de cima, parte de baixo, sapato, acessório), cores por material e editor de personagem com prévia ao vivo.</span></li>
+    <li class="ponto futuro"><span class="n">6</span><span class="t">Edição de sala</span><span class="tag futuro">futuro</span><span class="d">Colocar, girar e remover mobília no escritório, com permissão por organização. Usa o mesmo formato de dados do ponto 3.</span></li>
+  </ul>
+
+  <svg class="diagrama" viewBox="0 0 740 150" role="img" aria-label="Dependências: 1 limpeza leva a 2 base Babylon; 2 leva a 3 mapa e a 5 personagem; 3 e 5 levam a 4 presença; 3 leva a 6 edição de sala.">
+    <defs>
+      <marker id="seta" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="var(--text-3)"/></marker>
+    </defs>
+    <g fill="var(--bg-card)" stroke="var(--tinta)" stroke-width="2">
+      <rect x="4" y="52" width="110" height="44" rx="6"/>
+      <rect x="150" y="52" width="120" height="44" rx="6"/>
+      <rect x="310" y="8" width="130" height="44" rx="6"/>
+      <rect x="310" y="96" width="130" height="44" rx="6"/>
+      <rect x="480" y="52" width="130" height="44" rx="6"/>
+    </g>
+    <g fill="transparent" stroke="var(--text-3)" stroke-width="2" stroke-dasharray="5 4">
+      <rect x="650" y="8" width="80" height="44" rx="6"/>
+    </g>
+    <g fill="var(--text)" font-size="13" font-weight="700" text-anchor="middle">
+      <text x="59" y="79">1 · Limpeza</text>
+      <text x="210" y="79">2 · Base Babylon</text>
+      <text x="375" y="35">3 · Escritório</text>
+      <text x="375" y="123">5 · Personagem</text>
+      <text x="545" y="79">4 · Presença</text>
+    </g>
+    <g fill="var(--text-3)" font-size="13" font-weight="700" text-anchor="middle">
+      <text x="690" y="35">6 · Edição</text>
+    </g>
+    <g stroke="var(--text-3)" stroke-width="1.6" fill="none" marker-end="url(#seta)">
+      <path d="M114 74 H146"/>
+      <path d="M270 66 L306 36"/>
+      <path d="M270 82 L306 112"/>
+      <path d="M440 36 L476 64"/>
+      <path d="M440 112 L476 86"/>
+      <path d="M440 30 H646" stroke-dasharray="4 4"/>
+    </g>
+  </svg>
+  <div class="callout"><strong>Entregue em 19/10/2026.</strong> Escritório com 8 salas e 82 móveis, personagem modular com 34 peças e 5 animações, editor com prévia 3D, presença com aparência, voz e chamadas por sala ou bolha, estações reconectadas. Como está montado, como testar e o que ficou pendente: <code>docs/CONTINUAR-REFACTOR.md</code>.</div>
+  <p class="muted">Os pontos 3 e 5 dependem só do 2 e podem andar em paralelo. A presença (4) espera os dois porque transmite posição no mapa novo e aparência no formato novo.</p>
+
+  <h2 id="limpeza">Ponto 1: limpeza do motor</h2>
+  <p>Critério: sai tudo o que existe só para desenhar o mundo 2D ou para produzir a arte dele. Fica tudo o que é social, de conta ou de estação. Os pontos 2 a 5 reconstroem o que for necessário, sem copiar código antigo.</p>
+
+  <div class="duas">
+    <div class="caixa sai">
+      <h3>Sai</h3>
+      <ul>
+        <li><strong>Render:</strong> <code>src/game/pixi/</code> (cena, avatar, minimapa) e a dependência <code>pixi.js</code></li>
+        <li><strong>Arte 2D:</strong> <code>src/game/furniture/</code> inteira (tilemaps Kenney/Tiny Town e outros, índices JSON de cerca de 40 mil linhas, superfícies, sprites e máscaras do avatar)</li>
+        <li><strong>Recoloração e sprites:</strong> <code>recolorir.ts</code>, <code>recolorir.core.ts</code>, <code>shadeHelper.ts</code>, <code>escala-avatar.ts</code>, <code>gestos.ts</code></li>
+        <li><strong>Formato de mapa 2D:</strong> <code>maps.ts</code> (<code>MapDef</code> por tiles)</li>
+        <li><strong>Páginas de arte:</strong> <code>EditorPage</code>, <code>TilesPage</code>, <code>AvataresPage</code>, <code>MascarasPage</code></li>
+        <li><strong>Componentes de arte:</strong> <code>CatalogoTiles</code>, <code>TileThumb</code>, <code>PreviaMascara</code>, <code>TelaMascara</code>, <code>PixelAvatar</code>, <code>AvatarVista</code>, <code>MapaExpandido</code>, <code>PainelObjeto</code></li>
+        <li><strong>Serviços:</strong> <code>tiles.api</code>, <code>mascaras.*</code>, <code>avatares.api</code>, <code>avatar.escolha</code>, <code>maps.api</code>, <code>world.api</code></li>
+        <li><strong>API:</strong> módulos <code>tile</code>, <code>mascara</code> e <code>avatar</code>; <code>map/vila.ts</code> e <code>map/cidade.ts</code> (mapas gerados); módulo <code>world</code></li>
+        <li><strong>Scripts:</strong> todos os <code>scripts/gen-*</code>, <code>aplica-*</code>, <code>prova-*</code>, <code>asset-forge.py</code>, <code>gera-mascaras-avatar.py</code>, <code>backfill-avatares.mjs</code>, <code>consolida-indice.py</code>, <code>valida-proporcoes.py</code></li>
+        <li><strong>Docs:</strong> planos que descrevem o motor velho (<code>PLANO-arte-2.5d</code>, <code>PLANO-editor-melhorias</code>, <code>PLANO-camera-e-estilo</code>, <code>AUDITORIA-SVG</code>…)</li>
+        <li><strong>Configuração:</strong> o <code>assetsInlineLimit: 0</code> do Vite, que existe só por causa do loader do Pixi</li>
+      </ul>
+    </div>
+    <div class="caixa fica">
+      <h3>Fica</h3>
+      <ul>
+        <li><strong>Conta:</strong> <code>auth</code>, <code>user</code> e sudo, incluindo o OAuth pronto</li>
+        <li><strong>Discord:</strong> <code>server</code> (organizações e convites), <code>dm</code>, <code>friend</code>, <code>ServerSidebar</code>, <code>DmSidebar</code>, <code>FriendsPanel</code></li>
+        <li><strong>Tempo real:</strong> o gateway <code>presence</code> (sessão única, chat, salas trancadas, hora do mundo), que é adaptado no ponto 4</li>
+        <li><strong>Mídia:</strong> <code>media</code>, LiveKit e <code>MediaStage</code>; <code>audio/calls.ts</code>, com <code>espacial.ts</code> reescrito no ponto 4</li>
+        <li><strong>Estações:</strong> <code>jukebox</code>, <code>note</code>, <code>task</code> e <code>feedback</code>, com seus painéis</li>
+        <li><strong>Shell:</strong> Landing, Login, Register, onboarding, <code>AdminPanel</code>, <code>PanelShell</code>, <code>Toast</code> e os tokens de design</li>
+        <li><strong>Personagem:</strong> o módulo <code>character</code> fica, mas as colunas mudam no ponto 5</li>
+        <li><strong>Mapa:</strong> o módulo <code>map</code> e a tabela <code>game_maps</code> ficam com escopo por organização e dono, e o formato de <code>objects</code> muda no ponto 3</li>
+      </ul>
+    </div>
+  </div>
+
+  <h3>O caso do <code>GamePage.vue</code></h3>
+  <p>São 2.532 linhas que misturam o laço do Pixi com HUD, chat, mídia, jukebox e painéis. A limpeza não tenta salvar esse arquivo: ele é substituído por uma página fina que monta o canvas do Babylon e os painéis Vue em volta. O que for HUD de verdade (chat, lista de online, controles de mídia) sai como componente próprio antes da remoção.</p>
+
+  <h3>"Sem vestígio" também vale para o banco</h3>
+  <div class="callout risco">
+    <strong>Apagar a entity não apaga a tabela.</strong>
+    Como a API roda com <code>synchronize: true</code>, tirar <code>Avatar</code>, <code>MascaraRevisao</code> e <code>TileRevisao</code> do código deixa as tabelas órfãs no Postgres. A coluna <code>characters.avatarId</code> ainda tem FK <code>RESTRICT</code> para <code>avatars</code>. A limpeza precisa de uma migration explícita que derrube essas tabelas e colunas. É uma boa hora para sair do <code>synchronize</code> e passar para migrations, um débito que já está no <code>PENDENTE.md</code>.
+  </div>
+
+  <h3>Ordem de execução do ponto 1</h3>
+  <ol>
+    <li>Extrair do <code>GamePage</code> os pedaços de HUD que ficam (chat, online, mídia) como componentes.</li>
+    <li>Apagar front: páginas, componentes, <code>src/game/</code> (menos <code>audio/calls.ts</code>), serviços e rotas.</li>
+    <li>Apagar API: módulos <code>tile</code>, <code>mascara</code>, <code>avatar</code> e <code>world</code>, mais os mapas gerados; esvaziar o seed.</li>
+    <li>Migration: derrubar tabelas e colunas mortas e limpar <code>game_maps</code>.</li>
+    <li>Apagar scripts, docs mortos e dependências; <code>npm prune</code>.</li>
+    <li>Gate: typecheck, lint e build dos dois lados verdes; <code>grep</code> por <code>pixi</code>, <code>tile</code>, <code>mascara</code> e <code>sprite</code> sem resultado; o jogo abre num estado vazio (login, organização, painéis) sem mundo.</li>
+  </ol>
+
+  <h2 id="icarus">O que herdamos do Icarus Journey</h2>
+  <p>O Icarus já resolveu, em Babylon.js 9, os problemas que o Kairos vai ter. Herdamos o processo, não o código do jogo.</p>
+  <div class="tabela-wrap">
+  <table class="tabela">
+    <thead><tr><th>Prática</th><th>No Icarus</th><th>No Kairos</th></tr></thead>
+    <tbody>
+      <tr><td>Arte como código</td><td>Cada modelo nasce de <code>arte/&lt;nome&gt;.py</code> rodando no Blender headless. O GLB nunca é editado à mão.</td><td>Mobília e peças de roupa geradas por script, regeradas por um <code>gerar.sh</code>.</td></tr>
+      <tr><td>Contrato de esqueleto</td><td><code>heroiBase.py</code> fixa nomes de ossos e animações, e um teste falha se um herói sair do contrato.</td><td>Um corpo base com ossos-âncora por slot (cabeça → chapéu, pés → sapato…) e animações <code>parado</code>, <code>andar</code>, <code>sentar</code>, <code>acenar</code> e <code>dancar</code>.</td></tr>
+      <tr><td>Peças que escondem ossos</td><td>O guarda-roupa esconde <code>adorno</code> ou <code>capa</code> quando uma peça ocupa o lugar.</td><td>É a base da personalização: o chapéu esconde o cabelo de cima, a bota esconde o pé.</td></tr>
+      <tr><td>Cor por material</td><td>Materiais por nome e tint aplicado no jogo.</td><td>Pele, cabelo e roupa como materiais nomeados, com a cor escolhida aplicada em tempo de execução, sem um GLB por cor.</td></tr>
+      <tr><td>Câmera ortográfica</td><td><code>FreeCamera</code> em modo <code>ORTHOGRAPHIC_CAMERA</code>, isométrica.</td><td>Ponto de partida para a leitura "Gather": vista de cima com profundidade. O ângulo exato é uma decisão em aberto.</td></tr>
+      <tr><td>Instâncias</td><td><code>instantiateModelsToScene</code> e thin instances para cenário repetido.</td><td>Cadeiras, mesas e plantas do escritório.</td></tr>
+      <tr><td>Peso dos assets</td><td><code>gltf-transform weld + quantize</code>, <code>.gz</code> no build e service worker.</td><td>O mesmo pipeline, desde o primeiro modelo.</td></tr>
+      <tr><td>Imports enxutos</td><td>Só <code>@babylonjs/core</code> e <code>loaders</code>, por caminho (tree-shaking).</td><td>Igual. E o Babylon só carrega na rota do jogo, nunca na landing.</td></tr>
+    </tbody>
+  </table>
+  </div>
+
+  <h2 id="esboco">Esboço dos pontos seguintes</h2>
+  <p class="muted">Cada ponto vira uma seção completa quando chegar a vez dele. Por enquanto fica só a direção.</p>
+
+  <h3>2 · Base Babylon.js</h3>
+  <ul>
+    <li>Uma classe <code>Mundo</code> em <code>src/mundo/</code> que o Vue só cria, alimenta e destrói. Os eventos sobem para o Vue (pessoa perto de uma estação, mudou de sala) e nunca o contrário.</li>
+    <li>Movimento em espaço contínuo sobre uma grade lógica de colisão. A grade simplifica salas, portas e rota, e o avatar desliza suave por cima.</li>
+    <li>Carregar o Babylon por <code>import()</code> só na rota do jogo.</li>
+  </ul>
+
+  <h3>3 · Escritório fixo</h3>
+  <ul>
+    <li>Formato de mapa novo: dimensão, salas (retângulos com nome e porta), paredes derivadas das salas e uma lista de mobília <code>{ peca, x, z, giro }</code>.</li>
+    <li>O escritório é a primeira instância desse formato, salva em <code>game_maps</code>. O editor do ponto 6 escreve o mesmo formato.</li>
+    <li>Ambientes sugeridos: recepção, área aberta com mesas, sala de reunião, copa e sala de foco.</li>
+  </ul>
+
+  <h3>5 · Personagem modular</h3>
+  <ul>
+    <li>Slots: <code>cabelo</code>, <code>chapeu</code>, <code>rosto</code> (óculos, barba), <code>cima</code>, <code>baixo</code>, <code>sapato</code> e <code>acessorio</code>, mais as cores de pele, cabelo e cada peça.</li>
+    <li>A aparência é um JSON versionado em <code>characters</code>, que substitui as colunas soltas <code>hairStyle</code>, <code>topColor</code> e afins. O mesmo JSON trafega no <code>avatarUpdate</code>.</li>
+    <li>Um catálogo de peças em dados (id, slot, GLB, ossos que esconde, materiais tingíveis). Adicionar roupa nova é rodar um script e acrescentar uma linha.</li>
+    <li>Editor com prévia 3D girando, sorteio e presets.</li>
+  </ul>
+
+  <h2 id="decisoes">Decisões</h2>
+  <div class="callout"><strong>Aprovadas em 19/10/2026.</strong> O Icaro aprovou as seis recomendações abaixo como estão.</div>
+  <ol class="perguntas">
+    <li><strong>Estilo visual (antes do 2):</strong> low poly 3D chapado como no Icarus, ou 3D com cara de pixel art (render em baixa resolução com pixelização)?<span class="rec">Decidido: low poly chapado. É o que o pipeline do Icarus já domina, e a pixelização pode entrar depois como pós-processo, sem refazer a arte.</span></li>
+    <li><strong>Câmera (antes do 2):</strong> isométrica como no Icarus, ou quase de cima (top-down inclinada), mais próxima do Gather?<span class="rec">Decidido: ortográfica inclinada por volta de 55°, sem girar. Lê como Gather e ainda mostra o volume de mesas e personagens.</span></li>
+    <li><strong>Migration × synchronize (antes do 1):</strong> aproveitar a limpeza para desligar o <code>synchronize</code>?<span class="rec">Decidido: sim. A limpeza já exige uma migration manual, e começar o banco novo sem o risco do <code>synchronize</code> sai mais barato agora.</span></li>
+    <li><strong>Produção durante o refactor (antes do 1):</strong> o site no ar continua na <code>main</code> com o motor velho até a <code>main-refactor</code> estar pronta?<span class="rec">Decidido: sim. Deploy da branch só num ambiente de teste (por exemplo <code>/kairos-lab</code>), com banco separado, porque a migration derruba tabelas.</span></li>
+    <li><strong>Mapas existentes (antes do 1):</strong> os mundos criados por organizações no formato de tiles somem?<span class="rec">Decidido: sim, já que o formato é incompatível. Como o mundo fica fixo no escritório até o ponto 6, toda organização passa a ver o mesmo escritório.</span></li>
+    <li><strong>Movimento (antes do 2):</strong> passo por casa da grade (como o Gather) ou livre com colisão?<span class="rec">Decidido: livre com colisão contra a grade. Fica mais suave em 3D, e a grade continua servindo para salas e para a edição.</span></li>
+  </ol>
+
+  <footer>
+    Fonte deste documento: <code>kairos-ui/public/docs/refactor/index.html</code>. Ele é servido pelo próprio jogo e versionado junto com o código. O estado da sessão e as respostas pendentes ficam em <code>docs/CONTINUAR-REFACTOR.md</code>.
+  </footer>
+</main>
+</body>
+</html>
