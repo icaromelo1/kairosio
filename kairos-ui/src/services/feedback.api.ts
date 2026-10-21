@@ -2,6 +2,7 @@
 import { apiFetch } from './http'
 
 const API_URL = import.meta.env.VITE_API_URL || window.location.origin
+const API_PREFIX = import.meta.env.VITE_API_PREFIX || '/kairos-api'
 
 export type FeedbackKind = 'bug' | 'melhoria'
 export type FeedbackStatus = 'aberto' | 'em_andamento' | 'resolvido' | 'recusado'
@@ -38,7 +39,7 @@ export async function createFeedback(data: NewFeedback): Promise<Feedback> {
 }
 
 export async function fetchFeedback(): Promise<Feedback[]> {
-  const res = await fetch(`${API_URL}/kairos-api/feedback`)
+  const res = await fetch(`${API_URL}${API_PREFIX}/feedback`)
   if (!res.ok) throw new Error(`Falha ao carregar feedback (${res.status})`)
   return res.json()
 }

@@ -1,0 +1,87 @@
+name: Deploy do staging
+
+on:
+  push:
+    branches: [main-refactor]
+  workflow_dispatch: {}
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  kairos-ui:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kairos-ui
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: kairos-ui/package-lock.json
+
+      - run: npm ci --legacy-peer-deps
+      - run: npx vite build --base=/lab/kairos/
+        env:
+          VITE_API_PREFIX: /lab/kairos-api
+
+      - name: Empacotar
+        run: tar -czf ../staging-ui.tar.gz -C dist .
+
+      - name: Enviar
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: staging-ui.tar.gz
+          target: /home/ubuntu/
+
+      - name: Publicar
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            mkdir -p ~/projects/lab/sites/kairos
+            rm -rf ~/projects/lab/sites/kairos/*
+            tar -xzf ~/staging-ui.tar.gz -C ~/projects/lab/sites/kairos/
+            rm ~/staging-ui.tar.gz
+            docker exec lab nginx -s reload
+
+  kairos-api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: kairos-api
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Empacotar
+        run: tar -czf ../staging-api.tar.gz --exclude=node_modules --exclude=dist --exclude=music-cache --exclude=avatar-cache .
+
+      - name: Enviar
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          source: staging-api.tar.gz
+          target: /home/ubuntu/
+
+      - name: Publicar
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            rm -rf ~/projects/kairos-stg/app/src
+            tar -xzf ~/staging-api.tar.gz -C ~/projects/kairos-stg/app/
+            rm ~/staging-api.tar.gz
+            cd ~/projects/kairos-stg && docker compose up -d --build
