@@ -2,7 +2,8 @@ import { ref, watch } from 'vue'
 import { onJukeboxVolumeTodos, type JukeboxState } from './presence'
 
 const API_URL = import.meta.env.VITE_API_URL || window.location.origin
-const STREAM_BASE = `${API_URL}/kairos-api/jukebox/stream`
+const API_PREFIX = import.meta.env.VITE_API_PREFIX || '/kairos-api'
+const STREAM_BASE = `${API_URL}${API_PREFIX}/jukebox/stream`
 
 // volume pessoal (0-1), independente por jogador — multiplica o volume calculado
 // por proximidade/sala antes de aplicar no <audio>. Persiste entre sessões.

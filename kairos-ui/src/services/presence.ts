@@ -117,7 +117,8 @@ interface JoinOptions {
 
 // API publicada atrás do Traefik com stripprefix /kairos-api → socket.io vê /socket.io
 const API_URL = import.meta.env.VITE_API_URL || window.location.origin
-const SOCKET_PATH = '/kairos-api/socket.io'
+const API_PREFIX = import.meta.env.VITE_API_PREFIX || '/kairos-api'
+const SOCKET_PATH = `${API_PREFIX}/socket.io`
 
 // Move emitido no máximo a ~12Hz e só quando a posição muda
 const MOVE_INTERVAL = 80

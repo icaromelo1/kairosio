@@ -3,6 +3,7 @@
 import { useAuthStore } from '@/stores/useAuthStore'
 
 const API_URL = import.meta.env.VITE_API_URL || window.location.origin
+const API_PREFIX = import.meta.env.VITE_API_PREFIX || '/kairos-api'
 
 export async function apiFetch(path: string, opts: RequestInit = {}): Promise<Response> {
   const auth = useAuthStore()
@@ -11,7 +12,7 @@ export async function apiFetch(path: string, opts: RequestInit = {}): Promise<Re
   // FormData (upload de arquivo) não pode ter Content-Type manual — o browser
   // define o boundary do multipart sozinho; setar "application/json" quebraria o upload.
   if (opts.body && !(opts.body instanceof FormData) && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
-  const res = await fetch(`${API_URL}/kairos-api${path}`, { ...opts, headers })
+  const res = await fetch(`${API_URL}${API_PREFIX}${path}`, { ...opts, headers })
   if (res.status === 401 && auth.token) encerrarSessaoRejeitada()
   return res
 }
